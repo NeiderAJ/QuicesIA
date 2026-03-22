@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+<meta charset="UTF-8">
+<title>Simulación Intercepción de Misiles</title>
+
+<style>
+
+body{
+font-family:sans-serif;
+background:#f0f2f5;
+margin:0;
+padding:20px;
+color:#333;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+background:white;
+padding:30px;
+border-radius:15px;
+box-shadow:0 4px 6px rgba(0,0,0,0.1);
+}
+
+h1{
+color:#1e40af;
+border-bottom:2px solid #1e40af;
+padding-bottom:10px;
+}
+
+h2{
+color:#1e40af;
+margin-top:40px;
+}
+
+canvas{
+background:#f9fafb;
+border:2px solid #374151;
+border-radius:10px;
+width:100%;
+}
+
+.controls{
+display:grid;
+grid-template-columns:1fr 1fr auto;
+gap:15px;
+background:#e5e7eb;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+}
+
+.label{
+font-weight:bold;
+font-size:12px;
+}
+
+.btn{
+background:#dc2626;
+color:white;
+border:none;
+padding:10px 20px;
+border-radius:5px;
+cursor:pointer;
+font-weight:bold;
+}
+
+#status{
+margin-top:10px;
+font-family:monospace;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Simulación de Intercepción de Misiles</h1>
+
+<p>Curso Física Mecánica – Simulación inspirada en el sistema Iron Dome.</p>
+
+
+<h2>1. Enunciado del problema</h2>
+
+<p>
+Un radar detecta un misil enemigo en vuelo y determina su posición inicial,
+su velocidad inicial y la dirección de su movimiento. El misil enemigo se mueve
+bajo la acción de la gravedad terrestre, por lo que su trayectoria corresponde
+a un movimiento parabólico.
+</p>
+
+<p>
+El sistema de defensa debe lanzar un misil interceptor con las condiciones
+iniciales adecuadas para destruir el objetivo antes de que impacte el suelo.
+</p>
+
+
+
+<h2>2. Solución algebraica</h2>
+
+<p>El movimiento de un proyectil bajo gravedad puede describirse mediante:</p>
+
+<p>\( x(t) = x_0 + v_0 \cos(\theta) t \)</p>
+
+<p>\( y(t) = y_0 + v_0 \sin(\theta)t - \frac{1}{2}gt^2 \)</p>
+
+<p>
+donde \(g\) es la aceleración de la gravedad.
+</p>
+
+<p>
+Si el misil defensor requiere propulsores adicionales se introduce
+una aceleración adicional:
+</p>
+
+<p>\( y(t) = y_0 + v_0 \sin(\theta)t - \frac{1}{2}(g-a)t^2 \)</p>
+
+
+
+<h2>3. Análisis teórico</h2>
+
+<p>
+Aunque el problema se plantea en tres dimensiones, la trayectoria de un
+proyectil siempre se encuentra contenida en un plano. Por esta razón es posible
+reducir el análisis a dos dimensiones.
+</p>
+
+<p>
+La intercepción ocurre cuando ambos proyectiles coinciden en posición en un
+mismo instante de tiempo o cuando la distancia entre ellos es suficientemente
+pequeña.
+</p>
+
+
+
+<h2>4. Planteamiento de la simulación</h2>
+
+<p>
+Para analizar el problema se desarrolló una simulación utilizando JavaScript y
+el elemento canvas de HTML.
+</p>
+
+<p>
+La posición inicial, velocidad y dirección del misil enemigo se generan
+mediante números aleatorios dentro de rangos razonables.
+</p>
+
+
+
+<h2>5. Simulación interactiva</h2>
+
+<div class="controls">
+
+<div>
+<span class="label">Velocidad Defensor: <span id="vTxt">250</span></span>
+<input type="range" id="vDef" min="100" max="500" value="250"
+style="width:100%"
+oninput="vTxt.innerText=this.value">
+</div>
+
+<div>
+<span class="label">Ángulo: <span id="aTxt">45</span></span>
+<input type="range" id="angDef" min="10" max="85" value="45"
+style="width:100%"
+oninput="aTxt.innerText=this.value">
+</div>
+
+<button class="btn" onclick="lanzar()">INICIAR</button>
+
+</div>
+
+<canvas id="canvas" width="800" height="400"></canvas>
+
+<p id="status">Sistema listo</p>
+
+
+
+<h2>6. Relación con el sistema Iron Dome</h2>
+
+<p>
+El sistema Iron Dome es un sistema real de defensa antimisiles diseñado para
+interceptar proyectiles de corto alcance antes de que impacten zonas
+pobladas.
+</p>
+
+<p>
+El sistema utiliza radares para detectar misiles entrantes y calcular sus
+trayectorias. Cuando el sistema determina que el proyectil representa una
+amenaza, lanza un misil interceptor para destruirlo en el aire.
+</p>
+
+
+
+<h2>7. Conclusiones</h2>
+
+<p>
+La simulación desarrollada permite visualizar de manera dinámica el problema
+de la intercepción de proyectiles utilizando los principios de la física
+mecánica.
+</p>
+
+<p>
+Se observa que el éxito de la intercepción depende de la velocidad inicial,
+del ángulo de lanzamiento y del momento en el cual se detecta el misil enemigo.
+</p>
+
+
+
+<h2>8. Bibliografía</h2>
+
+<p>Serway, R. A. Física para ciencias e ingeniería.</p>
+
+<p>Tipler, P. Física para la ciencia y la tecnología.</p>
+
+<p>Documentación HTML Canvas – Mozilla Developer Network.</p>
+
+</div>
+
+
+
+<script>
+
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+const status=document.getElementById("status");
+
+let enemigo;
+let defensor;
+let trayectoriaE=[];
+let trayectoriaD=[];
+let anim;
+
+function lanzar(){
+
+cancelAnimationFrame(anim);
+
+trayectoriaE=[];
+trayectoriaD=[];
+
+enemigo={
+x:750,
+y:Math.random()*150+50,
+vx:-(Math.random()*3+2),
+vy:Math.random()*2-1
+};
+
+const v=parseFloat(vDef.value)/40;
+const ang=parseFloat(angDef.value)*Math.PI/180;
+
+const esBajo=enemigo.y>250;
+
+defensor={
+x:50,
+y:380,
+vx:Math.cos(ang)*v,
+vy:-Math.sin(ang)*v,
+ay:esBajo?-0.15:0.05
+};
+
+status.innerText="Simulación en ejecución";
+
+animar();
+
+}
+
+function animar(){
+
+ctx.fillStyle="#f9fafb";
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+const g=0.05;
+
+enemigo.x+=enemigo.vx;
+enemigo.vy+=g;
+enemigo.y+=enemigo.vy;
+
+defensor.x+=defensor.vx;
+defensor.vy+=(g+defensor.ay);
+defensor.y+=defensor.vy;
+
+trayectoriaE.push({x:enemigo.x,y:enemigo.y});
+trayectoriaD.push({x:defensor.x,y:defensor.y});
+
+dibujarTrayectoria(trayectoriaE,"red");
+dibujarTrayectoria(trayectoriaD,"blue");
+
+ctx.fillStyle="red";
+ctx.beginPath();
+ctx.arc(enemigo.x,enemigo.y,6,0,Math.PI*2);
+ctx.fill();
+
+ctx.fillStyle="blue";
+ctx.beginPath();
+ctx.arc(defensor.x,defensor.y,6,0,Math.PI*2);
+ctx.fill();
+
+let dx=enemigo.x-defensor.x;
+let dy=enemigo.y-defensor.y;
+
+let dist=Math.sqrt(dx*dx+dy*dy);
+
+if(dist<25){
+
+status.innerText="INTERCEPCIÓN EXITOSA";
+
+ctx.fillStyle="orange";
+ctx.beginPath();
+ctx.arc(enemigo.x,enemigo.y,30,0,Math.PI*2);
+ctx.fill();
+
+return;
+
+}
+
+if(enemigo.y<400 && enemigo.x>0){
+
+anim=requestAnimationFrame(animar);
+
+}else{
+
+status.innerText="OBJETIVO PERDIDO";
+
+}
+
+}
+
+function dibujarTrayectoria(lista,color){
+
+if(lista.length<2) return;
+
+ctx.strokeStyle=color;
+ctx.beginPath();
+
+ctx.moveTo(lista[0].x,lista[0].y);
+
+for(let i=1;i<lista.length;i++){
+
+ctx.lineTo(lista[i].x,lista[i].y);
+
+}
+
+ctx.stroke();
+
+}
+
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+</body>
+</html>

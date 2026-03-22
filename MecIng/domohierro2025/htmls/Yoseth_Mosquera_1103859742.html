@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Intercepción de misiles — Simulación (Tabs)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --accent:#1d4ed8; --accent-2:#3b82f6; --muted:#94a3b8;
+    --ok:#34C759; --warn:#f59e0b; --err:#ef4444; --info:#3b82f6;
+    --card-bg:#ffffff;
+  }
+  /* Layout / cards */
+  body{background:linear-gradient(180deg,#05071a 0%, #071028 60%); color:#0f172a}
+  .card{background:var(--card-bg); border-radius:12px; box-shadow:0 8px 30px rgba(2,6,23,0.32); position:relative; z-index:0;}
+  .hdr-grad{ background:linear-gradient(90deg,var(--accent),var(--accent-2)); -webkit-background-clip:text; background-clip:text; color:transparent; font-weight:800 }
+  .muted{ color:var(--muted) }
+
+  /* Helpers */
+  .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+  .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-weight:600; background:#eef2f7; border:1px solid #cbd5e1; padding:.05rem .35rem; border-radius:4px }
+
+  /* -------- SIM WRAP -------- */
+  .sim-wrap{
+    position:relative; width:100%; max-width:100%;
+    aspect-ratio:16/9; border-radius:12px; overflow:hidden;
+    box-shadow:0 12px 40px rgba(2,6,23,.35);
+    isolation:isolate; background:radial-gradient(160px 160px at 20% 20%, rgba(255,255,255,.06), transparent 60%);
+    z-index:0;
+  }
+  #bgcv,#cv{position:absolute; inset:0; width:100%; height:100%; display:block;}
+  #bgcv{z-index:0} #cv{z-index:1}
+
+  /* HUD / overlays */
+  .hud{ position:absolute; left:10px; top:10px; z-index:2; pointer-events:none;
+        background:rgba(255,255,255,.6); backdrop-filter: blur(6px);
+        border:1px solid #cbd5e1; border-radius:8px; padding:.25rem .5rem; font-size:.75rem; color:#0f172a; }
+  .hint{ position:absolute; right:10px; bottom:10px; z-index:2; pointer-events:none;
+         background:rgba(0,0,0,.35); color:#fff; border-radius:8px; padding:.3rem .5rem; font-size:.7rem; }
+
+  /* -------- Tabs -------- */
+  #tabsWrap{ position:relative; z-index:5; }
+  .tabs { display:flex; gap:0.5rem; padding:6px; border-radius:12px; flex-wrap:wrap }
+  .tab{ position:relative; padding:.6rem .9rem; border-radius:10px; cursor:pointer;
+        font-weight:600; color:#0f172a; user-select:none;
+        transition:transform .12s ease, box-shadow .15s ease, background .12s ease, color .12s ease;
+        background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,247,250,0.98));
+        box-shadow:0 2px 0 rgba(2,6,23,.05) inset; }
+  .tab:hover{ transform:translateY(-3px); box-shadow:0 10px 30px rgba(2,6,23,0.12) }
+  .tab[aria-selected="true"]{ background: linear-gradient(90deg,var(--accent),var(--accent-2)); color:white; box-shadow:0 14px 40px rgba(59,130,246,0.18) }
+  .tab:focus{ outline: 3px solid rgba(59,130,246,0.18); outline-offset: 3px; }
+  .tabs-underline{ height:3px; background:linear-gradient(90deg,var(--accent),var(--accent-2)); border-radius:999px; transition: transform .25s cubic-bezier(.2,.9,.2,1), width .25s; }
+  .ripple{ position:absolute; pointer-events:none; border-radius:999px; transform:translate(-50%,-50%) scale(0); opacity:.6; transition: transform .5s ease, opacity .6s ease; }
+  .tab:active .ripple{ transform:translate(-50%,-50%) scale(2.6); opacity:0; transition: transform .45s ease, opacity .45s ease; }
+
+  .tabpanel{ display:none; animation:fadeIn .28s ease both; }
+  .tabpanel.active{ display:block; }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
+
+  /* -------- Buttons -------- */
+  .btn{
+    position:relative; overflow:hidden; border-radius:10px;
+    padding:.6rem .9rem; font-weight:700; letter-spacing:.01em;
+    transition:transform .12s ease, filter .12s ease, box-shadow .2s ease; will-change:transform;
+  }
+  .btn:focus{ outline:3px solid rgba(59,130,246,.25); outline-offset:2px }
+  .btn:active{ transform:translateY(1px) scale(.99) }
+  .btn--primary{ background:linear-gradient(90deg, #1e40af, #3b82f6); color:#fff; box-shadow:0 12px 30px rgba(59,130,246,.25); }
+  .btn--primary:hover{ filter:brightness(1.06) }
+  .btn--ghost{ background:linear-gradient(180deg,#f3f4f6,#e5e7eb); color:#111827; box-shadow:0 10px 24px rgba(2,6,23,.08) }
+  .btn::after{ content:""; position:absolute; left:var(--rx,50%); top:var(--ry,50%); width:10px; height:10px; border-radius:999px; pointer-events:none; background:rgba(255,255,255,.35); transform:translate(-50%,-50%) scale(0); opacity:0; transition:transform .45s ease, opacity .6s ease; }
+  .btn:active::after{ transform:translate(-50%,-50%) scale(3); opacity:1 }
+
+  /* Chip toggles */
+  .chip{ display:inline-flex; align-items:center; gap:.4rem; border-radius:999px; padding:.3rem .6rem; background:rgba(255,255,255,.65); border:1px solid #e5e7eb; font-size:.8rem }
+  .chip b{ font-weight:700 }
+
+  /* Range / sliders */
+  input[type="range"]{ width:100%; height:6px; border-radius:999px; background:linear-gradient(90deg, #dbeafe, #e5e7eb); outline:none; appearance:none; accent-color:var(--accent-2); }
+  input[type="range"]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:999px; background:linear-gradient(180deg,#ffffff,#e5e7eb); box-shadow:0 4px 12px rgba(2,6,23,.2), inset 0 1px 0 rgba(255,255,255,.8); cursor:pointer; border:1px solid #cbd5e1; }
+  input[type="range"]::-moz-range-thumb{ width:18px; height:18px; border:none; border-radius:999px; background:#fff; box-shadow:0 4px 12px rgba(2,6,23,.2) }
+
+  /* iOS toggles */
+  label:has(#useBoost), label:has(#autoDef){ position:relative; padding-left:68px; cursor:pointer; user-select:none; line-height:1.6; }
+  #useBoost,#autoDef{ position:absolute; left:0; top:50%; transform:translateY(-50%); width:52px; height:28px; margin:0; opacity:0; cursor:pointer; }
+  label:has(#useBoost)::before, label:has(#autoDef)::before{ content:""; position:absolute; left:0; top:50%; transform:translateY(-50%); width:52px; height:28px; border-radius:999px; background:#E9E9EB; box-shadow:inset 0 1px 2px rgba(0,0,0,.12); transition:background .25s ease, box-shadow .25s ease; }
+  label:has(#useBoost)::after, label:has(#autoDef)::after{ content:""; position:absolute; left:3px; top:50%; transform:translateY(-50%); width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.85); transition:left .25s cubic-bezier(.2,.9,.2,1), box-shadow .25s ease; }
+  label:has(#useBoost:checked)::before, label:has(#autoDef:checked)::before{ background:#34C759; box-shadow:inset 0 0 0 1px rgba(0,0,0,.06), 0 0 0 4px rgba(52,199,89,.12); }
+  label:has(#useBoost:checked)::after, label:has(#autoDef:checked)::after{ left:27px }
+  #useBoost:focus-visible,#autoDef:focus-visible{ outline:none }
+  label:has(#useBoost:focus-visible),label:has(#autoDef:focus-visible){ outline:3px solid rgba(52,199,89,.35); outline-offset:3px; border-radius:8px; }
+  label[aria-disabled="true"]{ opacity:.55; filter:grayscale(.1) }
+
+  /* KPIs / callouts */
+  .kpis{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; }
+  .kpi{ background:linear-gradient(180deg,#f8fafc, #eef2f7); border:1px solid #e5e7eb; border-radius:10px; padding:.75rem; box-shadow:0 8px 24px rgba(2,6,23,.06); }
+  .kpi-title{ font-size:.75rem; color:#6b7280; letter-spacing:.02em }
+  .kpi-value{ font-weight:800; font-size:1.4rem; margin-top:.25rem }
+  .kpi-sub{ font-size:.7rem; color:#6b7280 }
+
+  .callout{ border-radius:10px; padding:.75rem .85rem; border-left:4px solid; background:rgba(255,255,255,.55); box-shadow:0 8px 24px rgba(2,6,23,.05) }
+  .callout.info{ border-left-color:var(--info); }
+  .callout.warn{ border-left-color:var(--warn); }
+  .callout.ok  { border-left-color:var(--ok); }
+  .callout .title{ font-weight:700 }
+
+  /* Reveal on scroll */
+  .reveal{ opacity:0; transform:translateY(10px); transition:opacity .5s ease, transform .5s ease; }
+  .reveal.in{ opacity:1; transform:none }
+
+  /* Simulación: pulso de éxito y sacudida */
+  .sim-pulse{ animation: ringPulse .7s ease-out; }
+  @keyframes ringPulse{ 0%{ box-shadow:0 0 0 0 rgba(52,199,89,.55);} 100%{ box-shadow:0 0 0 22px rgba(52,199,89,0);} }
+
+  /* LOG */
+  #log{ font-family:'Courier New', monospace; line-height:1.4; background:linear-gradient(135deg,#f8fafc 0%, #e2e8f0 100%); border:1px solid #cbd5e1; }
+  .ts{ color:#64748b; font-size:.85em; font-weight:600 }
+  #log > div{ padding:6px 8px; margin:2px 0; border-radius:4px; border-left:3px solid transparent; transition:all .15s ease }
+  #log > div:hover{ background-color:rgba(255,255,255,.5); transform:translateX(2px) }
+  .ok{ color:#059669; font-weight:600 } .err{ color:#dc2626; font-weight:600 } .warn{ color:#d97706; font-weight:600 }
+  #log > div:has(.ok){ background-color:rgba(16,185,129,.08); border-left-color:#10b981; box-shadow:0 1px 3px rgba(16,185,129,.1) }
+  #log > div:has(.err){ background-color:rgba(239,68,68,.08); border-left-color:#ef4444; box-shadow:0 1px 3px rgba(239,68,68,.1) }
+  #log > div:has(.warn){ background-color:rgba(245,158,11,.08); border-left-color:#f59e0b; box-shadow:0 1px 3px rgba(245,158,11,.1) }
+  #log > div:not(:has(.ok)):not(:has(.err)):not(:has(.warn)){ background-color:rgba(59,130,246,.05); border-left-color:#3b82f6 }
+  #log b{ color:#1e293b; background-color:rgba(255,255,255,.6); padding:1px 4px; border-radius:3px; font-weight:700 }
+  #log > div:has(.ok)::before{ content:"✅ "; margin-right:4px } #log > div:has(.err)::before{ content:"❌ "; margin-right:4px } #log > div:has(.warn)::before{ content:"⚠️ "; margin-right:4px }
+  @keyframes slideInLog{ from{opacity:0; transform:translateX(-10px)} to{opacity:1; transform:translateX(0)} }
+  #log > div:last-child{ animation: slideInLog .3s ease-out }
+  #log::-webkit-scrollbar{ width:6px } #log::-webkit-scrollbar-track{ background:#f1f5f9; border-radius:3px }
+  #log::-webkit-scrollbar-thumb{ background:#cbd5e1; border-radius:3px } #log::-webkit-scrollbar-thumb:hover{ background:#94a3b8 }
+</style>
+</head>
+<body class="antialiased">
+
+<div class="max-w-7xl mx-auto p-6">
+
+  <!-- Header -->
+  <header class="flex items-center gap-4 mb-6 reveal">
+    <img src="https://raw.githubusercontent.com/yosethm/Colisiones-Fisica-Mecanica-/main/Escudo-UdeA.svg.png" alt="UdeA" class="h-14 w-auto rounded-md shadow-sm bg-white p-1">
+    <div>
+      <h1 class="text-3xl md:text-4xl hdr-grad">Intercepción de misiles — Simulación</h1>
+      <p class="text-sm muted mt-1">Misil defensor. Sistema 2D bajo gravedad, con opción de propulsor vertical.</p>
+    </div>
+  </header>
+
+  <!-- Tabs + Content -->
+  <div class="card p-4 mb-6 reveal">
+    <div class="flex flex-col md:flex-row gap-6">
+      <div class="md:w-2/5">
+        <!-- Tabs -->
+        <div id="tabsWrap" class="mb-4">
+          <div class="tabs" role="tablist" aria-label="Contenido">
+            <button class="tab" role="tab" aria-selected="true" id="tab-overview" data-target="panel-overview">Resumen
+              <span class="ripple" style="left:50%; top:50%; width:0; height:0; background:rgba(255,255,255,0.25)"></span>
+            </button>
+            <button class="tab" role="tab" aria-selected="false" id="tab-intro" data-target="panel-intro">Introducción
+              <span class="ripple" style="left:50%; top:50%; width:0; height:0; background:rgba(0,0,0,0.08)"></span>
+            </button>
+            <button class="tab" role="tab" aria-selected="false" id="tab-enunciado" data-target="panel-enunciado">Enunciado</button>
+            <button class="tab" role="tab" aria-selected="false" id="tab-solucion" data-target="panel-solucion">Solución</button>
+            <button class="tab" role="tab" aria-selected="false" id="tab-analisis" data-target="panel-analisis">Análisis</button>
+            <button class="tab" role="tab" aria-selected="false" id="tab-sim" data-target="panel-sim">Planteamiento (Simulación)</button>
+            <button class="tab" role="tab" aria-selected="false" id="tab-plane" data-target="panel-plane">Planteamiento 3D→2D</button>
+            <button class="tab" role="tab" aria-selected="false" id="tab-iron" data-target="panel-iron">Domo de Hierro</button>
+            <button class="tab" role="tab" aria-selected="false" id="tab-conclusiones" data-target="panel-conclusiones">Conclusiones</button>
+            <button class="tab" role="tab" aria-selected="false" id="tab-biblio" data-target="panel-biblio">Bibliografía</button>
+          </div>
+          <div id="underline" class="tabs-underline mt-2" style="width:0; transform:translateX(0)"></div>
+        </div>
+
+        <!-- Panels -->
+        <div>
+          <!-- RESUMEN -->
+          <div id="panel-overview" class="tabpanel active p-4 bg-white/30 rounded-lg">
+            <h3 class="text-lg font-semibold">Panel de control</h3>
+            <p class="mt-2 muted">Métricas rápidas de la corrida actual. Se actualizan en cada recalculo.</p>
+
+            <div class="kpis mt-3">
+              <div class="kpi">
+                <div class="kpi-title">Estado</div>
+                <div class="kpi-value" id="kpiIntercept">—</div>
+                <div class="kpi-sub" id="kpiDist">tolerancia ≤ 4 m</div>
+              </div>
+              <div class="kpi">
+                <div class="kpi-title">Tiempo de intercepción (t*)</div>
+                <div class="kpi-value"><span id="kpiTStar">—</span> <span class="text-xs muted">s</span></div>
+                <div class="kpi-sub" id="kpiWindow">—</div>
+              </div>
+              <div class="kpi">
+                <div class="kpi-title">Posición de impacto</div>
+                <div class="kpi-value" id="kpiPos">—</div>
+                <div class="kpi-sub">coordenadas en m</div>
+              </div>
+            </div>
+
+            <div class="callout info mt-3">
+              <div class="title">Tips rápidos</div>
+              <ul class="list-disc pl-5 text-sm mt-1">
+                <li>Si la detección del enemigo es <b>baja</b> (y₀,e pequeño), activa el <b>propulsor</b> del defensor.</li>
+                <li>Usa <b>Auto‑defensa</b> para que el sistema busque una solución factible.</li>
+                <li>Los sliders admiten teclas ↑ y ↓ para ajustes finos.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- INTRODUCCIÓN -->
+          <div id="panel-intro" class="tabpanel p-4 bg-white/30 rounded-lg">
+            <h3 class="text-lg font-semibold">Cómo usar la simulación</h3>
+            <ol class="list-decimal pl-5 mt-2 space-y-1">
+              <li>Ajusta los parámetros del <span class="kbd">enemigo</span> y del <span class="kbd">defensor</span>.</li>
+              <li>Activa <span class="kbd">Auto‑defensa</span> para que calcule v₀, θ y a_b (si procede).</li>
+              <li>Observa las trayectorias (rojo/azul) y el estado en “Intercepción”.</li>
+            </ol>
+            <div class="grid grid-cols-1 gap-3 mt-3">
+              <div class="callout ok">
+                <div class="title">Atajos útiles</div>
+                <ul class="list-disc pl-5 text-sm mt-1">
+                  <li><b>A</b> → alterna Auto‑defensa</li>
+                  <li><b>B</b> → alterna Propulsor</li>
+                  <li><b>R</b> → Reset</li>
+                  <li><b>Ctrl+click</b> en el canvas → apuntar θ_d hacia el cursor</li>
+                  <li><b>Shift+arrastrar</b> en el canvas → regla de medición</li>
+                </ul>
+              </div>
+              <div class="callout warn">
+                <div class="title">Recuerda</div>
+                <p class="text-sm mt-1">Esto es un modelo didáctico sin rozamiento. Para comparar con casos reales harían falta correcciones aerodinámicas y control vectorial.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ENUNCIADO -->
+          <div id="panel-enunciado" class="tabpanel p-4 bg-white/30 rounded-lg">
+            <h3 class="text-lg font-semibold">Enunciado</h3>
+            <p class="mt-2">Dado un misil enemigo con estado inicial \((x₀,e, y₀,e, v₀,e, θ_e)\), se desea lanzar un defensor \((x₀,d, y₀,d, v₀,d, θ_d)\) con opción de aceleración vertical constante <b>a_b</b> para interceptarlo bajo \(g=9.81\) m/s².</p>
+            <ul class="list-disc pl-5 mt-2 text-sm">
+              <li>Sin rozamiento; gravedad uniforme.</li>
+              <li>Partículas puntuales; orientación solo visual.</li>
+              <li>Intercepción si \(||r_e(t)-r_d(t)|| ≤ 4\) m.</li>
+            </ul>
+          </div>
+
+          <!-- SOLUCIÓN -->
+          <div id="panel-solucion" class="tabpanel p-4 bg-white/30 rounded-lg">
+            <h3 class="text-lg font-semibold">Modelo cinemático</h3>
+            <pre class="mt-2 p-3 bg-white/40 rounded text-sm mono">x(t)=x₀+v₀ cosθ · t
+y(t)=y₀+v₀ sinθ · t − ½ g t²
+y_d(t)=y₀,d + v₀,d sinθ_d · t + ½ (a_b − g) t²</pre>
+            <div class="callout info mt-3">
+              <div class="title">Búsqueda numérica</div>
+              <p class="text-sm mt-1">Se discretiza el tiempo con Δt y se detecta intersección por distancia. Para auto‑defensa se hace un barrido en v₀, θ y a_b dentro de rangos realistas.</p>
+            </div>
+            <p class="text-sm mt-3">Condición de intercepción: \(\lVert \mathbf r_e(t)-\mathbf r_d(t)\rVert \le 4\,\text{m}\). Se busca \(t^*\) por barrido temporal con \(\Delta t=0.02\,\text{s}\).</p>
+          </div>
+
+          <!-- ANÁLISIS -->
+          <div id="panel-analisis" class="tabpanel p-4 bg-white/30 rounded-lg">
+            <h3 class="text-lg font-semibold">Reglas rápidas</h3>
+            <ul class="list-disc pl-5 mt-2 space-y-1">
+              <li>Mayor \(θ_d\) → más tiempo de vuelo, menos alcance.</li>
+              <li>Incrementar \(v₀,d\) desplaza la curva hacia delante sin cambiar su cóncavidad.</li>
+              <li>Con <b>a_b</b> se compensa \(g\): si \(a_b ≈ g\), el tramo ascendente dura más.</li>
+            </ul>
+            <div class="callout ok mt-3">
+              <div class="title">Sugerencia</div>
+              <p class="text-sm mt-1">Cuando no hay intercepción, mira la separación mínima reportada en “Conclusiones dinámicas” para decidir si subir/bajar \(v₀,d\) o barrer ±5° en \(θ_d\).</p>
+            </div>
+          </div>
+
+          <!-- PLANTEAMIENTO (SIMULACIÓN) -->
+          <div id="panel-sim" class="tabpanel p-4 bg-white/30 rounded-lg">
+            <h3 class="text-lg font-semibold">Planteamiento de la simulación</h3>
+            <ul class="list-disc pl-5 mt-2 text-sm space-y-1">
+              <li><b>Modelo:</b> proyectil enemigo 2D bajo gravedad; defensor 2D con gravedad y opción de propulsor vertical constante \(a_b\).</li>
+              <li><b>Discretización temporal:</b> \(\Delta t=0.02\) s, ventana máxima \(T_{\max}=60\) s.</li>
+              <li><b>Aleatoriedad (🎲 Aleatorizar):</b> genera \(x₀,e\in[200,800]\) m, \(y₀,e\in[0,600]\) m, \(v₀,e\in[100,400]\) m/s y \(θ_e\in[15°,75°]\); además define un azimut aleatorio para los cosenos directores y lo refleja en la pestaña 3D→2D.</li>
+              <li><b>Auto‑defensa:</b> barrido en \(v₀,d\in[80,600]\) m/s, \(θ_d\in[5°,85°]\) y \(a_b\in[0,30]\) m/s² (si detección baja), parando en la primera solución con distancia ≤ 4 m.</li>
+              <li><b>Interfaz:</b> sliders, atajos e interacción directa en el canvas (arrastrar, medir, apuntar con Ctrl+click); selector de velocidad 1×/2× y captura PNG.</li>
+            </ul>
+          </div>
+
+          <!-- PLANTEAMIENTO 3D→2D -->
+          <div id="panel-plane" class="tabpanel p-4 bg-white/30 rounded-lg">
+            <h3 class="text-lg font-semibold">Reducción 3D → 2D (cosenos directores)</h3>
+            <p class="mt-2 text-sm">La trayectoria real ocurre en el plano generado por \(\vec v_0\) y \(\vec g\). Proyectamos sobre el eje horizontal del plano (<i>û</i>) y el vertical \(ŷ\).</p>
+            <ul class="list-disc pl-5 mt-2 text-sm">
+              <li><b>\(\vec r_0\) (3D):</b> (<span id="r0x3D">—</span>, <span id="r0y3D">—</span>, <span id="r0z3D">—</span>) m</li>
+              <li><b>Cosenos directores \((l,m,n)\):</b> (<span id="cosL">—</span>, <span id="cosM">—</span>, <span id="cosN">—</span>)</li>
+              <li><b>Reducción al plano 2D:</b> \(x'_0\)=<span id="x0e2D">—</span> m, \(y'_0\)=<span id="y0e2D">—</span> m, \(θ'_e\)=<span id="the2D">—</span>°</li>
+            </ul>
+            <p class="mt-2 text-xs muted">Notas: \(θ'_e=\operatorname{atan2}(m,\sqrt{l^2+n^2})\). El eje horizontal del plano es \(\hat u=(\frac{l}{\sqrt{l^2+n^2}},\frac{n}{\sqrt{l^2+n^2}})\) sobre el plano x‑z.</p>
+          </div>
+
+          <!-- DOMO DE HIERRO -->
+          <div id="panel-iron" class="tabpanel p-4 bg-white/30 rounded-lg">
+            <h3 class="text-lg font-semibold">Relación con el sistema “Domo de Hierro”</h3>
+            <p class="mt-2 text-sm">La demo reproduce la lógica conceptual: detección inicial, predicción de trayectoria y lanzamiento de un interceptor dentro de una ventana temporal. A diferencia de un sistema real, aquí no modelamos aerodinámica, viento, sensores, fusión de datos ni control de vuelo; el enfoque es didáctico para cinemática básica.</p>
+          </div>
+
+          <!-- CONCLUSIONES -->
+          <div id="panel-conclusiones" class="tabpanel p-4 bg-white/30 rounded-lg">
+            <h3 class="text-lg font-semibold">Conclusiones</h3>
+            <ul class="list-disc pl-5 mt-2 text-sm space-y-1">
+              <li>La condición de intercepción fija una tolerancia espacial; el tiempo óptimo \(t^*\) depende con alta sensibilidad de \(θ_d\) y \(v₀,d\).</li>
+              <li>Con detección baja (y₀,e pequeño), un <b>a_b</b> moderado amplía la ventana de intercepción; en detección alta suele bastar el tiro parabólico clásico.</li>
+              <li>El trazado 3D→2D facilita el análisis sin perder generalidad en proyectiles balísticos.</li>
+              <li>La búsqueda numérica simple es suficiente para un entorno docente e interactivo.</li>
+            </ul>
+          </div>
+
+          <!-- BIBLIOGRAFÍA -->
+          <div id="panel-biblio" class="tabpanel p-4 bg-white/30 rounded-lg">
+            <h3 class="text-lg font-semibold">Bibliografía</h3>
+            <ul class="list-disc pl-5 mt-2 text-sm space-y-1">
+              <li>Universidad de Antioquia, <i>Quiz – Simulación computacional de intercepción de misiles</i>, Medellín, septiembre 2025.</li>
+              <li>Serway &amp; Jewett, <i>Física para ciencias e ingeniería</i>, cinemática de proyectiles.</li>
+              <li>Tipler &amp; Mosca, <i>Física</i>, tiro parabólico y componentes.</li>
+              <li>Apuntes de curso UdeA: “Reducción 3D→2D en tiro parabólico”.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right side: simulation -->
+      <div class="md:w-3/5 space-y-4">
+        <div class="card p-4 reveal">
+          <div class="flex justify-between items-center gap-3 mb-2">
+            <div class="flex gap-2">
+              <button id="btnRandomEnemy" class="btn btn--primary" data-ripple>🎲 Aleatorizar</button>
+              <button id="btnReset" class="btn btn--ghost" data-ripple>🔄 Reset</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="chip"><b>Escenario</b>
+                <select id="scenarioSel" class="bg-white/70 border border-slate-200 rounded px-2 py-1 text-sm">
+                  <option value="default">— Elegir —</option>
+                  <option value="high">Detección alta</option>
+                  <option value="low">Detección baja</option>
+                  <option value="fast">Cruce rápido</option>
+                  <option value="steep">Alto oblicuo</option>
+                </select>
+              </label>
+              <label class="chip"><b>Arrastrar</b>
+                <select id="dragMode" class="bg-white/70 border border-slate-200 rounded px-2 py-1 text-sm">
+                  <option value="none">Ninguno</option>
+                  <option value="enemy">Enemigo</option>
+                  <option value="defender">Defensor</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="flex justify-center relative">
+            <div class="sim-wrap" id="simWrap">
+              <canvas id="bgcv"></canvas>
+              <canvas id="cv"></canvas>
+              <div id="hud" class="hud">x: — m · y: — m</div>
+              <div class="hint">Ctrl+click: apuntar θ_d • Shift+arrastrar: medir</div>
+            </div>
+          </div>
+
+          <!-- Playback mínimo + utilidades -->
+          <div class="mt-3 flex flex-wrap items-center gap-2">
+            <label class="chip"><b>Velocidad</b>
+              <select id="speedSel" class="bg-white/70 border border-slate-200 rounded px-2 py-1 text-sm">
+                <option value="1" selected>1×</option>
+                <option value="2">2×</option>
+              </select>
+            </label>
+            <div class="ml-auto flex gap-2">
+              <button id="btnCapture" class="btn btn--ghost" title="Guardar PNG" data-ripple>📸 Captura</button>
+            </div>
+          </div>
+
+          <!-- Estado breve -->
+          <div class="mt-3 grid grid-cols-2 gap-3">
+            <div class="p-3 bg-gray-50 rounded">
+              <div class="text-xs muted">Intercepción</div>
+              <div id="intercept" class="font-semibold">—</div>
+              <div class="text-xs muted mt-1">t* = <span id="tStar">—</span> • pos = <span id="pStar">—</span></div>
+            </div>
+            <div class="p-3 bg-gray-50 rounded">
+              <div class="text-xs muted">Auto‑defensa</div>
+              <label class="inline-flex items-center gap-2 mt-2">
+                <input id="autoDef" type="checkbox" class="rounded" />
+                <span class="text-sm">Auto calcular defensa</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="card p-4 reveal">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h4 class="font-semibold">Enemigo</h4>
+              <label class="block mt-2 text-sm">x₀,e (m) <span id="x0eVal" class="font-medium ml-1"></span>
+                <input id="x0e" type="range" min="0" max="1000" step="5" />
+              </label>
+              <label class="block mt-2 text-sm">y₀,e (m) <span id="y0eVal" class="font-medium ml-1"></span>
+                <input id="y0e" type="range" min="0" max="800" step="5" />
+              </label>
+              <label class="block mt-2 text-sm">v₀,e (m/s) <span id="v0eVal" class="font-medium ml-1"></span>
+                <input id="v0e" type="range" min="100" max="400" step="5" />
+              </label>
+              <label class="block mt-2 text-sm">θ_e (°) <span id="theVal" class="font-medium ml-1"></span>
+                <input id="the" type="range" min="15" max="75" step="1" />
+              </label>
+            </div>
+
+            <div>
+              <h4 class="font-semibold">Defensor</h4>
+              <label class="block mt-2 text-sm">v₀,d (m/s) <span id="v0dVal" class="font-medium ml-1"></span>
+                <input id="v0d" type="range" min="50" max="800" step="5" />
+              </label>
+              <label class="block mt-2 text-sm">θ_d (°) <span id="thdVal" class="font-medium ml-1"></span>
+                <input id="thd" type="range" min="0" max="85" step="1" />
+              </label>
+              <label class="flex items-center gap-2 mt-3">
+                <input id="useBoost" type="checkbox" />
+                <span class="text-sm">Usar propulsor</span>
+              </label>
+              <label id="abLabel" class="block mt-2 text-sm">a_b (m/s²) <span id="abVal" class="font-medium ml-1"></span>
+                <input id="ab" type="range" min="0" max="40" step="1" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Log -->
+        <div class="card p-4 reveal">
+          <h4 class="font-semibold mb-2">Eventos & Log</h4>
+          <div id="log" class="p-3 rounded text-sm" style="height:180px; overflow:auto;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conclusiones -->
+  <div class="card p-4 reveal">
+    <h4 class="font-semibold">Conclusiones dinámicas</h4>
+    <div id="concluDynamic" class="mt-3 text-sm muted">Ajusta los parámetros y ejecuta la simulación para ver conclusiones aquí.</div>
+  </div>
+</div>
+
+<!-- ===================== JS ===================== -->
+<script>
+/* ---------- Parámetros y estado ---------- */
+const g = 9.81; let dt = 0.02; let TMAX = 60.0;
+let enemy = { x0: 400, y0: 300, v0: 250, theta: 45 * Math.PI/180 };
+let defender = { x0: 0, y0: 0, v0: 300, theta: 40 * Math.PI/180, boost: 0, useBoost: false };
+const highThreshold = 150;
+const ANIMATED = true;
+
+/* Estado 3D para mostrar en pestaña 3D→2D (no altera la dinámica 2D) */
+let enemy3D = {
+  r0: { x: 400, y: 300, z: 0 },
+  v: 250,
+  dir: { l: Math.cos(45*Math.PI/180), m: Math.sin(45*Math.PI/180), n: 0 },
+  az: 0
+};
+
+/* Imágenes */
+const missileImg = new Image();
+missileImg.crossOrigin = "anonymous";
+missileImg.src = "https://raw.githubusercontent.com/yosethm/Colisiones-Fisica-Mecanica-/main/misil-removebg-preview.png";
+const bgNebula = new Image();
+bgNebula.crossOrigin = "anonymous";
+bgNebula.src = "https://raw.githubusercontent.com/yosethm/Colisiones-Fisica-Mecanica-/main/spaceback.webp";
+
+/* ---------- DOM ---------- */
+const qs = s => document.querySelector(s);
+const tabs = Array.from(document.querySelectorAll('.tab'));
+const underline = qs('#underline');
+
+const x0e = qs('#x0e'), y0e = qs('#y0e'), v0e = qs('#v0e'), the = qs('#the');
+const v0d = qs('#v0d'), thd = qs('#thd'), useBoost = qs('#useBoost'), ab = qs('#ab'), autoDef = qs('#autoDef');
+
+const x0eVal=qs('#x0eVal'), y0eVal=qs('#y0eVal'), v0eVal=qs('#v0eVal'), theVal=qs('#theVal');
+const v0dVal=qs('#v0dVal'), thdVal=qs('#thdVal'), abVal=qs('#abVal');
+const abLabel = qs('#abLabel');
+
+const interceptEl = qs('#intercept'), tStar = qs('#tStar'), pStar = qs('#pStar');
+const kpiIntercept = qs('#kpiIntercept'), kpiTStar = qs('#kpiTStar'), kpiPos = qs('#kpiPos'), kpiWindow = qs('#kpiWindow');
+
+const btnRandomEnemy = qs('#btnRandomEnemy'), btnReset = qs('#btnReset');
+const scenarioSel = qs('#scenarioSel'); const dragModeSel = qs('#dragMode');
+
+const simWrap = qs('#simWrap'); const hud = qs('#hud');
+const cv = qs('#cv'), ctx = cv.getContext('2d');
+const bgcv = qs('#bgcv'), bgctx = bgcv.getContext('2d');
+const logEl = qs('#log'); const concluBox = qs('#concluDynamic');
+
+const speedSel = qs('#speedSel'); const btnCapture = qs('#btnCapture');
+
+/* ---------- Utils ---------- */
+function now(){ const d=new Date(), z=n=>String(n).padStart(2,'0'); return `${z(d.getHours())}:${z(d.getMinutes())}:${z(d.getSeconds())}`; }
+function log(msg, cls=""){ const line=document.createElement('div'); const ts=document.createElement('span'); ts.textContent=`[${now()}] `; ts.className="ts";
+  const text=document.createElement('span'); text.innerHTML=msg; text.className=cls; line.appendChild(ts); line.appendChild(text);
+  logEl.appendChild(line); logEl.scrollTop = logEl.scrollHeight; }
+function clearLog(){ logEl.innerHTML = "" }
+function rad(d){ return d*Math.PI/180 } function deg(r){ return r*180/Math.PI }
+function azimuthRandom(){ return Math.random()*Math.PI*2 }
+function fmt(n, d=2){ return Number(n).toFixed(d); }
+
+/* KPIs animation */
+function animateNumber(el, to, decimals=0, dur=450){
+  if(!el) return;
+  const from = Number(el.dataset.val||0);
+  const start = performance.now();
+  function step(t){
+    const p = Math.min(1,(t-start)/dur);
+    const v = from + (to-from)*p;
+    el.textContent = v.toFixed(decimals);
+    if(p<1) requestAnimationFrame(step); else el.dataset.val = String(to);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ---------- Labels / Sync ---------- */
+function updateLabels(){
+  x0eVal.textContent=Math.round(enemy.x0); y0eVal.textContent=Math.round(enemy.y0);
+  v0eVal.textContent=Math.round(enemy.v0); theVal.textContent=Math.round(deg(enemy.theta));
+  v0dVal.textContent=Math.round(defender.v0); thdVal.textContent=Math.round(deg(defender.theta));
+  abVal.textContent=Math.round(defender.boost);
+}
+function updateBoostUI(){
+  const enabled = useBoost.checked;
+  ab.disabled = !enabled;
+  abLabel.setAttribute('aria-disabled', String(!enabled));
+}
+function syncFromInputs(){
+  enemy.x0=+x0e.value; enemy.y0=+y0e.value; enemy.v0=+v0e.value; enemy.theta=rad(+the.value);
+  defender.v0=+v0d.value; defender.theta=rad(+thd.value); defender.useBoost = useBoost.checked; defender.boost=+ab.value;
+  updateLabels(); updateBoostUI();
+}
+function syncInputs(){
+  x0e.value=enemy.x0; y0e.value=enemy.y0; v0e.value=enemy.v0; the.value=Math.round(deg(enemy.theta));
+  v0d.value=defender.v0; thd.value=Math.round(deg(defender.theta)); useBoost.checked=defender.useBoost; ab.value=defender.boost;
+  updateLabels(); updateBoostUI();
+}
+
+/* ---------- 3D ↔ 2D (solo UI informativa) ---------- */
+function compute2DFrom3D(){
+  const { l, m, n } = enemy3D.dir;
+  const hnorm = Math.max(1e-9, Math.hypot(l, n));
+  const uhx = l/hnorm, uhz = n/hnorm;
+  const x02D = enemy3D.r0.x*uhx + enemy3D.r0.z*uhz;
+  const y02D = enemy3D.r0.y;
+  const theta2D = Math.atan2(m, hnorm);
+  return { x0: x02D, y0: y02D, v0: enemy3D.v, theta: theta2D };
+}
+function update3DFrom2D(az=null){
+  if(typeof az === 'number') enemy3D.az = az;
+  const elev = enemy.theta;
+  const cosE = Math.cos(elev), sinE = Math.sin(elev);
+  const cosA = Math.cos(enemy3D.az), sinA = Math.sin(enemy3D.az);
+  enemy3D.dir = { l: cosE*cosA, m: sinE, n: cosE*sinA };
+  const uhx = cosA, uhz = sinA;
+  enemy3D.r0 = { x: enemy.x0*uhx, y: enemy.y0, z: enemy.x0*uhz };
+  enemy3D.v = enemy.v0;
+}
+function update3DLabelsSafe(){
+  const set = (sel, val) => { const el = qs(sel); if(el) el.textContent = val; };
+  const twoD = compute2DFrom3D();
+  set('#r0x3D', enemy3D.r0.x.toFixed(1));
+  set('#r0y3D', enemy3D.r0.y.toFixed(1));
+  set('#r0z3D', enemy3D.r0.z.toFixed(1));
+  set('#cosL', enemy3D.dir.l.toFixed(3));
+  set('#cosM', enemy3D.dir.m.toFixed(3));
+  set('#cosN', enemy3D.dir.n.toFixed(3));
+  set('#x0e2D', (twoD.x0).toFixed(1));
+  set('#y0e2D', (twoD.y0).toFixed(1));
+  set('#the2D', Math.round(deg(twoD.theta)));
+}
+
+/* ---------- Trayectorias ---------- */
+function trajectory(x0,y0,v0,theta,boost=0){
+  const pts=[]; let t=0;
+  while(t<=TMAX){
+    const x = x0 + v0*Math.cos(theta)*t;
+    const y = y0 + v0*Math.sin(theta)*t + 0.5*(boost - g)*t*t;
+    pts.push({t,x,y});
+    if(y < 0) break;
+    t += dt;
+  }
+  return pts;
+}
+function findIntercept(ptsE, ptsD, tol=4.0){
+  const n = Math.min(ptsE.length, ptsD.length);
+  for(let i=0;i<n;i++){
+    const a = ptsE[i], b = ptsD[i];
+    const dx = a.x - b.x, dy = a.y - b.y;
+    if(Math.hypot(dx,dy) <= tol && a.y >= 0 && b.y >= 0) return { t: a.t, x: a.x, y: a.y, dist: Math.hypot(dx,dy) };
+  }
+  return null;
+}
+
+/* ---------- Dibujo/animación ---------- */
+const ROT_OFFSET = Math.PI/2;
+function worldToCanvas(x,y,scale,W,H){ return { px: 40 + x*scale, py: (H-20) - y*scale }; }
+function canvasToWorld(px,py,scale,W,H){ return { x: Math.max(0,(px-40)/scale), y: Math.max(0,(H-20 - py)/scale) }; }
+function angleCanvas(vx, vy){ return Math.atan2(-vy, vx) + ROT_OFFSET; }
+
+function drawMissileIconAt(ctx, x, y, vx, vy, img, scale, W, H, size = 36){
+  if(!img || !img.complete) return;
+  const { px, py } = worldToCanvas(x,y,scale,W,H);
+  const ang = angleCanvas(vx, vy);
+  ctx.save(); ctx.translate(px, py); ctx.rotate(ang);
+  ctx.shadowColor = 'rgba(255,255,255,.25)'; ctx.shadowBlur = 8;
+  ctx.drawImage(img, -size/2, -size/2, size, size);
+  ctx.restore();
+}
+
+function missileSizeByAngleAndSpeed(vx, vy, sizeMin=28, sizeMax=46){
+  const angle = Math.abs(Math.atan2(vy, vx));
+  const nAng = Math.min(1, angle/(Math.PI/2));
+  const speed = Math.hypot(vx, vy);
+  const nVel = Math.min(1, speed/400);
+  const kVel = 0.25;
+  const base = sizeMin + nAng*(sizeMax - sizeMin);
+  return base * (1 + kVel*(nVel - 0.5));
+}
+
+/* Fondo espacial */
+const starLayers = [{count:80,speed:6,size:[0.6,1.2]},{count:60,speed:14,size:[1.0,1.8]},{count:40,speed:28,size:[1.6,2.6]}];
+let stars = [];
+function rand(a,b){ return a + Math.random()*(b-a); }
+function initStars(){ const W=bgcv.width, H=bgcv.height; stars = []; starLayers.forEach((L,idx)=>{ for(let i=0;i<L.count;i++){
+  stars.push({ x: Math.random()*W, y: Math.random()*H, z: idx, r: rand(L.size[0], L.size[1]), spd: L.speed*(0.7+Math.random()*0.6), phase: Math.random()*Math.PI*2 }); } }); }
+let comet = { x:-100, y:-100, vx:0, vy:0, life:0 };
+function maybeSpawnComet(){ if(comet.life>0) return; if(Math.random() < 0.004){ const W=bgcv.width, H=bgcv.height;
+  if(Math.random()<0.5){ comet.x=-50; comet.y=rand(40,H*0.6); comet.vx=rand(120,180); comet.vy=rand(-20,40); }
+  else { comet.x=rand(40,W*0.6); comet.y=-50; comet.vx=rand(60,120); comet.vy=rand(60,120); }
+  comet.life = 2.5; } }
+
+let lastBgTs = 0;
+function animateSpaceBg(ts){
+  if(!lastBgTs) lastBgTs = ts;
+  const dtS = (ts - lastBgTs)/1000; lastBgTs = ts;
+  const W = bgcv.width, H = bgcv.height;
+
+  if(bgNebula.complete){
+    const iw = bgNebula.naturalWidth||bgNebula.width, ih = bgNebula.naturalHeight||bgNebula.height;
+    const s = Math.max(W/iw, H/ih), w = iw*s, h = ih*s, x = (W-w)/2, y = (H-h)/2;
+    bgctx.globalAlpha = 1; bgctx.drawImage(bgNebula, x, y, w, h);
+  } else {
+    const grd = bgctx.createLinearGradient(0,0,W,H); grd.addColorStop(0,'#030518'); grd.addColorStop(1,'#071028');
+    bgctx.fillStyle = grd; bgctx.fillRect(0,0,W,H);
+  }
+
+  stars.forEach(s=>{
+    s.x += s.spd * dtS * 0.6;
+    if(s.x > W+5) { s.x = -5; s.y = rand(0,H); }
+    const tw = 0.7 + 0.3*Math.sin(s.phase + ts*0.002*(1+s.z));
+    bgctx.fillStyle = `rgba(255,255,255,${tw})`;
+    bgctx.beginPath(); bgctx.arc(s.x, s.y, s.r, 0, Math.PI*2); bgctx.fill();
+    if(s.z === 2){ bgctx.globalAlpha = 0.07; bgctx.beginPath(); bgctx.arc(s.x, s.y, s.r*4, 0, Math.PI*2); bgctx.fill(); bgctx.globalAlpha = 1; }
+  });
+
+  maybeSpawnComet();
+  if(comet.life>0){
+    comet.x += comet.vx * dtS; comet.y += comet.vy * dtS; comet.life -= dtS;
+    bgctx.strokeStyle = "rgba(200,220,255,0.9)"; bgctx.lineWidth = 2;
+    bgctx.beginPath(); bgctx.moveTo(comet.x, comet.y); bgctx.lineTo(comet.x - comet.vx*0.08, comet.y - comet.vy*0.08); bgctx.stroke();
+    bgctx.fillStyle = "rgba(255,255,255,0.9)"; bgctx.beginPath(); bgctx.arc(comet.x, comet.y, 2.2, 0, Math.PI*2); bgctx.fill();
+  }
+
+  requestAnimationFrame(animateSpaceBg);
+}
+
+/* Trails / efectos */
+let ptsE = [], ptsD = [], lastScale = 1, xMaxG = 500, yMaxG = 300;
+let hit = null, boostY = 0;
+const trails = { enemy: [], defender: [] };
+function pushTrail(kind, x,y, vx,vy, color){ const arr = trails[kind]; arr.push({ x,y, life:0.8, r:2.4, color, vx: -vx*0.02, vy: -vy*0.02 }); if(arr.length>140) arr.shift(); }
+function drawTrails(ctx, scale, W,H){ Object.values(trails).forEach(arr=>{ for(let i=0;i<arr.length;i++){ const p=arr[i]; p.life -= 0.016; p.x += p.vx*0.016; p.y += p.vy*0.016; p.r *= 0.995;
+  if(p.life <= 0){ arr.splice(i,1); i--; continue; }
+  const { px, py } = worldToCanvas(p.x, p.y, scale, W, H);
+  ctx.save(); ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(px,py, Math.max(0.5,p.r), 0, Math.PI*2); ctx.fill(); ctx.restore();
+}}); }
+
+let explosion = null;
+function drawExplosion(ctx, scale, W,H, t){
+  if(!explosion) return;
+  const age = t - explosion.t; if(age > 1.2){ explosion = null; return; }
+  const { px, py } = worldToCanvas(explosion.x, explosion.y, scale, W, H);
+  for(let i=0;i<4;i++){ const r = (age*140)*(i+1)/4;
+    ctx.save(); ctx.globalAlpha = Math.max(0, 0.8 - age - i*0.1);
+    ctx.strokeStyle = i%2 ? "rgba(255,200,120,1)" : "rgba(255,255,255,1)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(px,py,r,0,Math.PI*2); ctx.stroke(); ctx.restore();
+  }
+  ctx.save(); ctx.globalAlpha = Math.max(0, 1.0 - age*0.9);
+  const grd = ctx.createRadialGradient(px,py,0, px,py, 18+age*30);
+  grd.addColorStop(0, "rgba(255,240,200,0.95)"); grd.addColorStop(1, "rgba(255,120,30,0)");
+  ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(px,py, 18+age*30,0,Math.PI*2); ctx.fill(); ctx.restore();
+  drawConfetti(ctx, px, py, age);
+}
+
+/* Confetti */
+let confettiArr = [];
+function spawnConfetti(x, y){
+  confettiArr.length = 0;
+  for(let i=0;i<36;i++){
+    const a = Math.random()*Math.PI*2, s = 60 + Math.random()*140;
+    confettiArr.push({ x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s, life: 0.8+Math.random()*0.5, size: 2+Math.random()*3, hue:Math.floor(Math.random()*360) });
+  }
+}
+function drawConfetti(ctx, cx, cy, age){
+  const dt = 0.016;
+  confettiArr.forEach(p=>{
+    p.life -= dt;
+    p.x += p.vx*dt; p.y += p.vy*dt + 30*dt;
+    ctx.save(); ctx.globalAlpha = Math.max(0,p.life);
+    ctx.fillStyle = `hsl(${p.hue} 80% 60%)`;
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+    ctx.restore();
+  });
+  confettiArr = confettiArr.filter(p=>p.life>0);
+}
+
+/* Thrust */
+function drawThrust(ctx, x, y, vx, vy, scale, W, H, c1, c2){
+  const { px, py } = worldToCanvas(x, y, scale, W, H);
+  const v = Math.hypot(vx, vy) || 1;
+  const ux = vx / v, uy = vy / v;
+  const uxC = ux, uyC = -uy;
+  const len = 16 + Math.min(36, v*0.08) * (0.9 + Math.random()*0.2);
+  const halfW = 4;
+  const baseX = px - uxC*10, baseY = py - uyC*10;
+  const tipX = baseX - uxC*len, tipY = baseY - uyC*len;
+  const nx = -uyC, ny = uxC;
+  const lX = baseX + nx*halfW, lY = baseY + ny*halfW;
+  const rX = baseX - nx*halfW, rY = baseY - ny*halfW;
+  const grd = ctx.createLinearGradient(baseX, baseY, tipX, tipY);
+  grd.addColorStop(0, c1); grd.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.save(); ctx.globalAlpha = 0.9; ctx.fillStyle = grd;
+  ctx.beginPath(); ctx.moveTo(lX, lY); ctx.lineTo(tipX, tipY); ctx.lineTo(rX, rY); ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = 0.23; const ang = Math.atan2(tipY - baseY, tipX - baseX);
+  ctx.beginPath(); ctx.ellipse(baseX, baseY, 8, 5, ang, 0, Math.PI*2); ctx.fillStyle = c2; ctx.fill();
+  ctx.restore();
+}
+
+/* pos/vel */
+function posVelEnemy(t){ return { x: enemy.x0 + enemy.v0*Math.cos(enemy.theta)*t,
+                                  y: enemy.y0 + enemy.v0*Math.sin(enemy.theta)*t - 0.5*g*t*t,
+                                  vx: enemy.v0*Math.cos(enemy.theta),
+                                  vy: enemy.v0*Math.sin(enemy.theta) - g*t }; }
+function posVelDef(t){ const a = boostY; return { x: defender.x0 + defender.v0*Math.cos(defender.theta)*t,
+                                  y: defender.y0 + defender.v0*Math.sin(defender.theta)*t + 0.5*(a-g)*t*t,
+                                  vx: defender.v0*Math.cos(defender.theta),
+                                  vy: defender.v0*Math.sin(defender.theta) + (a-g)*t }; }
+
+/* ---------- Control de animación ---------- */
+let flightRAF = null, flightStart = 0, animT = 0, tEnd = 0, playing = false, dashPhase = 0;
+let timeScale = 1.0; let stopAt = 0;
+function startFlight(){ cancelAnimationFrame(flightRAF); flightStart = performance.now(); animT = 0; dashPhase = 0; playing = true; trails.enemy.length = 0; trails.defender.length = 0; explosion = null; confettiArr.length=0; stepFlight(flightStart); }
+function stepFlight(ts){
+  if(!playing) return;
+  animT = (ts - flightStart)/1000 * timeScale;
+  if(animT > stopAt + 1.2){ playing = false; animT = stopAt; drawFrame(animT); return; }
+  drawFrame(Math.min(animT, stopAt));
+  dashPhase += 2;
+  flightRAF = requestAnimationFrame(stepFlight);
+}
+
+/* Overlays de interacción */
+let measuring = false, measureStart = null, measureEnd = null;
+let mouseWorld = {x:0,y:0}; let ctrlHeld = false;
+function drawMeasureOverlay(scale, W, H){
+  if(!measureStart || !measureEnd) return;
+  const a = worldToCanvas(measureStart.x, measureStart.y, scale, W, H);
+  const b = worldToCanvas(measureEnd.x, measureEnd.y, scale, W, H);
+  const d = Math.hypot(measureEnd.x - measureStart.x, measureEnd.y - measureStart.y);
+  ctx.save(); ctx.setLineDash([6,4]); ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(0,0,0,.7)";
+  ctx.beginPath(); ctx.moveTo(a.px, a.py); ctx.lineTo(b.px, b.py); ctx.stroke();
+  ctx.setLineDash([]); ctx.fillStyle = "rgba(255,255,255,.85)";
+  ctx.fillRect(b.px+8, b.py-18, 80, 18); ctx.fillStyle="#0f172a";
+  ctx.font = "12px system-ui,sans-serif"; ctx.fillText(`d = ${d.toFixed(2)} m`, b.px+12, b.py-5);
+  ctx.restore();
+}
+function drawCtrlAimOverlay(scale, W, H){
+  if(!ctrlHeld) return;
+  const base = worldToCanvas(defender.x0, defender.y0, scale, W, H);
+  const m = worldToCanvas(mouseWorld.x, mouseWorld.y, scale, W, H);
+  ctx.save(); ctx.setLineDash([4,4]); ctx.strokeStyle = "rgba(37,99,235,.85)"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(base.px, base.py); ctx.lineTo(m.px, m.py); ctx.stroke(); ctx.restore();
+}
+
+function drawTrajectoryUntil(ctx, pts, color, scale, W, H, t){
+  ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.setLineDash([8,6]); ctx.lineDashOffset = -dashPhase;
+  ctx.beginPath();
+  for(let i=0;i<pts.length;i++){ if(pts[i].t > t) break; const px = 40 + pts[i].x*scale, py = (H-20) - pts[i].y*scale; if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+  ctx.stroke(); ctx.restore();
+}
+function drawFrame(t){
+  const W = cv.width, H = cv.height, scale = lastScale;
+  ctx.clearRect(0,0,W,H);
+  drawAxes(ctx, W, H, scale, Math.max(50, Math.round(xMaxG/50)*50), Math.max(50, Math.round(yMaxG/50)*50));
+  drawTrajectoryUntil(ctx, ptsE, "#e11d48", scale, W, H, t);
+  drawTrajectoryUntil(ctx, ptsD, "#2563eb", scale, W, H, t);
+  const e = posVelEnemy(Math.min(t, ptsE.at(-1)?.t || t));
+  const d = posVelDef(Math.min(t, ptsD.at(-1)?.t || t));
+  pushTrail('enemy', e.x, e.y, e.vx, e.vy, "rgba(255,100,120,0.9)");
+  pushTrail('defender', d.x, d.y, d.vx, d.vy, "rgba(120,170,255,0.9)");
+  drawTrails(ctx, scale, W, H);
+  drawThrust(ctx, e.x, e.y, e.vx, e.vy, scale, W, H, "#ffcf6e", "#ff7a3c");
+  drawThrust(ctx, d.x, d.y, d.vx, d.vy, scale, W, H, "#9ec7ff", "#3aa0ff");
+  const sizeE = missileSizeByAngleAndSpeed(e.vx, e.vy);
+  const sizeD = missileSizeByAngleAndSpeed(d.vx, d.vy);
+  drawMissileIconAt(ctx, e.x, e.y, e.vx, e.vy, missileImg, scale, W, H, sizeE);
+  drawMissileIconAt(ctx, d.x, d.y, d.vx, d.vy, missileImg, scale, W, H, sizeD);
+  if(hit && t >= hit.t && !explosion){ explosion = { x: hit.x, y: hit.y, t: hit.t }; triggerPulse(); screenShake(); const c = worldToCanvas(hit.x, hit.y, scale, W, H); spawnConfetti(c.px, c.py); }
+  drawExplosion(ctx, scale, W, H, t);
+  drawMeasureOverlay(scale, W, H);
+  drawCtrlAimOverlay(scale, W, H);
+}
+
+/* ejes */
+function drawAxes(ctx,W,H,scale,xMax,yMax){
+  ctx.save(); ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0,H-20); ctx.lineTo(W,H-20); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(40,H); ctx.lineTo(40,0); ctx.stroke();
+  ctx.fillStyle = "#cdd5df"; ctx.font = "10px system-ui, sans-serif";
+  const stepX = Math.max(50, Math.round(xMax/10/10)*10);
+  for(let x=0;x<=xMax;x+=stepX){ const px = 40 + x*scale; ctx.beginPath(); ctx.moveTo(px,H-20); ctx.lineTo(px,H-16); ctx.stroke(); ctx.fillText(String(x), px-6, H-4); }
+  const stepY = Math.max(50, Math.round(yMax/10/10)*10);
+  for(let y=0;y<=yMax;y+=stepY){ const py = (H-20) - y*scale; ctx.beginPath(); ctx.moveTo(40,py); ctx.lineTo(44,py); ctx.stroke(); ctx.fillText(String(y), 4, py+3); }
+  ctx.restore();
+}
+
+/* ---------- Conclusiones / KPIs ---------- */
+function minDistance(ptsE, ptsD){
+  const n = Math.min(ptsE.length, ptsD.length); let best = { dist: Infinity, t: 0, xE:0, yE:0, xD:0, yD:0 };
+  for(let i=0;i<n;i++){ const a = ptsE[i], b = ptsD[i], d = Math.hypot(a.x-b.x, a.y-b.y); if(d < best.dist) best = { dist: d, t: a.t, xE:a.x, yE:a.y, xD:b.x, yD:b.y }; }
+  return best;
+}
+function updateConclusionsDetail(hit, ptsE, ptsD){
+  if(!concluBox) return;
+  const tE = ptsE.length ? ptsE[ptsE.length-1].t : 0;
+  const tD = ptsD.length ? ptsD[ptsD.length-1].t : 0;
+  const yMaxE = ptsE.length ? Math.max(...ptsE.map(p=>p.y)) : 0;
+  const yMaxD = ptsD.length ? Math.max(...ptsD.map(p=>p.y)) : 0;
+  const dmin = minDistance(ptsE, ptsD);
+  const recBoost = enemy.y0 <= highThreshold;
+  let html = `<ul class="list-disc pl-6">`;
+  html += `<li><b>Intercepción:</b> ${hit ? 'Sí' : 'No'}.</li>`;
+  if(hit){
+    const windowFrac = (tE>0) ? (hit.t / tE) : 0;
+    html += `<li><b>Tiempo de intercepción:</b> t* = ${hit.t.toFixed(2)} s (${(windowFrac*100).toFixed(0)}% del vuelo enemigo).</li>`;
+    html += `<li><b>Posición:</b> (${hit.x.toFixed(1)}, ${hit.y.toFixed(1)}) m.</li>`;
+  } else {
+    html += `<li><b>Separación mínima:</b> ${dmin.dist.toFixed(2)} m a t = ${dmin.t.toFixed(2)} s.</li>`;
+  }
+  html += `<li><b>Alturas máximas:</b> enemigo ≈ ${yMaxE.toFixed(1)} m; defensor ≈ ${yMaxD.toFixed(1)} m.</li>`;
+  html += `<li><b>Tiempos de vuelo:</b> enemigo ≈ ${tE.toFixed(2)} s; defensor ≈ ${tD.toFixed(2)} s.</li>`;
+  html += `<li><b>Propulsor:</b> ${defender.useBoost ? `activo (a_b = ${defender.boost.toFixed(1)} m/s²)` : 'inactivo'} — ${recBoost ? 'detección baja → recomendable.' : 'detección alta → opcional.'}</li>`;
+  html += `</ul>`;
+  concluBox.innerHTML = html;
+}
+
+/* KPIs del resumen */
+function updateKpis(hit, ptsE){
+  if(hit){
+    kpiIntercept.textContent = "Intercepción ✔";
+    kpiIntercept.style.color = "#059669";
+    animateNumber(kpiTStar, hit.t, 2);
+    kpiPos.textContent = `(${hit.x.toFixed(1)}, ${hit.y.toFixed(1)})`;
+    const tE = ptsE.length ? ptsE[ptsE.length-1].t : 0;
+    const windowFrac = (tE>0) ? (hit.t / tE) : 0;
+    kpiWindow.textContent = `en el ${(windowFrac*100).toFixed(0)}% del vuelo enemigo`;
+  } else {
+    kpiIntercept.textContent = "Sin intercepción";
+    kpiIntercept.style.color = "#dc2626";
+    kpiTStar.textContent = "—"; kpiPos.textContent = "—"; kpiWindow.textContent = "—";
+  }
+}
+
+/* ---------- Recompute & auto-defensa ---------- */
+function setIntercept(h){
+  if(h){ interceptEl.textContent = "Sí (dist ≤ 4 m)"; tStar.textContent = h.t.toFixed(2); pStar.textContent = `(${h.x.toFixed(1)}, ${h.y.toFixed(1)})`; log(`<b>Intercepción</b> en t=${h.t.toFixed(2)} s, pos=(${h.x.toFixed(1)}, ${h.y.toFixed(1)})`, "ok"); }
+  else { interceptEl.textContent="No"; tStar.textContent="—"; pStar.textContent="—"; log(`<span class="err">Sin intercepción</span>`, "err"); }
+}
+function explainRun(ptsE, ptsD, hit, usedBoost){
+  if(enemy.y0<=highThreshold) log(`Detección baja: y₀,e = <b>${enemy.y0.toFixed(1)} m</b>. <span class="warn">Recomendado usar propulsor</span>.`, "warn");
+  else log(`Detección alta: y₀,e = <b>${enemy.y0.toFixed(1)} m</b>.`, "ok");
+  if(usedBoost) log(`Propulsor activo: a_b = <b>${defender.boost.toFixed(1)} m/s²</b>.`, "ok"); else log(`Propulsor desactivado.`,"");
+  if(!hit){ const e = ptsE.at(-1), d = ptsD.at(-1); if(e && e.y<0 && d && d.y<0) log(`Ambos tocaron suelo sin interceptar.`, "err"); }
+}
+
+async function autoDefend(){
+  const allowBoost = (enemy.y0 <= highThreshold);
+  let best = null;
+  const ptsE_local = trajectory(enemy.x0, enemy.y0, enemy.v0, enemy.theta, 0);
+  const vMin=80, vMax=600, vStep=20, thMin=5, thMax=85, thStep=2, aMin=0, aMax=(allowBoost?30:0), aStep=(allowBoost?5:999);
+  outer: for(let a=aMin;a<=aMax;a+=aStep){
+    for(let v=vMin; v<=vMax; v+=vStep){
+      for(let th=thMin; th<=thMax; th+=thStep){
+        const ptsD_try = trajectory(defender.x0, defender.y0, v, rad(th), a);
+        const h = findIntercept(ptsE_local, ptsD_try, 4.0);
+        if(h){ best = { v0: v, theta: rad(th), boost: a, hit: h }; break outer; }
+      }
+    }
+  }
+  if(best){
+    defender.v0 = best.v0; defender.theta = best.theta; defender.boost = best.boost; defender.useBoost = (best.boost > 0);
+    syncInputs(); recompute(true);
+    log(`Autodefensa: v₀,d=<b>${best.v0}</b> m/s, θ_d=<b>${Math.round(deg(best.theta))}°</b>, a_b=<b>${best.boost}</b> m/s².`, "ok");
+  } else { recompute(true); log(`Autodefensa: <span class="warn">sin solución</span> en el rango.`, "warn"); }
+}
+
+function recompute(drawOnly=false){
+  syncFromInputs();
+  update3DFrom2D(null); update3DLabelsSafe();
+
+  ptsE = trajectory(enemy.x0, enemy.y0, enemy.v0, enemy.theta, 0);
+  boostY = defender.useBoost ? defender.boost : 0;
+  ptsD = trajectory(defender.x0, defender.y0, defender.v0, defender.theta, boostY);
+  xMaxG = Math.max(...ptsE.map(p=>p.x), ...ptsD.map(p=>p.x), enemy.x0, defender.x0) + 50;
+  yMaxG = Math.max(...ptsE.map(p=>p.y), ...ptsD.map(p=>p.y), enemy.y0, defender.y0) + 50;
+  const W = cv.width, H = cv.height;
+  const scaleX = (W-60)/Math.max(1, xMaxG), scaleY = (H-40)/Math.max(1, yMaxG);
+  lastScale = Math.min(scaleX, scaleY);
+  hit = findIntercept(ptsE, ptsD, 4.0);
+  setIntercept(hit);
+  updateConclusionsDetail(hit, ptsE, ptsD);
+  updateKpis(hit, ptsE);
+  const tEndE = ptsE.at(-1)?.t||0, tEndD = ptsD.at(-1)?.t||0; tEnd = Math.max(tEndE, tEndD);
+  stopAt = hit ? hit.t : tEnd;
+
+  if(!autoDef.checked || drawOnly) explainRun(ptsE, ptsD, hit, defender.useBoost);
+  if(ANIMATED) startFlight(); else {
+    ctx.clearRect(0,0,W,H);
+    drawAxes(ctx, W, H, lastScale, Math.max(50, Math.round(xMaxG/50)*50), Math.max(50, Math.round(yMaxG/50)*50));
+    drawTrajectory(ctx, ptsE, "#e11d48", lastScale, W, H);
+    drawTrajectory(ctx, ptsD, "#2563eb", lastScale, W, H);
+  }
+}
+
+/* Línea estática */
+function drawTrajectory(ctx, pts, color, scale, W, H){
+  ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath();
+  for(let i=0;i<pts.length;i++){ const px = 40 + pts[i].x*scale, py = (H-20) - pts[i].y*scale; if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+  ctx.stroke(); ctx.restore();
+}
+
+/* ---------- Micro‑interacciones ---------- */
+function triggerPulse(){ simWrap.classList.remove('sim-pulse'); void simWrap.offsetWidth; simWrap.classList.add('sim-pulse'); }
+function screenShake(duration=380, mag=7){
+  const start = performance.now();
+  function frame(t){
+    const p = (t - start)/duration; if(p>=1){ simWrap.style.transform=''; return; }
+    const k = (1-p); const dx = (Math.random()*2-1)*mag*k; const dy = (Math.random()*2-1)*mag*k;
+    simWrap.style.transform = `translate(${dx}px, ${dy}px)`; requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Tabs ---------- */
+function layoutUnderlineTo(el){
+  if(!el){ underline.style.width = '0px'; return; }
+  const rect = el.getBoundingClientRect();
+  const parentRect = el.parentElement.getBoundingClientRect();
+  const left = rect.left - parentRect.left;
+  underline.style.width = `${rect.width}px`;
+  underline.style.transform = `translateX(${left}px)`;
+}
+function selectTab(tabEl){
+  tabs.forEach(t=>{ t.setAttribute('aria-selected','false'); t.classList.remove('active'); });
+  const panels = Array.from(document.querySelectorAll('.tabpanel'));
+  panels.forEach(p=>p.classList.remove('active'));
+  tabEl.setAttribute('aria-selected','true'); tabEl.classList.add('active');
+  const panel = qs('#' + tabEl.dataset.target);
+  if(panel) panel.classList.add('active');
+  layoutUnderlineTo(tabEl);
+}
+tabs.forEach(t=>{
+  t.addEventListener('click', (ev)=>{
+    const r = t.querySelector('.ripple');
+    if(r){
+      const br = t.getBoundingClientRect(); const cx = ev.clientX - br.left; const cy = ev.clientY - br.top;
+      r.style.left = cx + 'px'; r.style.top = cy + 'px'; r.style.width = r.style.height = Math.max(br.width, br.height) + 'px';
+      r.style.transform = 'translate(-50%,-50%) scale(0)'; r.style.opacity = '0.6';
+      requestAnimationFrame(()=>{ r.style.transform = 'translate(-50%,-50%) scale(2.6)'; r.style.opacity = '0'; });
+    }
+    selectTab(t);
+  });
+  t.addEventListener('keydown', e=>{ if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); t.click(); } });
+});
+
+/* ---------- Reveal on scroll ---------- */
+const revEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries)=>{ entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:.12});
+revEls.forEach(el=>io.observe(el));
+
+/* ---------- Ripple en botones ---------- */
+document.querySelectorAll('[data-ripple]').forEach(btn=>{
+  btn.addEventListener('pointerdown', (e)=>{
+    const r = btn.getBoundingClientRect();
+    btn.style.setProperty('--rx', (e.clientX - r.left) + 'px');
+    btn.style.setProperty('--ry', (e.clientY - r.top) + 'px');
+  });
+});
+
+/* ---------- Listeners / init ---------- */
+function onAnyChange(){
+  const prev = JSON.stringify(enemy);
+  syncFromInputs();
+  const curr = JSON.stringify({ x0:enemy.x0, y0:enemy.y0, v0:enemy.v0, theta:enemy.theta });
+  recompute();
+  if(autoDef.checked && prev !== curr){
+    if(window._autodefTimer) clearTimeout(window._autodefTimer);
+    window._autodefTimer = setTimeout(()=>{ clearLog(); log("Disparador: cambio del enemigo. Buscando solución…"); autoDefend(); }, 150);
+  }
+}
+
+/* Aleatorizar: mantiene tu lógica y refleja cosenos 3D */
+btnRandomEnemy.addEventListener('click', ()=>{
+  enemy = { x0: 200 + Math.random()*600, y0: Math.random()*600, v0: 100 + Math.random()*300, theta: rad(15 + Math.random()*60) };
+  const az = azimuthRandom();
+  syncInputs();
+  update3DFrom2D(az); update3DLabelsSafe();
+  clearLog(); log("🎲 Enemigo aleatorizado (2D + cosenos directores 3D).");
+  recompute();
+  if(autoDef.checked){ log("Auto‑defensa: buscando solución…"); autoDefend(); }
+});
+btnReset.addEventListener('click', ()=>{
+  enemy = { x0:400, y0:300, v0:250, theta: rad(45) };
+  defender = { x0:0, y0:0, v0:300, theta: rad(40), boost:0, useBoost:false };
+  syncInputs(); clearLog(); log("🔄 Parámetros reiniciados.");
+  update3DFrom2D(0); update3DLabelsSafe();
+  recompute(true);
+});
+
+x0e.oninput = onAnyChange; y0e.oninput = onAnyChange; v0e.oninput = onAnyChange; the.oninput = onAnyChange;
+v0d.oninput = onAnyChange; thd.oninput = onAnyChange; useBoost.onchange = onAnyChange; ab.oninput = onAnyChange;
+autoDef.onchange = ()=>{ clearLog(); if(autoDef.checked){ log("Modo auto‑defensa ACTIVADO.","ok"); autoDefend(); } else { log("Modo auto‑defensa DESACTIVADO."); } };
+
+/* Tamaño canvas */
+function fitCanvases(){
+  const box = document.querySelector('#cv').parentElement;
+  const W = box.clientWidth, H = box.clientHeight;
+  bgcv.width = cv.width = W; bgcv.height = cv.height = H;
+}
+
+/* Velocidad (1×/2×) */
+speedSel.addEventListener('change', ()=>{ timeScale = parseFloat(speedSel.value) || 1; });
+
+/* Canvas interacción avanzada */
+let dragging = false;
+cv.addEventListener('pointermove', (e)=>{
+  const rect = cv.getBoundingClientRect();
+  const px = e.clientX - rect.left, py = e.clientY - rect.top;
+  mouseWorld = canvasToWorld(px, py, lastScale, cv.width, cv.height);
+  hud.textContent = `x: ${fmt(mouseWorld.x)} m · y: ${fmt(mouseWorld.y)} m`;
+  if(dragging){
+    const mode = dragModeSel.value;
+    if(mode==='enemy'){ enemy.x0 = mouseWorld.x; enemy.y0 = mouseWorld.y; syncInputs(); recompute(); }
+    if(mode==='defender'){ defender.x0 = Math.max(0, mouseWorld.x); defender.y0 = Math.max(0, mouseWorld.y); syncInputs(); recompute(); }
+  }
+});
+cv.addEventListener('pointerdown', (e)=>{
+  const rect = cv.getBoundingClientRect();
+  const px = e.clientX - rect.left, py = e.clientY - rect.top;
+  const w = canvasToWorld(px, py, lastScale, cv.width, cv.height);
+  if(e.shiftKey){ measuring = true; measureStart = w; measureEnd = w; drawFrame(animT); return; }
+  const mode = dragModeSel.value;
+  if(mode!=='none'){ dragging = true; e.preventDefault(); }
+});
+cv.addEventListener('pointerup', ()=>{
+  dragging = false;
+  if(measuring){ measuring = false; measureStart = null; measureEnd = null; drawFrame(animT); }
+});
+cv.addEventListener('pointerleave', ()=>{ dragging=false; if(measuring){ measuring=false; measureStart=null; measureEnd=null; drawFrame(animT);} });
+cv.addEventListener('pointermove', (e)=>{
+  if(measuring){
+    const rect = cv.getBoundingClientRect();
+    const px = e.clientX - rect.left, py = e.clientY - rect.top;
+    measureEnd = canvasToWorld(px, py, lastScale, cv.width, cv.height);
+    drawFrame(animT);
+  }
+});
+cv.addEventListener('click', (e)=>{
+  if(e.ctrlKey){
+    const rect = cv.getBoundingClientRect();
+    const px = e.clientX - rect.left, py = e.clientY - rect.top;
+    const w = canvasToWorld(px, py, lastScale, cv.width, cv.height);
+    const th = Math.atan2(w.y - defender.y0, w.x - defender.x0);
+    defender.theta = th; syncInputs(); log(`🎯 θ_d ajustado a ${Math.round(deg(th))}° por Ctrl+click.`, "ok"); recompute();
+  }
+});
+window.addEventListener('keydown', (e)=>{ ctrlHeld = e.ctrlKey; });
+window.addEventListener('keyup', (e)=>{ ctrlHeld = e.ctrlKey; });
+
+/* Escenarios */
+scenarioSel.addEventListener('change', ()=>{
+  const s = scenarioSel.value;
+  if(s==='high'){ enemy = { x0: 450, y0: 420, v0: 250, theta: rad(48) }; defender.useBoost=false; }
+  else if(s==='low'){ enemy = { x0: 320, y0: 40, v0: 180, theta: rad(35) }; defender.useBoost=true; defender.boost=18; }
+  else if(s==='fast'){ enemy = { x0: 700, y0: 150, v0: 380, theta: rad(20) }; defender.useBoost=false; }
+  else if(s==='steep'){ enemy = { x0: 380, y0: 400, v0: 320, theta: rad(65) }; defender.useBoost=false; }
+  if(s!=='default'){ syncInputs(); clearLog(); log(`📋 Escenario cargado: <b>${s}</b>.`); recompute(true); }
+});
+
+/* Captura PNG */
+btnCapture.addEventListener('click', ()=>{
+  const W = cv.width, H = cv.height;
+  const off = document.createElement('canvas'); off.width = W; off.height = H;
+  const octx = off.getContext('2d');
+  octx.drawImage(bgcv, 0, 0); octx.drawImage(cv, 0, 0);
+  const url = off.toDataURL('image/png');
+  const a = document.createElement('a'); a.href = url; a.download = `sim_intercepcion_${Date.now()}.png`; a.click();
+  log('📸 Captura descargada (PNG).', 'ok');
+});
+
+/* Init */
+function fitCanvases(){
+  const box = document.querySelector('#cv').parentElement;
+  const W = box.clientWidth, H = box.clientHeight;
+  bgcv.width = cv.width = W; bgcv.height = cv.height = H;
+}
+function init(){
+  fitCanvases();
+  update3DFrom2D(0); update3DLabelsSafe();
+
+  syncInputs(); clearLog(); log("Simulación iniciada. Cambia cualquier parámetro para recalcular.");
+  initStars(); requestAnimationFrame(animateSpaceBg);
+  missileImg.onload = ()=>{ try{ recompute(true); } catch(e){} };
+  selectTab(tabs[0]); recompute(true);
+}
+init();
+window.addEventListener('resize', ()=>{ fitCanvases(); const sel = tabs.find(t=>t.getAttribute('aria-selected')==='true'); layoutUnderlineTo(sel); recompute(true); });
+
+/* Atajos (A=autodef, B=boost, R=reset) */
+window.addEventListener('keydown', (e)=>{
+  const tag = (e.target||{}).tagName||''; if(/INPUT|TEXTAREA|SELECT/.test(tag)) return;
+  if(e.key==='a'||e.key==='A'){ autoDef.checked=!autoDef.checked; autoDef.dispatchEvent(new Event('change')); }
+  if(e.key==='b'||e.key==='B'){ useBoost.checked=!useBoost.checked; onAnyChange(); }
+  if(e.key==='r'||e.key==='R'){ btnReset.click(); }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Intercepción de Proyectiles 2D — Inspirado en la Cúpula de Hierro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+  :root{
+    --bg: #84994F;
+    --card: #FFE797;
+    --muted: #FCB53B;
+    --primary: #FCB53B;
+    --accent: #B45253;
+    --ok: #84994F;
+    --warn: #FCB53B;
+    --danger: #B45253;    
+    --text: #111827;      
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: sans-serif;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--muted);
+    border-radius: 1rem;
+  }
+
+  .chip {
+    border: 1px solid var(--muted);
+    padding: .15rem .5rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    background: transparent;
+  }
+
+  .slider {
+    accent-color: var(--accent);
+  }
+
+  .btn {
+    border-radius: 1rem;
+    border: 1px solid var(--muted);
+    padding: .6rem 1rem;
+    font-weight: 600;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+  }
+
+  .btn-ok {
+    background: var(--ok);
+    color: #fff;
+  }
+
+  .btn-warn {
+    background: var(--warn);
+    color: #111827;
+  }
+
+  .btn-danger {
+    background: var(--danger);
+    color: #fff;
+  }
+
+  canvas {
+    background: var(--card);
+    border: 1px solid var(--muted);
+    border-radius: 1rem;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+
+  .grid-controls {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: .75rem;
+  }
+
+  .control-col {
+    grid-column: span 12 / span 12;
+  }
+
+  @media (min-width:1024px){
+    .control-col {
+      grid-column: span 4 / span 4;
+    }
+    .canvas-col {
+      grid-column: span 8 / span 8;
+    }
+  }
+
+  .lbl {
+    font-size: .825rem;
+    opacity: .9;
+  }
+
+  .val {
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+
+ <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+</head>
+<body class="min-h-screen">
+<header class="max-w-7xl mx-auto px-4 py-6 font-sans">
+  <h1 class="text-3xl lg:text-4xl font-bold tracking-tight text-[#FFFFFF] mb-2">
+    Intercepción de Proyectiles 2D — Simulador
+  </h1>
+  <p class="opacity-80 text-gray-800">
+    Inspirado en la <span class="chip bg-[#FFE797] text-[#B45253] px-2 py-0.5 rounded-full text-xs font-semibold">Cúpula de Hierro</span>. 
+    Ajusta parámetros, genera amenazas y observa cómo el interceptor calcula una solución de colisión.
+  </p>
+</header>
+
+
+  <main class="max-w-7xl mx-auto px-4 space-y-6 pb-12">
+<!-- Enunciado -->
+<section class="card p-6 bg-white shadow-lg rounded-lg font-sans" id="enunciado">
+  <h2 class="text-2xl font-bold mb-4" style="color:#84994F;">Enunciado</h2>
+
+  <p class="mb-3 text-gray-800">
+    Se modela un escenario 2D con gravedad constante  
+    <span class="font-mono">g = 9.81 m/s²</span>.  
+    Un proyectil enemigo (misil) es detectado con:
+  </p>
+
+  <div class="pl-4 space-y-2 text-gray-800">
+    <p>
+      • Posición inicial: <span class="font-mono">\(\vec r_0 = (x_0, y_0)\)</span>
+    </p>
+    <p>
+      • Velocidad inicial: <span class="font-mono">\(\vec v_0\)</span>
+    </p>
+    <p>
+      • Dirección dada por cosenos directores: <span class="font-mono">(\(l, m) = (\cos \theta, \sin \theta)\)</span>
+    </p>
+    <p>
+      El sistema lanza un proyectil defensor desde <span class="font-mono">\(\vec r_D = (x_D, y_D)\)</span> para interceptarlo.
+    </p>
+  </div>
+
+  <p class="mt-4 text-gray-800">
+    El movimiento se describe por las ecuaciones de cinemática:
+  </p>
+
+  <div class="mt-2 p-3 rounded" style="background-color:#FFE797; border-left:4px solid #84994F;">
+    <ul class="list-disc list-inside text-gray-800 font-mono space-y-1">
+      <li>Enemigo (solo gravedad):  
+        \(x_E = x_0 + v_0 l\, t\),  
+        \(y_E = y_0 + v_0 m\, t - \frac12 g t^2\)
+      </li>
+      <li>Defensor: dos modos operativos  
+        <strong style="color:#FCB53B;">Modo A:</strong> tiro parabólico clásico  
+        <strong style="color:#FCB53B;">Modo B:</strong> con propulsor de aceleración constante \(a_T\)
+      </li>
+      <li>Se busca un tiempo de interceptación \(t_c\) y parámetros del defensor para cumplir:  
+        <span class="font-mono">\(\vec r_D(t_c) = \vec r_E(t_c)\)</span>
+      </li>
+    </ul>
+  </div>
+
+  <p class="mt-3 text-gray-800">
+    Este escenario permite estudiar la intercepción de proyectiles en 2D considerando diferentes estrategias de lanzamiento y aceleración, reflejando las decisiones del sistema de defensa.
+  </p>
+</section>
+
+
+<!-- Solución (método de intercepción) --> 
+<section class="card p-6 bg-white shadow-lg rounded-lg font-sans" id="solucion">
+  <h2 class="text-2xl font-bold mb-4" style="color:#84994F;">Solución (cierre de fuego)</h2>
+  <p class="mb-3 text-gray-800">
+    Para interceptar al proyectil enemigo, se busca que el defensor llegue al mismo punto en el mismo instante que el enemigo. 
+    Se define un <strong style="color:#84994F;">tiempo candidato de encuentro</strong> 
+    <span class="font-mono">\(\tau = t_c - t_\text{lanza}\)</span>, donde \(t_c\) es el tiempo de colisión y \(t_\text{lanza}\) el momento en que el defensor es lanzado.
+  </p>
+
+  <div class="space-y-3 text-gray-800">
+    <p>
+      1. Se calcula el <strong style="color:#84994F;">vector relativo</strong> desde el defensor hasta el enemigo, ajustando por la gravedad:
+    </p>
+    <p class="font-mono p-2 rounded" style="background-color:#FFE797;">
+      \(\vec R = [x_E(t_c) - x_D,\; y_E(t_c) - y_D + \tfrac12 g \tau^2]\)
+    </p>
+
+    <p>
+      2. Dependiendo del modo, se obtiene la velocidad necesaria:
+    </p>
+
+    <div class="pl-4 space-y-2">
+      <p>
+        <strong style="color:#FCB53B;">Modo A (sin propulsor)</strong>: velocidad constante  
+        <span class="font-mono">\(\vec v_D = \vec R / \tau \Rightarrow v_D = \lVert\vec R\rVert / \tau, \hat u = \vec R / \lVert\vec R\rVert\)</span>  
+        <em class="text-gray-600 block mt-1">Deriva de la cinemática rectilínea uniforme: \(\vec s = \vec v t\).</em>
+      </p>
+      <p>
+        <strong style="color:#FCB53B;">Modo B (con propulsor)</strong>: aceleración constante  
+        <span class="font-mono">\(\lVert\vec R\rVert = v_{D0}\tau + \tfrac12 a_T \tau^2, \hat u = \vec R / \lVert\vec R\rVert, \phi = \arg(\vec R)\)</span>  
+        <em class="text-gray-600 block mt-1">Deriva de la cinemática uniformemente acelerada: \(\vec s = \vec v_0 t + \frac12 \vec a t^2\).</em>
+      </p>
+    </div>
+  </div>
+
+  <p class="mt-4 text-gray-800">
+    3. Se barre \(\tau\) en un rango de tiempos posibles y se selecciona la primera solución que cumpla los límites de velocidad y aceleración definidos por el usuario.
+  </p>
+
+  <!-- Esquema didáctico -->
+  <div class="mt-6 p-4 rounded space-y-2" style="background-color:#FFE797; border-left:4px solid #84994F;">
+    <h3 class="text-xl font-semibold mb-2" style="color:#84994F;">Ejemplo numérico paso a paso:</h3>
+    <ul class="list-disc list-inside text-gray-800 font-sans">
+      <li>Posición inicial enemigo: <span class="font-mono">x_E = 500 m, y_E = 120 m</span></li>
+      <li>Posición defensor: <span class="font-mono">x_D = 0 m, y_D = 0 m</span></li>
+      <li>Gravedad: <span class="font-mono">g = 9.81 m/s²</span></li>
+      <li>Tiempo candidato de encuentro: <span class="font-mono">τ = 4 s</span></li>
+    </ul>
+
+    <p class="font-mono p-2 rounded" style="background-color:#FCB53B; color:white;">
+      Paso 1: vector relativo ajustado por gravedad:  
+      \(\vec R = [500 - 0, 120 - 0 + \tfrac12 * 9.81 * 4^2] = [500, 198.2]\,\mathrm{m}\)
+    </p>
+
+    <p class="font-mono p-2 rounded" style="background-color:#FCB53B; color:white;">
+      Paso 2: Modo A (sin propulsor) → velocidad requerida:  
+      \(v_D = \frac{\sqrt{500^2 + 198.2^2}}{4} \approx 136.6\,\mathrm{m/s}\)  
+      Dirección: \(\hat u \approx [0.91, 0.36]\)
+    </p>
+
+    <p class="font-mono p-2 rounded" style="background-color:#FCB53B; color:white;">
+      Paso 3: Modo B (con propulsor) → velocidad inicial y aceleración ajustadas:  
+      \(\lVert\vec R\rVert = v_{D0}\tau + \tfrac12 a_T \tau^2\)  
+      Se despeja \(v_{D0}\) según los límites del sistema y \(\hat u = \vec R / \lVert\vec R\rVert\)
+    </p>
+
+    <p class="text-gray-800">
+      Con esto, el defensor sigue la trayectoria correcta y alcanza al enemigo exactamente al instante τ, respetando los límites físicos definidos.
+    </p>
+  </div>
+</section>
+
+<!-- Análisis -->
+<section class="card p-6 bg-white shadow-lg rounded-lg font-sans" id="analisis">
+  <h2 class="text-2xl font-bold mb-4" style="color:#84994F;">Análisis</h2>
+
+  <p class="mb-3 text-gray-800">
+    El sistema de defensa determina automáticamente la estrategia más adecuada según la posición inicial del proyectil enemigo:
+  </p>
+
+  <div class="space-y-3 text-gray-800">
+    <p>
+      <strong style="color:#FCB53B;">Modo A (sin propulsor):</strong>  
+      Se utiliza cuando el enemigo se detecta a una altura significativa (\(y_0\) por encima de un umbral predefinido).  
+      El defensor realiza un <em>tiro parabólico clásico</em>, donde la velocidad inicial se calcula para recorrer la distancia hasta el enemigo en el tiempo τ:
+    </p>
+    <p class="font-mono p-2 rounded" style="background-color:#FFE797;">
+      \(\vec v_D = \frac{\vec R}{\tau} \Rightarrow v_D = \frac{\lVert \vec R \rVert}{\tau}, \quad \hat u = \frac{\vec R}{\lVert \vec R \rVert}\)
+    </p>
+    <p class="text-gray-600">
+      Esto deriva de la ecuación de movimiento rectilíneo uniforme: \(\vec s = \vec v t\), ajustando la trayectoria por gravedad.
+    </p>
+
+    <p>
+      <strong style="color:#FCB53B;">Modo B (con propulsor):</strong>  
+      Se activa cuando el enemigo está muy cerca del suelo o requiere un intercepto más rápido.  
+      Aquí se añade aceleración constante (\(a_T\)) para garantizar que el defensor cierre la distancia en menor tiempo:
+    </p>
+    <p class="font-mono p-2 rounded" style="background-color:#FFE797;">
+      \(\lVert \vec R \rVert = v_{D0} \tau + \frac12 a_T \tau^2, \quad \hat u = \frac{\vec R}{\lVert \vec R \rVert}, \quad \phi = \arg(\vec R)\)
+    </p>
+    <p class="text-gray-600">
+      Se deriva de la cinemática uniformemente acelerada: \(\vec s = \vec v_0 t + \frac12 \vec a t^2\), permitiendo controlar velocidad y empuje según los límites del sistema.
+    </p>
+
+    <p>
+      La selección de \(\tau\) se realiza explorando un rango de tiempos posibles y verificando que la solución cumpla:
+      <ul class="list-disc list-inside pl-4 text-gray-800">
+        <li>Rangos de velocidad del defensor (\(v_\text{min} \le v_D \le v_\text{max}\))</li>
+        <li>Valores máximos de aceleración (\(a_T\)) en Modo B</li>
+        <li>Condiciones de alcance físico: no superar la altura máxima o distancia máxima de la escena</li>
+      </ul>
+    </p>
+
+    <p class="mt-3 text-gray-800">
+      <strong style="color:#84994F;">Conclusión del análisis:</strong>  
+      La lógica del sistema permite que el defensor adapte su estrategia según la posición inicial del enemigo, utilizando el Modo A para situaciones normales y el Modo B cuando se requiere una respuesta rápida. Esto asegura una intercepción confiable respetando los límites físicos definidos.
+    </p>
+  </div>
+</section>
+
+
+<!-- Simulación -->
+<section class="card p-6 bg-white shadow-lg rounded-lg font-sans" id="simulacion">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-2xl font-bold" style="color:#84994F;">Simulación</h2>
+    <div class="flex items-center gap-2">
+      <span class="chip bg-[#FFE797] text-[#B45253] px-2 py-0.5 rounded-full text-xs font-semibold">2D</span>
+      <span class="chip bg-[#FFE797] text-[#B45253] px-2 py-0.5 rounded-full text-xs font-semibold">Animación</span>
+      <span class="chip bg-[#FFE797] text-[#B45253] px-2 py-0.5 rounded-full text-xs font-semibold">Colisión</span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Controles -->
+    <div class="space-y-4 md:col-span-1">
+      <div class="p-4 card bg-[#FFE797] rounded-lg shadow-inner">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-lg font-bold" style="color:#B45253;">Amenaza (Enemigo 3D)</h3>
+          <button id="btnRandom" class="btn bg-[#FCB53B] text-white text-sm px-3 py-1 rounded hover:bg-[#B45253]">Aleatorizar</button>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="lbl">x₀ (m)
+            <input id="x0" type="range" min="0" max="900" step="1" class="slider w-full" />
+            <span class="val mono" id="vx0">—</span>
+          </label>
+          <label class="lbl">y₀ (m)
+            <input id="y0" type="range" min="0" max="300" step="1" class="slider w-full" />
+            <span class="val mono" id="vy0">—</span>
+          </label>
+          <label class="lbl">z₀ (m)
+            <input id="z0" type="range" min="0" max="300" step="1" class="slider w-full" />
+            <span class="val mono" id="vz0">—</span>
+          </label>
+          <label class="lbl">v₀ (m/s)
+            <input id="v0" type="range" min="100" max="400" step="1" class="slider w-full" />
+            <span class="val mono" id="vv0">—</span>
+          </label>
+          <label class="lbl">l (cos α)
+            <input id="l" type="range" min="-1" max="1" step="0.01" class="slider w-full" />
+            <span class="val mono" id="vl">—</span>
+          </label>
+          <label class="lbl">m (cos β)
+            <input id="m" type="range" min="-1" max="1" step="0.01" class="slider w-full" />
+            <span class="val mono" id="vm">—</span>
+          </label>
+          <label class="lbl">n (cos γ)
+            <input id="n" type="range" min="-1" max="1" step="0.01" class="slider w-full" />
+            <span class="val mono" id="vn">—</span>
+          </label>
+        </div>
+
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button id="btnSolve" class="btn bg-[#FCB53B] text-white px-3 py-1 rounded hover:bg-[#B45253]">Calcular intercepción</button>
+          <button id="btnPlay" class="btn bg-[#84994F] text-white px-3 py-1 rounded hover:bg-[#B45253]">▶️ Iniciar</button>
+          <button id="btnPause" class="btn bg-[#FCB53B]/60 text-white px-3 py-1 rounded hover:bg-[#B45253]">⏸️ Pausa</button>
+          <button id="btnReset" class="btn bg-[#B45253] text-white px-3 py-1 rounded hover:bg-[#FCB53B]">Reiniciar</button>
+        </div>
+
+        <p class="text-sm mt-3 opacity-80">Modo se elige automáticamente: <span class="mono" id="modeTag">—</span></p>
+        <p class="text-sm mt-1 opacity-80">Solución: <span class="mono" id="solutionTag">—</span></p>
+      </div>
+    </div>
+
+    <!-- Lienzo -->
+    <div class="md:col-span-2 flex flex-col bg-[#FFE797] p-3 rounded-lg shadow-inner">
+      <canvas id="scene" class="w-full flex-1 max-h-[480px] border-2 border-[#B45253] rounded-lg"></canvas>
+      <div class="flex items-center justify-between mt-2 text-sm opacity-75">
+        <div class="flex flex-wrap gap-2">
+          <span class="chip bg-[#FCB53B] text-white px-2 py-0.5 rounded-full text-xs font-semibold">Escala: 1 px = <span id="scaleInfo">1.0</span> m</span>
+          <span class="chip bg-[#FCB53B] text-white px-2 py-0.5 rounded-full text-xs font-semibold">Δt sim: <span id="dtInfo">0.016</span> s</span>
+          <span class="chip bg-[#FCB53B] text-white px-2 py-0.5 rounded-full text-xs font-semibold">T colisión: <span id="tcolInfo">—</span></span>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="chip bg-[#FCB53B]/60 text-[#B45253] px-2 py-0.5 rounded-full text-xs font-semibold">Enemigo: ◼︎</span>
+          <span class="chip bg-[#FCB53B]/60 text-[#B45253] px-2 py-0.5 rounded-full text-xs font-semibold">Defensor A: ●</span>
+          <span class="chip bg-[#FCB53B]/60 text-[#B45253] px-2 py-0.5 rounded-full text-xs font-semibold">Defensor B: ▲</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- Conclusiones -->
+<section class="card p-6 bg-white shadow-lg rounded-lg font-sans" id="conclusiones">
+  <h2 class="text-2xl font-bold mb-4" style="color:#84994F;">Conclusiones</h2>
+
+  <ul class="list-disc pl-6 space-y-2 text-gray-800">
+    <li>
+      El <strong style="color:#FCB53B;">cierre de fuego</strong> puede formularse buscando un <span class="font-mono">t_c</span> factible dentro de los límites cinemáticos del sistema.
+    </li>
+    <li>
+      El uso de <strong style="color:#FCB53B;">propulsores</strong> amplía el dominio de soluciones, especialmente en escenarios de baja altura o con tiempos de reacción reducidos.
+    </li>
+    <li>
+      La representación en <strong style="color:#FCB53B;">2D</strong> facilita la visualización de trayectorias y la sintonía de parámetros operativos como velocidad, aceleración y ángulo de lanzamiento.
+    </li>
+  </ul>
+
+  <p class="mt-4 text-gray-800">
+    En resumen, la combinación de análisis cinemático, selección de modos de lanzamiento y ajustes de parámetros permite diseñar un sistema de intercepción eficiente y confiable.
+  </p>
+</section>
+
+<!-- Bibliografía -->
+<section class="card p-6 bg-white shadow-lg rounded-lg font-sans" id="bibliografia">
+  <h2 class="text-2xl font-bold mb-4" style="color:#84994F;">Bibliografía</h2>
+
+  <ul class="list-disc pl-6 space-y-2 text-gray-800">
+    <li>
+      Serway, R.A. & Jewett, J.W. (2019). <em>Física para Ingenieros y Científicos, Volumen 1</em>. 10ª edición. Cengage Learning.
+    </li>
+  </ul>
+</section>
+
+  </main>
+
+<script>
+  // ———————————— Utilidades numéricas ————————————
+  const g = 9.81;
+  const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+  function mag(v){return Math.hypot(v.x,v.y)}
+  function add(a,b){return {x:a.x+b.x,y:a.y+b.y}}
+  function sub(a,b){return {x:a.x-b.x,y:a.y-b.y}}
+  function mul(v,s){return {x:v.x*s,y:v.y*s}}
+  function unit(v){const m=mag(v); return m>0?{x:v.x/m,y:v.y/m}:{x:1,y:0}}
+
+  // ———————————— Estado ————————————
+  const state = {
+    enemy: {x0: 500, y0: 120, z0:50, v0: 220, l:0.7, m:0.7, n:0},
+    defender: {xD: 0, yD: 0, vMin: 60, vMax: 500, aT: 30, yHigh: 100, tDelay: 0},
+    solution: null,
+    anim: {running:false, t:0, dt:1/60, tMax:40},
+    scale: 1.2
+  };
+
+  // ———————————— DOM ————————————
+  const el = id=>document.getElementById(id);
+  const x0=el('x0'), y0=el('y0'), z0=el('z0'), v0=el('v0'), l=el('l'), m=el('m'), n=el('n');
+  const vx0=el('vx0'), vy0=el('vy0'), vz0=el('vz0'), vv0=el('vv0'), vl=el('vl'), vm=el('vm'), vn=el('vn');
+  const modeTag=el('modeTag'), solutionTag=el('solutionTag');
+  const scene=el('scene'); const ctx=scene.getContext('2d');
+  const scaleInfo=el('scaleInfo'), tcolInfo=el('tcolInfo');
+
+  // ———————————— Canvas nítido ————————————
+  function resizeCanvas() {
+    const rect = scene.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    scene.width = rect.width * dpr;
+    scene.height = rect.height * dpr;
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.scale(dpr, dpr);
+  }
+  window.addEventListener('resize', () => { resizeCanvas(); drawStatic(); });
+  resizeCanvas();
+
+  // ———————————— Inputs ————————————
+  function syncInputs(){
+    vx0.textContent = (+x0.value).toFixed(0);
+    vy0.textContent = (+y0.value).toFixed(0);
+    vz0.textContent = (+z0.value).toFixed(0);
+    vv0.textContent = (+v0.value).toFixed(0);
+    vl.textContent  = (+l.value).toFixed(3);
+    vm.textContent  = (+m.value).toFixed(3);
+    vn.textContent  = (+n.value).toFixed(3);
+    
+    x0.value = state.enemy.x0; y0.value = state.enemy.y0; z0.value = state.enemy.z0;
+    v0.value = state.enemy.v0; l.value = state.enemy.l; m.value = state.enemy.m; n.value = state.enemy.n;
+  }
+
+  function readInputs(){
+    state.enemy.x0 = +x0.value;
+    state.enemy.y0 = +y0.value;
+    state.enemy.z0 = +z0.value;
+    state.enemy.v0 = +v0.value;
+    state.enemy.l  = +l.value;
+    state.enemy.m  = +m.value;
+    state.enemy.n  = +n.value;
+  }
+
+  ['input','change'].forEach(ev=>{
+    [x0,y0,z0,v0,l,m,n].forEach(inp=>{
+      inp.addEventListener(ev,()=>{ readInputs(); autoSolve(false); drawStatic(); });
+    });
+  });
+
+  // ———————————— Generador aleatorio ————————————
+  function randomizeEnemy(){
+    state.enemy.x0 = Math.floor(Math.random()*900);
+    state.enemy.y0 = Math.floor(Math.random()*300);
+    state.enemy.z0 = Math.floor(Math.random()*300);
+
+    state.enemy.v0 = Math.floor(100 + Math.random()*300);
+
+    let l = Math.random()*2-1;
+    let m = Math.random()*2-1;
+    let n = Math.random()*2-1;
+    const mag = Math.hypot(l,m,n);
+    l/=mag; m/=mag; n/=mag;
+    state.enemy.l = l; state.enemy.m = m; state.enemy.n = n;
+
+    syncInputs(); 
+    autoSolve(true); 
+    drawStatic();
+  }
+
+  // ———————————— Cinemática ————————————
+  function enemyPos(t){
+    const {x0,y0,z0,v0,l,m,n} = state.enemy;
+    return {
+      x: x0 + v0*l*t,
+      y: y0 + v0*m*t - 0.5*g*t*t,
+      z: z0 + v0*n*t
+    };
+  }
+
+  function defenderPos_NoThrust(t, launch){
+    const tau = Math.max(0, t-launch);
+    const s = state.solution;
+    const v = mul(s.u, s.vD);
+    return { x: state.defender.xD + v.x*tau, y: state.defender.yD + v.y*tau - 0.5*g*tau*tau };
+  }
+
+  function defenderPos_Thrust(t, launch){
+    const tau = Math.max(0, t-launch);
+    const s = state.solution;
+    const v0 = mul(s.u, s.v0D);
+    const a  = mul(s.u, s.aT);
+    return { x: state.defender.xD + v0.x*tau + 0.5*a.x*tau*tau, y: state.defender.yD + v0.y*tau - 0.5*g*tau*tau + 0.5*a.y*tau*tau };
+  }
+
+  // ———————————— Solución ————————————
+  function autoSolve(showToast){
+    const mode = (state.enemy.y0 >= state.defender.yHigh) ? 'A' : 'B';
+    modeTag.textContent = mode==='A' ? 'Modo A (sin propulsor)' : 'Modo B (con propulsor)';
+
+    const t0 = state.defender.tDelay;
+    const xD0 = state.defender.xD, yD0 = state.defender.yD;
+    const vMin = state.defender.vMin, vMax = state.defender.vMax;
+    const aT = state.defender.aT;
+
+    let best=null;
+    const tMax = 30; const dt = 0.02;
+
+    for(let tc=t0+0.4; tc<=tMax; tc+=dt){
+      const tau = tc - t0;
+      const e = enemyPos(tc);
+      const R = { x: e.x - xD0, y: e.y - yD0 + 0.5*g*tau*tau };
+      const dist = mag(R);
+      const u = dist>0 ? {x:R.x/dist,y:R.y/dist}:{x:1,y:0};
+
+      if(mode==='A'){
+        const vD = dist / tau;
+        if(vD>=vMin && vD<=vMax){ best = {mode:'A', tc, tau, u, vD}; break; }
+      } else {
+        const v0D = (dist - 0.5*aT*tau*tau)/tau;
+        if(v0D>=vMin && v0D<=vMax){ best = {mode:'B', tc, tau, u, v0D, aT}; break; }
+      }
+    }
+
+    if(!best){
+      solutionTag.textContent = 'No hay solución factible con los límites actuales';
+      state.solution=null; tcolInfo.textContent='—';
+      return false;
+    }
+
+    state.solution = best;
+    const ang = Math.atan2(best.u.y, best.u.x)*180/Math.PI;
+    if(best.mode==='A'){
+      solutionTag.textContent = `tc=${best.tc.toFixed(2)} s, v_D=${best.vD.toFixed(1)} m/s, φ=${ang.toFixed(1)}°`;
+    } else {
+      solutionTag.textContent = `tc=${best.tc.toFixed(2)} s, v_D0=${best.v0D.toFixed(1)} m/s, a_T=${best.aT.toFixed(1)} m/s², φ=${ang.toFixed(1)}°`;
+    }
+    tcolInfo.textContent = best.tc.toFixed(2)+' s';
+    return true;
+  }
+
+  // ———————————— Dibujo ————————————
+  function fitScale(){
+    const W = scene.width, H = scene.height;
+    const maxX = Math.max(state.enemy.x0 + state.enemy.v0*state.enemy.l*8, 900);
+    const maxY = Math.max(state.enemy.y0 + state.enemy.v0*state.enemy.m*8, 350);
+    const mppX = maxX / (W-40);
+    const mppY = maxY / (H-40);
+    state.scale = Math.max(mppX, mppY);
+    scaleInfo.textContent = state.scale.toFixed(1);
+  }
+
+  function toCanvas(p){
+    const W = scene.width, H = scene.height;
+    return { x: 20 + p.x/state.scale, y: H - (20 + p.y/state.scale) };
+  }
+
+  function clear(){ ctx.clearRect(0,0,scene.width,scene.height); }
+
+  function drawAxes(){
+    ctx.save();
+    ctx.strokeStyle = '#223047'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, toCanvas({x:0,y:0}).y); ctx.lineTo(scene.width, toCanvas({x:0,y:0}).y); ctx.stroke();
+    const step = 100;
+    for(let x=0;x<=1200;x+=step){ const c=toCanvas({x,y:0}); ctx.beginPath(); ctx.moveTo(c.x,0); ctx.lineTo(c.x,scene.height); ctx.stroke(); }
+    for(let y=0;y<=600;y+=step){ const c=toCanvas({x:0,y}); ctx.beginPath(); ctx.moveTo(0,c.y); ctx.lineTo(scene.width,c.y); ctx.stroke(); }
+    ctx.restore();
+  }
+
+  function drawPoint(p, style){
+    const c = toCanvas(p);
+    ctx.save(); ctx.fillStyle=style; ctx.beginPath(); ctx.arc(c.x,c.y,4,0,Math.PI*2); ctx.fill(); ctx.restore();
+  }
+
+  function drawPath(path, style, lw=2){
+    if(path.length<2) return;
+    ctx.save();
+    ctx.strokeStyle = style;
+    ctx.lineWidth = lw;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    let c = toCanvas(path[0]);
+    ctx.moveTo(c.x, c.y);
+    for(let i=1;i<path.length;i++){ c = toCanvas(path[i]); ctx.lineTo(c.x,c.y);}
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function simulatePaths(maxT){
+    const dt=0.02; const N=Math.floor(maxT/dt);
+    const pe=[], pd=[]; let coll=null; const tol=10;
+    for(let i=0;i<=N;i++){
+      const t=i*dt;
+      const e=enemyPos(t);
+      let d;
+      if(state.solution){
+        d = (state.solution.mode==='A') ? defenderPos_NoThrust(t, state.defender.tDelay) : defenderPos_Thrust(t, state.defender.tDelay);
+      } else { d = {x:state.defender.xD, y:state.defender.yD}; }
+      pe.push(e); pd.push(d);
+      if(!coll && t>=state.defender.tDelay){
+        const sep = Math.hypot(e.x-d.x, e.y-d.y);
+        if(sep<=tol){ coll = {t, p:e}; }
+      }
+      if(e.y<0 && d.y<0 && t>1) break;
+    }
+    return {pe, pd, coll};
+  }
+
+  function drawStatic(){
+    resizeCanvas(); fitScale(); clear(); drawAxes();
+    const e0 = {x:state.enemy.x0, y:state.enemy.y0};
+    const d0 = {x:state.defender.xD, y:state.defender.yD};
+    drawPoint(e0,'#60a5fa'); drawPoint(d0,'#34d399');
+
+    const res = simulatePaths(20);
+
+    drawPath(res.pe,'#93c5fd', 1.5);
+    drawPath(res.pd, state.solution && state.solution.mode==='A' ? '#86efac' : '#f9a8d4', 1.5);
+
+    if(res.coll){ drawPoint(res.coll.p, '#fbbf24'); }
+  }
+
+  // ———————————— Animación ————————————
+  const trailBuffers = {E:[], D:[]};
+  function simulateTrail(t, who){
+    const dt=0.05; const K=120;
+    const buf = trailBuffers[who]; buf.length=0;
+    for(let i=Math.max(0,t-6); i<=t; i+=dt){
+      if(who==='E') buf.push(enemyPos(i));
+      else buf.push(state.solution ? (state.solution.mode==='A'? defenderPos_NoThrust(i, state.defender.tDelay) : defenderPos_Thrust(i, state.defender.tDelay)) : {x:state.defender.xD,y:state.defender.yD});
+      if(buf.length>K) break;
+    }
+    return buf;
+  }
+
+  function explosion(c){
+    const N=20; const R=30; const cx=c.x, cy=c.y;
+    ctx.save();
+    for(let r=6;r<=R;r+=6){
+      ctx.strokeStyle = r%12===0 ? '#f59e0b' : '#fde68a';
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function animate(){
+    if(!state.anim.running) return;
+    state.anim.t += state.anim.dt;
+    clear(); drawAxes();
+
+    const t = state.anim.t;
+    const e = enemyPos(t);
+    const d = state.solution ? (state.solution.mode==='A'? defenderPos_NoThrust(t, state.defender.tDelay) : defenderPos_Thrust(t, state.defender.tDelay)) : {x:state.defender.xD, y:state.defender.yD};
+
+    const trailE = simulateTrail(t, 'E');
+    const trailD = simulateTrail(t, 'D');
+
+    drawPath(trailE, '#60a5fa', 1.5);
+    drawPath(trailD, state.solution && state.solution.mode==='A' ? '#86efac' : '#f9a8d4', 1.5);
+    drawPoint(e, '#2563eb'); 
+    drawPoint(d, state.solution && state.solution.mode==='A' ? '#22c55e' : '#ec4899');
+
+    const dist = Math.hypot(e.x-d.x, e.y-d.y);
+    const tol = 10;
+    if(dist<=tol){ 
+      explosion(toCanvas(e)); 
+      state.anim.running=false; 
+    }
+
+    if(t>state.anim.tMax || (e.y<0 && d.y<0 && t>1)){ state.anim.running=false; }
+    if(state.anim.running) requestAnimationFrame(animate);
+  }
+
+  // ———————————— Eventos UI ————————————
+  el('btnRandom').addEventListener('click', randomizeEnemy);
+  el('btnSolve').addEventListener('click', ()=>{ if(autoSolve(true)) drawStatic(); });
+  el('btnPlay').addEventListener('click', ()=>{
+    if(!state.solution) autoSolve(false);
+    fitScale(); state.anim.t=0; state.anim.running=true;
+    requestAnimationFrame(animate);
+  });
+  el('btnPause').addEventListener('click', ()=>{ state.anim.running=false; });
+  el('btnReset').addEventListener('click', ()=>{ state.anim.running=false; state.anim.t=0; drawStatic(); });
+
+  // ———————————— Init ————————————
+  syncInputs(); autoSolve(false); drawStatic();
+</script>
+
+</body>
+</html>

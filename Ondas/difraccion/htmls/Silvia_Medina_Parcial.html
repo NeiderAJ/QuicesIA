@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación Óptica: Lente y Espejo</title>
+    <!-- Librería p5.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.js"></script>
+    
+    <!-- Importación de fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Roboto:wght@400;700&family=Fira+Code&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #1a2333;
+            background-image:
+                linear-gradient(rgba(26, 35, 51, 0.95), rgba(26, 35, 51, 0.95)),
+                url('https://www.transparenttextures.com/patterns/blueprint.png');
+            color: #e0e0e0;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3em;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(0, 191, 255, 0.5);
+            margin-bottom: 2rem;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            grid-template-rows: auto auto auto; 
+            gap: 25px;
+            width: 100%;
+            max-width: 1400px;
+        }
+        
+        #controls-panel { grid-area: 1 / 1 / 2 / 2; }
+        #canvas-container { grid-area: 1 / 2 / 2 / 3; cursor: crosshair; }
+        #problem-solution-section { grid-area: 2 / 1 / 3 / 3; }
+        #theory-section { grid-area: 3 / 1 / 4 / 3; }
+
+        .panel {
+            background-color: #2c3a52;
+            border-radius: 10px;
+            padding: 25px;
+            border: 1px solid #4a5a72;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        #canvas-container {
+            background-color: #ffffff;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            color: #00bfff;
+            border-bottom: 2px solid #4a5a72;
+            padding-bottom: 10px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        /* --- MEJORA: Estilos refinados para la sección de solución --- */
+        #problem-solution-section .calc-step {
+             margin-bottom: 25px;
+        }
+        #problem-solution-section h4 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.4em;
+            color: #fafad2; /* LightGoldenRodYellow */
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        #problem-solution-section p { line-height: 1.7; margin-bottom: 10px; }
+        .problem-statement {
+            background-color: rgba(0,0,0,0.2);
+            padding: 15px 20px;
+            border-radius: 5px;
+            border-left: 5px solid #ff6347; /* Tomato */
+            margin-bottom: 25px;
+            font-size: 0.95em;
+        }
+        
+        /* --- MEJORA: Estilo profesional para bloques de fórmulas --- */
+        .formula-block {
+            background-color: #1e293b;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #4a5a72;
+            margin-top: 10px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 1.1em;
+            line-height: 1.8;
+            color: #e0e0e0;
+            white-space: pre-wrap; /* Mantiene los saltos de línea */
+        }
+        .formula-block strong {
+            color: #50fa7b; /* Verde brillante para resultados */
+        }
+
+        .summary {
+            background-color: #1e293b;
+            border: 1px solid #50fa7b;
+            padding: 20px;
+            margin-top: 25px;
+            border-radius: 8px;
+        }
+        .summary h4 { color: #50fa7b; margin-top: 0; }
+        
+        .slider-group { margin-bottom: 20px; }
+        .slider-group label { display: block; font-weight: 400; margin-bottom: 8px; color: #e0e0e0; }
+        .slider-group span { font-weight: bold; color: #fafad2; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 8px; background: #4a5a72; border-radius: 5px; outline: none; cursor: pointer; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background: #00bfff; border-radius: 50%; border: 2px solid #ffffff; }
+        
+        .results-container { margin-top: 30px; padding-top: 20px; border-top: 2px solid #4a5a72; }
+        .result-item { font-size: 1.1em; margin-bottom: 10px; }
+        .result-item strong { color: #00bfff; }
+        .result-item span { font-weight: bold; color: #ff6347; }
+        
+        #theory-section { padding: 30px; }
+        .theory-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
+        .theory-card { background: #1e293b; padding: 20px; border-radius: 8px; border-left: 5px solid #00bfff; }
+        .theory-card h5 { font-family: 'Montserrat', sans-serif; font-size: 1.2em; margin: 0 0 10px 0; color: #ffffff; }
+        .theory-card p { font-size: 0.95em; line-height: 1.6; color: #c0c0c0; margin: 0; }
+        .theory-card h5::before { content: attr(data-icon) " "; font-size: 1.2em; color: #00bfff; }
+        
+        @media (max-width: 900px) {
+            .main-container { grid-template-columns: 1fr; }
+            #controls-panel { grid-area: 1 / 1 / 2 / 2; }
+            #canvas-container { grid-area: 2 / 1 / 3 / 2; min-height: 450px; }
+            #problem-solution-section { grid-area: 3 / 1 / 4 / 2; }
+            #theory-section { grid-area: 4 / 1 / 5 / 2; }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Simulación Óptica</h1>
+    <div class="main-container">
+        
+        <div id="controls-panel" class="panel">
+            <h3>Controles Interactivos</h3>
+            <!-- Controles intactos -->
+            <div class="slider-group"><label for="p1_slider">Posición del Objeto (p₁): <span id="p1_val">8.00</span> cm</label><input type="range" id="p1_slider" min="1" max="25" value="8" step="0.1"></div>
+            <div class="slider-group"><label for="f_lente_slider">Distancia Focal Lente (f_L): <span id="f_lente_val">5.00</span> cm</label><input type="range" id="f_lente_slider" min="1" max="20" value="5" step="0.1"></div>
+            <div class="slider-group"><label for="distancia_slider">Distancia Lente-Espejo (L): <span id="distancia_val">20.0</span> cm</label><input type="range" id="distancia_slider" min="10" max="40" value="20" step="0.1"></div>
+            <div class="slider-group"><label for="radio_espejo_slider">Radio del Espejo (R_M): <span id="radio_espejo_val">8.00</span> cm</label><input type="range" id="radio_espejo_slider" min="2" max="20" value="8" step="0.1"></div>
+            <div class="results-container">
+                <div class="result-item"><strong>Imagen Final (q₃):</strong> <span id="q3_val"></span></div>
+                <div class="result-item"><strong>Aumento Total (M):</strong> <span id="m_total_val"></span></div>
+                <div class="result-item"><strong>Orientación:</strong> <span id="orientation_val"></span></div>
+            </div>
+        </div>
+
+        <div id="canvas-container" class="panel"></div>
+
+        <div id="problem-solution-section" class="panel">
+            <h3>Análisis del Problema P36.64 (Serway)</h3>
+            <div class="problem-statement">
+                <strong>Enunciado:</strong> La figura muestra una lente convergente delgada para la cual los radios de curvatura son R₁ = 9.00 cm y R₂ = -11.0 cm. La lente está frente a un espejo esférico cóncavo que tiene un radio de curvatura R = 8.00 cm.
+                <br>a) Suponga que sus focos F₁ y F₂ están a 5.00 cm del centro de la lente. Determine su índice de refracción.
+                <br>b) La lente y el espejo están separados 20.0 cm, y se coloca un objeto a 8.00 cm a la izquierda de la lente. Determine la posición y la amplificación de la imagen final.
+                <br>c) ¿La imagen final está invertida o hacia arriba?
+            </div>
+            
+            <div class="calc-step">
+                <h4>a) Cálculo del Índice de Refracción (n)</h4>
+                <p>Se utiliza la Ecuación del Fabricante de Lentes.
+                <br>Datos: f = 5.00 cm, R₁ = 9.00 cm, R₂ = -11.0 cm.</p>
+                <div class="formula-block">  1/f = (n - 1) * (1/R₁ - 1/R₂)
+  1/5 = (n - 1) * (1/9 - 1/(-11))
+  0.2 = (n - 1) * (0.111 + 0.091)
+  0.2 = (n - 1) * (0.202)
+n - 1 = 0.2 / 0.202 ≈ 0.99
+      <strong>n ≈ 1.99</strong></div>
+            </div>
+
+            <div class="calc-step">
+                <h4>b) Posición y Aumento Final (Análisis Secuencial)</h4>
+                <p><strong>Paso 1: Imagen I₁ (formada por la lente)</strong></p>
+                <p>Datos: p₁ = 8.00 cm, f_L = 5.00 cm. Se usa la ecuación de lentes delgadas.</p>
+                <div class="formula-block">1/q₁ = 1/f_L - 1/p₁
+1/q₁ = 1/5 - 1/8 = (8 - 5)/40 = 3/40
+  <strong>q₁ = 40/3 ≈ +13.33 cm</strong> (Real, a la derecha de la lente)
+
+ m₁ = -q₁/p₁ = -13.33 / 8
+  <strong>m₁ ≈ -1.67</strong></div>
+            </div>
+
+             <div class="calc-step">
+                <p><strong>Paso 2: Imagen I₂ (formada por el espejo)</strong></p>
+                <p>I₁ es el objeto para el espejo. Datos: p₂ = L - q₁ = 20 - 13.33 = 6.67 cm.
+                <br>f_M = R/2 = 8/2 = 4.00 cm. Se usa la ecuación de espejos.</p>
+                <div class="formula-block">1/q₂ = 1/f_M - 1/p₂
+1/q₂ = 1/4 - 1/6.67 = 0.25 - 0.15 = 0.1
+  <strong>q₂ = 1 / 0.1 = +10.0 cm</strong> (Real, a la izquierda del espejo)
+
+ m₂ = -q₂/p₂ = -10 / 6.67
+  <strong>m₂ ≈ -1.50</strong></div>
+            </div>
+
+            <div class="calc-step">
+                <p><strong>Paso 3: Imagen Final I₃ (formada por la lente de nuevo)</strong></p>
+                <p>I₂ es el objeto para la lente. Datos: p₃ = L - q₂ = 20 - 10 = 10.0 cm.</p>
+                <div class="formula-block">1/q₃ = 1/f_L - 1/p₃
+1/q₃ = 1/5 - 1/10 = (2 - 1)/10 = 1/10
+  <strong>q₃ = +10.0 cm</strong> (Real, a la izquierda de la lente)
+
+ m₃ = -q₃/p₃ = -10 / 10
+  <strong>m₃ = -1.00</strong></div>
+            </div>
+
+            <div class="calc-step">
+                <h4>c) Aumento y Orientación Final</h4>
+                <p>El aumento total es el producto de los aumentos individuales.</p>
+                <div class="formula-block">M_total = m₁ * m₂ * m₃
+M_total = (-1.67) * (-1.50) * (-1.00)
+<strong>M_total ≈ -2.50</strong></div>
+                <p>El signo negativo de M_total indica que la imagen final está <strong>invertida</strong>.</p>
+            </div>
+
+            <div class="summary">
+                <h4>Respuestas Finales</h4>
+                <p><strong>a) Índice de Refracción:</strong> n ≈ 1.99
+                <br><strong>b) Posición Final:</strong> 10.0 cm a la izquierda de la lente, con un <strong>Aumento Final de -2.5</strong>.
+                <br><strong>c) Orientación:</strong> La imagen final está <strong>Invertida</strong>.
+                </p>
+            </div>
+        </div>
+        
+        <div id="theory-section" class="panel">
+            <h3>Principios Físicos Clave</h3>
+            <!-- Contenido intacto -->
+            <div class="theory-grid">
+                <div class="theory-card"><h5 data-icon="1.">Análisis Secuencial</h5><p>La imagen formada por el primer elemento (lente) actúa como el objeto para el segundo elemento (espejo).</p></div>
+                <div class="theory-card"><h5 data-icon="2.">Cálculo en 3 Pasos</h5><p>Se aplica la ecuación de lentes y espejos tres veces: Lente → Espejo → Lente (en el camino de regreso).</p></div>
+                <div class="theory-card"><h5 data-icon="3.">Aumento Total</h5><p>Es el producto del aumento de cada paso (M = m₁×m₂×m₃). Un signo negativo significa imagen invertida.</p></div>
+                <div class="theory-card"><h5 data-icon="💡">Ecuación del Fabricante</h5><p>La distancia focal (f) depende de la geometría y del material (n). Para esta lente, <strong>n ≈ 1.99</strong>.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT DE SIMULACIÓN (SIN CAMBIOS) -->
+    <script>
+        let sliders = {};
+        let valueSpans = {};
+        const canvasWidth = 800;
+        const canvasHeight = 450;
+        const h_obj_pixels = 40;
+
+        function setup() {
+            let canvas = createCanvas(canvasWidth, canvasHeight);
+            canvas.parent('canvas-container');
+            sliders = { p1: select('#p1_slider'), f_lente: select('#f_lente_slider'), L: select('#distancia_slider'), R_espejo: select('#radio_espejo_slider'), };
+            valueSpans = { p1: select('#p1_val'), f_lente: select('#f_lente_val'), L: select('#distancia_val'), R_espejo: select('#radio_espejo_val'), q3: select('#q3_val'), m_total: select('#m_total_val'), orientation: select('#orientation_val'), };
+            for (let key in sliders) { sliders[key].input(draw); }
+            draw();
+        }
+
+        function draw() {
+            background(255);
+            const p1 = parseFloat(sliders.p1.value());
+            const f_lente = parseFloat(sliders.f_lente.value());
+            const L = parseFloat(sliders.L.value());
+            const R_espejo = parseFloat(sliders.R_espejo.value());
+            const f_espejo = R_espejo / 2;
+            valueSpans.p1.html(p1.toFixed(2));
+            valueSpans.f_lente.html(f_lente.toFixed(2));
+            valueSpans.L.html(L.toFixed(2));
+            valueSpans.R_espejo.html(R_espejo.toFixed(2));
+            const q1 = (f_lente * p1) / (p1 - f_lente);
+            const m1 = -q1 / p1;
+            const p2 = L - q1;
+            const q2 = (f_espejo * p2) / (p2 - f_espejo);
+            const m2 = -q2 / p2;
+            const p3 = L - q2;
+            const q3 = (f_lente * p3) / (p3 - f_lente);
+            const m3 = -q3 / p3;
+            const M_total = m1 * m2 * m3;
+            valueSpans.q3.html(isFinite(q3) ? `${q3.toFixed(2)} cm` : "N/A");
+            valueSpans.m_total.html(isFinite(M_total) ? M_total.toFixed(2) : "N/A");
+            valueSpans.orientation.html(isFinite(M_total) ? (M_total < 0 ? "Invertida" : "Derecha") : "N/A");
+            const eje_y = height / 2;
+            const lente_x = width / 2.5;
+            const scale = (width / 2) / L;
+            const espejo_x = lente_x + L * scale;
+            drawEjeOptico(eje_y);
+            drawLente(lente_x, eje_y, f_lente * scale);
+            drawEspejo(espejo_x, eje_y, R_espejo * scale);
+            const obj_x = lente_x - p1 * scale;
+            const h1_pixels = h_obj_pixels * m1;
+            const i1_x = lente_x + q1 * scale;
+            const h2_pixels = h1_pixels * m2;
+            const i2_x = espejo_x - q2 * scale;
+            const h3_pixels = h2_pixels * m3;
+            const i3_x = lente_x - q3 * scale;
+            drawRayPath(obj_x, -h_obj_pixels, i1_x, -h1_pixels, i2_x, -h2_pixels, i3_x, -h3_pixels, lente_x, espejo_x, eje_y);
+            drawArrow(obj_x, eje_y, h_obj_pixels, 'O', color(255, 140, 0));
+            if (isFinite(q1)) drawArrow(i1_x, eje_y, h1_pixels, 'I₁', color(30, 144, 255));
+            if (isFinite(q2)) drawArrow(i2_x, eje_y, h2_pixels, 'I₂', color(50, 205, 50));
+            if (isFinite(q3)) drawArrow(i3_x, eje_y, h3_pixels, 'I₃', color(220, 20, 60));
+            const pointsOfInterest = [];
+            pointsOfInterest.push({ x: obj_x, y: eje_y - h_obj_pixels, label: 'Objeto (O)', desc: `Posición: -${p1.toFixed(2)} cm\nAltura: 1.00 (ref)` });
+            if (isFinite(q1)) pointsOfInterest.push({ x: i1_x, y: eje_y - h1_pixels, label: 'Imagen 1 (I₁)', desc: `Posición: ${q1.toFixed(2)} cm\nAumento (m₁): ${m1.toFixed(2)}` });
+            if (isFinite(q2)) pointsOfInterest.push({ x: i2_x, y: eje_y - h2_pixels, label: 'Imagen 2 (I₂)', desc: `Posición: ${q2.toFixed(2)} cm (del espejo)\nAumento (m₁×m₂): ${(m1*m2).toFixed(2)}` });
+            if (isFinite(q3)) pointsOfInterest.push({ x: i3_x, y: eje_y - h3_pixels, label: 'Imagen Final (I₃)', desc: `Posición: ${q3.toFixed(2)} cm (de la lente)\nAumento Total: ${M_total.toFixed(2)}` });
+            pointsOfInterest.push({ x: lente_x - f_lente * scale, y: eje_y, label: 'Foco Lente (F₁)', desc: `Punto focal del objeto para la lente.\nDistancia: -${f_lente.toFixed(2)} cm` });
+            pointsOfInterest.push({ x: lente_x + f_lente * scale, y: eje_y, label: 'Foco Lente (F₂)', desc: `Punto focal de la imagen para la lente.\nDistancia: +${f_lente.toFixed(2)} cm` });
+            pointsOfInterest.push({ x: espejo_x - f_espejo * scale, y: eje_y, label: 'Foco Espejo (Fₘ)', desc: `Punto focal del espejo.\nDistancia: ${f_espejo.toFixed(2)} cm del vértice` });
+            pointsOfInterest.push({ x: espejo_x - R_espejo * scale, y: eje_y, label: 'Centro Espejo (C)', desc: `Centro de curvatura del espejo.\nRadio: ${R_espejo.toFixed(2)} cm` });
+            drawTooltips(pointsOfInterest);
+        }
+
+        function drawTooltips(points) {
+            const hoverRadius = 15;
+            for (const point of points) {
+                if (dist(mouseX, mouseY, point.x, point.y) < hoverRadius) {
+                    const tooltipX = mouseX + 15;
+                    const tooltipY = mouseY;
+                    const tooltipW = 220;
+                    const tooltipH = 65;
+                    fill(0, 0, 0, 220); noStroke(); rect(tooltipX, tooltipY, tooltipW, tooltipH, 5);
+                    fill(255); textAlign(LEFT, TOP); textStyle(BOLD);
+                    text(point.label, tooltipX + 10, tooltipY + 10);
+                    textStyle(NORMAL);
+                    text(point.desc, tooltipX + 10, tooltipY + 30);
+                    break; 
+                }
+            }
+        }
+        function drawEjeOptico(y) { stroke(100); strokeWeight(1.5); line(0, y, width, y); }
+        function drawLente(x, y, f_pixels) { stroke(0, 100, 200); strokeWeight(3); line(x, y - 80, x, y + 80); line(x, y - 80, x - 10, y - 70); line(x, y - 80, x + 10, y - 70); line(x, y + 80, x - 10, y + 70); line(x, y + 80, x + 10, y + 70); fill(0, 100, 200, 150); noStroke(); circle(x - f_pixels, y, 10); circle(x + f_pixels, y, 10); fill(0); textAlign(CENTER); text('F₂', x + f_pixels, y + 25); text('F₁', x - f_pixels, y + 25); }
+        function drawEspejo(x, y, R_pixels) { stroke(120, 120, 120); strokeWeight(3); noFill(); arc(x + R_pixels, y, 2 * R_pixels, 2 * R_pixels, PI - 0.45, PI + 0.45); fill(100, 100, 100, 150); noStroke(); circle(x - (R_pixels/2), y, 10); circle(x - R_pixels, y, 10); fill(0); textAlign(CENTER); text('Fₘ', x - (R_pixels/2), y + 25); text('C', x - R_pixels, y + 25); }
+        function drawArrow(x, y_base, h_pixels, label, col) { stroke(col); strokeWeight(3); line(x, y_base, x, y_base - h_pixels); fill(col); triangle(x, y_base - h_pixels, x - 5, y_base - h_pixels + Math.sign(h_pixels) * 10, x + 5, y_base - h_pixels + Math.sign(h_pixels) * 10); noStroke(); fill(0); textAlign(CENTER); text(label, x, y_base + (h_pixels > 0 ? -h_pixels - 20 : 25)); }
+        function drawRayPath(ox, oy, i1x, i1y, i2x, i2y, i3x, i3y, lente_x, espejo_x, eje_y) { noFill(); strokeWeight(1.5); const p_o_y = eje_y + oy; const p_i1_y = eje_y + i1y; stroke(255, 165, 0, 150); if (isFinite(i1x)) { line(ox, p_o_y, lente_x, p_o_y); line(lente_x, p_o_y, i1x, p_i1_y); } const p_i2_y = eje_y + i2y; stroke(0, 200, 83, 150); if (isFinite(i2x) && isFinite(i1x)) { line(i1x, p_i1_y, espejo_x, p_i1_y); line(espejo_x, p_i1_y, i2x, p_i2_y); } const p_i3_y = eje_y + i3y; stroke(0, 0, 255, 150); if (isFinite(i3x) && isFinite(i2x)) { line(i2x, p_i2_y, lente_x, p_i2_y); line(lente_x, p_i2_y, i3x, p_i3_y); } }
+    </script>
+</body>
+</html>

@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz - Simulación de Intercepción de Misiles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .content-section {
+            background-color: #1f2937; /* gray-800 */
+            border: 1px solid #374151; /* gray-700 */
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .content-section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #67e8f9; /* cyan-400 */
+            border-bottom: 2px solid #0891b2; /* cyan-600 */
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .content-section p, .content-section li {
+            color: #d1d5db; /* gray-300 */
+            line-height: 1.7;
+        }
+        .control-panel {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        canvas {
+            background-color: #0a0a2a;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .radar-btn-active {
+            background-color: #06b6d4;
+            color: white;
+        }
+        .radar-btn-inactive {
+            background-color: #4b5563;
+            color: #d1d5db;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <div class="w-full max-w-5xl mx-auto p-4 md:p-8">
+        
+        <!-- Encabezado -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-cyan-300">Quiz 1 - Simulación Computacional de Intercepción de Misiles</h1>
+            <p class="text-xl text-gray-400 mt-2">Inspirado en el sistema Domo de Hierro</p>
+            <p class="text-md text-gray-500 mt-4">Curso de Física Mecánica (Grupo 12) - Universidad de Antioquia</p>
+            <p class="text-md text-gray-500 mt-4">Jose David Román - 1036518253</p>
+
+        </header>
+
+        <!-- 1. Enunciado del Problema -->
+        <section class="content-section">
+            <h2>1. Enunciado del Problema</h2>
+            <p>Un radar detecta un misil enemigo en vuelo. En el instante de la detección, se conocen su posición inicial \(\vec{r}_{0}\) y su velocidad inicial \(\vec{v}_{0}\). El misil enemigo se mueve únicamente bajo la acción de la gravedad terrestre. El sistema de defensa debe calcular la trayectoria de intercepción y lanzar un misil defensor para neutralizar la amenaza. La estrategia de defensa depende de la distancia y altura de la detección: si la amenaza está lejana, se utiliza un interceptor balístico; si está cercana, el interceptor debe usar propulsores con aceleración adicional.</p>
+        </section>
+
+        <!-- 2. Solución Algebraica Propuesta -->
+        <section class="content-section">
+            <h2>2. Solución Algebraica Propuesta</h2>
+            <p>El problema, aunque se puede plantear en 3D, se simplifica a un plano 2D que contiene la trayectoria parabólica. Primero, se analiza el movimiento del misil enemigo para predecir su trayectoria y determinar el punto de intercepción.</p>
+            
+            <h3 class="text-xl text-cyan-500 mt-6 mb-2">Análisis del Misil Enemigo</h3>
+            <p>Las ecuaciones de movimiento para el misil enemigo (subíndice \(e\)), que se mueve solo bajo la gravedad, son:</p>
+            <p class="my-4 pl-4 border-l-4 border-cyan-500">
+                \(x_{e}(t) = x_{0e} + v_{0xe}t\) <br>
+                \(y_{e}(t) = y_{0e} + v_{0ye}t - \frac{1}{2}gt^2\)
+            </p>
+            <p>Para encontrar el tiempo máximo de vuelo (\(t_{max}\)) hasta que impacte el suelo (\(y_e(t)=0\)), resolvemos la ecuación cuadrática:</p>
+             <p class="my-4 pl-4 border-l-4 border-cyan-500">
+                \(t_{max} = \frac{v_{0ye} + \sqrt{v_{0ye}^2 + 2gy_{0e}}}{g}\)
+            </p>
+            <p>La estrategia de defensa consiste en interceptar el misil a la mitad de su tiempo de vuelo total, en el tiempo de intercepción \(t_{i} = t_{max} / 2\). La posición del misil enemigo en ese instante, el punto de intercepción \(Q(x_i, y_i)\), será:</p>
+             <p class="my-4 pl-4 border-l-4 border-cyan-500">
+                \(x_{i} = x_{0e} + v_{0xe}t_i\) <br>
+                \(y_{i} = y_{0e} + v_{0ye}t_i - \frac{1}{2}gt_i^2\)
+            </p>
+
+            <h3 class="text-xl text-cyan-500 mt-6 mb-2">Caso 1: Interceptor Balístico (Detección en Radar S)</h3>
+            <p>Si la detección es lejana, el misil defensor (subíndice \(d\)), partiendo de \((0,0)\), sigue una trayectoria parabólica. Debe alcanzar el punto \(Q(x_i, y_i)\) en el tiempo \(t_i\). Sus componentes de velocidad inicial se despejan de las ecuaciones de movimiento:</p>
+             <p class="my-4 pl-4 border-l-4 border-cyan-500">
+                \(v_{0xd} = \frac{x_i}{t_i}\) <br>
+                \(v_{0yd} = \frac{y_i + \frac{1}{2}gt_i^2}{t_i}\)
+            </p>
+            <p>La magnitud de la velocidad y el ángulo de lanzamiento del interceptor son:</p>
+             <p class="my-4 pl-4 border-l-4 border-cyan-500">
+                \(|\vec{v}_{0d}| = \sqrt{v_{0xd}^2 + v_{0yd}^2}\) <br>
+                \(\theta_d = \tan^{-1}\left(\frac{v_{0yd}}{v_{0xd}}\right)\)
+            </p>
+
+            <h3 class="text-xl text-cyan-500 mt-6 mb-2">Caso 2: Interceptor con Propulsión (Detección en Radar P)</h3>
+            <p>Si la detección es cercana, el interceptor requiere una aceleración constante adicional \(\vec{a}_d = (a_{dx}, a_{dy})\) para llegar a tiempo. Sus ecuaciones de movimiento son:</p>
+             <p class="my-4 pl-4 border-l-4 border-cyan-500">
+                \(x_d(t) = v_{0xd}t + \frac{1}{2}a_{dx}t^2\) <br>
+                \(y_d(t) = v_{0yd}t - \frac{1}{2}gt^2 + \frac{1}{2}a_{dy}t^2\)
+            </p>
+            <p>En la simulación, se asume una velocidad de lanzamiento inicial fija (\(v_{0d}\)) dirigida hacia el punto de intercepción. Conociendo \(v_{0xd}\) y \(v_{0yd}\), podemos despejar los componentes de la aceleración requerida para que el misil llegue a \(Q(x_i, y_i)\) en el tiempo \(t_i\):</p>
+             <p class="my-4 pl-4 border-l-4 border-cyan-500">
+                \(a_{dx} = \frac{2(x_i - v_{0xd}t_i)}{t_i^2}\) <br>
+                \(a_{dy} = \frac{2(y_i - v_{0yd}t_i + \frac{1}{2}gt_i^2)}{t_i^2}\)
+            </p>
+            <p>La magnitud de la aceleración de propulsión necesaria es:</p>
+            <p class="my-4 pl-4 border-l-4 border-cyan-500">
+                \(|\vec{a}_d| = \sqrt{a_{dx}^2 + a_{dy}^2}\)
+            </p>
+        </section>
+
+        <!-- 3. Análisis Funcional o Teórico -->
+        <section class="content-section">
+            <h2>3. Análisis Funcional o Teórico</h2>
+            <p>El sistema opera bajo dos radares concéntricos: un radar exterior de largo alcance 'S' y un radar interior de corto alcance 'P' (\(P = S/2\)).</p>
+            <ul class="list-disc list-inside ml-4 mt-2">
+                <li><b>Detección en Radar S:</b> Si el misil enemigo es detectado en el perímetro del radar S, la amenaza se considera lejana. El sistema de defensa responde con un misil interceptor balístico, cuya trayectoria es puramente parabólica, afectada solo por la gravedad. El cálculo se centra en encontrar la velocidad y ángulo de lanzamiento precisos.</li>
+                <li><b>Detección en Radar P:</b> Si la detección ocurre en el perímetro del radar P, la amenaza es inminente. El tiempo de reacción es mínimo, por lo que el misil defensor debe activar propulsores para obtener una aceleración constante adicional a la gravedad. Esto le permite alcanzar el punto de intercepción más rápidamente que en una trayectoria balística simple.</li>
+            </ul>
+        </section>
+
+        <!-- 4. Planteamiento de la Simulación -->
+        <section class="content-section">
+            <h2>4. Planteamiento de la Simulación</h2>
+            <p>La solución algebraica se implementa en una simulación interactiva autocontenida en este archivo HTML, utilizando JavaScript y la API Canvas para la representación gráfica. Un generador de números aleatorios asigna la posición inicial, velocidad y dirección del misil enemigo dentro de rangos predefinidos, y también selecciona aleatoriamente el radar de detección (S o P). Los parámetros pueden ser ajustados manualmente mediante deslizadores para explorar diferentes escenarios. La simulación calcula y visualiza en tiempo real ambas trayectorias, el punto de impacto, el punto de intercepción y todos los datos relevantes del sistema de defensa. Una función de animación permite observar el movimiento de ambos proyectiles hasta el momento del impacto.</p>
+        </section>
+        
+        <!-- 5. Simulación Interactiva -->
+        <section class="content-section">
+            <h2>5. Simulación Interactiva</h2>
+            <div id="simulation-container" class="mt-4">
+                <!-- El contenido de la simulación se insertará aquí -->
+            </div>
+        </section>
+
+        <!-- 6. Relación con el Sistema Domo de Hierro -->
+        <section class="content-section">
+            <h2>6. Relación con el Sistema Domo de Hierro</h2>
+            <p>Esta simulación está conceptualmente inspirada en sistemas de defensa antiaérea como el Domo de Hierro de Israel, que similarmente al radar S y P, tiene un sistema "multicapa", el cual activa diferentes formas de contrarrestar un misil enemigo dependiendo de situaciones específicas. Aunque es una simplificación en 2D, modela los principios fundamentales: detección de una amenaza balística por radar, cálculo rápido de su trayectoria y punto de impacto, y el lanzamiento de un interceptor para neutralizarla en el aire. La estrategia de dos niveles (balístico vs. propulsado) refleja la necesidad de diferentes respuestas según la urgencia y distancia de la amenaza, una característica clave de los sistemas de defensa modernos que deben ser eficientes y efectivos.</p>
+        </section>
+
+        <!-- 7. Conclusiones -->
+        <section class="content-section">
+            <h2>7. Conclusiones</h2>
+            <p>A través de esta simulación, se ha demostrado la viabilidad de modelar un sistema complejo de defensa de misiles utilizando principios fundamentales de la física mecánica. Se logró implementar la cinemática del movimiento de proyectiles bajo gravedad y con aceleración constante. La interfaz interactiva permite al usuario explorar la relación entre variables como la posición de detección, la velocidad inicial y el ángulo, y cómo estas afectan la estrategia de intercepción. Se concluye que la física clásica proporciona un marco robusto y suficiente para predecir y contrarrestar amenazas balísticas de manera efectiva, y que herramientas computacionales como esta son invaluables para el análisis y la visualización de dichos escenarios.</p>
+        </section>
+        
+        <!-- 8. Bibliografía -->
+        <section class="content-section">
+            <h2>8. Bibliografía</h2>
+            <ul class="list-disc list-inside ml-4">
+                <li>Serway, R. A., & Jewett, J. W. (2018). <em>Physics for Scientists and Engineers with Modern Physics.</em> Cengage Learning.</li>
+                <li>Documentación de la API de Canvas de MDN Web Docs.</li>
+                <li>Google. (2025). Gemini 2.5 Modo Canvas.</li>
+                <li>Sistema Domo de hierro de Isrrael, extraido de: https://www.elmundo.es/internacional/2024/10/01/66fc337ae85ece2a618b458a.html<li>
+            </ul>
+        </section>
+    </div>
+
+    <!-- Contenedor de la simulación original -->
+    <div id="original-simulation-content" class="hidden">
+        <div class="control-panel w-full p-6 rounded-2xl shadow-lg border border-gray-700 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="flex flex-col space-y-2">
+                    <label for="rangeS" class="font-medium text-black">Rango del Radar (S)</label>
+                    <div class="flex items-center space-x-3">
+                        <input type="range" id="rangeS" min="100" max="5000" value="1000" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                        <span id="rangeSValue" class="font-semibold text-cyan-400 w-20 text-center">1000 m</span>
+                    </div>
+                </div>
+                 <div class="flex flex-col space-y-2 items-center">
+                    <label class="font-medium text-black">Radar de Detección</label>
+                    <div class="flex space-x-2">
+                        <button id="radarSBtn" class="radar-btn-active px-4 py-2 rounded-lg font-semibold transition-colors">Radar S</button>
+                        <button id="radarPBtn" class="radar-btn-inactive px-4 py-2 rounded-lg font-semibold transition-colors">Radar P</button>
+                    </div>
+                </div>
+                <div class="flex flex-col justify-center bg-gray-800 p-4 rounded-lg">
+                     <h3 class="font-medium text-gray-300 text-center">Posición Inicial</h3>
+                     <p id="posValue" class="text-xl font-bold text-green-400 text-center mt-1">(700, 714) m</p>
+                </div>
+            </div>
+            <div class="flex flex-col space-y-2 mt-4">
+                <label for="posX" class="font-medium text-black">Posición Inicial (x) en Radar Activo</label>
+                <div class="flex items-center space-x-3">
+                    <input type="range" id="posX" min="-1000" max="1000" value="700" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                    <span id="posXValue" class="font-semibold text-cyan-400 w-20 text-center">700 m</span>
+                </div>
+            </div>
+        </div>
+        <div class="w-full h-96 md:h-[450px] bg-gray-800 rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
+            <canvas id="radarCanvas"></canvas>
+        </div>
+        <div class="control-panel w-full p-6 rounded-2xl shadow-lg border border-gray-700 mt-6">
+            <h2 class="text-xl font-bold text-black mb-4 text-center text-black !text-black">Parámetros de Trayectoria del Misil Enemigo</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="flex flex-col space-y-2">
+                    <label for="velocity" class="font-medium text-black">Velocidad Inicial (m/s)</label>
+                    <input type="range" id="velocity" min="100" max="700" value="400" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                    <span id="velocityValue" class="font-semibold text-cyan-400 text-center">400 m/s</span>
+                </div>
+                <div class="flex flex-col space-y-2">
+                    <label for="angle" class="font-medium text-black">Dirección del Misil (&theta;)</label>
+                    <input type="range" id="angle" min="-179" max="-91" value="-135" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                    <span id="angleValue" class="font-semibold text-cyan-400 text-center">-135 &deg;</span>
+                </div>
+                <div class="flex flex-col justify-center bg-gray-800 p-3 rounded-lg text-center">
+                    <h3 class="font-medium text-gray-300">Punto de Impacto si no se Intercepta (x)</h3>
+                    <p id="impactXValue" class="text-lg font-bold text-yellow-400 mt-1">0 m</p>
+                </div>
+                <div class="flex flex-col justify-center bg-gray-800 p-3 rounded-lg text-center">
+                    <h3 class="font-medium text-gray-300">Tiempo de Vuelo si no se Intercepta (t_max)</h4>
+                    <p id="tMaxValue" class="font-bold text-white text-lg">0 s</p>
+                </div>
+            </div>
+             <div class="flex justify-center mt-6 space-x-4 items-center">
+                <button id="randomizeButton" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300">
+                    Generar Aleatorio
+                </button>
+                <button id="animateButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300">
+                    Iniciar Animación
+                </button>
+                 <button id="resetButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300">
+                    Reiniciar
+                </button>
+                <div class="bg-gray-800 p-3 rounded-lg w-32 text-center">
+                    <h4 class="font-medium text-gray-400 text-sm">Tiempo</h4>
+                    <p id="chronometer" class="font-bold text-white text-lg">0.00 s</p>
+                </div>
+            </div>
+            <div class="mt-6 border-t border-gray-600 pt-4">
+                <h3 class="text-lg font-bold text-black mb-2 text-center">Sistema de Defensa</h3>
+                <div id="defenseGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div class="bg-gray-800 p-3 rounded-lg">
+                        <h4 class="font-medium text-gray-400 text-sm">Tiempo de Impacto entre misiles (t_imp)</h4>
+                        <p id="tImpactValue" class="font-bold text-white text-lg">0 s</p>
+                    </div>
+                    <div class="bg-gray-800 p-3 rounded-lg">
+                        <h4 class="font-medium text-gray-400 text-sm">Punto de Intercepción</h4>
+                        <p id="interceptPointValue" class="font-bold text-white text-lg">(0, 0) m</p>
+                    </div>
+                    <div class="bg-gray-800 p-3 rounded-lg">
+                        <h4 class="font-medium text-gray-400 text-sm">Velocidad Misil Defensa</h4>
+                        <p id="defenseVelocityValue" class="font-bold text-white text-lg">0 m/s</p>
+                    </div>
+                    <div class="bg-gray-800 p-3 rounded-lg">
+                        <h4 class="font-medium text-gray-400 text-sm">Ángulo Misil Defensa</h4>
+                        <p id="defenseAngleValue" class="font-bold text-white text-lg">0 &deg;</p>
+                    </div>
+                    <div id="accelerationCard" class="bg-gray-800 p-3 rounded-lg hidden">
+                        <h4 class="font-medium text-gray-400 text-sm">Aceleración (Propulsión)</h4>
+                        <p id="defenseAccelerationValue" class="font-bold text-white text-lg">0 m/s²</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mover la simulación a su contenedor final
+            const simulationContent = document.getElementById('original-simulation-content');
+            const simulationContainer = document.getElementById('simulation-container');
+            simulationContainer.appendChild(simulationContent.firstElementChild); // Panel de control
+            simulationContainer.appendChild(simulationContent.firstElementChild); // Canvas
+            simulationContainer.appendChild(simulationContent.firstElementChild); // Panel de parámetros
+            simulationContent.remove();
+
+            // --- El resto del script de la simulación va aquí ---
+            const canvas = document.getElementById('radarCanvas');
+            const ctx = canvas.getContext('2d');
+            const g = 9.81;
+
+            const allInputs = [
+                document.getElementById('rangeS'),
+                document.getElementById('posX'),
+                document.getElementById('velocity'),
+                document.getElementById('angle'),
+                document.getElementById('radarSBtn'),
+                document.getElementById('radarPBtn'),
+                document.getElementById('randomizeButton'),
+                document.getElementById('animateButton'),
+            ];
+            const [rangeSInput, posXInput, velocityInput, angleInput, radarSBtn, radarPBtn, randomizeButton, animateButton] = allInputs;
+            const resetButton = document.getElementById('resetButton');
+            const chronometer = document.getElementById('chronometer');
+
+            const rangeSValue = document.getElementById('rangeSValue');
+            const posXValue = document.getElementById('posXValue');
+            const posValue = document.getElementById('posValue');
+            const velocityValue = document.getElementById('velocityValue');
+            const angleValue = document.getElementById('angleValue');
+            const impactXValue = document.getElementById('impactXValue');
+            const tMaxValue = document.getElementById('tMaxValue');
+            const tImpactValue = document.getElementById('tImpactValue');
+            const interceptPointValue = document.getElementById('interceptPointValue');
+            const defenseVelocityValue = document.getElementById('defenseVelocityValue');
+            const defenseAngleValue = document.getElementById('defenseAngleValue');
+            const accelerationCard = document.getElementById('accelerationCard');
+            const defenseAccelerationValue = document.getElementById('defenseAccelerationValue');
+            const defenseGrid = document.getElementById('defenseGrid');
+            
+            let scale = 1;
+            let originX, originY;
+            let activeRadar = 'S';
+            let scenario = {};
+            let animationId = null;
+            let animationStartTime = 0;
+
+            function calculateScenario() {
+                const S = parseFloat(rangeSInput.value);
+                const P = S / 2;
+                const detectionRadius = (activeRadar === 'S') ? S : P;
+                
+                const x_pos = parseFloat(posXInput.value);
+                const validX = Math.abs(x_pos) > detectionRadius ? (x_pos > 0 ? detectionRadius : -detectionRadius) : x_pos;
+                if (validX !== x_pos) posXInput.value = validX;
+
+                const y_pos_squared = detectionRadius * detectionRadius - validX * validX;
+                const y_pos = Math.sqrt(Math.max(0, y_pos_squared));
+
+                const v0 = parseFloat(velocityInput.value);
+                const angle_deg = parseFloat(angleInput.value);
+                
+                rangeSValue.textContent = `${S.toFixed(0)} m`;
+                posXValue.textContent = `${validX.toFixed(0)} m`;
+                posValue.innerHTML = `(${validX.toFixed(0)}, ${y_pos.toFixed(0)}) m`;
+                velocityValue.textContent = `${v0.toFixed(0)} m/s`;
+                angleValue.innerHTML = `${angle_deg.toFixed(0)} &deg;`;
+                
+                scenario = { S, P, x_pos: validX, y_pos };
+
+                const theta_rad = angle_deg * Math.PI / 180;
+                scenario.vx_enemy = v0 * Math.cos(theta_rad);
+                scenario.vy_enemy = v0 * Math.sin(theta_rad);
+
+                const discriminant = scenario.vy_enemy * scenario.vy_enemy - 4 * (-0.5 * g) * y_pos;
+                if (discriminant >= 0) {
+                    const t1 = (-scenario.vy_enemy + Math.sqrt(discriminant)) / -g;
+                    const t2 = (-scenario.vy_enemy - Math.sqrt(discriminant)) / -g;
+                    scenario.t_max = Math.max(t1, t2);
+                    
+                    if (scenario.t_max > 0) {
+                        scenario.impactX = validX + scenario.vx_enemy * scenario.t_max;
+                        scenario.launch_possible = true;
+                    }
+                } else {
+                    scenario.launch_possible = false;
+                }
+
+                if (scenario.launch_possible) {
+                    scenario.t_impact = scenario.t_max / 2;
+                    const interceptX = validX + scenario.vx_enemy * scenario.t_impact;
+                    const interceptY = y_pos + scenario.vy_enemy * scenario.t_impact - 0.5 * g * scenario.t_impact * scenario.t_impact;
+                    scenario.intercept = { x: interceptX, y: interceptY };
+                    
+                    if (scenario.t_impact > 0.01) {
+                        if(activeRadar === 'S') {
+                            scenario.defense_type = 'ballistic';
+                            scenario.vx_defense = interceptX / scenario.t_impact;
+                            scenario.vy_defense = (interceptY + 0.5 * g * scenario.t_impact * scenario.t_impact) / scenario.t_impact;
+                            scenario.ax_defense = 0;
+                            scenario.ay_defense = 0;
+                        } else {
+                            scenario.defense_type = 'propelled';
+                            const v_launch_fixed = 100;
+                            const launch_angle = Math.atan2(interceptY, interceptX);
+                            scenario.vx_defense = v_launch_fixed * Math.cos(launch_angle);
+                            scenario.vy_defense = v_launch_fixed * Math.sin(launch_angle);
+                            scenario.ax_defense = 2 * (interceptX - scenario.vx_defense * scenario.t_impact) / (scenario.t_impact * scenario.t_impact);
+                            scenario.ay_defense = 2 * (interceptY - scenario.vy_defense * scenario.t_impact + 0.5 * g * scenario.t_impact * scenario.t_impact) / (scenario.t_impact * scenario.t_impact);
+                        }
+                        scenario.defense_possible = true;
+                    } else {
+                        scenario.defense_possible = false;
+                    }
+                } else {
+                    scenario.defense_possible = false;
+                }
+
+                updateUI();
+            }
+            
+            function updateUI() {
+                if (scenario.launch_possible) {
+                    impactXValue.textContent = `${scenario.impactX.toFixed(2)} m`;
+                    tMaxValue.textContent = `${scenario.t_max.toFixed(2)} s`;
+                } else {
+                    impactXValue.textContent = 'No impacta';
+                    tMaxValue.textContent = '0.00 s';
+                }
+
+                if(scenario.defense_possible) {
+                    tImpactValue.textContent = `${scenario.t_impact.toFixed(2)} s`;
+                    interceptPointValue.innerHTML = `(${scenario.intercept.x.toFixed(0)}, ${scenario.intercept.y.toFixed(0)}) m`;
+                    const v_mag = Math.sqrt(scenario.vx_defense**2 + scenario.vy_defense**2);
+                    const angle_rad = Math.atan2(scenario.vy_defense, scenario.vx_defense);
+                    defenseVelocityValue.textContent = `${v_mag.toFixed(0)} m/s`;
+                    defenseAngleValue.innerHTML = `${(angle_rad * 180 / Math.PI).toFixed(1)} &deg;`;
+
+                    if(scenario.defense_type === 'propelled') {
+                        accelerationCard.classList.remove('hidden');
+                        defenseGrid.classList.add('lg:grid-cols-5');
+                        const a_mag = Math.sqrt(scenario.ax_defense**2 + scenario.ay_defense**2);
+                        defenseAccelerationValue.innerHTML = `${a_mag.toFixed(1)} m/s²`;
+                    } else {
+                        accelerationCard.classList.add('hidden');
+                        defenseGrid.classList.remove('lg:grid-cols-5');
+                    }
+                } else {
+                    tImpactValue.textContent = `0.00 s`;
+                    interceptPointValue.innerHTML = `(N/A)`;
+                    defenseVelocityValue.textContent = `N/A`;
+                    defenseAngleValue.innerHTML = `N/A`;
+                    defenseAccelerationValue.innerHTML = `N/A`;
+                }
+            }
+
+            function drawStaticScene() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                originX = canvas.width / 2;
+                originY = canvas.height - 20;
+                scale = (canvas.width * 0.45) / scenario.S;
+                if (scenario.S * scale > originY) scale = originY * 0.95 / scenario.S;
+
+                ctx.beginPath();
+                ctx.moveTo(0, originY);
+                ctx.lineTo(canvas.width, originY);
+                ctx.strokeStyle = '#a1a1aa';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.setLineDash([5, 10]);
+                ctx.arc(originX, originY, Math.max(0, scenario.S * scale), Math.PI, 0);
+                ctx.strokeStyle = 'cyan';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(originX, originY, Math.max(0, scenario.P * scale), Math.PI, 0);
+                ctx.strokeStyle = '#0891b2';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.beginPath();
+                ctx.arc(originX, originY, 6, 0, 2 * Math.PI);
+                ctx.fillStyle = '#67E8F9';
+                ctx.fill();
+            }
+
+            function drawSceneWithTrajectories() {
+                drawStaticScene();
+                
+                if (scenario.launch_possible) {
+                    const targetCanvasX = originX + scenario.impactX * scale;
+                    ctx.beginPath();
+                    ctx.moveTo(targetCanvasX - 8, originY - 8); ctx.lineTo(targetCanvasX + 8, originY + 8);
+                    ctx.moveTo(targetCanvasX - 8, originY + 8); ctx.lineTo(targetCanvasX + 8, originY - 8);
+                    ctx.strokeStyle = '#fde047'; ctx.lineWidth = 3; ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(originX + scenario.x_pos * scale, originY - scenario.y_pos * scale);
+                    ctx.strokeStyle = 'rgba(253, 224, 71, 0.4)'; ctx.lineWidth = 2; ctx.setLineDash([2, 4]);
+                    for (let t = 0; t <= scenario.t_max; t += scenario.t_max / 100) {
+                        const trajX = scenario.x_pos + scenario.vx_enemy * t;
+                        const trajY = scenario.y_pos + scenario.vy_enemy * t - 0.5 * g * t * t;
+                        if (trajY < -0.1) break;
+                        ctx.lineTo(originX + trajX * scale, originY - trajY * scale);
+                    }
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+
+                if (scenario.defense_possible) {
+                    const interceptCanvasX = originX + scenario.intercept.x * scale;
+                    const interceptCanvasY = originY - scenario.intercept.y * scale;
+                    ctx.beginPath();
+                    ctx.moveTo(interceptCanvasX - 8, interceptCanvasY - 8); ctx.lineTo(interceptCanvasX + 8, interceptCanvasY + 8);
+                    ctx.moveTo(interceptCanvasX - 8, interceptCanvasY + 8); ctx.lineTo(interceptCanvasX + 8, interceptCanvasY - 8);
+                    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 4; ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(originX, originY);
+                    ctx.strokeStyle = 'rgba(96, 165, 250, 0.5)'; ctx.lineWidth = 2.5;
+                    for (let t = 0; t <= scenario.t_impact; t += scenario.t_impact / 50) {
+                        const trajX = scenario.vx_defense * t + 0.5 * scenario.ax_defense * t * t;
+                        const trajY = scenario.vy_defense * t - 0.5 * g * t * t + 0.5 * scenario.ay_defense * t * t;
+                        ctx.lineTo(originX + trajX * scale, originY - trajY * scale);
+                    }
+                    ctx.stroke();
+                }
+                
+                const missileX = originX + scenario.x_pos * scale;
+                const missileY = originY - scenario.y_pos * scale;
+                ctx.beginPath();
+                ctx.arc(missileX, missileY, 6, 0, 2 * Math.PI);
+                ctx.fillStyle = '#F43F5E'; ctx.fill();
+                ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2; ctx.stroke();
+
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 12px Inter';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText(`(${scenario.x_pos.toFixed(0)}, ${scenario.y_pos.toFixed(0)})`, missileX + 10, missileY - 5);
+
+                if (scenario.launch_possible) {
+                    const vectorScale = Math.min(canvas.width, canvas.height) * 0.0005;
+                    ctx.beginPath();
+                    ctx.moveTo(missileX, missileY);
+                    ctx.lineTo(missileX + scenario.vx_enemy * vectorScale, missileY - scenario.vy_enemy * vectorScale);
+                    ctx.strokeStyle = '#4ade80';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+            }
+            
+            function startAnimation() {
+                if (!scenario.defense_possible) return;
+                allInputs.forEach(input => input.disabled = true);
+                animationStartTime = performance.now();
+                chronometer.textContent = '0.00 s';
+                animationId = requestAnimationFrame(animate);
+            }
+
+            function resetAnimation() {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+                allInputs.forEach(input => input.disabled = false);
+                chronometer.textContent = '0.00 s';
+                calculateScenario();
+                drawSceneWithTrajectories();
+            }
+
+            function animate(timestamp) {
+                const elapsedTime = (timestamp - animationStartTime) / 1000;
+
+                if (elapsedTime >= scenario.t_impact) {
+                    chronometer.textContent = `${scenario.t_impact.toFixed(2)} s`;
+                    resetAnimation();
+                    return;
+                }
+                
+                chronometer.textContent = `${elapsedTime.toFixed(2)} s`;
+
+                drawStaticScene();
+
+                const enemyX = scenario.x_pos + scenario.vx_enemy * elapsedTime;
+                const enemyY = scenario.y_pos + scenario.vy_enemy * elapsedTime - 0.5 * g * elapsedTime * elapsedTime;
+                const enemyCanvasX = originX + enemyX * scale;
+                const enemyCanvasY = originY - enemyY * scale;
+
+                ctx.beginPath();
+                ctx.arc(enemyCanvasX, enemyCanvasY, 6, 0, 2 * Math.PI);
+                ctx.fillStyle = '#F43F5E'; ctx.fill();
+                ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2; ctx.stroke();
+
+                const defenseX = scenario.vx_defense * elapsedTime + 0.5 * scenario.ax_defense * elapsedTime * elapsedTime;
+                const defenseY = scenario.vy_defense * elapsedTime - 0.5 * g * elapsedTime * elapsedTime + 0.5 * scenario.ay_defense * elapsedTime * elapsedTime;
+                const defenseCanvasX = originX + defenseX * scale;
+                const defenseCanvasY = originY - defenseY * scale;
+
+                ctx.beginPath();
+                ctx.arc(defenseCanvasX, defenseCanvasY, 6, 0, 2 * Math.PI);
+                ctx.fillStyle = '#3b82f6'; ctx.fill();
+                ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2; ctx.stroke();
+                
+                const interceptCanvasX = originX + scenario.intercept.x * scale;
+                const interceptCanvasY = originY - scenario.intercept.y * scale;
+                ctx.beginPath();
+                ctx.moveTo(interceptCanvasX - 8, interceptCanvasY - 8); ctx.lineTo(interceptCanvasX + 8, interceptCanvasY + 8);
+                ctx.moveTo(interceptCanvasX - 8, interceptCanvasY + 8); ctx.lineTo(interceptCanvasX + 8, interceptCanvasY - 8);
+                ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 4; ctx.stroke();
+
+                animationId = requestAnimationFrame(animate);
+            }
+
+            function setActiveRadar(radar) {
+                activeRadar = radar;
+                radarSBtn.classList.toggle('radar-btn-active', radar === 'S');
+                radarSBtn.classList.toggle('radar-btn-inactive', radar !== 'S');
+                radarPBtn.classList.toggle('radar-btn-active', radar === 'P');
+                radarPBtn.classList.toggle('radar-btn-inactive', radar !== 'P');
+                updateAllControls();
+            }
+
+            function randomizeParameters() {
+                const randomRadar = Math.random() < 0.5 ? 'S' : 'P';
+                setActiveRadar(randomRadar);
+
+                const S = parseFloat(rangeSInput.value);
+                const detectionRadius = (randomRadar === 'S') ? S : S / 2;
+                const random_x_pos = (Math.random() * 2 - 1) * detectionRadius;
+                const random_v0 = 100 + Math.random() * 600;
+                let random_angle;
+                if (random_x_pos >= 0) {
+                    random_angle = -179 + Math.random() * (-91 - (-179));
+                } else {
+                    random_angle = -89 + Math.random() * (-1 - (-89));
+                }
+                posXInput.value = random_x_pos;
+                velocityInput.value = random_v0;
+                angleInput.value = random_angle;
+                updateAllControls();
+            }
+            
+            function updateAllControls() {
+                const S = parseFloat(rangeSInput.value);
+                const P = S / 2;
+                const detectionRadius = (activeRadar === 'S') ? S : P;
+
+                posXInput.min = -detectionRadius;
+                posXInput.max = detectionRadius;
+
+                if (parseFloat(posXInput.value) > detectionRadius) posXInput.value = detectionRadius;
+                if (parseFloat(posXInput.value) < -detectionRadius) posXInput.value = -detectionRadius;
+                
+                const current_x = parseFloat(posXInput.value);
+                if (current_x >= 0) {
+                    angleInput.min = -179;
+                    angleInput.max = -91;
+                } else {
+                    angleInput.min = -89;
+                    angleInput.max = -1;
+                }
+                const current_angle = parseFloat(angleInput.value);
+                if (current_angle > parseFloat(angleInput.max) || current_angle < parseFloat(angleInput.min)) {
+                    angleInput.value = (parseFloat(angleInput.min) + parseFloat(angleInput.max)) / 2;
+                }
+                calculateScenario();
+                drawSceneWithTrajectories();
+            }
+
+            rangeSInput.addEventListener('input', updateAllControls);
+            posXInput.addEventListener('input', () => { calculateScenario(); drawSceneWithTrajectories(); });
+            velocityInput.addEventListener('input', () => { calculateScenario(); drawSceneWithTrajectories(); });
+            angleInput.addEventListener('input', () => { calculateScenario(); drawSceneWithTrajectories(); });
+            randomizeButton.addEventListener('click', randomizeParameters);
+            radarSBtn.addEventListener('click', () => setActiveRadar('S'));
+            radarPBtn.addEventListener('click', () => setActiveRadar('P'));
+            animateButton.addEventListener('click', startAnimation);
+            resetButton.addEventListener('click', resetAnimation);
+
+            window.addEventListener('resize', () => {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+                drawSceneWithTrajectories();
+            });
+            
+            // Initial setup on load
+            canvas.width = document.getElementById('simulation-container').querySelector('.w-full.h-96').clientWidth;
+            canvas.height = document.getElementById('simulation-container').querySelector('.w-full.h-96').clientHeight;
+            setActiveRadar('S');
+        });
+
+    </script>
+</body>
+</html>
+
+

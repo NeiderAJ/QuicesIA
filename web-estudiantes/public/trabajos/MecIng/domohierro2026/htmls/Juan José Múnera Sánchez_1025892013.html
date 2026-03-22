@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación Interceptación - Juan José Múnera Sánchez</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root { 
+            --accent-def: #06b6d4; 
+            --accent-atk: #f43f5e; 
+            --bg-dark: #020617;
+        }
+        
+        body { 
+            background-color: var(--bg-dark); 
+            color: #f1f5f9;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-image: radial-gradient(circle at 50% -20%, #1e293b 0%, #020617 80%);
+            min-height: 100vh;
+        }
+        
+        canvas { 
+            background: radial-gradient(circle at 50% 100%, #0f172a 0%, #020617 100%); 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            width: 100%;
+            height: auto;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .premium-card { 
+            background: rgba(15, 23, 42, 0.6); 
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+
+        .formula-box {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border-left: 4px solid var(--accent-def);
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+        .formula-box:hover { transform: translateY(-2px); }
+
+        .money-popup {
+            position: absolute;
+            color: #fbbf24;
+            font-weight: 800;
+            font-size: 1.2rem;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
+            animation: floatUpPremium 2.5s ease-out forwards;
+            z-index: 100;
+        }
+
+        @keyframes floatUpPremium {
+            0% { opacity: 0; transform: translateY(0); }
+            20% { opacity: 1; transform: translateY(-15px); }
+            100% { opacity: 0; transform: translateY(-90px); }
+        }
+
+        .btn-launch {
+            background: linear-gradient(135deg, #0e7490 0%, #06b6d4 100%);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-launch:hover {
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.5);
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #334155; border-radius: 2px; }
+        input[type=range]::-webkit-slider-thumb {
+            height: 16px; width: 16px; border-radius: 50%; background: var(--accent-def);
+            cursor: pointer; -webkit-appearance: none; margin-top: -6px;
+            box-shadow: 0 0 10px var(--accent-def);
+        }
+
+        .mjx-chtml { color: #bae6fd !important; font-size: 1.1em !important; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <header class="max-w-4xl mx-auto mb-8 text-center">
+        <h1 class="text-3xl md:text-4xl font-black text-white tracking-tighter uppercase mb-2">Simulación de Interceptación Táctica</h1>
+        <div class="flex flex-col items-center">
+            <span class="text-cyan-400 font-bold text-xl">Juan José Múnera Sánchez</span>
+            <span class="text-slate-500 font-semibold text-xs uppercase tracking-[0.3em]">Facultad de Ingeniería - Universidad de Antioquia</span>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto flex flex-col gap-6">
+        
+        <!-- SECCIÓN INTRODUCTORIA OPTIMIZADA SIN SÍMBOLOS COMPLEJOS -->
+        <section class="premium-card">
+            <h2 class="text-cyan-500 text-xs font-black uppercase tracking-[0.2em] mb-4 border-b border-white/10 pb-2">1. Introducción y Marco Teórico</h2>
+            <div class="space-y-4 text-[14px] text-slate-400 leading-relaxed">
+                <p>
+                    La defensa aérea moderna se apoya en sistemas de alta precisión capaces de procesar datos de movimiento en fracciones de segundo para neutralizar amenazas balísticas. Esta simulación explora la física de intercepción mediante el análisis de trayectorias y el uso coordinado de la aceleración motriz frente a la fuerza de gravedad.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white/5 p-4 rounded-xl">
+                        <h3 class="text-white font-bold mb-2">Detección y Orientación</h3>
+                        <p>
+                            El radar localiza el objetivo en un punto específico del espacio tridimensional. Mediante el uso de ángulos de dirección, el sistema descompone la velocidad total en movimientos horizontales y verticales. En este modelo, nos enfocamos en el plano bidimensional para calcular el alcance y la altitud necesarios para el encuentro.
+                        </p>
+                    </div>
+                    <div class="bg-white/5 p-4 rounded-xl">
+                        <h3 class="text-white font-bold mb-2">Dinámica de Vuelo</h3>
+                        <p>
+                            A diferencia de un objeto en caída libre, el interceptor cuenta con un motor que genera una aceleración constante. Esta fuerza es fundamental para contrarrestar el peso del misil y permitir que su trayectoria se ajuste dinámicamente, garantizando que ambos objetos coincidan en el mismo punto de impacto en el tiempo previsto.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="premium-card">
+            <h2 class="text-cyan-500 text-xs font-black uppercase tracking-[0.2em] mb-6 border-b border-white/10 pb-2">2. Modelo Matemático del Sistema</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="formula-box">
+                    <p class="text-slate-500 text-[10px] font-bold uppercase mb-2 text-center">Descomposición Vectorial</p>
+                    <div class="flex justify-center mb-2">
+                        $$ v_{0x} = v_0 \cdot l $$
+                    </div>
+                    <div class="flex justify-center mb-3">
+                        $$ v_{0y} = v_0 \cdot \sqrt{m^2 + n^2} $$
+                    </div>
+                    <p class="text-[11px] text-slate-500 text-center leading-tight">Traduce la magnitud de velocidad y los cosenos directores a componentes cartesianas planas.</p>
+                </div>
+                <div class="formula-box">
+                    <p class="text-slate-500 text-[10px] font-bold uppercase mb-2 text-center">Cinemática del Atacante</p>
+                    <div class="flex justify-center mb-2">
+                        $$ x_e(t) = x_0 + v_{0x}t $$
+                    </div>
+                    <div class="flex justify-center mb-3">
+                        $$ y_e(t) = y_0 + v_{0y}t - \frac{1}{2}gt^2 $$
+                    </div>
+                    <p class="text-[11px] text-slate-500 text-center leading-tight">Define la posición futura del proyectil enemigo considerando el efecto constante de la gravedad.</p>
+                </div>
+                <div class="formula-box" style="border-left-color: #f43f5e;">
+                    <p class="text-slate-500 text-[10px] font-bold uppercase mb-2 text-center">Solución de Defensa</p>
+                    <div class="flex justify-center mb-2">
+                        $$ v_{dx} = \frac{\Delta x}{t_{int}} $$
+                    </div>
+                    <div class="flex justify-center mb-3">
+                        $$ v_{dy} = \frac{\Delta y - \frac{1}{2}(a_p - g)t_{int}^2}{t_{int}} $$
+                    </div>
+                    <p class="text-[11px] text-slate-500 text-center leading-tight">Calcula la velocidad inicial del interceptor considerando la aceleración del propulsor.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="premium-card p-0 overflow-hidden relative" id="canvas-container">
+            <div class="flex justify-between items-center p-4 border-b border-white/10 bg-white/5">
+                <span id="sys-msg" class="text-[10px] font-black uppercase tracking-widest text-slate-500">Sistema: Radar Activo</span>
+                <div id="status-led" class="w-2 h-2 bg-cyan-500 rounded-full shadow-[0_0_10px_#06b6d4]"></div>
+            </div>
+            <div class="p-4">
+                <canvas id="simCanvas"></canvas>
+            </div>
+        </section>
+
+        <section class="premium-card">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <label class="block">
+                        <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-2">POSICIÓN X <span id="val-x0" class="text-cyan-400">7000m</span></div>
+                        <input type="range" id="in-x0" min="2000" max="7800" value="7000" class="w-full">
+                    </label>
+                    <label class="block">
+                        <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-2">ALTITUD Y <span id="val-y0" class="text-cyan-400">2500m</span></div>
+                        <input type="range" id="in-y0" min="500" max="4000" value="2500" class="w-full">
+                    </label>
+                </div>
+                <div class="space-y-4">
+                    <label class="block">
+                        <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-2">VELOCIDAD V0 <span id="val-v0" class="text-cyan-400">200m/s</span></div>
+                        <input type="range" id="in-v0" min="100" max="400" value="200" class="w-full">
+                    </label>
+                    <div class="flex gap-4">
+                        <button onclick="randomize()" class="flex-1 border border-white/10 text-slate-400 text-[10px] font-bold py-3 rounded-xl uppercase hover:bg-white/5 transition-all">Generar Azar</button>
+                        <button id="launchBtn" onclick="startSimulation()" class="btn-launch flex-1 text-white text-[10px] font-black py-3 rounded-xl uppercase tracking-widest">Lanzar Defensa</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="premium-card">
+            <h2 class="text-cyan-500 text-xs font-black uppercase tracking-[0.2em] mb-6 border-b border-white/10 pb-2">Análisis y Conclusiones Finales</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[13px] text-slate-400 leading-relaxed">
+                <div class="p-4 bg-white/5 rounded-xl border border-white/5">
+                    <p class="mb-2"><b class="text-slate-300 block mb-1">1. Efectividad Cinemática:</b> La intercepción exitosa depende estrictamente de la sincronización temporal (T). El cálculo vectorial permite predecir el punto de impacto con precisión milimétrica antes del lanzamiento.</p>
+                </div>
+                <div class="p-4 bg-white/5 rounded-xl border border-white/5">
+                    <p class="mb-2"><b class="text-slate-300 block mb-1">2. Propulsión Activa:</b> El uso de aceleración constante (ap) en el interceptor es vital para compensar la gravedad en trayectorias ascendentes, permitiendo alcanzar objetivos a mayores altitudes en menor tiempo.</p>
+                </div>
+                <div class="p-4 bg-white/5 rounded-xl border border-white/5">
+                    <p class="mb-2"><b class="text-slate-300 block mb-1">3. Optimización Económica:</b> El modelo discrimina trayectorias. Al predecir el punto de caída, el sistema podría decidir no interceptar si el proyectil impactará en una zona deshabitada, ahorrando costos operativos.</p>
+                </div>
+                <div class="p-4 bg-white/5 rounded-xl border border-white/5">
+                    <p class="mb-2"><b class="text-slate-300 block mb-1">4. Limitaciones Físicas:</b> La simulación demuestra que a velocidades extremas o distancias muy cortas, el interceptor requiere una propulsión inicial superior para vencer la inercia y llegar al punto de encuentro.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="mt-8 text-center text-slate-700 text-[10px] uppercase tracking-[0.4em] mb-12">
+        UdeA — Facultad de Ingeniería — 2026
+    </footer>
+
+    <audio id="sndExplosion" preload="auto">
+        <source src="dragon-studio-loud-explosion-sound-425458.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const audio = document.getElementById('sndExplosion');
+        const msg = document.getElementById('sys-msg');
+        const container = document.getElementById('canvas-container');
+        const led = document.getElementById('status-led');
+
+        const WORLD_W = 8500, WORLD_H = 4800, G = 9.81;
+        let running = false, frame, dt = 0.55;
+
+        let enemy = { x: 7000, y: 2500, vx: 0, vy: 0, x0: 7000, y0: 2500, path: [] };
+        let defender = { x: 800, y: 0, vx: 0, vy: 0, ap: 0, path: [] };
+        let impactAnim = { active: false, x: 0, y: 0, r: 0, op: 0 };
+
+        audio.volume = 0.3;
+
+        function w2c(x, y) {
+            return { x: (x / WORLD_W) * canvas.width, y: canvas.height - (y / WORLD_H) * canvas.height };
+        }
+
+        function resize() {
+            const containerWidth = canvas.parentElement.clientWidth - 32;
+            canvas.width = containerWidth;
+            canvas.height = containerWidth * (WORLD_H / WORLD_W);
+            draw();
+        }
+        window.addEventListener('resize', resize);
+
+        function updateInputs() {
+            document.getElementById('val-x0').innerText = document.getElementById('in-x0').value + "m";
+            document.getElementById('val-y0').innerText = document.getElementById('in-y0').value + "m";
+            document.getElementById('val-v0').innerText = document.getElementById('in-v0').value + "m/s";
+            reset();
+        }
+        ['in-x0', 'in-y0', 'in-v0'].forEach(id => document.getElementById(id).addEventListener('input', updateInputs));
+
+        function drawBases() {
+            let pE = w2c(enemy.x0, 0);
+            ctx.fillStyle = "#1e293b"; ctx.fillRect(pE.x - 15, pE.y - 30, 30, 30);
+            ctx.fillStyle = "#239e46"; ctx.fillRect(pE.x - 12, pE.y - 45, 24, 5);
+            ctx.fillStyle = "#ffffff"; ctx.fillRect(pE.x - 12, pE.y - 40, 24, 5);
+            ctx.fillStyle = "#da0000"; ctx.fillRect(pE.x - 12, pE.y - 35, 24, 5);
+
+            let pD = w2c(800, 0);
+            ctx.fillStyle = "#0f172a"; ctx.fillRect(pD.x - 18, pD.y - 25, 36, 25);
+            ctx.strokeStyle = "rgba(6, 182, 212, 0.4)"; ctx.strokeRect(pD.x - 18, pD.y - 25, 36, 25);
+            ctx.fillStyle = "white"; ctx.fillRect(pD.x - 12, pD.y - 40, 24, 15);
+            ctx.fillStyle = "#1e40af"; 
+            ctx.fillRect(pD.x - 12, pD.y - 38, 24, 2); 
+            ctx.fillRect(pD.x - 12, pD.y - 29, 24, 2);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = "rgba(255,255,255,0.02)";
+            ctx.beginPath();
+            for(let i=0; i<canvas.width; i+=40) { ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); }
+            for(let j=0; j<canvas.height; j+=40) { ctx.moveTo(0,j); ctx.lineTo(canvas.width,j); }
+            ctx.stroke();
+
+            drawBases();
+
+            ctx.setLineDash([2, 4]);
+            ctx.strokeStyle = "rgba(244, 63, 94, 0.15)";
+            ctx.beginPath();
+            enemy.path.forEach((p, i) => { let c = w2c(p.x, p.y); if(i===0) ctx.moveTo(c.x, c.y); else ctx.lineTo(c.x, c.y); });
+            ctx.stroke();
+
+            ctx.strokeStyle = "rgba(6, 182, 212, 0.15)";
+            ctx.beginPath();
+            defender.path.forEach((p, i) => { let c = w2c(p.x, p.y); if(i===0) ctx.moveTo(c.x, c.y); else ctx.lineTo(c.x, c.y); });
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            let pe = w2c(enemy.x, enemy.y);
+            ctx.shadowBlur = 12; ctx.shadowColor = "#f43f5e";
+            ctx.fillStyle = "#f43f5e"; ctx.beginPath(); ctx.arc(pe.x, pe.y, 4, 0, Math.PI*2); ctx.fill();
+
+            let pd = w2c(defender.x, defender.y);
+            ctx.shadowColor = "#06b6d4";
+            ctx.fillStyle = "#06b6d4"; ctx.beginPath(); ctx.arc(pd.x, pd.y, 3, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            if(impactAnim.active) {
+                let pi = w2c(impactAnim.x, impactAnim.y);
+                let g = ctx.createRadialGradient(pi.x, pi.y, 0, pi.x, pi.y, impactAnim.r);
+                g.addColorStop(0, `rgba(255,255,255,${impactAnim.op})`);
+                g.addColorStop(0.2, `rgba(251,191,36,${impactAnim.op})`);
+                g.addColorStop(1, "transparent");
+                ctx.fillStyle = g;
+                ctx.beginPath(); ctx.arc(pi.x, pi.y, impactAnim.r, 0, Math.PI*2); ctx.fill();
+            }
+        }
+
+        function showMoney() {
+            const popup = document.createElement('div');
+            popup.className = 'money-popup';
+            popup.innerText = '-100.000$';
+            let pos = w2c(800, 80);
+            popup.style.left = (pos.x + canvas.offsetLeft - 30) + "px";
+            popup.style.top = (pos.y + canvas.offsetTop - 30) + "px";
+            container.appendChild(popup);
+            setTimeout(() => popup.remove(), 2500);
+        }
+
+        function reset() {
+            cancelAnimationFrame(frame);
+            running = false; impactAnim.active = false;
+            led.className = "w-2 h-2 bg-cyan-500 rounded-full shadow-[0_0_10px_#06b6d4]";
+            msg.innerText = "Sistema: Radar Activo";
+            msg.style.color = "";
+
+            const x0 = parseFloat(document.getElementById('in-x0').value);
+            const y0 = parseFloat(document.getElementById('in-y0').value);
+            const v0 = parseFloat(document.getElementById('in-v0').value);
+            
+            enemy = { x: x0, y: y0, x0: x0, y0: y0, vx: v0 * Math.cos(160 * Math.PI/180), vy: v0 * Math.sin(160 * Math.PI/180), path: [] };
+            defender = { x: 800, y: 0, vx: 0, vy: 0, ap: y0 < 1500 ? 18 : 0, path: [] };
+            draw();
+        }
+
+        function startSimulation() {
+            if (running) return;
+            
+            audio.play().then(() => {
+                audio.pause();
+                audio.currentTime = 0;
+            }).catch(() => {});
+
+            reset();
+            running = true;
+            showMoney();
+            led.className = "w-2 h-2 bg-rose-500 rounded-full shadow-[0_0_10px_#f43f5e] animate-pulse";
+            msg.innerText = "Intercepción en Progreso";
+            msg.style.color = "#f43f5e";
+
+            const T = 16; 
+            const tx = enemy.x + enemy.vx * T;
+            const ty = enemy.y + enemy.vy * T - 0.5 * G * T**2;
+            defender.vx = (tx - defender.x) / T;
+            const ay = defender.ap - G;
+            defender.vy = (ty - 0.5 * ay * T**2) / T;
+            loop();
+        }
+
+        function loop() {
+            if (!running) {
+                if(impactAnim.active) {
+                    impactAnim.r += 6; impactAnim.op -= 0.03;
+                    if(impactAnim.op <= 0) impactAnim.active = false;
+                    draw(); requestAnimationFrame(loop);
+                }
+                return;
+            }
+
+            enemy.x += enemy.vx * dt;
+            enemy.y += enemy.vy * dt - 0.5 * G * dt**2;
+            enemy.vy -= G * dt;
+            enemy.path.push({x: enemy.x, y: enemy.y});
+
+            const ay = defender.ap - G;
+            defender.x += defender.vx * dt;
+            defender.y += defender.vy * dt + 0.5 * ay * dt**2;
+            defender.vy += ay * dt;
+            defender.path.push({x: defender.x, y: defender.y});
+
+            if (Math.sqrt((enemy.x-defender.x)**2 + (enemy.y-defender.y)**2) < 120) {
+                running = false;
+                impactAnim = { active: true, x: enemy.x, y: enemy.y, r: 10, op: 1 };
+                
+                audio.currentTime = 0;
+                audio.play().catch(e => console.error("Error al reproducir:", e));
+
+                msg.innerText = "Amenaza Neutralizada";
+                msg.style.color = "#22c55e";
+                led.className = "w-2 h-2 bg-green-500 rounded-full shadow-[0_0_10px_#22c55e]";
+            }
+
+            if (enemy.y < 0) {
+                running = false;
+                msg.innerText = "Fallo: Impacto Registrado";
+            }
+
+            draw();
+            frame = requestAnimationFrame(loop);
+        }
+
+        function randomize() {
+            document.getElementById('in-x0').value = 4000 + Math.random()*3800;
+            document.getElementById('in-y0').value = 800 + Math.random()*3000;
+            document.getElementById('in-v0').value = 150 + Math.random()*200;
+            updateInputs();
+        }
+
+        window.onload = () => { resize(); reset(); };
+    </script>
+</body>
+</html>

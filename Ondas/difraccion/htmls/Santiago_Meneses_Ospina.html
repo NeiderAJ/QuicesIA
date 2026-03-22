@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación Formativa - Santiago Meneses Ospina</title>
+    <style>
+        /* --- ESTILOS GENERALES Y DE TEXTO --- */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; color: #333; line-height: 1.6; margin: 0; padding: 20px; }
+        .main-container { max-width: 1200px; margin: auto; background: white; padding: 25px 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-radius: 8px; }
+        header { border-bottom: 3px solid #0056b3; margin-bottom: 25px; padding-bottom: 15px; }
+        header h1 { color: #0056b3; margin-bottom: 5px; }
+        header p { color: #555; font-size: 1.1em; margin: 2px 0; }
+        section { margin-bottom: 40px; }
+        h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 8px; margin-top: 0; }
+        h3 { color: #34495e; }
+        code { background-color: #eef2f5; padding: 3px 6px; border-radius: 4px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.95em; }
+        .formula { background-color: #f9f9f9; border-left: 4px solid #3498db; padding: 15px; margin: 15px 0; font-style: italic; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 10px; }
+        blockquote { background-color: #f8f9fa; border-left: 5px solid #6c757d; margin: 0 0 20px 0; padding: 10px 20px; font-style: italic; color: #555; }
+        
+        /* --- ESTILOS PARA LAS SIMULACIONES --- */
+        .simulation-wrapper { display: flex; flex-direction: column; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; }
+        .simulation-canvas { width: 100%; background-color: #0c1014; }
+        .dashboard { display: flex; background-color: #fdfdfd; padding: 20px; border-top: 1px solid #ccc; }
+        .dashboard-controls { flex: 2; padding-right: 20px; }
+        .dashboard-results { flex: 1; border-left: 1px solid #ddd; padding-left: 20px; }
+        .dashboard h3 { margin-top: 0; margin-bottom: 15px; }
+        .control-group { margin-bottom: 15px; display: flex; align-items: center; }
+        .control-group label { font-weight: 600; color: #555; margin-right: 15px; min-width: 180px; }
+        .control-group span { font-family: monospace; background-color: #e9ecef; padding: 2px 6px; border-radius: 4px; }
+        input[type="range"] { width: 100%; }
+        .results-panel p { font-size: 1em; margin: 8px 0; display: flex; justify-content: space-between; }
+        .results-panel .label { font-weight: bold; }
+        .status-display { font-weight: bold; padding: 8px; border-radius: 5px; text-align: center; margin-top: 10px; transition: all 0.3s; }
+        .status-bad { background-color: #f8d7da; color: #721c24; }
+        .status-ok { background-color: #fff3cd; color: #856404; }
+        .status-optimal { background-color: #d4edda; color: #155724; }
+        #sterilizer-controls button { width: 100%; padding: 10px; font-size: 1em; font-weight: bold; border-radius: 5px; border: none; background-color: #28a745; color: white; cursor: pointer; transition: background-color 0.3s; }
+        #sterilizer-controls button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        #sterilizerStatus { margin-top: 15px !important; }
+        .status-paused { background-color: #ffc107; color: #5d4902; }
+        .status-running { background-color: #d4edda; color: #155724; }
+        .status-idle { background-color: #e9ecef; color: #495057; }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- SECCIONES TEÓRICAS -->
+        <header><h1>Evaluación Formativa: Óptica y Difracción</h1><p><strong>Curso:</strong> Física de Ondas</p><p><strong>Estudiante:</strong> Santiago Meneses Ospina</p><p><strong>C.C:</strong> 1000644112</p></header>
+        <section id="problema">
+            <h2>Problema Asignado: 36.62 (Serway, 7ma Edición)</h2>
+            <blockquote><em>Suponga que en una ubicación en particular, la intensidad de la luz solar es de 1.00 kW/m². Es necesario apuntar hacia el Sol un espejo cóncavo muy reflejante si se desea producir una potencia de por lo menos 350 W en la imagen. a) Determine el radio Rₐ requerido por el área de la cara circular del espejo. b) Ahora suponga que la intensidad luminosa debe ser de por lo menos 120 kW/m² en la imagen. Determine la correspondencia necesaria entre Rₐ y el radio de curvatura R del espejo. El disco del Sol subtiende un ángulo de 0.533° en la Tierra.</em></blockquote>
+            
+            <h3>Solución Analítica (Ajustada)</h3>
+            
+            <h4>Parte (a): Cálculo del Radio del Espejo (Rₐ)</h4>
+            <p>La potencia (P) que el espejo intercepta es el producto de la intensidad de la luz solar (I₀) y el área del espejo (A).</p>
+            <div class="formula">P = I₀A = I₀(πRₐ²)</div>
+            <p>Sustituyendo los valores dados para obtener la potencia mínima de 350 W:</p>
+            <div class="formula">350 W = (1000 W/m²)(πRₐ²)</div>
+            <p>Al despejar Rₐ se obtiene:</p>
+            <div class="formula">Rₐ ≥ 0.334 m</div>
+
+            <h4>Parte (b): Relación entre Radio del Espejo (Rₐ) y Radio de Curvatura (R)</h4>
+            <p>Usando la ecuación de los espejos:</p>
+            <div class="formula">1/p + 1/q = 1/f = 2/R</div>
+            <p>Como el Sol está muy lejos, la distancia del objeto <code>p → ∞</code>, por lo que la imagen se forma en el foco: <code>q = R/2</code>.</p>
+            <p>El tamaño de la imagen (diámetro, h') se relaciona con el tamaño del objeto (diámetro del Sol, h) mediante la magnificación <code>M = h'/h = -q/p</code>. El término <code>h/p</code> es el ángulo que subtiende el Sol (θ). Por lo tanto:</p>
+            <div class="formula">h' = q * (h/p) = (R/2) * θ</div>
+            <p>El ángulo debe estar en radianes: <code>θ = 0.533° * (π rad / 180°) = 9.30 x 10⁻³ rad</code>.</p>
+            <p>La intensidad en la imagen es la potencia P dividida por el área de la imagen A' = π(h'/2)² = πh'²/4.</p>
+            <div class="formula">I = P / A' = (I₀πRₐ²) / (πh'²/4) = 4I₀Rₐ² / h'²</div>
+            <p>Sustituyendo la expresión para h':</p>
+            <div class="formula">I = 4I₀Rₐ² / ((R/2)θ)² = 16I₀Rₐ² / (R²θ²)</div>
+            <p>Ahora, usamos la intensidad requerida de 120 kW/m² para encontrar la relación entre los radios:</p>
+            <div class="formula">120 x 10³ W/m² = (16 * (1000 W/m²) * Rₐ²) / (R² * (9.30 x 10⁻³ rad)²)</div>
+            <p>Despejando la relación Rₐ / R:</p>
+            <div class="formula">Rₐ / R ≥ 0.0255</div>
+        </section>
+        <section id="aplicaciones"><h2>Posibles Aplicaciones e Innovaciones</h2><ul><li><strong>Hornos Solares de Alta Temperatura:</strong> Para fundir metales, purificar materiales o producir hidrógeno.</li><li><strong>Esterilización de Equipos Médicos en Zonas Remotas:</strong> Un sistema portátil para esterilizar instrumental quirúrgico sin electricidad.</li><li><strong>Motor Stirling Solar:</strong> Para generar electricidad de forma mecánica a partir del calor concentrado.</li></ul></section>
+
+        <!-- SIMULACIÓN #1: CONCENTRADOR SOLAR (SIN CAMBIOS) -->
+        <section id="simulacion">
+            <h2>Simulación Interactiva: Laboratorio Virtual</h2>
+            <blockquote>Usa los deslizadores para ajustar el espejo. Tu objetivo es alcanzar el estado 'Óptimo' para generar suficiente energía.</blockquote>
+            <div class="simulation-wrapper">
+                <canvas id="concentratorCanvas" class="simulation-canvas" height="550"></canvas>
+                <div class="dashboard">
+                    <div class="dashboard-controls"><h3>Panel de Control del Concentrador</h3><div class="control-group"><label for="radioEspejoSlider">Radio Espejo (Rₐ): <span id="radioEspejoValue"></span> m</label><input type="range" id="radioEspejoSlider" min="0.1" max="1.0" step="0.01" value="0.334"></div><div class="control-group"><label for="radioCurvaturaSlider">Radio Curvatura (R): <span id="radioCurvaturaValue"></span> m</label><input type="range" id="radioCurvaturaSlider" min="2" max="50" step="0.1" value="13.12"></div></div>
+                    <div class="dashboard-results results-panel"><h3>Resultados</h3><p><span class="label">Potencia:</span> <span id="powerValue"></span></p><p><span class="label">Intensidad:</span> <span id="intensityValue"></span></p><div id="concentratorStatus" class="status-display"></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SIMULACIÓN #2: APLICACIÓN DE ESTERILIZADOR (SIN CAMBIOS) -->
+        <section id="aplicacion-simulacion">
+            <h2>Simulación de Aplicación: Esterilizador Solar</h2>
+            <blockquote>Esta simulación se activa con la energía del concentrador. Alcanza el estado 'Óptimo' en la simulación anterior para habilitar el botón 'Iniciar Ciclo'. Si la energía se corta, el proceso se pausará.</blockquote>
+            <div class="simulation-wrapper">
+                <canvas id="sterilizerCanvas" class="simulation-canvas" height="300"></canvas>
+                <div class="dashboard" id="sterilizer-controls">
+                    <div class="dashboard-controls" style="flex: 3;"><h3>Controles del Esterilizador</h3><button id="startSterilizeButton" disabled>Necesita Energía del Concentrador</button></div>
+                    <div class="dashboard-results results-panel" style="flex: 2"><h3>Estado del Ciclo</h3><div id="sterilizerStatus" class="status-display status-idle">Inactivo</div></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- CONSTANTES Y ESTADO GLOBAL ---
+        const I_SOLAR = 1000;
+        const THETA_SOLAR_RAD = 0.533 * Math.PI / 180;
+        let time = 0;
+        let concentratorParticles = [];
+        let sterilizerGerms = [];
+        let sterilizerState = 'idle'; // 'idle', 'heating', 'sterilizing', 'paused', 'complete'
+        let sterilizerProgress = 0;
+        let sterilizerTemp = 20;
+
+        // --- SELECCIÓN DE ELEMENTOS DEL DOM ---
+        const concentratorCanvas = document.getElementById('concentratorCanvas');
+        const concentratorCtx = concentratorCanvas.getContext('2d');
+        const raSlider = document.getElementById('radioEspejoSlider');
+        const rSlider = document.getElementById('radioCurvaturaSlider');
+        const raValueSpan = document.getElementById('radioEspejoValue');
+        const rValueSpan = document.getElementById('radioCurvaturaValue');
+        const powerValueSpan = document.getElementById('powerValue');
+        const intensityValueSpan = document.getElementById('intensityValue');
+        const concentratorStatusDiv = document.getElementById('concentratorStatus');
+
+        const sterilizerCanvas = document.getElementById('sterilizerCanvas');
+        const sterilizerCtx = sterilizerCanvas.getContext('2d');
+        const startButton = document.getElementById('startSterilizeButton');
+        const sterilizerStatusDiv = document.getElementById('sterilizerStatus');
+
+        // --- LÓGICA PRINCIPAL DE LA SIMULACIÓN ---
+        function mainLoop() {
+            time++;
+            const { isOptimal } = updateConcentratorPhysics();
+            drawConcentrator();
+            updateSterilizerLogic(isOptimal);
+            drawSterilizer();
+            requestAnimationFrame(mainLoop);
+        }
+
+        // --- LÓGICA DEL CONCENTRADOR ---
+        function updateConcentratorPhysics() {
+            const Ra = parseFloat(raSlider.value);
+            const R = parseFloat(rSlider.value);
+            const potencia = I_SOLAR * Math.PI * Ra**2;
+            const areaImagen = Math.PI * ((R / 4) * THETA_SOLAR_RAD)**2;
+            const intensidad = areaImagen > 0 ? potencia / areaImagen : 0;
+            const isOptimal = potencia >= 350 && intensidad >= 120000;
+
+            raValueSpan.textContent = Ra.toFixed(2);
+            rValueSpan.textContent = R.toFixed(2);
+            powerValueSpan.textContent = `${potencia.toFixed(2)} W`;
+            intensityValueSpan.textContent = `${(intensidad / 1000).toFixed(2)} kW/m²`;
+            concentratorStatusDiv.className = 'status-display';
+            if (isOptimal) { concentratorStatusDiv.textContent = 'Estado: Óptimo'; concentratorStatusDiv.classList.add('status-optimal'); }
+            else if (potencia >= 350) { concentratorStatusDiv.textContent = 'Potencia OK, Intensidad Baja'; concentratorStatusDiv.classList.add('status-ok'); }
+            else { concentratorStatusDiv.textContent = 'Potencia Insuficiente'; concentratorStatusDiv.classList.add('status-bad'); }
+            
+            return { isOptimal };
+        }
+
+        function drawConcentrator() {
+            const intensidad = parseFloat(intensityValueSpan.textContent.replace(' kW/m²', '')) * 1000;
+            concentratorCtx.clearRect(0, 0, concentratorCanvas.width, concentratorCanvas.height);
+            const yCenter = concentratorCanvas.height / 2;
+            drawGrid(concentratorCtx);
+            drawSun(concentratorCtx, time, yCenter);
+            drawMirror(concentratorCtx, parseFloat(raSlider.value), parseFloat(rSlider.value));
+            drawFocalEffects(concentratorCtx, parseFloat(rSlider.value), intensidad, time, concentratorParticles);
+        }
+        
+        // --- LÓGICA DEL ESTERILIZADOR ---
+        function updateSterilizerLogic(isConcentratorOptimal) {
+            if (isConcentratorOptimal) {
+                if (sterilizerState === 'idle' || sterilizerState === 'complete') { startButton.disabled = false; startButton.textContent = "Iniciar Ciclo de Esterilización"; }
+                if (sterilizerState === 'paused') sterilizerState = 'heating';
+            } else {
+                if (sterilizerState === 'idle' || sterilizerState === 'complete') { startButton.disabled = true; startButton.textContent = "Energía Insuficiente"; }
+                if (sterilizerState === 'heating' || sterilizerState === 'sterilizing') sterilizerState = 'paused';
+            }
+
+            sterilizerStatusDiv.className = 'status-display';
+            switch(sterilizerState) {
+                case 'heating': sterilizerTemp += 0.5; sterilizerStatusDiv.textContent = `Calentando... ${Math.round(sterilizerTemp)}°C`; sterilizerStatusDiv.classList.add('status-running'); if(sterilizerTemp >= 121) sterilizerState = 'sterilizing'; break;
+                case 'sterilizing': sterilizerProgress += 0.2; let killed = Math.floor(sterilizerGerms.length * (sterilizerProgress / 100)); for(let i=0; i<killed; i++) if(sterilizerGerms[i]) sterilizerGerms[i].alive = false; sterilizerStatusDiv.textContent = `Esterilizando... ${Math.round(sterilizerProgress)}%`; sterilizerStatusDiv.classList.add('status-running'); if(sterilizerProgress >= 100) sterilizerState = 'complete'; break;
+                case 'paused': sterilizerTemp = Math.max(20, sterilizerTemp - 0.1); sterilizerStatusDiv.textContent = 'Ciclo Pausado (Baja Energía)'; sterilizerStatusDiv.classList.add('status-paused'); break;
+                case 'complete': sterilizerStatusDiv.textContent = 'Ciclo Completado'; sterilizerStatusDiv.classList.add('status-optimal'); break;
+                case 'idle': default: sterilizerStatusDiv.textContent = 'Inactivo'; sterilizerStatusDiv.classList.add('status-idle'); break;
+            }
+        }
+        
+        function drawSterilizer() {
+            sterilizerCtx.clearRect(0, 0, sterilizerCanvas.width, sterilizerCanvas.height);
+            sterilizerCtx.fillStyle = '#e0e0e0'; sterilizerCtx.fillRect(50, 80, sterilizerCanvas.width-100, 150);
+            sterilizerCtx.fillStyle = '#9e9e9e'; sterilizerCtx.fillRect(160, 120, 150, 15); sterilizerCtx.fillRect(180, 150, 10, 50);
+            sterilizerGerms.forEach(g => { if(g.alive) { sterilizerCtx.fillStyle = 'rgba(211, 47, 47, 0.8)'; sterilizerCtx.beginPath(); sterilizerCtx.arc(g.x, g.y, g.size, 0, 2*Math.PI); sterilizerCtx.fill();} });
+            sterilizerCtx.fillStyle = 'white'; sterilizerCtx.font = '14px Segoe UI';
+            sterilizerCtx.fillText(`Temperatura: ${Math.round(sterilizerTemp)}°C`, 60, 270);
+            sterilizerCtx.fillText(`Progreso: ${Math.round(sterilizerProgress)}%`, sterilizerCanvas.width - 160, 270);
+            sterilizerCtx.fillStyle = '#424242'; sterilizerCtx.fillRect(60, 280, sterilizerCanvas.width - 120, 10);
+            if(sterilizerState === 'sterilizing' || sterilizerState === 'complete'){ sterilizerCtx.fillStyle = '#4caf50'; sterilizerCtx.fillRect(60, 280, (sterilizerCanvas.width - 120) * (sterilizerProgress/100), 10); }
+        }
+
+        // --- FUNCIONES DE DIBUJO AUXILIARES ---
+        function drawGrid(ctx) { ctx.strokeStyle = "rgba(255, 255, 255, 0.05)"; ctx.lineWidth = 1; for (let i = 0; i < ctx.canvas.width; i += 25) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, ctx.canvas.height); ctx.stroke(); } for (let i = 0; i < ctx.canvas.height; i += 25) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(ctx.canvas.width, i); ctx.stroke(); } }
+        function drawSun(ctx, t, y) { const sunX = 80; ctx.fillStyle = 'rgba(255, 220, 0, 0.8)'; ctx.beginPath(); ctx.arc(sunX, y, 30, 0, 2*Math.PI); ctx.fill(); ctx.strokeStyle = `rgba(255, 220, 0, ${0.5 * Math.abs(Math.sin(t*0.05))})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(sunX, y, 40 + 10*Math.abs(Math.sin(t*0.05)), 0, 2*Math.PI); ctx.stroke(); }
+        function drawMirror(ctx, Ra, R) {
+            const scale = ctx.canvas.width / (R > 25 ? R * 1.1 : 28); const yCenter = ctx.canvas.height / 2; const vertexX = ctx.canvas.width - 100; const centerX = vertexX - R * scale;
+            if (Ra < R) {
+                const thickness = 2 + (((Ra - 0.1) / 0.9) * 15); const angle = Math.asin(Ra / R); const outerRadius = R * scale; const innerRadius = R * scale - thickness;
+                ctx.beginPath(); ctx.arc(centerX, yCenter, outerRadius, -angle, angle); ctx.arc(centerX, yCenter, innerRadius, angle, -angle, true); ctx.closePath();
+                ctx.fillStyle = '#bdc3c7'; ctx.fill(); ctx.strokeStyle = '#7f8c8d'; ctx.lineWidth = 1; ctx.stroke();
+            }
+            const numRayos = 15; const aperture_pixels = Ra * scale * 2; const focalPointX = vertexX - (R / 2) * scale;
+            for (let i = 0; i < numRayos; i++) {
+                const y_ray = (yCenter - aperture_pixels/2.1) + (i / (numRayos-1)) * aperture_pixels*1.05; const dy = yCenter - y_ray; if (Math.abs(dy) > R * scale) continue; const dx = Math.sqrt((R * scale)**2 - dy**2); const x_intersect = centerX + dx;
+                ctx.beginPath(); ctx.moveTo(0, y_ray); ctx.lineTo(x_intersect, y_ray); ctx.strokeStyle = 'rgba(255, 220, 0, 0.5)'; ctx.lineWidth = 1.5; ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x_intersect, y_ray); ctx.lineTo(focalPointX, yCenter); ctx.strokeStyle = 'rgba(255, 100, 0, 0.4)'; ctx.stroke();
+            }
+        }
+        function drawFocalEffects(ctx, R, intensidad, t, particles) {
+            const scale = ctx.canvas.width / (R > 25 ? R * 1.1 : 28); const yCenter = ctx.canvas.height / 2; const vertexX = ctx.canvas.width - 100; const focalPointX = vertexX - (R / 2) * scale; const tempHeight = 100, tempWidth = 10; const fillRatio = Math.min(intensidad / 200000, 1.0);
+            ctx.fillStyle = '#ddd'; ctx.fillRect(focalPointX + 20, yCenter - tempHeight/2, tempWidth, tempHeight); ctx.fillStyle = `hsl(${100 * (1-fillRatio)}, 100%, 50%)`; ctx.fillRect(focalPointX + 20, yCenter + tempHeight/2 - (tempHeight * fillRatio), tempWidth, tempHeight * fillRatio); ctx.strokeStyle = 'white'; ctx.strokeRect(focalPointX + 20, yCenter - tempHeight/2, tempWidth, tempHeight); ctx.fillStyle = '#aaa'; ctx.fillRect(focalPointX - 5, yCenter - 5, 10, 10);
+            if (intensidad > 120000 && Math.random() > 0.5) { for (let i=0; i<2; i++) { particles.push({ x: focalPointX, y: yCenter, vx: (Math.random() - 0.5) * 3, vy: (Math.random() - 0.5) * 3, life: 50, color: `hsl(${Math.random()*50 + 10}, 100%, 70%)`}); } }
+            for (let i = particles.length - 1; i >= 0; i--) { const p = particles[i]; p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) particles.splice(i, 1); else { ctx.fillStyle = p.color; ctx.globalAlpha = p.life / 50; ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, 2 * Math.PI); ctx.fill(); ctx.globalAlpha = 1; } }
+            if (intensidad > 150000) { const hazeWidth = 80, hazeHeight = 80; const x_start = focalPointX - hazeWidth / 2; const y_start = yCenter - hazeHeight / 2; if (x_start > 0 && y_start > 0 && x_start + hazeWidth < ctx.canvas.width && y_start + hazeHeight < ctx.canvas.height) { const imageData = ctx.getImageData(x_start, y_start, hazeWidth, hazeHeight); const data = imageData.data; for (let y = 0; y < hazeHeight; y++) { const d = Math.sin((y / hazeHeight) * Math.PI) * Math.sin(t*0.2) * 5; for (let x = 0; x < hazeWidth; x++) { const i_orig = (y * hazeWidth + x) * 4; const i_new = (y * hazeWidth + x + Math.round(d)) * 4; data[i_orig] = data[i_new]; data[i_orig+1] = data[i_new+1]; data[i_orig+2] = data[i_new+2]; } } ctx.putImageData(imageData, x_start, y_start); } }
+        }
+
+        // --- INICIALIZACIÓN ---
+        function init() {
+            [concentratorCanvas, sterilizerCanvas].forEach(c => { c.width = c.clientWidth; c.height = c.clientHeight; });
+            startButton.addEventListener('click', () => {
+                if(sterilizerState === 'idle' || sterilizerState === 'complete'){
+                    sterilizerState = 'heating'; sterilizerProgress = 0; sterilizerTemp = 20; sterilizerGerms = [];
+                    for(let i=0; i<15; i++) { sterilizerGerms.push({x: Math.random()*200+(sterilizerCanvas.width/2-100), y: Math.random()*100+100, size: Math.random()*3+2, alive: true}); }
+                    startButton.disabled = true;
+                }
+            });
+            window.addEventListener('resize', () => [concentratorCanvas, sterilizerCanvas].forEach(c => {c.width = c.clientWidth; c.height = c.clientHeight;}));
+            mainLoop();
+        }
+        
+        init();
+    });
+    </script>
+</body>
+</html>

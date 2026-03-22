@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Defensa de Misiles Mejorada - Domo de Hierro</title>
+    <style>
+        :root {
+            --space-dark: #0a0e29;
+            --space-blue: #1a1f4c;
+            --star-color: #ffffff;
+            --missile-enemy: #ff3c3c;
+            --missile-defender: #3cff8f;
+            --trajectory-enemy: rgba(255, 60, 60, 0.6);
+            --trajectory-defender: rgba(60, 255, 143, 0.6);
+            --predicted-trajectory: rgba(255, 255, 0, 0.4);
+            --text-light: #ffffff;
+            --accent: #5d7cfa;
+            --warning: #ff9500;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: var(--space-dark);
+            color: var(--text-light);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 5px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 3px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 4px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: rgba(10, 14, 41, 0.8);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(93, 124, 250, 0.5);
+        }
+        
+        h1 {
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(93, 124, 250, 0.8);
+            margin: 0;
+            font-size: 2.2em;
+        }
+        
+        .simulation-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            background: linear-gradient(180deg, var(--space-dark) 0%, var(--space-blue) 100%);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(93, 124, 250, 0.3);
+            border: 2px solid rgba(93, 124, 250, 0.2);
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            background: rgba(26, 31, 76, 0.8);
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid rgba(93, 124, 250, 0.3);
+        }
+        
+        .control-group {
+            margin-bottom: 18px;
+            padding: 15px;
+            background: rgba(10, 14, 41, 0.4);
+            border-radius: 8px;
+            border: 1px solid rgba(93, 124, 250, 0.2);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--accent);
+            text-shadow: 0 0 5px rgba(93, 124, 250, 0.5);
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 8px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(93, 124, 250, 0.5);
+        }
+        
+        .value-display {
+            text-align: right;
+            font-size: 1em;
+            color: var(--text-light);
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, var(--accent), #4158d0);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 15px rgba(93, 124, 250, 0.3);
+        }
+        
+        button:hover {
+            background: linear-gradient(135deg, #4158d0, #c850c0);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(93, 124, 250, 0.4);
+        }
+        
+        .status-panel {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(10, 14, 41, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.95em;
+            border: 1px solid rgba(93, 124, 250, 0.3);
+            min-width: 250px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .status-panel .status-line {
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .legend {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(10, 14, 41, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            border: 1px solid rgba(93, 124, 250, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            margin-right: 10px;
+            border-radius: 2px;
+        }
+        
+        .intercept-point {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: gold;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px gold, 0 0 30px rgba(255, 215, 0, 0.5);
+            animation: interceptPulse 1.5s infinite;
+        }
+        
+        @keyframes interceptPulse {
+            0% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+            100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .explosion {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #ff9500, #ff3c3c);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: explode 1s ease-out;
+        }
+        
+        @keyframes explode {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.5); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
+        }
+        
+        .info-section {
+            background: rgba(26, 31, 76, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 1px solid rgba(93, 124, 250, 0.2);
+        }
+        
+        .info-section h2 {
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+            text-shadow: 0 0 5px rgba(93, 124, 250, 0.5);
+        }
+        
+        .info-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+        }
+        
+        .info-content.expanded {
+            max-height: 2500px;
+        }
+        
+        .info-toggle {
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 1.3em;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        .info-toggle::after {
+            content: '+';
+            font-size: 1.8em;
+            transition: transform 0.3s ease;
+        }
+        
+        .info-toggle.expanded::after {
+            content: '-';
+            transform: rotate(180deg);
+        }
+        
+        .trajectory-controls {
+            background: rgba(10, 14, 41, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid rgba(93, 124, 250, 0.2);
+        }
+        
+        .trajectory-controls h3 {
+            color: var(--accent);
+            margin-top: 0;
+            text-shadow: 0 0 5px rgba(93, 124, 250, 0.5);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .buttons {
+                justify-content: center;
+            }
+            
+            .status-panel, .legend {
+                position: static;
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ Simulación Avanzada de Sistema de Defensa de Misiles</h1>
+            <p>Sistema inspirado en el Domo de Hierro israelí - Detección, cálculo y intercepción en tiempo real</p>
+        </header>
+        
+        <div class="simulation-container">
+            <div class="canvas-container">
+                <canvas id="simulationCanvas"></canvas>
+                
+                <div class="legend">
+                    <h4 style="margin: 0 0 10px 0; color: var(--accent);">Leyenda</h4>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--missile-enemy);"></div>
+                        <span>Misil Enemigo</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--missile-defender);"></div>
+                        <span>Interceptor</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--trajectory-enemy);"></div>
+                        <span>Trayectoria Enemiga</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--trajectory-defender);"></div>
+                        <span>Trayectoria Interceptor</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--predicted-trajectory);"></div>
+                        <span>Predicción</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: gold;"></div>
+                        <span>Punto de Intercepción</span>
+                    </div>
+                </div>
+                
+                <div class="status-panel">
+                    <div class="status-line"><strong>Estado:</strong> <span id="statusText">Esperando simulación</span></div>
+                    <div class="status-line" id="interceptInfo"></div>
+                    <div class="status-line" id="timeInfo">Tiempo: 0.00s</div>
+                    <div class="status-line" id="distanceInfo"></div>
+                    <div class="status-line" id="velocityInfo"></div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="enemyX">🎯 Posición X Inicial Enemigo (m):</label>
+                    <input type="range" id="enemyX" min="200" max="1000" value="600">
+                    <div class="value-display"><span id="enemyXValue">600</span> m</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="enemyY">⬆️ Altura Inicial Enemigo (m):</label>
+                    <input type="range" id="enemyY" min="100" max="500" value="350">
+                    <div class="value-display"><span id="enemyYValue">350</span> m</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="enemyV">🚀 Velocidad Inicial Enemigo (m/s):</label>
+                    <input type="range" id="enemyV" min="150" max="450" value="280">
+                    <div class="value-display"><span id="enemyVValue">280</span> m/s</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="enemyAngle">📐 Ángulo Lanzamiento Enemigo (°):</label>
+                    <input type="range" id="enemyAngle" min="15" max="75" value="45">
+                    <div class="value-display"><span id="enemyAngleValue">45</span>°</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="defenderV">⚡ Velocidad Interceptor (m/s):</label>
+                    <input type="range" id="defenderV" min="200" max="600" value="400">
+                    <div class="value-display"><span id="defenderVValue">400</span> m/s</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="reactionTime">⏱️ Tiempo de Reacción (s):</label>
+                    <input type="range" id="reactionTime" min="0.1" max="2.0" step="0.1" value="0.5">
+                    <div class="value-display"><span id="reactionTimeValue">0.5</span> s</div>
+                </div>
+                
+                <div class="buttons">
+                    <button id="btnStart">🚀 Iniciar Simulación</button>
+                    <button id="btnRandom">🎲 Valores Aleatorios</button>
+                    <button id="btnReset">🔄 Reiniciar</button>
+                    <button id="btnPause">⏸️ Pausar</button>
+                </div>
+            </div>
+            
+            <div class="trajectory-controls">
+                <h3>🎯 Opciones de Visualización</h3>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showPredictedPath" checked>
+                        <label for="showPredictedPath">Mostrar trayectoria predicha</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showVelocityVectors" checked>
+                        <label for="showVelocityVectors">Mostrar vectores de velocidad</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showGrid" checked>
+                        <label for="showGrid">Mostrar rejilla</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showTrails" checked>
+                        <label for="showTrails">Mostrar estelas</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-section">
+            <button class="info-toggle" onclick="toggleSection('solution')">📊 Solución Algebraica y Algoritmos</button>
+            <div id="solution" class="info-content">
+                <h3>🎯 Algoritmo de Intercepción Mejorado</h3>
+                <p>El sistema utiliza un algoritmo sofisticado que considera:</p>
+                <ul>
+                    <li><strong>Tiempo de reacción:</strong> Retraso desde detección hasta lanzamiento</li>
+                    <li><strong>Predicción de trayectoria:</strong> Cálculo de la posición futura del objetivo</li>
+                    <li><strong>Optimización de ángulo:</strong> Determinación del ángulo óptimo de intercepción</li>
+                    <li><strong>Verificación de factibilidad:</strong> Análisis de si la intercepción es físicamente posible</li>
+                </ul>
+                
+                <h3>⚙️ Ecuaciones Físicas Fundamentales</h3>
+                <p><strong>Trayectoria del proyectil enemigo:</strong></p>
+                <p>x_e(t) = x₀ + v₀ₓ·t</p>
+                <p>y_e(t) = y₀ + v₀ᵧ·t - ½g·t²</p>
+                
+                <p><strong>Trayectoria del interceptor:</strong></p>
+                <p>x_d(t) = v_dₓ·(t - t_reacción)</p>
+                <p>y_d(t) = v_dᵧ·(t - t_reacción) - ½g·(t - t_reacción)²</p>
+                
+                <p><strong>Condiciones de intercepción:</strong></p>
+                <p>En el momento t_intercepción: x_e(t) = x_d(t) y y_e(t) = y_d(t)</p>
+                
+                <h3>🧮 Método Numérico de Resolución</h3>
+                <p>Se utiliza el método de bisección para resolver la ecuación cuadrática resultante, considerando:</p>
+                <ul>
+                    <li>Restricciones físicas (velocidades, ángulos)</li>
+                    <li>Tiempo de reacción del sistema</li>
+                    <li>Verificación de soluciones válidas</li>
+                    <li>Optimización para minimizar tiempo de vuelo</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="info-section">
+            <button class="info-toggle" onclick="toggleSection('ironDome')">🛡️ Sistema Domo de Hierro Real</button>
+            <div id="ironDome" class="info-content">
+                <h3>⚔️ El Sistema Real</h3>
+                <p>El Iron Dome israelí es uno de los sistemas de defensa antimisiles más exitosos del mundo:</p>
+                <ul>
+                    <li><strong>Detección:</strong> Radares EL/M-2084 detectan amenazas hasta 70 km</li>
+                    <li><strong>Análisis:</strong> Sistema de comando decide si interceptar basado en trayectoria</li>
+                    <li><strong>Intercepción:</strong> Misiles Tamir con cabeza de guerra fragmentaria</li>
+                    <li><strong>Efectividad:</strong> Más del 90% de éxito en combate real</li>
+                </ul>
+                
+                <h3>🎯 Diferencias con Nuestra Simulación</h3>
+                <ul>
+                    <li><strong>Dimensionalidad:</strong> El sistema real opera en 3D completo</li>
+                    <li><strong>Múltiples amenazas:</strong> Puede rastrear docenas de objetivos simultáneamente</li>
+                    <li><strong>Intercepción por proximidad:</strong> Explosión cercana, no impacto directo</li>
+                    <li><strong>Predicción avanzada:</strong> Algoritmos de IA y aprendizaje automático</li>
+                    <li><strong>Integración de sensores:</strong> Múltiples radares y sistemas ópticos</li>
+                </ul>
+                
+                <h3>🔬 Aplicaciones Educativas</h3>
+                <p>Esta simulación es útil para:</p>
+                <ul>
+                    <li>Comprensión de principios físicos del movimiento projectil</li>
+                    <li>Análisis de sistemas de ecuaciones diferenciales</li>
+                    <li>Estudio de algoritmos de optimización</li>
+                    <li>Introducción a sistemas de control automático</li>
+                    <li>Visualización de conceptos matemáticos complejos</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales mejoradas
+        let canvas, ctx;
+        let enemyMissile, defenderMissile;
+        let interceptPoint = null;
+        let simulationId = null;
+        let simulationTime = 0;
+        let isPaused = false;
+        let reactionTime = 0;
+        let predictedEnemyPath = [];
+        let predictedDefenderPath = [];
+        
+        const g = 9.81; // Gravedad en m/s²
+        const scale = 0.8; // Escala para visualización mejorada
+        const timeStep = 0.02; // Paso de tiempo más pequeño para mayor suavidad
+        
+        // Elementos DOM
+        const elementsDOM = {
+            enemyX: document.getElementById('enemyX'),
+            enemyY: document.getElementById('enemyY'),
+            enemyV: document.getElementById('enemyV'),
+            enemyAngle: document.getElementById('enemyAngle'),
+            defenderV: document.getElementById('defenderV'),
+            reactionTime: document.getElementById('reactionTime'),
+            btnStart: document.getElementById('btnStart'),
+            btnRandom: document.getElementById('btnRandom'),
+            btnReset: document.getElementById('btnReset'),
+            btnPause: document.getElementById('btnPause'),
+            statusText: document.getElementById('statusText'),
+            interceptInfo: document.getElementById('interceptInfo'),
+            timeInfo: document.getElementById('timeInfo'),
+            distanceInfo: document.getElementById('distanceInfo'),
+            velocityInfo: document.getElementById('velocityInfo'),
+            showPredictedPath: document.getElementById('showPredictedPath'),
+            showVelocityVectors: document.getElementById('showVelocityVectors'),
+            showGrid: document.getElementById('showGrid'),
+            showTrails: document.getElementById('showTrails')
+        };
+        
+        // Configurar event listeners para sliders
+        Object.keys(elementsDOM).forEach(key => {
+            if (elementsDOM[key] && elementsDOM[key].type === 'range') {
+                elementsDOM[key].addEventListener('input', () => {
+                    const valueSpan = document.getElementById(key + 'Value');
+                    if (valueSpan) {
+                        valueSpan.textContent = elementsDOM[key].value;
+                    }
+                });
+            }
+        });
+        
+        // Clase mejorada para representar misiles
+        class AdvancedMissile {
+            constructor(x, y, v, angle, color, startTime = 0) {
+                this.initialX = x;
+                this.initialY = y;
+                this.x = x;
+                this.y = y;
+                this.v = v;
+                this.angle = angle * Math.PI / 180;
+                this.vx = v * Math.cos(this.angle);
+                this.vy = v * Math.sin(this.angle);
+                this.color = color;
+                this.trail = [];
+                this.startTime = startTime;
+                this.active = false;
+            }
+            
+            updatePosition(currentTime) {
+                const t = Math.max(0, currentTime - this.startTime);
+                
+                if (t <= 0) {
+                    this.x = this.initialX;
+                    this.y = this.initialY;
+                    this.active = false;
+                    return;
+                }
+                
+                this.active = true;
+                this.x = this.initialX + this.vx * t;
+                this.y = this.initialY + this.vy * t - 0.5 * g * t * t;
+                
+                // Actualizar trail
+                this.trail.push({x: this.x, y: this.y, time: currentTime});
+                if (this.trail.length > 100) {
+                    this.trail.shift();
+                }
+            }
+            
+            getCurrentVelocity(currentTime) {
+                const t = Math.max(0, currentTime - this.startTime);
+                return {
+                    vx: this.vx,
+                    vy: this.vy - g * t,
+                    magnitude: Math.sqrt(this.vx * this.vx + Math.pow(this.vy - g * t, 2))
+                };
+            }
+            
+            isActive() {
+                return this.active && this.y > 0;
+            }
+        }
+        
+        // Inicialización mejorada
+        function initSimulation() {
+            canvas = document.getElementById('simulationCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Ajustar tamaño del canvas con mejor resolución
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+            
+            createMissiles();
+            draw();
+        }
+        
+        // Cálculo mejorado de intercepción
+        function calculateAdvancedInterception() {
+            const enemyX0 = parseFloat(elementsDOM.enemyX.value);
+            const enemyY0 = parseFloat(elementsDOM.enemyY.value);
+            const enemyV = parseFloat(elementsDOM.enemyV.value);
+            const enemyAngle = parseFloat(elementsDOM.enemyAngle.value) * Math.PI / 180;
+            const defenderV = parseFloat(elementsDOM.defenderV.value);
+            reactionTime = parseFloat(elementsDOM.reactionTime.value);
+            
+            const enemyVx = enemyV * Math.cos(enemyAngle);
+            const enemyVy = enemyV * Math.sin(enemyAngle);
+            
+            // Función para calcular la posición del enemigo en el tiempo t
+            const enemyPosAt = (t) => ({
+                x: enemyX0 + enemyVx * t,
+                y: enemyY0 + enemyVy * t - 0.5 * g * t * t
+            });
+            
+            // Buscar tiempo de intercepción usando método mejorado
+            let bestSolution = null;
+            let minError = Infinity;
+            
+            // Probar múltiples tiempos de intercepción
+            for (let ti = reactionTime + 0.1; ti <= 10; ti += 0.01) {
+                const enemyPos = enemyPosAt(ti);
+                
+                // Verificar que el enemigo aún esté en el aire
+                if (enemyPos.y <= 0) break;
+                
+                // Calcular distancia que debe recorrer el defensor
+                const defenderFlightTime = ti - reactionTime;
+                if (defenderFlightTime <= 0) continue;
+                
+                const distance = Math.sqrt(enemyPos.x * enemyPos.x + enemyPos.y * enemyPos.y);
+                const requiredSpeed = distance / defenderFlightTime;
+                
+                // Verificar si es físicamente posible
+                if (requiredSpeed <= defenderV * 1.05) { // 5% de margen
+                    const error = Math.abs(requiredSpeed - defenderV);
+                    if (error < minError) {
+                        minError = error;
+                        bestSolution = {
+                            interceptTime: ti,
+                            interceptX: enemyPos.x,
+                            interceptY: enemyPos.y,
+                            defenderAngle: Math.atan2(enemyPos.y, enemyPos.x),
+                            requiredSpeed: requiredSpeed,
+                            flightTime: defenderFlightTime
+                        };
+                    }
+                }
+            }
+            
+            if (bestSolution) {
+                // Generar trayectorias predichas
+                generatePredictedPaths(bestSolution);
+                return {
+                    possible: true,
+                    ...bestSolution
+                };
+            }
+            
+            return { possible: false };
+        }
+        
+        // Generar trayectorias predichas para visualización
+        function generatePredictedPaths(solution) {
+            predictedEnemyPath = [];
+            predictedDefenderPath = [];
+            
+            const enemyX0 = parseFloat(elementsDOM.enemyX.value);
+            const enemyY0 = parseFloat(elementsDOM.enemyY.value);
+            const enemyV = parseFloat(elementsDOM.enemyV.value);
+            const enemyAngle = parseFloat(elementsDOM.enemyAngle.value) * Math.PI / 180;
+            
+            const enemyVx = enemyV * Math.cos(enemyAngle);
+            const enemyVy = enemyV * Math.sin(enemyAngle);
+            
+            // Trayectoria enemiga predicha
+            for (let t = 0; t <= solution.interceptTime; t += 0.1) {
+                const x = enemyX0 + enemyVx * t;
+                const y = enemyY0 + enemyVy * t - 0.5 * g * t * t;
+                if (y > 0) {
+                    predictedEnemyPath.push({x, y});
+                }
+            }
+            
+            // Trayectoria del defensor predicha
+            const defenderVx = Math.cos(solution.defenderAngle) * solution.requiredSpeed;
+            const defenderVy = Math.sin(solution.defenderAngle) * solution.requiredSpeed;
+            
+            for (let t = reactionTime; t <= solution.interceptTime; t += 0.1) {
+                const flightTime = t - reactionTime;
+                const x = defenderVx * flightTime;
+                const y = defenderVy * flightTime - 0.5 * g * flightTime * flightTime;
+                if (y >= 0) {
+                    predictedDefenderPath.push({x, y});
+                }
+            }
+        }
+        
+        // Crear misiles con cálculos mejorados
+        function createMissiles() {
+            const enemyX = parseFloat(elementsDOM.enemyX.value);
+            const enemyY = parseFloat(elementsDOM.enemyY.value);
+            const enemyV = parseFloat(elementsDOM.enemyV.value);
+            const enemyAngle = parseFloat(elementsDOM.enemyAngle.value);
+            const defenderV = parseFloat(elementsDOM.defenderV.value);
+            
+            // Crear misil enemigo
+            enemyMissile = new AdvancedMissile(enemyX, enemyY, enemyV, enemyAngle, '#ff3c3c', 0);
+            
+            // Calcular intercepción
+            const interceptData = calculateAdvancedInterception();
+            
+            if (interceptData.possible) {
+                const defenderAngle = interceptData.defenderAngle * 180 / Math.PI;
+                defenderMissile = new AdvancedMissile(0, 0, interceptData.requiredSpeed, defenderAngle, '#3cff8f', reactionTime);
+                
+                interceptPoint = {
+                    x: interceptData.interceptX,
+                    y: interceptData.interceptY,
+                    t: interceptData.interceptTime
+                };
+                
+                elementsDOM.statusText.textContent = "Intercepción calculada";
+                elementsDOM.interceptInfo.innerHTML = `<strong>Intercepción:</strong> X=${interceptData.interceptX.toFixed(1)}m, Y=${interceptData.interceptY.toFixed(1)}m, T=${interceptData.interceptTime.toFixed(2)}s`;
+                
+                // Información adicional
+                updateDetailedInfo(interceptData);
+                
+            } else {
+                elementsDOM.statusText.textContent = "Intercepción imposible";
+                elementsDOM.interceptInfo.textContent = "No se puede interceptar con estos parámetros";
+                defenderMissile = null;
+                interceptPoint = null;
+                predictedEnemyPath = [];
+                predictedDefenderPath = [];
+            }
+        }
+        
+        // Actualizar información detallada
+        function updateDetailedInfo(data) {
+            elementsDOM.distanceInfo.innerHTML = `<strong>Distancia:</strong> ${Math.sqrt(data.interceptX*data.interceptX + data.interceptY*data.interceptY).toFixed(1)}m`;
+            elementsDOM.velocityInfo.innerHTML = `<strong>Vel. requerida:</strong> ${data.requiredSpeed.toFixed(1)}m/s`;
+        }
+        
+        // Sistema de dibujo mejorado
+        function draw() {
+            const rect = canvas.getBoundingClientRect();
+            ctx.clearRect(0, 0, rect.width, rect.height);
+            
+            // Fondo con gradiente mejorado
+            drawEnhancedBackground(rect);
+            
+            // Rejilla si está habilitada
+            if (elementsDOM.showGrid.checked) {
+                drawImprovedGrid(rect);
+            }
+            
+            // Trayectorias predichas
+            if (elementsDOM.showPredictedPath.checked) {
+                drawPredictedPaths(rect);
+            }
+            
+            // Estelas de misiles
+            if (elementsDOM.showTrails.checked) {
+                if (enemyMissile) drawTrail(enemyMissile, rect);
+                if (defenderMissile) drawTrail(defenderMissile, rect);
+            }
+            
+            // Misiles
+            if (enemyMissile) drawAdvancedMissile(enemyMissile, rect);
+            if (defenderMissile && defenderMissile.active) drawAdvancedMissile(defenderMissile, rect);
+            
+            // Vectores de velocidad
+            if (elementsDOM.showVelocityVectors.checked) {
+                if (enemyMissile && enemyMissile.active) drawVelocityVector(enemyMissile, rect);
+                if (defenderMissile && defenderMissile.active) drawVelocityVector(defenderMissile, rect);
+            }
+            
+            // Punto de intercepción
+            if (interceptPoint) {
+                drawInterceptPoint(interceptPoint, rect);
+            }
+        }
+        
+        // Fondo mejorado con estrellas dinámicas
+        function drawEnhancedBackground(rect) {
+            // Gradiente de fondo
+            const gradient = ctx.createLinearGradient(0, 0, 0, rect.height);
+            gradient.addColorStop(0, '#0a0e29');
+            gradient.addColorStop(0.5, '#1a1f4c');
+            gradient.addColorStop(1, '#2a2f5c');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, rect.width, rect.height);
+            
+            // Estrellas dinámicas
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            for (let i = 0; i < 150; i++) {
+                const x = (i * 37) % rect.width;
+                const y = (i * 23) % (rect.height * 0.7);
+                const size = 0.5 + Math.sin(simulationTime + i) * 0.5;
+                const alpha = 0.3 + Math.sin(simulationTime * 0.5 + i) * 0.3;
+                
+                ctx.globalAlpha = alpha;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+        }
+        
+        // Rejilla mejorada
+        function drawImprovedGrid(rect) {
+            ctx.strokeStyle = 'rgba(93, 124, 250, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 4]);
+            
+            const gridSpacing = 80;
+            
+            // Líneas verticales
+            for (let x = 0; x < rect.width; x += gridSpacing) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, rect.height);
+                ctx.stroke();
+                
+                if (x > 0) {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                    ctx.font = '10px Arial';
+                    ctx.fillText(`${Math.round(x / scale)}m`, x + 2, rect.height - 5);
+                }
+            }
+            
+            // Líneas horizontales
+            for (let y = rect.height; y >= 0; y -= gridSpacing) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(rect.width, y);
+                ctx.stroke();
+                
+                if (y < rect.height) {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                    ctx.font = '10px Arial';
+                    ctx.fillText(`${Math.round((rect.height - y) / scale)}m`, 2, y - 5);
+                }
+            }
+            
+            ctx.setLineDash([]);
+        }
+        
+        // Dibujar trayectorias predichas
+        function drawPredictedPaths(rect) {
+            // Trayectoria enemiga predicha
+            if (predictedEnemyPath.length > 1) {
+                ctx.strokeStyle = 'rgba(255, 60, 60, 0.6)';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([8, 4]);
+                ctx.beginPath();
+                
+                for (let i = 0; i < predictedEnemyPath.length; i++) {
+                    const point = predictedEnemyPath[i];
+                    const screenX = point.x * scale;
+                    const screenY = rect.height - point.y * scale;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(screenX, screenY);
+                    } else {
+                        ctx.lineTo(screenX, screenY);
+                    }
+                }
+                ctx.stroke();
+            }
+            
+            // Trayectoria del defensor predicha
+            if (predictedDefenderPath.length > 1) {
+                ctx.strokeStyle = 'rgba(60, 255, 143, 0.6)';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([8, 4]);
+                ctx.beginPath();
+                
+                for (let i = 0; i < predictedDefenderPath.length; i++) {
+                    const point = predictedDefenderPath[i];
+                    const screenX = point.x * scale;
+                    const screenY = rect.height - point.y * scale;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(screenX, screenY);
+                    } else {
+                        ctx.lineTo(screenX, screenY);
+                    }
+                }
+                ctx.stroke();
+            }
+            
+            ctx.setLineDash([]);
+        }
+        
+        // Dibujar misil avanzado
+        function drawAdvancedMissile(missile, rect) {
+            const screenX = missile.x * scale;
+            const screenY = rect.height - missile.y * scale;
+            
+            // Efecto de resplandor
+            ctx.shadowColor = missile.color;
+            ctx.shadowBlur = 15;
+            
+            // Cuerpo del misil
+            ctx.fillStyle = missile.color;
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Núcleo brillante
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.shadowBlur = 0;
+            
+            // Indicador de dirección mejorado
+            const velocity = missile.getCurrentVelocity(simulationTime);
+            const angle = Math.atan2(-velocity.vy, velocity.vx);
+            
+            ctx.strokeStyle = missile.color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(screenX, screenY);
+            ctx.lineTo(
+                screenX + Math.cos(angle) * 25,
+                screenY + Math.sin(angle) * 25
+            );
+            ctx.stroke();
+        }
+        
+        // Dibujar estela mejorada
+        function drawTrail(missile, rect) {
+            if (missile.trail.length < 2) return;
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, 0);
+            
+            for (let i = 0; i < missile.trail.length - 1; i++) {
+                const point1 = missile.trail[i];
+                const point2 = missile.trail[i + 1];
+                
+                const alpha = (i / missile.trail.length) * 0.8;
+                
+                ctx.strokeStyle = missile.color.replace(')', `, ${alpha})`).replace('rgb', 'rgba');
+                ctx.lineWidth = 4 * alpha + 1;
+                
+                ctx.beginPath();
+                ctx.moveTo(point1.x * scale, rect.height - point1.y * scale);
+                ctx.lineTo(point2.x * scale, rect.height - point2.y * scale);
+                ctx.stroke();
+            }
+        }
+        
+        // Dibujar vector de velocidad
+        function drawVelocityVector(missile, rect) {
+            const screenX = missile.x * scale;
+            const screenY = rect.height - missile.y * scale;
+            const velocity = missile.getCurrentVelocity(simulationTime);
+            
+            const vectorScale = 0.15;
+            const endX = screenX + velocity.vx * vectorScale;
+            const endY = screenY - velocity.vy * vectorScale;
+            
+            // Vector principal
+            ctx.strokeStyle = '#ffff00';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(screenX, screenY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            
+            // Punta de flecha
+            const angle = Math.atan2(endY - screenY, endX - screenX);
+            const arrowLength = 8;
+            
+            ctx.beginPath();
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(
+                endX - arrowLength * Math.cos(angle - Math.PI/6),
+                endY - arrowLength * Math.sin(angle - Math.PI/6)
+            );
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(
+                endX - arrowLength * Math.cos(angle + Math.PI/6),
+                endY - arrowLength * Math.sin(angle + Math.PI/6)
+            );
+            ctx.stroke();
+            
+            // Etiqueta de velocidad
+            ctx.fillStyle = '#ffff00';
+            ctx.font = 'bold 10px Arial';
+            ctx.fillText(
+                `${velocity.magnitude.toFixed(0)} m/s`,
+                endX + 5,
+                endY - 5
+            );
+        }
+        
+        // Dibujar punto de intercepción mejorado
+        function drawInterceptPoint(point, rect) {
+            const screenX = point.x * scale;
+            const screenY = rect.height - point.y * scale;
+            
+            // Anillos pulsantes
+            const pulseRadius = 8 + Math.sin(simulationTime * 5) * 4;
+            
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([]);
+            
+            for (let i = 0; i < 3; i++) {
+                ctx.globalAlpha = 0.7 - i * 0.2;
+                ctx.beginPath();
+                ctx.arc(screenX, screenY, pulseRadius + i * 8, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            ctx.globalAlpha = 1;
+            
+            // Punto central brillante
+            ctx.shadowColor = '#ffd700';
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = '#ffd700';
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.shadowBlur = 0;
+            
+            // Etiqueta de información
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px Arial';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeText(`Intercepción`, screenX + 15, screenY - 10);
+            ctx.fillText(`Intercepción`, screenX + 15, screenY - 10);
+        }
+        
+        // Actualizar simulación mejorada
+        function updateSimulation() {
+            if (isPaused) {
+                simulationId = requestAnimationFrame(updateSimulation);
+                return;
+            }
+            
+            simulationTime += timeStep;
+            
+            // Actualizar posiciones
+            if (enemyMissile) {
+                enemyMissile.updatePosition(simulationTime);
+            }
+            
+            if (defenderMissile) {
+                defenderMissile.updatePosition(simulationTime);
+            }
+            
+            // Actualizar información en tiempo real
+            elementsDOM.timeInfo.innerHTML = `<strong>Tiempo:</strong> ${simulationTime.toFixed(2)}s`;
+            
+            if (enemyMissile && enemyMissile.active) {
+                const enemyVel = enemyMissile.getCurrentVelocity(simulationTime);
+                elementsDOM.velocityInfo.innerHTML = `<strong>Vel. Enemigo:</strong> ${enemyVel.magnitude.toFixed(1)}m/s`;
+            }
+            
+            // Dibujar
+            draw();
+            
+            // Verificar intercepción exitosa
+            if (interceptPoint && Math.abs(simulationTime - interceptPoint.t) < timeStep) {
+                elementsDOM.statusText.textContent = "¡Intercepción exitosa!";
+                createExplosionEffect(interceptPoint);
+                stopSimulation();
+                return;
+            }
+            
+            // Verificar si el enemigo tocó el suelo
+            if (enemyMissile && enemyMissile.y <= 0 && enemyMissile.active) {
+                elementsDOM.statusText.textContent = "Misil enemigo impactó el suelo";
+                stopSimulation();
+                return;
+            }
+            
+            // Verificar si ambos misiles están fuera de rango
+            if (enemyMissile && defenderMissile && 
+                (!enemyMissile.isActive() || enemyMissile.x > canvas.width / scale * 2)) {
+                elementsDOM.statusText.textContent = "Simulación completada";
+                stopSimulation();
+                return;
+            }
+            
+            simulationId = requestAnimationFrame(updateSimulation);
+        }
+        
+        // Crear efecto de explosión
+        function createExplosionEffect(point) {
+            const rect = canvas.getBoundingClientRect();
+            const screenX = point.x * scale;
+            const screenY = rect.height - point.y * scale;
+            
+            // Efecto visual de explosión
+            ctx.shadowColor = '#ff9500';
+            ctx.shadowBlur = 30;
+            
+            for (let i = 0; i < 20; i++) {
+                const angle = (i / 20) * Math.PI * 2;
+                const radius = 20 + Math.random() * 15;
+                
+                ctx.fillStyle = `hsl(${30 + Math.random() * 30}, 100%, ${50 + Math.random() * 30}%)`;
+                ctx.beginPath();
+                ctx.arc(
+                    screenX + Math.cos(angle) * radius,
+                    screenY + Math.sin(angle) * radius,
+                    3 + Math.random() * 3,
+                    0, Math.PI * 2
+                );
+                ctx.fill();
+            }
+            
+            ctx.shadowBlur = 0;
+        }
+        
+        // Control de simulación
+        function startSimulation() {
+            if (simulationId) {
+                stopSimulation();
+            }
+            
+            simulationTime = 0;
+            isPaused = false;
+            createMissiles();
+            
+            if (defenderMissile) {
+                elementsDOM.statusText.textContent = "Simulación en curso";
+                elementsDOM.btnStart.textContent = "🔄 Reiniciar";
+                elementsDOM.btnPause.textContent = "⏸️ Pausar";
+                simulationId = requestAnimationFrame(updateSimulation);
+            }
+        }
+        
+        function pauseSimulation() {
+            isPaused = !isPaused;
+            elementsDOM.btnPause.textContent = isPaused ? "▶️ Continuar" : "⏸️ Pausar";
+            
+            if (!isPaused && !simulationId) {
+                simulationId = requestAnimationFrame(updateSimulation);
+            }
+        }
+        
+        function stopSimulation() {
+            if (simulationId) {
+                cancelAnimationFrame(simulationId);
+                simulationId = null;
+            }
+            
+            elementsDOM.btnStart.textContent = "🚀 Iniciar Simulación";
+            elementsDOM.btnPause.textContent = "⏸️ Pausar";
+            isPaused = false;
+        }
+        
+        function resetSimulation() {
+            stopSimulation();
+            simulationTime = 0;
+            createMissiles();
+            draw();
+            elementsDOM.statusText.textContent = "Preparado para simulación";
+            elementsDOM.timeInfo.innerHTML = "<strong>Tiempo:</strong> 0.00s";
+        }
+        
+        function randomizeValues() {
+            elementsDOM.enemyX.value = Math.floor(Math.random() * 800) + 200;
+            elementsDOM.enemyY.value = Math.floor(Math.random() * 400) + 100;
+            elementsDOM.enemyV.value = Math.floor(Math.random() * 300) + 150;
+            elementsDOM.enemyAngle.value = Math.floor(Math.random() * 70) - 80;
+            elementsDOM.defenderV.value = Math.floor(Math.random() * 400) + 200;
+            elementsDOM.reactionTime.value = (Math.random() * 1.5 + 0.2).toFixed(1);
+            
+            // Actualizar displays
+            Object.keys(elementsDOM).forEach(key => {
+                if (elementsDOM[key] && elementsDOM[key].type === 'range') {
+                    const valueSpan = document.getElementById(key + 'Value');
+                    if (valueSpan) {
+                        valueSpan.textContent = elementsDOM[key].value;
+                    }
+                }
+            });
+            
+            resetSimulation();
+        }
+        
+        // Toggle para secciones de información
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId);
+            const toggle = content.previousElementSibling;
+            
+            content.classList.toggle('expanded');
+            toggle.classList.toggle('expanded');
+        }
+        
+        // Event listeners
+        elementsDOM.btnStart.addEventListener('click', startSimulation);
+        elementsDOM.btnRandom.addEventListener('click', randomizeValues);
+        elementsDOM.btnReset.addEventListener('click', resetSimulation);
+        elementsDOM.btnPause.addEventListener('click', pauseSimulation);
+        
+        // Event listeners para cambios en tiempo real
+        Object.keys(elementsDOM).forEach(key => {
+            if (elementsDOM[key] && elementsDOM[key].type === 'range') {
+                elementsDOM[key].addEventListener('input', () => {
+                    if (!simulationId) {
+                        resetSimulation();
+                    }
+                });
+            }
+        });
+        
+        // Event listeners para checkboxes
+        [elementsDOM.showPredictedPath, elementsDOM.showVelocityVectors, 
+         elementsDOM.showGrid, elementsDOM.showTrails].forEach(checkbox => {
+            if (checkbox) {
+                checkbox.addEventListener('change', () => {
+                    if (!simulationId) draw();
+                });
+            }
+        });
+        
+        // Inicialización
+        window.addEventListener('load', initSimulation);
+        window.addEventListener('resize', () => {
+            setTimeout(initSimulation, 100);
+        });
+        
+        // Atajos de teclado
+        document.addEventListener('keydown', (e) => {
+            switch(e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    if (simulationId) {
+                        pauseSimulation();
+                    } else {
+                        startSimulation();
+                    }
+                    break;
+                case 'KeyR':
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        randomizeValues();
+                    }
+                    break;
+                case 'Escape':
+                    stopSimulation();
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simulación de Intercepción de Misiles — Final</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- MathJax -->
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+  </script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <style>
+    :root{
+      --bg:#eef2f7; --card:#ffffff; --muted:#64748b;
+      --accent:#06b6d4; --accent2:#2563eb;
+      --danger:#ef4444; --def:#1e3a8a; --ok:#10b981;
+    }
+    body{
+      background:var(--bg); color:#0f172a;
+      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      margin:0; -webkit-font-smoothing:antialiased;
+    }
+    .container{max-width:1100px;margin:28px auto;padding:0 18px;}
+    .card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 8px 28px rgba(15,23,42,0.06);margin-bottom:18px;}
+    header .title{font-size:28px;font-weight:800;color:var(--accent2);}
+    header .subtitle{color:var(--muted);margin-top:6px;}
+    .section-title{font-size:18px;font-weight:700;margin-bottom:8px;color:var(--accent2);}
+    .math{background:#f8fafc;padding:10px;border-radius:10px;margin:8px 0;line-height:1.45;}
+    .note{color:var(--muted);font-size:0.95rem;}
+    .small{font-size:0.92rem;color:#334155;}
+    input[type=number]{padding:8px;border-radius:8px;border:1px solid #e6eef8;width:100%;}
+    input[type=range]{accent-color:var(--accent);width:100%;}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .btn{padding:8px 10px;border-radius:10px;font-weight:700;cursor:pointer;border:none;}
+    .btn-primary{background:var(--accent2);color:white;}
+    .btn-accept{background:var(--ok);color:white;}
+    .btn-aux{background:var(--accent);color:white;}
+    canvas{background:linear-gradient(180deg,#ffffff,#f8feff);border-radius:12px;display:block;width:100%;height:auto;border:1px solid rgba(2,6,23,0.06);}
+    .legend{display:flex;gap:16px;justify-content:center;margin-top:8px;color:#334155;font-size:0.95rem;}
+    .sw{width:14px;height:14px;display:inline-block;border-radius:3px;margin-right:8px;}
+    .result-ok{background:#dcfce7;border:1px solid #bbf7d0;color:#064e3b;padding:10px;border-radius:10px;}
+    .result-fail{background:#fee2e2;border:1px solid #fecaca;color:#991b1b;padding:10px;border-radius:10px;}
+    .result-warn{background:#fef9c3;border:1px solid #fde047;color:#854d0e;padding:10px;border-radius:10px;}
+    table.range-table{width:100%;border-collapse:collapse;margin-top:10px;border-radius:10px;overflow:hidden;}
+    table.range-table td, table.range-table th{border:1px solid #eef2ff;padding:6px;text-align:left;}
+    footer{margin-top:18px;color:var(--muted);text-align:center;font-size:0.95rem;}
+    @media (max-width:900px){ .grid-2{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header class="card" style="text-align:center;">
+      <div class="title">Simulación de Intercepción de Misiles</div>
+      <div class="subtitle">Universidad de Antioquia — Física Mecánica</div>
+    </header>
+
+    <!-- 1 Enunciado -->
+    <section class="card">
+      <h2 class="section-title">1. Enunciado</h2>
+      <p class="note">
+        Un radar detecta un misil atacante con posición inicial $r_0 = (x_0,y_0,z_0)$ y velocidad inicial
+        $\vec v_0 = v_0(l,m,n)$ con $l^2+m^2+n^2=1$. El atacante se mueve bajo gravedad $g=9.81\ \mathrm{m/s^2}$.
+        Se desea saber si un misil defensor, lanzado desde el origen con velocidad máxima $u_{\max}$ (y posible $a_{\text{extra}}$),
+        puede interceptarlo y, de ser así, calcular $u$ y $\theta$.
+      </p>
+    </section>
+
+    <!-- 2 Desarrollo algebraico y tabla de variables -->
+    <section class="card">
+      <h2 class="section-title">2. Desarrollo algebraico (detallado)</h2>
+
+      <h3>2.1 Tabla de variables</h3>
+      <table class="range-table small">
+        <tr><th>Símbolo</th><th>Significado</th><th>Unidades</th></tr>
+        <tr><td>$x_0,y_0,z_0$</td><td>Posición inicial atacante (cartesiano)</td><td>m</td></tr>
+        <tr><td>$v_0$</td><td>Magnitud velocidad inicial atacante</td><td>m/s</td></tr>
+        <tr><td>$l,m,n$</td><td>Cosenos directores del vector velocidad</td><td>—</td></tr>
+        <tr><td>$s,h$</td><td>Coordenadas en el plano de movimiento (s: horizontal, h: vertical)</td><td>m</td></tr>
+        <tr><td>$s_0,h_0$</td><td>Proyección inicial del atacante en $(s,h)$</td><td>m</td></tr>
+        <tr><td>$v_s,v_h$</td><td>Componentes horizontal y vertical de $v_0$</td><td>m/s</td></tr>
+        <tr><td>$u,\theta$</td><td>Velocidad inicial y ángulo de lanzamiento del defensor</td><td>m/s, rad/°</td></tr>
+        <tr><td>$a_{\text{extra}}$</td><td>Aceleración extra del propulsor</td><td>m/s²</td></tr>
+        <tr><td>$t$</td><td>Tiempo</td><td>s</td></tr>
+      </table>
+
+      <h3>2.2 Justificación 3D → 2D</h3>
+      <p class="small">Con fuerzas (aparte de gravedad) que no introducen componentes fuera del plano formado por la velocidad inicial del proyectil y la vertical, la trayectoria queda en un plano: por tanto podemos proyectar a $(s,h)$ y analizar 2D.</p>
+
+      <h3>2.3 Movimiento del atacante (explicado)</h3>
+      <div class="math">
+        $$s_e(t) = s_0 + v_s \, t$$
+        $$h_e(t) = h_0 + v_h \, t - \dfrac{1}{2}\, g\, t^2$$
+      </div>
+      <p class="small">Explicación: $s_e(t)$ es la posición horizontal; $v_s$ es la velocidad horizontal. $h_e(t)$ es la altura; la term. $-\tfrac12 g t^2$ es la caída por gravedad.</p>
+
+      <h3>2.4 Movimiento del defensor (explicado)</h3>
+      <div class="math">
+        $$s_d(t) = u \cos\theta \, t$$
+        $$h_d(t) = u \sin\theta \, t - \dfrac{1}{2}\, g\, t^2$$
+      </div>
+      <p class="small">Explicación: partimos del origen; las componentes iniciales de la velocidad del defensor son $u\cos\theta$ (horizontal) y $u\sin\theta$ (vertical).</p>
+
+      <h3>2.5 Condición de intercepción (explicado con notación clara)</h3>
+      <div class="math">
+        $$u\cos\theta \;=\; \frac{s_e(t)}{t} \;=\; v_{s,\text{req}}(t)$$
+        $$u\sin\theta \;=\; \frac{h_e(t)}{t} + \tfrac{1}{2} g t \;=\; v_{h,\text{req}}(t)$$
+      </div>
+      <p class="small">Interpretación: para que las posiciones coincidan en el mismo tiempo $t$, las componentes iniciales del defensor deben ser exactamente estas. Obs.: la componente vertical incluye la corrección $\tfrac12 g t$ por la gravedad.</p>
+
+      <h3>2.6 Magnitud y ángulo requeridos (explicado)</h3>
+      <div class="math">
+        $$u_{\text{req}}(t) \;=\; \sqrt{ \big(v_{s,\text{req}}(t)\big)^2 + \big(v_{h,\text{req}}(t)\big)^2 }$$
+        $$\theta_{\text{req}}(t) \;=\; \operatorname{atan2}\!\big( v_{h,\text{req}}(t),\, v_{s,\text{req}}(t) \big)$$
+      </div>
+      <p class="small">Explicación: $u_{\text{req}}(t)$ es la mínima magnitud de velocidad inicial que permite alcanzar la posición. Usamos $\operatorname{atan2}$ para obtener el ángulo correcto considerando signos.</p>
+
+      <h3>2.7 Ajuste heurístico por propulsor</h3>
+      <div class="math">
+        $$u_{\text{adj}}(t) \approx \max\!\Big(0,\, u_{\text{req}}(t) - \tfrac{1}{2}\, a_{\text{extra}} \, t \Big)$$
+      </div>
+      <p class="small">Explicación: se modela el propulsor como una reducción efectiva de la velocidad requerida, proporcional al tiempo de combustión aproximado. Es una aproximación conservadora.</p>
+    </section>
+
+    <!-- 3 Simulación -->
+    <section class="card">
+      <h2 class="section-title">3. Simulación interactiva</h2>
+      <p class="small">Genera escenarios válidos o introduce tus propios parámetros (si los introduces manualmente se validan y muestran advertencias/errores).</p>
+
+      <div style="display:grid; grid-template-columns: 1fr 380px; gap:18px;">
+        <!-- Canvas + leyenda -->
+        <div class="card" style="padding:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-weight:700;">Área de simulación (s — horizontal, h — vertical)</div>
+            <div class="small">Escala automática — metros</div>
+          </div>
+
+          <div style="margin-top:10px;">
+            <canvas id="canvas" width="1000" height="540"></canvas>
+
+            <div class="legend">
+              <div><span class="sw" style="background:var(--danger)"></span> Atacante</div>
+              <div><span class="sw" style="background:var(--def)"></span> Defensor</div>
+              <div><span class="sw" style="background:var(--accent)"></span> Intercepción</div>
+            </div>
+
+            <table class="range-table" id="scaleTable">
+              <tr><th>Escalado s (m)</th><td id="sRange">—</td></tr>
+              <tr><th>Escalado h (m)</th><td id="hRange">—</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Controles -->
+        <div class="card" style="padding:12px;">
+          <div style="font-weight:700;margin-bottom:8px;">Controles</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <button id="btnRandom" class="btn btn-aux">🎲 Generar válido</button>
+            <button id="btnCalc" class="btn btn-accept">📊 Calcular</button>
+            <button id="btnAnimate" class="btn btn-primary">▶ Animar</button>
+          </div>
+
+          <div style="margin-bottom:8px;">
+            <label class="small">Vel. máx defensor: <strong id="lblVmax">250</strong> m/s</label>
+            <input id="rangeVmax" type="range" min="100" max="800" value="250" step="10">
+          </div>
+
+          <div style="margin-bottom:8px;">
+            <label class="small">Aceleración extra: <strong id="lblAextra">0</strong> m/s²</label>
+            <input id="rangeAextra" type="range" min="0" max="120" value="0" step="1">
+          </div>
+
+          <div style="margin-bottom:8px;">
+            <label class="small">Tiempo máx búsqueda: <strong id="lblTmax">30</strong> s</label>
+            <input id="rangeTmax" type="range" min="5" max="300" value="30" step="1">
+          </div>
+
+          <hr style="margin:10px 0;border:none;border-top:1px solid #eef2ff;">
+
+          <div style="font-weight:700;margin-bottom:6px;">Parámetros del atacante</div>
+          <div class="grid-2" style="gap:8px;">
+            <div>
+              <label class="small">X (m)</label>
+              <input id="inpX" type="number" value="200">
+            </div>
+            <div>
+              <label class="small">Y (m)</label>
+              <input id="inpY" type="number" value="0">
+            </div>
+            <div>
+              <label class="small">Z (m)</label>
+              <input id="inpZ" type="number" value="200" min="0">
+            </div>
+            <div>
+              <label class="small">Vel (m/s)</label>
+              <input id="inpV" type="number" value="200" min="0">
+            </div>
+            <div>
+              <label class="small">Elevación (°)</label>
+              <input id="inpElev" type="number" value="30" min="-89" max="89">
+            </div>
+            <div>
+              <label class="small">Azimut (°)</label>
+              <input id="inpAz" type="number" value="0" min="-180" max="180">
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <div style="font-weight:700">Resultado</div>
+            <div id="resultBox" class="note" style="padding:10px;border-radius:8px;background:#fff7ed;">Aún no calculado.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 Aplicación -->
+    <section class="card">
+      <h2 class="section-title">4. Relación con el Domo de Hierro</h2>
+      <p class="small">El Iron Dome usa sensores, modelos aerodinámicos, y toma decisiones en tiempo real; nuestro modelo muestra la base física y algorítmica.</p>
+    </section>
+
+    <!-- 5 Conclusiones -->
+    <section class="card">
+      <h2 class="section-title">5. Conclusiones</h2>
+      <p class="small">Ecuaciones claras, notación estándar, tabla de variables, cuadrícula y generador de escenarios válidos. La simulación visualiza la intercepción y permite experimentar con parámetros.</p>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">6. Referencias</h2>
+      <ul class="small">
+        <li>Apuntes de Física Mecánica — Universidad de Antioquia</li>
+        <li>Halliday, Resnick & Walker — Physics for Scientists and Engineers</li>
+        <li>Documentación pública técnica sobre sistemas antimisiles</li>
+      </ul>
+    </section>
+
+    <footer class="note">Archivo: Intercepción — Septiembre 2025</footer>
+  </div>
+
+  <!-- ================== SCRIPT COMPLETO ================== -->
+  <script>
+  // ----- Constantes y DOM -----
+  const g = 9.81;
+  const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
+
+  const btnRandom = document.getElementById('btnRandom');
+  const btnCalc = document.getElementById('btnCalc');
+  const btnAnimate = document.getElementById('btnAnimate');
+
+  const rangeVmax = document.getElementById('rangeVmax'), lblVmax = document.getElementById('lblVmax');
+  const rangeAextra = document.getElementById('rangeAextra'), lblAextra = document.getElementById('lblAextra');
+  const rangeTmax = document.getElementById('rangeTmax'), lblTmax = document.getElementById('lblTmax');
+
+  const inpX = document.getElementById('inpX'), inpY = document.getElementById('inpY'), inpZ = document.getElementById('inpZ');
+  const inpV = document.getElementById('inpV'), inpElev = document.getElementById('inpElev'), inpAz = document.getElementById('inpAz');
+
+  const resultBox = document.getElementById('resultBox');
+  const sRangeCell = document.getElementById('sRange'), hRangeCell = document.getElementById('hRange');
+
+  // Estado
+  let enemy = { x:200, y:0, z:200, v:200, elev:30, az:0 };
+  let solution = null;
+  let enemyPath = [], defenderPath = [];
+  let animInterval = null;
+
+  // Iniciar etiquetas
+  lblVmax.textContent = rangeVmax.value;
+  lblAextra.textContent = rangeAextra.value;
+  lblTmax.textContent = rangeTmax.value;
+  rangeVmax.addEventListener('input', ()=> lblVmax.textContent = rangeVmax.value);
+  rangeAextra.addEventListener('input', ()=> lblAextra.textContent = rangeAextra.value);
+  rangeTmax.addEventListener('input', ()=> lblTmax.textContent = rangeTmax.value);
+
+  // Utilidades
+  function degToRad(d){ return d * Math.PI / 180; }
+  function radToDeg(r){ return r * 180 / Math.PI; }
+  function clamp(v,a,b){ return Math.min(b, Math.max(a, v)); }
+  function randRange(a,b){ return a + Math.random()*(b-a); }
+
+  // Validación para entradas manuales (muestra errores/warnings)
+  function validateManualEnemy(en){
+    const errors = [], warnings = [];
+    if (!isFinite(en.v) || en.v <= 0) errors.push('Velocidad debe ser > 0 m/s.');
+    if (!isFinite(en.z) || en.z < 0) errors.push('Altura (Z) debe ser ≥ 0 m.');
+    if (!isFinite(en.elev)) errors.push('Elevación inválida.');
+    if (!isFinite(en.az)) errors.push('Azimut inválido.');
+    if (en.elev < -89 || en.elev > 89) errors.push('Elevación fuera de rango (-89°,89°).');
+    if (en.az < -180 || en.az > 180) errors.push('Azimut fuera de rango (-180°,180°).');
+    if (en.v < 40) warnings.push('Velocidad muy baja (<40 m/s).');
+    if (en.z > 1200) warnings.push('Altura inusualmente alta (>1200 m).');
+    return { errors, warnings };
+  }
+
+  // Proyección 3D -> 2D (s,h)
+  function enemyTo2D(en){
+    const elevR = degToRad(en.elev);
+    const azR = degToRad(en.az);
+    const vx = en.v * Math.cos(elevR) * Math.cos(azR);
+    const vy = en.v * Math.cos(elevR) * Math.sin(azR);
+    const vz = en.v * Math.sin(elevR);
+    const vxy = Math.hypot(vx, vy);
+    let ux = 1, uy = 0;
+    if (vxy > 1e-9){ ux = vx / vxy; uy = vy / vxy; }
+    const s0 = en.x * ux + en.y * uy;
+    const h0 = en.z;
+    return { s0, h0, v_s: vxy, v_h: vz };
+  }
+
+  // Barrido en t para encontrar intercepción
+  function findIntercept(params){
+    const en2d = enemyTo2D(params.enemy);
+    const s0 = en2d.s0, h0 = en2d.h0, v_s = en2d.v_s, v_h = en2d.v_h;
+    const vmaxAllow = params.vmax;
+    const aExtra = params.a_extra;
+    const tmaxVal = params.tmax;
+
+    for (let t = 0.2; t <= tmaxVal; t += 0.05){
+      const se = s0 + v_s * t;
+      const he = h0 + v_h * t - 0.5 * g * t * t;
+      if (he < 0) continue; // atacante ya cayó
+
+      const v_s_req = se / t;
+      const v_h_req = he / t + 0.5 * g * t;
+      const vmag_raw = Math.hypot(v_s_req, v_h_req);
+      const reduction = aExtra > 0 ? 0.5 * aExtra * t : 0;
+      const vmag_adj = Math.max(0, vmag_raw - reduction);
+
+      if (vmag_adj <= vmaxAllow){
+        return {
+          t, se, he,
+          v_s_req, v_h_req,
+          vmag_raw, vmag_adj,
+          theta: Math.atan2(v_h_req, v_s_req),
+          a_extra: aExtra
+        };
+      }
+    }
+    return null;
+  }
+
+  // Construir trayectorias (discretas) para dibujo
+  function buildTrajectories(sol, en2d){
+    enemyPath = []; defenderPath = [];
+    const dt = 0.05;
+    const u_physical = sol.vmag_adj > 0 ? sol.vmag_adj : sol.vmag_raw;
+    const theta = sol.theta;
+
+    for (let t = 0; t <= sol.t + 1e-9; t += dt){
+      const se = en2d.s0 + en2d.v_s * t;
+      const he = en2d.h0 + en2d.v_h * t - 0.5 * g * t * t;
+      enemyPath.push({ s: se, h: he });
+
+      const sd = u_physical * Math.cos(theta) * t;
+      const hd = u_physical * Math.sin(theta) * t - 0.5 * g * t * t;
+      defenderPath.push({ s: sd, h: hd });
+    }
+  }
+
+  // Escalado "nice", cuadrícula y dibujo completo
+  function niceStep(span){
+    const target = span / 6.0;
+    const pow = Math.pow(10, Math.floor(Math.log10(Math.max(1e-9, target))));
+    const norm = target / pow;
+    if (norm < 1.5) return 1 * pow;
+    if (norm < 3.5) return 2 * pow;
+    if (norm < 7.5) return 5 * pow;
+    return 10 * pow;
+  }
+
+  function drawScene(tNow = null){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // recolectar puntos para escalado
+    let sList = [0], hList = [0];
+    enemyPath.forEach(p=>{ sList.push(p.s); hList.push(p.h); });
+    defenderPath.forEach(p=>{ sList.push(p.s); hList.push(p.h); });
+    const en2d = enemyTo2D(enemy);
+    sList.push(en2d.s0); hList.push(en2d.h0);
+    if (solution){ sList.push(solution.se); hList.push(solution.he); }
+
+    let sMin = Math.min(...sList), sMax = Math.max(...sList);
+    let hMin = Math.min(...hList), hMax = Math.max(...hList);
+
+    const minSpanS = 100, minSpanH = 100;
+    if (sMax - sMin < minSpanS){ const mid = (sMax + sMin)/2; sMin = mid - minSpanS/2; sMax = mid + minSpanS/2; }
+    if (hMax - hMin < minSpanH){ const mid = (hMax + hMin)/2; hMin = mid - minSpanH/2; hMax = mid + minSpanH/2; }
+
+    const padS = 0.12 * (sMax - sMin + 1);
+    sMin -= padS; sMax += padS;
+    hMin = Math.min(hMin, 0) - 20;
+    hMax += 0.12 * (hMax - hMin + 1);
+
+    const marginPx = 60;
+    const availW = canvas.width - 2*marginPx, availH = canvas.height - 2*marginPx;
+    const scaleS = availW / (sMax - sMin);
+    const scaleH = availH / (hMax - hMin);
+    const scale = Math.min(scaleS, scaleH);
+
+    const centerS = (sMax + sMin)/2, centerH = (hMax + hMin)/2;
+    function sx(s){ return canvas.width/2 + (s - centerS) * scale; }
+    function sy(h){ return canvas.height/2 - (h - centerH) * scale; }
+
+    sRangeCell.textContent = `${Math.round(sMin)} – ${Math.round(sMax)} m (span ${(sMax-sMin).toFixed(1)} m)`;
+    hRangeCell.textContent = `${Math.round(hMin)} – ${Math.round(hMax)} m (span ${(hMax-hMin).toFixed(1)} m)`;
+
+    // dibujar cuadrícula
+    ctx.save();
+    ctx.strokeStyle = 'rgba(15,23,42,0.06)';
+    ctx.lineWidth = 1;
+
+    const sStep = niceStep(sMax - sMin);
+    const hStep = niceStep(hMax - hMin);
+
+    const sStart = Math.ceil(sMin / sStep) * sStep;
+    for (let ss = sStart; ss <= sMax; ss += sStep){
+      const x = sx(ss);
+      ctx.beginPath(); ctx.moveTo(x, marginPx); ctx.lineTo(x, canvas.height - marginPx); ctx.stroke();
+      ctx.fillStyle = '#475569'; ctx.font = '11px Inter, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(`${Math.round(ss)} m`, x, canvas.height - marginPx + 14);
+    }
+
+    const hStart = Math.ceil(hMin / hStep) * hStep;
+    for (let hh = hStart; hh <= hMax; hh += hStep){
+      const y = sy(hh);
+      ctx.beginPath(); ctx.moveTo(marginPx, y); ctx.lineTo(canvas.width - marginPx, y); ctx.stroke();
+      ctx.fillStyle = '#475569'; ctx.font = '11px Inter, sans-serif'; ctx.textAlign = 'right';
+      ctx.fillText(`${Math.round(hh)} m`, marginPx - 6, y + 3);
+    }
+
+    // ground line (h=0)
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(marginPx, sy(0)); ctx.lineTo(canvas.width - marginPx, sy(0)); ctx.stroke();
+    ctx.restore();
+
+    // dibujar trayectorias
+    function drawPath(path, color){
+      if (path.length === 0) return;
+      ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath();
+      path.forEach((p, i) => { const x = sx(p.s), y = sy(p.h); if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+      ctx.stroke();
+    }
+
+    drawPath(enemyPath, '#ef4444');
+    drawPath(defenderPath, '#1e3a8a');
+
+    // marcadores animados si tNow dado
+    if (tNow !== null && enemyPath.length>0 && defenderPath.length>0 && solution){
+      const total = enemyPath.length;
+      const frac = Math.max(0, Math.min(1, tNow / solution.t));
+      const idx = Math.min(Math.floor(frac * (total - 1)), total - 1);
+      const pe = enemyPath[idx], pd = defenderPath[idx];
+      if (pe){ ctx.fillStyle = '#ff6b6b'; ctx.beginPath(); ctx.arc(sx(pe.s), sy(pe.h), 6, 0, 2*Math.PI); ctx.fill(); }
+      if (pd){ ctx.fillStyle = '#1e40af'; ctx.beginPath(); ctx.arc(sx(pd.s), sy(pd.h), 6, 0, 2*Math.PI); ctx.fill(); }
+    }
+
+    // punto de intercepción
+    if (solution){
+      ctx.fillStyle = '#06b6d4'; ctx.beginPath(); ctx.arc(sx(solution.se), sy(solution.he), 7, 0, 2*Math.PI); ctx.fill();
+      ctx.strokeStyle = '#075985'; ctx.lineWidth = 1; ctx.stroke();
+    }
+  }
+
+  // Cálculo y preparación de escena
+  function computeAndPrepare(opts = { fromRandom: false }){
+    const candidate = {
+      x: Number(inpX.value) || 0,
+      y: Number(inpY.value) || 0,
+      z: Number(inpZ.value) || 0,
+      v: Number(inpV.value) || 0,
+      elev: Number(inpElev.value) || 0,
+      az: Number(inpAz.value) || 0
+    };
+
+    // validación solo cuando viene de entrada manual
+    if (!opts.fromRandom){
+      const check = validateManualEnemy(candidate);
+      if (check.errors.length > 0){
+        resultBox.className = 'result-fail';
+        resultBox.innerHTML = '<strong>Errores en parámetros:</strong><br><ul>' + check.errors.map(e => `<li>${e}</li>`).join('') + '</ul>';
+        enemyPath = []; defenderPath = [];
+        drawScene();
+        return null;
+      } else if (check.warnings.length > 0){
+        resultBox.className = 'result-warn';
+        resultBox.innerHTML = '<strong>Advertencias:</strong><br><ul>' + check.warnings.map(w => `<li>${w}</li>`).join('') + '</ul>';
+      } else {
+        resultBox.className = 'note';
+        resultBox.innerHTML = 'Parámetros válidos. Calculando...';
+      }
+    }
+
+    enemy = candidate;
+
+    const params = {
+      enemy: JSON.parse(JSON.stringify(enemy)),
+      a_extra: Number(rangeAextra.value),
+      vmax: Number(rangeVmax.value),
+      tmax: Number(rangeTmax.value)
+    };
+
+    const sol = findIntercept(params);
+    solution = sol;
+
+    if (!sol){
+      enemyPath = []; defenderPath = [];
+      resultBox.className = 'result-fail';
+      resultBox.innerHTML = '🔴 No se encontró intercepción con los parámetros dados. Ajusta u_max, tiempo o posición.';
+      drawScene();
+      return null;
+    }
+
+    buildTrajectories(sol, enemyTo2D(enemy));
+
+    // Mostrar resultados
+    resultBox.className = 'result-ok';
+    resultBox.innerHTML = `✅ Intercepción estimada en <strong>${sol.t.toFixed(2)} s</strong>.<br>`;
+    resultBox.innerHTML += `Vel requerida (sin ajuste): <strong>${sol.vmag_raw.toFixed(1)} m/s</strong>.<br>`;
+    if (sol.vmag_adj < sol.vmag_raw) resultBox.innerHTML += `Vel requerida (con propulsor): <strong>${sol.vmag_adj.toFixed(1)} m/s</strong>.<br>`;
+    resultBox.innerHTML += `Ángulo estimado: <strong>${radToDeg(sol.theta).toFixed(2)}°</strong>.`;
+
+    drawScene();
+    return sol;
+  }
+
+  // Animación (reproduce trayectorias)
+  function animate(){
+    if (!solution || enemyPath.length===0 || defenderPath.length===0) return;
+    if (animInterval) clearInterval(animInterval);
+    let idx = 0;
+    const steps = enemyPath.length;
+    animInterval = setInterval(() => {
+      if (idx >= steps){
+        clearInterval(animInterval);
+        animInterval = null;
+        return;
+      }
+      const tNow = idx * (solution.t / Math.max(1, steps - 1));
+      drawScene(tNow);
+      idx++;
+    }, 60);
+  }
+
+  // GENERADOR ROBUSTO: intenta construir un atacante que sea alcanzable
+  function generateValidEnemy(){
+    const vmax = Number(rangeVmax.value);
+    const a_extra = Number(rangeAextra.value);
+    const tmax = Number(rangeTmax.value);
+
+    // Método constructivo: elegir un punto alcanzable por defensor y derivar atacante
+    for (let attempt = 0; attempt < 800; attempt++){
+      const t = randRange(0.8, Math.min(Math.max(2, tmax), 60));
+      const u = randRange(Math.max(80, vmax*0.55), vmax);
+      const thetaDeg = randRange(12, 70);
+      const theta = degToRad(thetaDeg);
+
+      const se = u * Math.cos(theta) * t;
+      const he = u * Math.sin(theta) * t - 0.5 * g * t * t;
+      if (he < 10) continue;
+
+      const s0 = randRange(-220, 220);
+      const h0 = randRange(30, 450);
+
+      const v_s = (se - s0) / t;
+      const v_h = (he - h0 + 0.5 * g * t * t) / t;
+
+      if (!isFinite(v_s) || !isFinite(v_h)) continue;
+      if (Math.abs(v_s) < 5 || Math.abs(v_s) > 1200) continue;
+      if (Math.abs(v_h) > 1200) continue;
+
+      const v_att = Math.hypot(v_s, v_h);
+      if (v_att < 30 || v_att > 1000) continue;
+
+      const elevDeg = radToDeg(Math.atan2(v_h, v_s));
+      if (elevDeg < -60 || elevDeg > 85) continue;
+
+      const cand = {
+        x: Math.round(s0),
+        y: 0,
+        z: Math.round(h0),
+        v: Math.round(v_att),
+        elev: Math.round(elevDeg),
+        az: 0
+      };
+
+      const sol = findIntercept({ enemy: cand, vmax, a_extra, tmax });
+      if (sol){
+        inpX.value = cand.x; inpY.value = cand.y; inpZ.value = cand.z;
+        inpV.value = cand.v; inpElev.value = cand.elev; inpAz.value = cand.az;
+        computeAndPrepare({ fromRandom: true });
+        resultBox.className = 'result-warn';
+        resultBox.innerHTML = `⚠ Escenario aleatorio (constructivo) generado — intercepción en ${sol.t.toFixed(2)} s.`;
+        return;
+      }
+    }
+
+    // Si no lo encontró, muestreo aleatorio (más intensivo)
+    for (let attempt = 0; attempt < 3000; attempt++){
+      const cand = {
+        x: Math.round(randRange(-300, 300)),
+        y: Math.round(randRange(-150, 150)),
+        z: Math.round(randRange(40, 500)),
+        v: Math.round(randRange(90, 450)),
+        elev: Math.round(randRange(10, 70)),
+        az: Math.round(randRange(-90, 90))
+      };
+      const sol = findIntercept({ enemy: cand, vmax, a_extra, tmax });
+      if (sol){
+        inpX.value = cand.x; inpY.value = cand.y; inpZ.value = cand.z;
+        inpV.value = cand.v; inpElev.value = cand.elev; inpAz.value = cand.az;
+        computeAndPrepare({ fromRandom: true });
+        resultBox.className = 'result-warn';
+        resultBox.innerHTML = `⚠ Escenario aleatorio (muestreo) generado — intercepción en ${sol.t.toFixed(2)} s.`;
+        return;
+      }
+    }
+
+    alert('No se pudo generar un escenario válido con los parámetros actuales (u_max/t_max/a_extra). Intenta aumentar u_max o t_max.');
+  }
+
+  // Eventos UI
+  btnCalc.addEventListener('click', () => computeAndPrepare({ fromRandom: false }));
+  btnAnimate.addEventListener('click', () => animate());
+  btnRandom.addEventListener('click', () => generateValidEnemy());
+
+  // Inicializar (genera un escenario válido al abrir)
+  generateValidEnemy();
+
+  // Asegurar redimensionado base (si quieres que sea responsivo real podríamos recalcular)
+  window.addEventListener('resize', () => { /* opcional: recalcular dimensiones si se desea */ });
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulación de Intercepción de Proyectiles</title>
+  <!-- Tailwind CSS CDN for styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Estilos personalizados para temática espacial */
+    body {
+      background-color: #0b1220; /* Fondo oscuro tipo espacio */
+      color: #e6eef8;           /* Texto claro para contraste */
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    canvas {
+      /* canvas already styled via tailwind classes in HTML if needed */
+    }
+  </style>
+  <!-- MathJax for rendering mathematical expressions -->
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body class="p-4 md:p-8">
+  <div class="max-w-5xl mx-auto">
+    <h1 class="text-3xl font-bold text-center mb-8 text-[#3ddc97]">Análisis y Simulación de Intercepción de Proyectiles</h1>
+    
+    <!-- 1. Enunciado del problema -->
+    <section class="mb-8 p-6 rounded-lg shadow-lg" style="background-color: #0f1724;">
+      <h2 class="text-2xl font-semibold mb-4 text-[#6cb0ff]">1. Enunciado del Problema</h2>
+      <p class="text-lg leading-relaxed mb-4">
+        :contentReference[oaicite:0]{index=0} *Trayectoria luminosa de un cohete real durante su lanzamiento nocturno, ilustrando una ruta parabólica típica*.  
+        Un sistema de radar detecta un **misil enemigo** en pleno vuelo. En el instante de detección se conocen sus parámetros iniciales: posición \(\vec r_{0e} = (x_{0e}, y_{0e})\), velocidad \(\vec v_{0e}\) y dirección (dada por un ángulo de lanzamiento \(\theta_e\), cuyos cosenos directores son \(l = \cos\theta_e\), \(m = \sin\theta_e\)). El proyectil enemigo se mueve únicamente bajo la influencia de la gravedad terrestre constante \(g = 9.81\ \text{m/s}^2\).
+      </p>
+      <p class="text-lg leading-relaxed">
+        Para neutralizar la amenaza, se lanza desde el origen (base defensiva) un **proyectil defensor** con el objetivo de interceptar al misil enemigo *antes de que toque el suelo*. Ambos proyectiles describen **trayectorias parabólicas** (el defensor puede tener asistencia de propulsor). Aunque el problema se formula en 3D, siempre existe un plano único que contiene la trayectoria del proyectil enemigo, por lo que sin pérdida de generalidad el escenario se reduce a un problema bidimensional (2D) en ese plano:contentReference[oaicite:1]{index=1}:contentReference[oaicite:2]{index=2}. Esto simplifica tanto el análisis teórico como la simulación computacional.
+      </p>
+    </section>
+    
+    <!-- 2. Solución algebraica propuesta -->
+    <section class="mb-8 p-6 rounded-lg shadow-lg" style="background-color: #0f1724;">
+      <h2 class="text-2xl font-semibold mb-4 text-[#6cb0ff]">2. Solución Algebraica Propuesta</h2>
+      <h3 class="text-xl font-semibold mb-2 text-[#ff6b6b]">Reducción a 2D y Ecuaciones de Movimiento</h3>
+      <p class="leading-relaxed mb-3">
+        Debido a la gravedad vertical, la trayectoria del proyectil enemigo yace en un plano vertical. Alineando el sistema de coordenadas con dicho plano (por ejemplo, plano X–Y, con Y vertical), describimos el movimiento en 2D. Las ecuaciones de movimiento para el **misil enemigo (e)**, tomando el instante de detección como \(t=0\), son:
+      </p>
+      <ul class="list-disc pl-6 font-mono text-lg mb-3">
+        <li>\(x_e(t) = x_{0e} + v_{0e}\cos\theta_e \; t,\)</li>
+        <li>\(y_e(t) = y_{0e} + v_{0e}\sin\theta_e \; t - \frac{1}{2} g\,t^2.\)</li>
+      </ul>
+      <p class="leading-relaxed mb-3">
+        Para el **misil defensor (d)** lanzado desde \((x_{0d},y_{0d})\) (usualmente el origen \((0,0)\)), se consideran dos modos de operación:
+      </p>
+      <ul class="list-disc pl-6 font-mono text-lg mb-3">
+        <li><strong>Modo A:</strong> Sin propulsor (tiro parabólico clásico).  
+          \(x_d(t) = x_{0d} + v_{0d}\cos\theta_d \; t,\)  
+          \(y_d(t) = y_{0d} + v_{0d}\sin\theta_d \; t - \frac{1}{2} g\,t^2.\)
+        </li>
+        <li><strong>Modo B:</strong> Con propulsor de aceleración constante \(a_T\) en la dirección de lanzamiento.  
+          \(x_d(t) = x_{0d} + v_{0d}\cos\theta_d \; t + \frac{1}{2}a_T\cos\theta_d \; t^2,\)  
+          \(y_d(t) = y_{0d} + v_{0d}\sin\theta_d \; t - \frac{1}{2} g\,t^2 + \frac{1}{2}a_T\sin\theta_d \; t^2.\)
+        </li>
+      </ul>
+      <p class="leading-relaxed">
+        En el modo B, \((a_x, a_y) = a_T(\cos\theta_d, \sin\theta_d)\) representa la aceleración adicional proporcionada por el propulsor (en modo A, \(a_T = 0\)). Nótese que en ausencia de propulsor, el proyectil defensor sigue una típica curva balística determinada únicamente por su velocidad inicial y la gravedad.
+      </p>
+      <h3 class="text-xl font-semibold mt-6 mb-2 text-[#ff6b6b]">Condiciones de Intercepción</h3>
+      <p class="leading-relaxed mb-3">
+        Para que ocurra una intercepción exitosa, ambos proyectiles deben encontrarse en el **mismo punto al mismo tiempo**. Es decir, debe existir un tiempo \(t_i > 0\) tal que:
+      </p>
+      <ul class="list-disc pl-6 font-mono text-lg mb-3">
+        <li>\(x_e(t_i) = x_d(t_i),\)</li>
+        <li>\(y_e(t_i) = y_d(t_i).\)</li>
+      </ul>
+      <p class="leading-relaxed mb-3">
+        Estas dos ecuaciones, al sustituir las fórmulas de movimiento, constituyen un sistema de dos incógnitas. Resolviendo dicho sistema se pueden obtener los parámetros desconocidos del misil defensor necesarios para la intersección. Por ejemplo, en el <em>modo A (sin propulsor)</em>, las incógnitas suelen ser los componentes de la velocidad inicial del defensor. Si se fija un tiempo de colisión \(t_i\), la velocidad inicial requerida para interceptar en ese momento viene dada por:contentReference[oaicite:3]{index=3}:
+      </p>
+      <ul class="list-disc pl-6 font-mono text-lg mb-3">
+        <li>\(v_{0d_x} = \frac{x_{0e} + v_{0e}\cos\theta_e \; t_i - x_{0d}}{t_i},\)</li>
+        <li>\(v_{0d_y} = \frac{y_{0e} + v_{0e}\sin\theta_e \; t_i - y_{0d}}{t_i} + g\,t_i.\)</li>
+      </ul>
+      <p class="leading-relaxed mb-3">
+        En el caso de operar en <em>modo B (con propulsor)</em>, si se fija una velocidad inicial de lanzamiento para el defensor, las incógnitas pasan a ser los componentes de aceleración necesarios. Reordenando las ecuaciones de movimiento para un tiempo \(t_i\) dado, se obtiene la aceleración adicional requerida:contentReference[oaicite:4]{index=4}:contentReference[oaicite:5]{index=5}:
+      </p>
+      <ul class="list-disc pl-6 font-mono text-lg mb-6">
+        <li>\(a_x = \frac{2\big(x_{0e} + v_{0e}\cos\theta_e \; t_i - x_{0d} - v_{0d}\cos\theta_d \; t_i\big)}{t_i^2},\)</li>
+        <li>\(a_y = \frac{2\big(y_{0e} + v_{0e}\sin\theta_e \; t_i - y_{0d} - v_{0d}\sin\theta_d \; t_i\big)}{t_i^2} + g.\)</li>
+      </ul>
+      <p class="leading-relaxed">
+        Los resultados anteriores proporcionan las condiciones exactas para que se produzca el encuentro en \((x_i, y_i)\) en el tiempo \(t_i\). En la práctica, el desafío es encontrar un tiempo de intercepción óptimo \(t_i\) que resulte en parámetros (velocidad y/o aceleración) realizables físicamente para el misil defensor. Si el proyectil enemigo es muy rápido o está muy cerca del suelo, puede requerirse un \(t_i\) muy pequeño que implique velocidades o aceleraciones defensivas demasiado grandes. En esos casos, la estrategia deberá ajustarse (por ejemplo, activando propulsores o resignándose a no interceptar a tiempo).
+      </p>
+    </section>
+    
+    <!-- 3. Análisis funcional / teórico -->
+    <section class="mb-8 p-6 rounded-lg shadow-lg" style="background-color: #0f1724;">
+      <h2 class="text-2xl font-semibold mb-4 text-[#6cb0ff]">3. Análisis Funcional/Teórico</h2>
+      <p class="leading-relaxed mb-3">
+        El problema de interceptación de proyectiles combina principios de la **cinemática** y la **dinámica** clásicas. En primer lugar, se aprovecha la independencia de los movimientos en los ejes horizontal y vertical: el componente horizontal tiene velocidad constante, mientras que el vertical es un movimiento uniformemente acelerado debido a la gravedad:contentReference[oaicite:6]{index=6}. Esto permite analizar cada componente por separado y luego recombinarlos para obtener la trayectoria parabólica resultante.
+      </p>
+      <p class="leading-relaxed mb-3">
+        La intercepción exitosa requiere que el misil defensor y el enemigo igualen su posición vectorial en algún instante, lo cual es esencialmente un problema de **cinemática relativa**:contentReference[oaicite:7]{index=7}. Podemos imaginarlo desde el marco de referencia del defensor: queremos que el enemigo "caiga" exactamente en dirección del misil defensor. Matemáticamente, la posición relativa \(\vec R(t) = \vec r_e(t) - \vec r_d(t)\) debe ser el vector nulo en el momento de colisión.
+      </p>
+      <p class="leading-relaxed mb-3">
+        En muchas circunstancias, existe una solución de tiro parabólico clásico (sin propulsor) para interceptar al enemigo si se calculan correctamente el ángulo y la velocidad de disparo. Sin embargo, hay escenarios en los que esta solución **no es viable**. Por ejemplo, si el tiempo disponible para interceptar es muy corto (enemigo detectado tarde o a baja altura), la velocidad requerida para el misil defensor puede exceder sus posibilidades físicas, o incluso implicar disparar hacia abajo (lo que es inviable):contentReference[oaicite:8]{index=8}:contentReference[oaicite:9]{index=9}. En estos casos extremos es necesario recurrir a propulsores que proporcionen una aceleración adicional, alterando la trayectoria del defensor para alcanzar al objetivo más rápidamente.
+      </p>
+      <p class="leading-relaxed">
+        En resumen, el sistema de defensa debe decidir su estrategia basándose en las condiciones iniciales del enemigo. Por ejemplo, si el proyectil enemigo es detectado a una altura considerable (*caso alto*), generalmente basta con un lanzamiento en modo balístico puro (sin propulsor), ya que hay suficiente tiempo de vuelo:contentReference[oaicite:10]{index=10}. En cambio, si la detección ocurre cerca del suelo (*caso bajo*), el sistema activará un propulsor (*modo acelerado*) para aumentar la curvatura de la trayectoria defensiva y lograr el encuentro antes del impacto en tierra:contentReference[oaicite:11]{index=11}. En la simulación, este criterio se puede implementar mediante un umbral de altura: si \(y_{0e}\) supera cierto valor crítico \(y_{thr}\), se elige el modo sin propulsor, y si \(y_{0e}\) es menor o igual a ese umbral, se emplea el propulsor.
+      </p>
+    </section>
+    
+    <!-- 4. Planteamiento de la simulación -->
+    <section class="mb-8 p-6 rounded-lg shadow-lg" style="background-color: #0f1724;">
+      <h2 class="text-2xl font-semibold mb-4 text-[#6cb0ff]">4. Planteamiento de la Simulación</h2>
+      <p class="leading-relaxed mb-3">
+        Con los principios anteriores establecidos, se desarrolló una **simulación interactiva** en entorno web para visualizar y experimentar con diferentes escenarios de interceptación. El archivo HTML integra controles (sliders y botones) que permiten ajustar parámetros y ejecutar cálculos en tiempo real, ofreciendo tanto un modo manual como uno aleatorio.
+      </p>
+      <p class="leading-relaxed mb-3">
+        **Generación aleatoria de escenarios:** Se implementó un generador estocástico que asigna valores aleatorios dentro de rangos razonables al misil enemigo: posición inicial (centenas a miles de metros en X, decenas a un par de kilómetros en Y), velocidad inicial (100–400 m/s) y ángulo de lanzamiento (\(\theta_e\) entre ~105° y 200°):contentReference[oaicite:12]{index=12}:contentReference[oaicite:13]{index=13}. Estos rangos aseguran variedad en las trayectorias enemigas, pudiendo simular amenazas que vienen desde cierta distancia horizontal y con ángulos de tiro moderados a pronunciados. El usuario puede generar repetidamente nuevos enemigos aleatorios mediante un botón dedicado.
+      </p>
+      <p class="leading-relaxed mb-3">
+        **Decisión de estrategia (balística vs propulsada):** Según el estado inicial del enemigo generado o definido, el sistema de defensa decide automáticamente si utilizar propulsor. Como se explicó, se compara la altura inicial \(y_{0e}\) con un **umbral** predefinido. Si \(y_{0e}\) es alto, el defensor opta por un tiro parabólico clásico; si es bajo, activará el propulsor. Esta decisión automática se puede realizar presionando un botón que ajusta el modo de vuelo del defensor en función de la altura detectada del enemigo.
+      </p>
+      <p class="leading-relaxed mb-3">
+        **Cálculo de intercepción garantizada:** Independientemente del modo seleccionado, la simulación incorpora una rutina que busca la intercepción óptima. Al pulsar un botón de "intersección exacta", el sistema calcula el ángulo de lanzamiento (y, de ser necesario, incrementa la velocidad o aceleración) para asegurar que los dos proyectiles colisionen. Esto se logra mediante una búsqueda numérica de la solución (probando múltiples ángulos y evaluando la distancia más cercana entre proyectiles) hasta encontrar una combinación que resulte en un impacto.
+      </p>
+      <p class="leading-relaxed">
+        **Visualización y animación:** La simulación grafica las trayectorias de ambos proyectiles en un canvas 2D. Se utiliza una escala adaptable para que todas las trayectorias aparezcan dentro del área visible. Un código de colores distingue al proyectil enemigo y al defensor, y se marca el punto de intersección cuando ocurre. El usuario puede optar por ver la trayectoria completa estática o ejecutar una animación donde los misiles se desplazan en tiempo real (acelerado) hasta el impacto. Esto permite apreciar dinámicamente el encuentro entre ambos proyectiles.
+      </p>
+    </section>
+    
+    <!-- 5. Simulación interactiva -->
+    <section class="mb-8 p-6 rounded-lg shadow-lg" style="background-color: #0f1724;">
+      <h2 class="text-2xl font-semibold mb-4 text-[#6cb0ff]">5. Simulación Interactiva</h2>
+      <p class="text-gray-300 mb-4 text-sm">
+        A continuación, se presenta una herramienta interactiva. Ajuste los parámetros con los controles deslizantes o genere amenazas aleatorias, luego utilice los botones para graficar/animar las trayectorias y calcular intercepciones. La escala del gráfico se autoajusta en metros (m). 
+      </p>
+      <!-- Panel de controles -->
+      <div class="grid md:grid-cols-3 gap-6 mb-6">
+        <!-- Panel Enemigo -->
+        <div class="bg-[#1a2433] p-4 rounded-lg">
+          <h3 class="font-semibold text-lg text-[#ff6b6b] mb-2">Misil Enemigo</h3>
+          <div class="mb-2">
+            <label class="text-sm">x0 (m): <span id="lx0e" class="mono"></span></label>
+            <input id="x0e" type="range" min="500" max="5000" step="10" class="w-full">
+          </div>
+          <div class="mb-2">
+            <label class="text-sm">y0 (m): <span id="ly0e" class="mono"></span></label>
+            <input id="y0e" type="range" min="20" max="1200" step="1" class="w-full">
+          </div>
+          <div class="mb-2">
+            <label class="text-sm">v0 (m/s): <span id="lv0e" class="mono"></span></label>
+            <input id="v0e" type="range" min="100" max="400" step="1" class="w-full">
+          </div>
+          <div class="mb-3">
+            <label class="text-sm">θ<sub>e</sub> (°): <span id="lthee" class="mono"></span></label>
+            <input id="thee" type="range" min="105" max="200" step="0.5" class="w-full">
+          </div>
+          <div class="flex gap-2">
+            <button id="btnRandom" class="px-3 py-2 rounded bg-emerald-600 text-white text-sm hover:bg-emerald-700">Generar enemigo aleatorio</button>
+            <button id="btnAutoMode" class="px-3 py-2 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700">Auto según altura</button>
+          </div>
+        </div>
+        <!-- Panel Defensor -->
+        <div class="bg-[#1a2433] p-4 rounded-lg">
+          <h3 class="font-semibold text-lg text-[#3ddc97] mb-2">Misil Defensor</h3>
+          <div class="mb-2">
+            <label class="text-sm">x0 (m): <span id="lx0d" class="mono"></span></label>
+            <input id="x0d" type="range" min="0" max="500" step="1" class="w-full">
+          </div>
+          <div class="mb-2">
+            <label class="text-sm">y0 (m): <span id="ly0d" class="mono"></span></label>
+            <input id="y0d" type="range" min="0" max="50" step="1" class="w-full">
+          </div>
+          <div class="mb-2">
+            <label class="text-sm">v0 (m/s): <span id="lv0d" class="mono"></span></label>
+            <input id="v0d" type="range" min="50" max="500" step="1" class="w-full">
+          </div>
+          <div class="mb-2">
+            <label class="text-sm">θ<sub>d</sub> (°): <span id="lthd" class="mono"></span></label>
+            <input id="thd" type="range" min="0" max="85" step="0.5" class="w-full">
+          </div>
+          <div class="mb-2">
+            <label class="text-sm">a<sub>p</sub> (m/s²): <span id="lap" class="mono"></span> <small>(propulsor)</small></label>
+            <input id="ap" type="range" min="0" max="60" step="1" class="w-full">
+          </div>
+          <div class="flex flex-wrap gap-2 mt-1">
+            <button id="btnAutoIntercept" class="px-3 py-2 rounded bg-purple-600 text-white text-sm hover:bg-purple-700">Intersección exacta</button>
+            <button id="btnSuggestAngleNoThrust" class="px-3 py-2 rounded bg-sky-600 text-white text-xs hover:bg-sky-700">Sugerir θ (sin prop.)</button>
+            <button id="btnSuggestAngleThrust" class="px-3 py-2 rounded bg-pink-600 text-white text-xs hover:bg-pink-700">Sugerir θ (con prop.)</button>
+            <button id="btnSuggestSpeed" class="px-3 py-2 rounded bg-amber-600 text-white text-xs hover:bg-amber-700">Sugerir v₀</button>
+          </div>
+        </div>
+        <!-- Panel Global -->
+        <div class="bg-[#1a2433] p-4 rounded-lg">
+          <h3 class="font-semibold text-lg text-gray-100 mb-2">Parámetros Globales</h3>
+          <div class="mb-2">
+            <label class="text-sm">g (m/s²): <span id="lg" class="mono"></span></label>
+            <input id="g" type="range" min="1" max="20" step="0.1" class="w-full">
+          </div>
+          <div class="mb-2">
+            <label class="text-sm">Altura umbral y<sub>thr</sub> (m): <span id="lythr" class="mono"></span></label>
+            <input id="ythr" type="range" min="50" max="400" step="5" class="w-full">
+          </div>
+          <div class="mb-2">
+            <label class="text-sm">Tolerancia impacto ε (m): <span id="leps" class="mono"></span></label>
+            <input id="eps" type="range" min="1" max="30" step="1" class="w-full">
+          </div>
+          <div class="flex flex-wrap gap-2 mt-1">
+            <button id="btnPlot" class="px-3 py-2 rounded bg-gray-800 text-white text-sm hover:bg-black">Graficar</button>
+            <button id="btnPlay" class="px-3 py-2 rounded bg-green-700 text-white text-sm hover:bg-green-800">Animar</button>
+            <button id="btnReset" class="px-3 py-2 rounded bg-gray-500 text-white text-sm hover:bg-gray-600">Reiniciar</button>
+          </div>
+          <p id="status" class="text-sm text-gray-300 mt-2 h-5"></p>
+        </div>
+      </div>
+      <!-- Leyenda y Canvas -->
+      <div class="bg-[#152033] p-4 rounded-lg border border-slate-600">
+        <div class="flex justify-between items-end mb-2">
+          <div class="text-sm text-gray-200">
+            <div><span class="inline-block w-3 h-3 rounded-full bg-rose-600 mr-1"></span> Enemigo</div>
+            <div><span class="inline-block w-3 h-3 rounded-full bg-cyan-600 mr-1"></span> Defensor</div>
+            <div><span class="inline-block w-3 h-3 rounded-full bg-amber-500 mr-1"></span> Punto de intercepción</div>
+          </div>
+          <div class="text-xs text-gray-400">Escala autoajustable (m)</div>
+        </div>
+        <canvas id="cv" class="w-full bg-slate-50 border border-slate-300 rounded" width="1000" height="500">
+          Lienzo no soportado por su navegador.
+        </canvas>
+      </div>
+    </section>
+    
+    <!-- 6. Relación con el sistema Domo de Hierro -->
+    <section class="mb-8 p-6 rounded-lg shadow-lg" style="background-color: #0f1724;">
+      <h2 class="text-2xl font-semibold mb-4 text-[#6cb0ff]">6. Relación con Domo de Hierro</h2>
+      <p class="leading-relaxed mb-3">
+        Esta simulación, aunque simplificada, comparte principios fundamentales con sistemas reales de defensa antimisiles como el <strong>Domo de Hierro</strong> de Israel. Al igual que en nuestro modelo, el Domo de Hierro detecta proyectiles enemigos, predice sus trayectorias y calcula la respuesta óptima para interceptarlos antes de que alcancen su objetivo:contentReference[oaicite:14]{index=14}:contentReference[oaicite:15]{index=15}. En ambos casos subyace la necesidad de cálculos rápidos y precisos, y de tomar decisiones en fracciones de segundo bajo presión.
+      </p>
+      <p class="leading-relaxed">
+        Las diferencias, sin embargo, son abismales en cuanto a escala y complejidad. Nuestra simulación se limita a un único interceptor contra un único proyectil balístico idealizado, moviéndose en una trayectoria parabólica simple bajo gravedad. En cambio, el Domo de Hierro debe enfrentarse a múltiples amenazas simultáneamente, muchas de las cuales no siguen trayectorias perfectamente balísticas (por ejemplo, cohetes guiados o con propulsión activa irregular):contentReference[oaicite:16]{index=16}:contentReference[oaicite:17]{index=17}. Además, un sistema real incorpora radares avanzados para seguimiento continuo, algoritmos de decisión sobre *qué* proyectil interceptar (priorizando los que amenazan zonas pobladas) y misiles interceptores con sistemas de guía autónoma. A diferencia de nuestro proyectil defensor (que sigue una curva predeterminada una vez lanzado), los interceptores reales pueden corregir su rumbo en vuelo y no requieren un impacto directo para neutralizar la amenaza (detonan por proximidad):contentReference[oaicite:18]{index=18}:contentReference[oaicite:19]{index=19}. En resumen, el modelo presentado captura la esencia física del problema (trayectorias y tiempos de encuentro), pero deja de lado la rica complejidad de los sistemas de defensa antimisiles de la vida real:contentReference[oaicite:20]{index=20}:contentReference[oaicite:21]{index=21}.
+      </p>
+    </section>
+    
+    <!-- 7. Conclusiones -->
+    <section class="mb-8 p-6 rounded-lg shadow-lg" style="background-color: #0f1724;">
+      <h2 class="text-2xl font-semibold mb-4 text-[#6cb0ff]">7. Conclusiones</h2>
+      <ul class="list-disc pl-6 space-y-2 text-gray-100">
+        <li>La reducción de un problema 3D a un plano 2D es una aproximación válida y útil para estudiar el movimiento de proyectiles bajo gravedad constante. Esto simplifica enormemente el análisis algebraico y la simulación sin perder generalidad en las conclusiones físicas.</li>
+        <li>Si se conocen con precisión los parámetros iniciales de un proyectil enemigo (posición, velocidad, ángulo), es posible calcular una trayectoria interceptora para un proyectil defensor. Esta solución se obtiene al resolver ecuaciones cinemáticas simultáneas, resultando en los valores de ángulo y velocidad (y eventualmente aceleración) que garantizan el encuentro.</li>
+        <li>Existen escenarios críticos en los que un lanzamiento balístico puro no basta para interceptar a tiempo (por ejemplo, amenazas detectadas a baja altura o muy veloces). En estos casos, es necesario proporcionar **empuje adicional** mediante propulsores para modificar la trayectoria del interceptor y lograr la colisión antes del impacto en tierra.</li>
+        <li>Las simulaciones interactivas son herramientas educativas poderosas. En este trabajo, la simulación permite visualizar en tiempo real cómo diferentes ajustes en los parámetros iniciales afectan la posibilidad de intercepción, brindando una comprensión más profunda de la sensibilidad del sistema y de las estrategias requeridas para diferentes casos.</li>
+      </ul>
+    </section>
+    
+    <!-- 8. Bibliografía -->
+    <section class="mb-8 p-6 rounded-lg shadow-lg" style="background-color: #0f1724;">
+      <h2 class="text-2xl font-semibold mb-4 text-[#6cb0ff]">8. Bibliografía</h2>
+      <ol class="list-decimal pl-6 text-sm text-gray-300">
+        <li>J. B. Marion &amp; S. T. Thornton, <em>Classical Dynamics of Particles and Systems</em>. (Capítulos sobre tiro parabólico e intercepción).</li>
+        <li>D. Halliday, R. Resnick, J. Walker, <em>Fundamentals of Physics</em>. (Sección de movimiento en dos dimensiones, ejemplos de proyectiles).</li>
+        <li>Apuntes de Mecánica clásica sobre <em>tiro parabólico</em> e <em>intercepción de proyectiles</em> empleados en cursos de física básica.</li>
+      </ol>
+    </section>
+  </div>
+  
+  <script>
+    // --- Utilidades y estado global ---
+    const $ = (id) => document.getElementById(id);
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    
+    // Estado global de la simulación
+    const S = {
+      enemy: { x0: 500, y0: 300, v0: 250, th: 150 },     // parámetros misil enemigo
+      def:   { x0: 0,   y0: 0,   v0: 200, th: 50, ap: 0 }, // parámetros misil defensor
+      g: 9.81,        // gravedad (m/s^2)
+      ythr: 200,      // umbral de altura para decidir uso de propulsor
+      eps: 5,         // tolerancia para considerar impacto (metros)
+      anim: { on: false, t: 0 } // control de animación
+    };
+    
+    // Funciones de posición (cinemática) para enemigo y defensor
+    function enemyPos(t) {
+      const { x0, y0, v0, th } = S.enemy;
+      const c = Math.cos(toRad(th)), s = Math.sin(toRad(th));
+      return {
+        x: x0 + v0 * c * t,
+        y: y0 + v0 * s * t - 0.5 * S.g * t * t
+      };
+    }
+    function defPos(t) {
+      const { x0, y0, v0, th, ap } = S.def;
+      const c = Math.cos(toRad(th)), s = Math.sin(toRad(th));
+      const ax = ap * c;
+      const ay = ap * s - S.g;
+      return {
+        x: x0 + v0 * c * t + 0.5 * ax * t * t,
+        y: y0 + v0 * s * t + 0.5 * ay * t * t
+      };
+    }
+    // Calcula tiempo de vuelo hasta que un proyectil toca el suelo (y<=0)
+    function flightTime(posFn, tMax = 300) {
+      let prevY = posFn(0).y;
+      for (let t = 0.1; t <= tMax; t += 0.1) {
+        const y = posFn(t).y;
+        if (y <= 0 && prevY > 0) {
+          return t;
+        }
+        prevY = y;
+      }
+      return tMax;
+    }
+    
+    // Variables para canvas y contexto
+    const cv = $('cv');
+    const ctx = cv.getContext('2d');
+    
+    // Dibuja las trayectorias completas y marca puntos (usado en modo estático o de fondo en animación)
+    function drawTrajectories(drawInitial = true) {
+      // Calcular límites del mundo (extremos de las trayectorias)
+      const tEnemy = flightTime(enemyPos);
+      const tDef   = flightTime(defPos);
+      const tSim   = Math.max(tEnemy, tDef, 5); // simular al menos 5 s aunque proyectiles caigan antes
+      let xs = [], ys = [];
+      // muestrear ambas trayectorias
+      for (let t = 0; t <= tSim; t += tSim/200) {
+        const Pe = enemyPos(t);
+        const Pd = defPos(t);
+        xs.push(Pe.x, Pd.x);
+        ys.push(Pe.y, Pd.y);
+      }
+      // asegurar incluir puntos iniciales y suelo
+      xs.push(S.enemy.x0, S.def.x0);
+      ys.push(0, S.enemy.y0, S.def.y0);
+      // calcular rangos
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      const rangeX = maxX - minX;
+      const rangeY = maxY - minY;
+      // determinar escala uniforme para abarcar ambas dimensiones
+      const canvasW = cv.width, canvasH = cv.height;
+      let scale = Math.min(canvasW / (rangeX || 1), canvasH / (rangeY || 1));
+      scale *= 0.95; // dejar 5% margen
+      // offset para trasladar coordenadas mundo a canvas
+      const xMargin = 20, yMargin = 10;
+      const offsetX = xMargin - minX * scale;
+      const offsetY = canvasH - yMargin + minY * scale; // minY suele ser 0 (suelo)
+      // Limpiar canvas
+      ctx.clearRect(0, 0, canvasW, canvasH);
+      ctx.lineWidth = 2;
+      // trayectoria enemigo (linea roja/rosa)
+      ctx.strokeStyle = "#e11d48"; // tailwind rose-600
+      ctx.beginPath();
+      let p = enemyPos(0);
+      ctx.moveTo(p.x * scale + offsetX, -p.y * scale + offsetY);
+      for (let t = 0; t <= tSim; t += tSim/200) {
+        p = enemyPos(t);
+        ctx.lineTo(p.x * scale + offsetX, -p.y * scale + offsetY);
+      }
+      ctx.stroke();
+      // trayectoria defensor (línea cian)
+      ctx.strokeStyle = "#00b8db"; // tailwind cyan-600
+      ctx.beginPath();
+      p = defPos(0);
+      ctx.moveTo(p.x * scale + offsetX, -p.y * scale + offsetY);
+      for (let t = 0; t <= tSim; t += tSim/200) {
+        p = defPos(t);
+        ctx.lineTo(p.x * scale + offsetX, -p.y * scale + offsetY);
+      }
+      ctx.stroke();
+      // puntos iniciales
+      if (drawInitial) {
+        ctx.fillStyle = "#e11d48";
+        const p0e = enemyPos(0);
+        ctx.beginPath();
+        ctx.arc(p0e.x * scale + offsetX, -p0e.y * scale + offsetY, 4, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.fillStyle = "#00b8db";
+        const p0d = defPos(0);
+        ctx.beginPath();
+        ctx.arc(p0d.x * scale + offsetX, -p0d.y * scale + offsetY, 4, 0, 2*Math.PI);
+        ctx.fill();
+      }
+      // determinar si ocurrió intercepción (distancia <= eps en algún instante)
+      let interceptPoint = null;
+      let ti = null;
+      for (let t = 0; t <= tSim; t += tSim/500) {
+        const Pe = enemyPos(t);
+        const Pd = defPos(t);
+        const dx = Pe.x - Pd.x;
+        const dy = Pe.y - Pd.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist <= S.eps) {
+          interceptPoint = { x: (Pe.x + Pd.x) / 2, y: (Pe.y + Pd.y) / 2 };
+          ti = t;
+          break;
+        }
+      }
+      // dibujar punto de intercepción si existe
+      if (interceptPoint) {
+        ctx.fillStyle = "#f59e0b"; // amber-500
+        ctx.beginPath();
+        ctx.arc(interceptPoint.x * scale + offsetX, -interceptPoint.y * scale + offsetY, 5, 0, 2*Math.PI);
+        ctx.fill();
+      }
+      return { tSim, interceptTime: ti };
+    }
+    
+    // Dibuja las trayectorias completas y además proyectiles en tiempo t actual (usado durante animación)
+    function drawFrame(t) {
+      // dibujar trayectorias de fondo (sin puntos iniciales para no duplicar)
+      const info = drawTrajectories(false);
+      // dibujar proyectiles en la posición en tiempo t
+      const Pe = enemyPos(Math.min(t, info.tSim));
+      const Pd = defPos(Math.min(t, info.tSim));
+      // convertir a coords canvas
+      // (Reutilizar cálculo de escala del último drawTrajectories? Para simplificar, recalculamos aquí también)
+      const canvasW = cv.width, canvasH = cv.height;
+      // Podríamos optimizar almacenando escala y offsets globalmente para no recalcular cada frame,
+      // pero por simplicidad volvemos a calcular (coste bajo comparado con animación).
+      // Repetimos lógica de worldBounds rápidamente:
+      let xs = [S.enemy.x0, S.def.x0], ys = [0, S.enemy.y0, S.def.y0];
+      const tEnemy = flightTime(enemyPos);
+      const tDef   = flightTime(defPos);
+      const tSim   = Math.max(tEnemy, tDef, 5);
+      for (let tt = 0; tt <= tSim; tt += tSim/100) {
+        const posE = enemyPos(tt), posD = defPos(tt);
+        xs.push(posE.x, posD.x);
+        ys.push(posE.y, posD.y);
+      }
+      const minX = Math.min(...xs), maxX = Math.max(...xs);
+      const minY = Math.min(...ys), maxY = Math.max(...ys);
+      const rangeX = maxX - minX, rangeY = maxY - minY;
+      let scale = Math.min(canvasW / (rangeX || 1), canvasH / (rangeY || 1)) * 0.95;
+      const xMargin = 20, yMargin = 10;
+      const offsetX = xMargin - minX * scale;
+      const offsetY = canvasH - yMargin + minY * scale;
+      // dibujar proyectil enemigo (circulo)
+      ctx.fillStyle = "#e11d48";
+      ctx.beginPath();
+      ctx.arc(Pe.x * scale + offsetX, -Pe.y * scale + offsetY, 6, 0, 2*Math.PI);
+      ctx.fill();
+      // dibujar proyectil defensor (circulo)
+      ctx.fillStyle = "#00b8db";
+      ctx.beginPath();
+      ctx.arc(Pd.x * scale + offsetX, -Pd.y * scale + offsetY, 6, 0, 2*Math.PI);
+      ctx.fill();
+    }
+    
+    // Animación cuadro a cuadro
+    function animate() {
+      if (!S.anim.on) return;
+      const info = drawTrajectories(false);
+      const totalTime = info.tSim;
+      // Limpiar y dibujar frame actual
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      drawTrajectories(false);
+      drawFrame(S.anim.t);
+      // Avanzar tiempo
+      S.anim.t += 0.1; // incrementar tiempo (0.1 s por frame para acelerar la simulación)
+      if (S.anim.t >= totalTime) {
+        // alcanzar fin de vuelo, dibujar último frame y detener
+        S.anim.t = totalTime;
+        drawTrajectories(false);
+        drawFrame(S.anim.t);
+        S.anim.on = false;
+        return;
+      }
+      requestAnimationFrame(animate);
+    }
+    
+    // Detener animación
+    function stopAnim() {
+      S.anim.on = false;
+    }
+    
+    // Sugerir ángulo (busca el ángulo que minimiza la distancia más cercana entre proyectiles)
+    let lastSuggestion = null;
+    function suggestAngle(options = { withThrust: false }) {
+      const withThrust = options.withThrust;
+      // detener animación durante cálculo
+      stopAnim();
+      // configurar propulsor según modo
+      if (withThrust) {
+        if (S.def.ap === 0) S.def.ap = 5;  // si no hay aceleración, dar un mínimo para búsqueda
+      } else {
+        S.def.ap = 0;
+      }
+      let best = { th: null, d: Infinity, t: null };
+      // buscar ángulo entre 0 y 85 grados
+      for (let th = 0; th <= 85; th += 0.25) {
+        S.def.th = th;
+        // determinar distancia mínima entre proyectiles para este ángulo
+        let dmin = Infinity;
+        let tImpact = null;
+        const tMax = Math.max(flightTime(enemyPos), flightTime(defPos));
+        for (let t = 0; t <= tMax; t += 0.05) {
+          const Pe = enemyPos(t);
+          const Pd = defPos(t);
+          const dx = Pe.x - Pd.x;
+          const dy = Pe.y - Pd.y;
+          const d = Math.sqrt(dx*dx + dy*dy);
+          if (d < dmin) {
+            dmin = d;
+            tImpact = t;
+          }
+          if (d <= S.eps) {
+            // ya hay intercepción en este ángulo, no necesita seguir iterando en tiempo
+            dmin = d;
+            tImpact = t;
+            break;
+          }
+        }
+        if (dmin < best.d) {
+          best = { th: th, d: dmin, t: tImpact };
+        }
+        if (best.d <= S.eps) {
+          // si encuentra un ángulo con impacto exacto, se puede detener la búsqueda de ángulos
+          break;
+        }
+      }
+      // aplicar mejor ángulo encontrado
+      if (best.th !== null) {
+        S.def.th = best.th;
+      }
+      lastSuggestion = best;
+      // actualizar interfaz (slider de ángulo defensor)
+      $('thd').value = S.def.th;
+      $('lthd').textContent = S.def.th.toFixed(1);
+      // redibujar con el nuevo ángulo
+      draw();
+      // actualizar estado en mensaje
+      if (best.d <= S.eps) {
+        $('status').textContent = `Intercepción ${withThrust ? 'con propulsor' : 'balística'} lograda (ángulo ≈ ${best.th.toFixed(1)}°, t ≈ ${best.t.toFixed(2)} s).`;
+      } else {
+        $('status').textContent = `Sin impacto con ángulo óptimo (${withThrust ? 'a_p utilizado' : 'sin propulsor'}).`;
+      }
+    }
+    
+    // Sugerir velocidad (ajusta v0 del defensor para el ángulo actual buscando colisión)
+    function suggestSpeed() {
+      stopAnim();
+      let best = { v: null, d: Infinity, t: null };
+      const currentAngle = S.def.th;
+      const withThrust = S.def.ap > 0;
+      // explorar velocidades desde 10 m/s hasta 500 m/s
+      for (let v = 10; v <= 500; v += 1) {
+        S.def.v0 = v;
+        const tMax = Math.max(flightTime(enemyPos), flightTime(defPos));
+        let dmin = Infinity;
+        let tImpact = null;
+        for (let t = 0; t <= tMax; t += 0.05) {
+          const Pe = enemyPos(t);
+          const Pd = defPos(t);
+          const dx = Pe.x - Pd.x;
+          const dy = Pe.y - Pd.y;
+          const d = Math.sqrt(dx*dx + dy*dy);
+          if (d < dmin) {
+            dmin = d;
+            tImpact = t;
+          }
+          if (d <= S.eps) {
+            dmin = d;
+            tImpact = t;
+            break;
+          }
+        }
+        if (dmin < best.d) {
+          best = { v: v, d: dmin, t: tImpact };
+        }
+        if (best.d <= S.eps) break;
+      }
+      if (best.v !== null) {
+        S.def.v0 = best.v;
+      }
+      // actualizar slider y label de velocidad defensor
+      $('v0d').value = S.def.v0;
+      $('lv0d').textContent = S.def.v0;
+      draw();
+      if (best.d <= S.eps) {
+        $('status').textContent = `Intercepción conseguida con v₀ ≈ ${best.v.toFixed(0)} m/s (${withThrust ? 'propulsor activo' : 'sin propulsor'}).`;
+      } else {
+        $('status').textContent = `No se logró impacto ajustando velocidad en el ángulo actual.`;
+      }
+    }
+    
+    // Modo automático según altura (decide modo y ángulo de forma integral)
+    function autoIntercept() {
+      stopAnim();
+      // decidir modo según altura inicial enemiga
+      if (S.enemy.y0 > S.ythr) {
+        // enemigo alto: intentar sin propulsor
+        S.def.ap = 0;
+        suggestAngle({ withThrust: false });
+        // si aun así no hubo intercepción, intentar aumentar velocidad
+        if (lastSuggestion && lastSuggestion.d > S.eps) {
+          suggestSpeed();
+        }
+      } else {
+        // enemigo bajo: usar propulsor
+        if (S.def.ap === 0) S.def.ap = 10; // asignar aceleración base si no tiene
+        suggestAngle({ withThrust: true });
+        if (lastSuggestion && lastSuggestion.d > S.eps) {
+          // si con ángulo óptimo aún no hay impacto, intentar más velocidad
+          suggestSpeed();
+        }
+      }
+    }
+    
+    // Generar enemigo aleatorio dentro de rangos razonables
+    function randomEnemy() {
+      stopAnim();
+      // Generar parámetros aleatorios
+      const rand = (min, max) => Math.random() * (max - min) + min;
+      S.enemy.x0 = Math.round(rand(500, 5000));
+      S.enemy.y0 = Math.round(rand(20, 1200));
+      S.enemy.v0 = Math.round(rand(100, 400));
+      S.enemy.th = +(rand(105, 200)).toFixed(1);
+      // Actualizar sliders y etiquetas del enemigo
+      $('x0e').value = S.enemy.x0; $('lx0e').textContent = S.enemy.x0;
+      $('y0e').value = S.enemy.y0; $('ly0e').textContent = S.enemy.y0;
+      $('v0e').value = S.enemy.v0; $('lv0e').textContent = S.enemy.v0;
+      $('thee').value = S.enemy.th; $('lthee').textContent = S.enemy.th.toFixed(1);
+      // (No modificamos los parámetros del defensor para que el usuario decida o use Auto)
+      $('status').textContent = ""; // limpiar mensaje
+      draw();
+    }
+    
+    // Función principal de dibujo estático (llama a drawTrajectories con puntos iniciales)
+    function draw() {
+      drawTrajectories(true);
+    }
+    
+    // Asignar eventos a sliders (enlazando a estado S y etiquetas)
+    function bindRange(id, obj, key, labelId, transform = (x) => x) {
+      const el = $(id), lab = $(labelId);
+      const setLab = () => { lab.textContent = transform(el.value); };
+      el.addEventListener('input', () => {
+        obj[key] = parseFloat(el.value);
+        setLab();
+        draw();
+      });
+      // inicializar valor y etiqueta
+      el.value = obj[key];
+      setLab();
+    }
+    // Enlazar todos los controles con el estado
+    bindRange('x0e', S.enemy, 'x0', 'lx0e', (v) => v);
+    bindRange('y0e', S.enemy, 'y0', 'ly0e', (v) => v);
+    bindRange('v0e', S.enemy, 'v0', 'lv0e', (v) => v);
+    bindRange('thee', S.enemy, 'th', 'lthee', (v) => (+v).toFixed(1));
+    bindRange('x0d', S.def, 'x0', 'lx0d', (v) => v);
+    bindRange('y0d', S.def, 'y0', 'ly0d', (v) => v);
+    bindRange('v0d', S.def, 'v0', 'lv0d', (v) => v);
+    bindRange('thd', S.def, 'th', 'lthd', (v) => (+v).toFixed(1));
+    bindRange('ap', S.def, 'ap', 'lap', (v) => v);
+    bindRange('g', S, 'g', 'lg', (v) => parseFloat(v).toFixed(2));
+    bindRange('ythr', S, 'ythr', 'lythr', (v) => v);
+    bindRange('eps', S, 'eps', 'leps', (v) => v);
+    
+    // Botones y sus eventos
+    $('btnRandom').onclick = randomEnemy;
+    $('btnAutoMode').onclick = () => {
+      // decide solo modo propulsor o no según altura (no ajusta ángulo automáticamente, solo cambia ap según ythr)
+      stopAnim();
+      if (S.enemy.y0 > S.ythr) {
+        S.def.ap = 0;
+        $('ap').value = 0;
+        $('lap').textContent = 0;
+        $('status').textContent = "Modo defensivo: balístico (sin propulsor)";
+      } else {
+        if (S.def.ap === 0) {
+          S.def.ap = 10; // asignar valor base propulsor
+        }
+        $('ap').value = S.def.ap;
+        $('lap').textContent = S.def.ap;
+        $('status').textContent = "Modo defensivo: con propulsor activado";
+      }
+      draw();
+    };
+    $('btnAutoIntercept').onclick = () => {
+      autoIntercept();
+    };
+    $('btnSuggestAngleNoThrust').onclick = () => {
+      suggestAngle({ withThrust: false });
+    };
+    $('btnSuggestAngleThrust').onclick = () => {
+      suggestAngle({ withThrust: true });
+    };
+    $('btnSuggestSpeed').onclick = () => {
+      suggestSpeed();
+    };
+    $('btnPlot').onclick = () => {
+      stopAnim();
+      draw();
+      $('status').textContent = "";
+    };
+    $('btnPlay').onclick = () => {
+      if (!S.anim.on) {
+        S.anim.t = 0;
+        S.anim.on = true;
+        requestAnimationFrame(animate);
+      }
+    };
+    $('btnReset').onclick = () => {
+      stopAnim();
+      // Reiniciar valores a los predeterminados
+      S.enemy = { x0: 500, y0: 300, v0: 250, th: 150 };
+      S.def   = { x0: 0,   y0: 0,   v0: 200, th: 50, ap: 0 };
+      S.g = 9.81;
+      S.ythr = 200;
+      S.eps = 5;
+      // actualizar controles UI
+      $('x0e').value = S.enemy.x0; $('lx0e').textContent = S.enemy.x0;
+      $('y0e').value = S.enemy.y0; $('ly0e').textContent = S.enemy.y0;
+      $('v0e').value = S.enemy.v0; $('lv0e').textContent = S.enemy.v0;
+      $('thee').value = S.enemy.th; $('lthee').textContent = S.enemy.th.toFixed(1);
+      $('x0d').value = S.def.x0;   $('lx0d').textContent = S.def.x0;
+      $('y0d').value = S.def.y0;   $('ly0d').textContent = S.def.y0;
+      $('v0d').value = S.def.v0;   $('lv0d').textContent = S.def.v0;
+      $('thd').value = S.def.th;   $('lthd').textContent = S.def.th.toFixed(1);
+      $('ap').value = S.def.ap;    $('lap').textContent = S.def.ap;
+      $('g').value = S.g;          $('lg').textContent = S.g.toFixed(2);
+      $('ythr').value = S.ythr;    $('lythr').textContent = S.ythr;
+      $('eps').value = S.eps;      $('leps').textContent = S.eps;
+      $('status').textContent = "";
+      draw();
+    };
+    
+    // Inicializar la vista con los valores por defecto
+    draw();
+  </script>
+</body>
+</html>

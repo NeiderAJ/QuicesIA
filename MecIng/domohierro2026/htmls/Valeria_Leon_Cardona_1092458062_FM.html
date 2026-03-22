@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación Estocástica del Domo de Hierro</title>
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%23a78bfa' d='M80 80 V30 L65 45 H35 L20 30 V80 Z'/><circle cx='35' cy='60' r='5' fill='%23000'/><circle cx='65' cy='60' r='5' fill='%23000'/><path d='M45 65 L50 70 L55 65' stroke='%23000' stroke-width='2' fill='none'/></svg>">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { base: '#030305', surface: '#0a0a0f', border: '#333333', text: '#e5e7eb', muted: '#9ca3af' },
+                        brand: { purple: '#a78bfa', light: '#d1d5db', cyan: '#ffffff', rose: '#fb7185' }
+                    },
+                    fontFamily: {
+                        sans: ['"Space Grotesk"', 'system-ui', '-apple-system', 'sans-serif'],
+                        mono: ['"Fira Code"', '"Courier New"', 'monospace']
+                    },
+                    keyframes: {
+                        scanline: { '0%': { transform: 'translateY(-100%)' }, '100%': { transform: 'translateY(100vh)' } },
+                        sparkleEffect: { '0%, 100%': { transform: 'scale(1)', opacity: 0.2 }, '50%': { transform: 'scale(1.5)', opacity: 0.8 } },
+                        pulseAlert: { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0.5 } }
+                    },
+                    animation: {
+                        'scan': 'scanline 8s linear infinite',
+                        'sparkle': 'sparkleEffect 3s ease-in-out infinite',
+                        'alert': 'pulseAlert 1.5s ease-in-out infinite'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }, svg: { fontCache: 'global' } };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;700&family=Space+Grotesk:wght@300;400;700&display=swap');
+        
+        body { background-color: #030305; color: #e5e7eb; overflow-x: hidden; position: relative; }
+        
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+            opacity: 0.3; z-index: -2; pointer-events: none;
+        }
+
+        .sparkle {
+            position: fixed; width: 2px; height: 2px; background-color: #a78bfa;
+            box-shadow: 0 0 8px 2px rgba(167, 139, 250, 0.8); border-radius: 50%;
+            pointer-events: none; z-index: -1; animation: sparkleEffect 4s ease-in-out infinite;
+        }
+
+        .btn-primary { background-color: rgba(167, 139, 250, 0.1); color: #fff; border: 1px solid #a78bfa; border-radius: 0px; text-transform: uppercase; letter-spacing: 2px; font-family: 'Fira Code', monospace; transition: all 0.3s; }
+        .btn-primary:hover { background-color: #a78bfa; color: #000; box-shadow: 0 0 20px rgba(167, 139, 250, 0.6); }
+        .btn-outline { background-color: transparent; color: #888; border: 1px dashed #555; border-radius: 0px; font-family: 'Fira Code', monospace; transition: all 0.3s; }
+        .btn-outline:hover { border-color: #a78bfa; color: #a78bfa; }
+        .btn-danger { background-color: transparent; color: #aaa; border: 1px solid #555; border-radius: 0px; font-family: 'Fira Code', monospace; transition: all 0.3s; }
+        .btn-danger:hover { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; border-color: #ef4444; }
+        
+        input[type=range] { accent-color: #a78bfa; cursor: pointer; height: 2px; background: #333; border-radius: 0; outline: none; -webkit-appearance: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; background: #a78bfa; border: 1px solid #fff; border-radius: 0; box-shadow: 0 0 10px rgba(167, 139, 250, 0.8); }
+        
+        .theory-panel { background-color: rgba(5, 5, 8, 0.8); backdrop-filter: blur(8px); border: 1px solid #222; border-radius: 0; transition: all 0.3s ease; }
+        .theory-panel:hover { border-color: #a78bfa; box-shadow: 0 0 25px rgba(167, 139, 250, 0.1); }
+        .math-box { background: rgba(0,0,0,0.8); border: 1px dashed #444; font-family: 'Fira Code', monospace; border-left: 4px solid #a78bfa; }
+        .section-header { font-family: 'Fira Code', monospace; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid #333; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        
+        canvas { image-rendering: pixelated; filter: contrast(1.15); }
+        .tech-corners { position: relative; }
+        .tech-corners::before, .tech-corners::after { content: ''; position: absolute; width: 10px; height: 10px; border: 1px solid #a78bfa; pointer-events: none; }
+        .tech-corners::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+        .tech-corners::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+    </style>
+</head>
+<body class="p-4 md:p-8 selection:bg-brand-purple selection:text-black leading-relaxed">
+
+    <div class="fixed inset-0 pointer-events-none z-50 overflow-hidden mix-blend-overlay opacity-10">
+        <div class="w-full h-8 bg-brand-purple animate-scan"></div>
+    </div>
+
+    <script>
+        for(let i=0; i<25; i++) {
+            let s = document.createElement('div');
+            s.className = 'sparkle';
+            s.style.top = Math.random() * 100 + '%';
+            s.style.left = Math.random() * 100 + '%';
+            s.style.animationDelay = (Math.random() * 3) + 's';
+            document.body.appendChild(s);
+        }
+    </script>
+
+    <div class="max-w-7xl mx-auto space-y-12 relative z-10">
+        
+        <header class="text-center py-12 relative border-b border-gray-800 tech-corners">
+            <div class="inline-flex items-center gap-2 border border-brand-purple/60 bg-black text-brand-purple px-5 py-1 text-[10px] font-mono tracking-[0.3em] uppercase mb-6 shadow-[0_0_15px_rgba(167,139,250,0.3)]">
+                <span class="w-1.5 h-1.5 bg-brand-purple animate-pulse"></span>
+                SIST_INTERCEPTOR OMNI // V.FINAL
+            </div>
+            <div class="flex flex-col items-center justify-center gap-2 mb-6">
+                <svg class="w-12 h-12 text-white mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linejoin="round"/>
+                    <path d="M12 2L12 12" stroke="#a78bfa" stroke-width="2" class="animate-pulse"/>
+                </svg>
+                <h1 class="text-4xl md:text-5xl font-bold tracking-tighter uppercase font-mono text-white drop-shadow-[0_0_10px_rgba(167,139,250,0.5)]">
+                    SIMULACIÓN ESTOCÁSTICA<br>
+                    <span class="text-brand-purple">DEL DOMO DE HIERRO</span>
+                </h1>
+            </div>
+            <p class="text-gray-400 max-w-3xl mx-auto text-sm md:text-base font-light font-mono mt-4">
+                ANÁLISIS DE TRAYECTORIA RADIAL (360°), EVALUACIÓN CINEMÁTICA Y TELEMETRÍA DE RADAR EN TIEMPO REAL.
+            </p>
+        </header>
+
+        <div class="space-y-10">
+            
+            <section class="theory-panel p-8 md:p-10 tech-corners border-l-4 border-l-brand-purple">
+                <h2 class="section-header text-white border-brand-purple/30">1. Contextualización y Operatividad</h2>
+                <div class="flex flex-col md:flex-row gap-6 items-start">
+                    <div class="flex-1 text-gray-300 text-sm md:text-base text-justify">
+                        <p class="mb-4">
+                            El <strong>Domo de Hierro</strong> (Iron Dome) es un sistema de defensa aérea móvil de corto alcance diseñado para interceptar cohetes y proyectiles de artillería. Su arquitectura se basa en tres componentes críticos:
+                        </p>
+                        <ul class="list-none space-y-2 ml-2 font-mono text-xs md:text-sm text-gray-400">
+                            <li><span class="text-brand-purple">>></span> <strong>Radar de Detección y Rastreo (ELM 2084):</strong> Identifica la amenaza a una distancia de 4 a 70 km.</li>
+                            <li><span class="text-brand-purple">>></span> <strong>Gestión de Batalla y Control (BMC):</strong> El "cerebro" que calcula la trayectoria.</li>
+                            <li><span class="text-brand-purple">>></span> <strong>Unidad de Disparo:</strong> Lanza el interceptor Tamir, equipado con sensores electro-ópticos.</li>
+                        </ul>
+                    </div>
+                    <div class="hidden md:flex w-48 h-32 border border-gray-700 bg-black p-2 relative shadow-[0_0_15px_rgba(167,139,250,0.1)] flex-col justify-center items-center">
+                        <div class="absolute top-2 left-2 text-[8px] text-brand-purple font-mono">FIG 1.A / C-RAM ARCH</div>
+                        <svg class="w-12 h-12 text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.906 14.142 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path></svg>
+                        <span class="text-[8px] font-mono text-gray-500">RADAR ACTIVO</span>
+                    </div>
+                </div>
+            </section>
+
+            <div class="grid md:grid-cols-2 gap-10">
+                <section class="theory-panel p-8 tech-corners">
+                    <h3 class="section-header text-gray-200 border-brand-purple/30">2. Cinemática de la Amenaza</h3>
+                    <p class="text-gray-400 text-sm mb-4 text-justify">
+                        El proyectil enemigo se modela inicialmente como un objeto en <strong>movimiento parabólico</strong> bajo la influencia de la gravedad ($g \approx 9.81 \, m/s^2$). La posición del proyectil en cualquier tiempo $t$ está dada por:
+                    </p>
+                    <div class="math-box p-4 text-center text-sm md:text-base text-gray-200 mb-4">
+                        $$x_e(t) = x_0 + v_0 \cos(\theta) t$$
+                        $$y_e(t) = y_0 + v_0 \sin(\theta) t - \frac{1}{2} g t^2$$
+                    </div>
+                    <p class="text-gray-400 text-sm mb-2 text-justify">
+                        <strong>El Despeje del Punto de Impacto:</strong><br>
+                        Para que el BMC decida si interceptar, debe calcular dónde caerá el misil ($y = 0$). Despejando $t$:
+                    </p>
+                    <div class="math-box p-3 text-center text-xs md:text-sm text-brand-purple">
+                        $$t_{impacto} = \frac{v_{0y} + \sqrt{v_{0y}^2 + 2gy_0}}{g}$$
+                    </div>
+                    <p class="text-gray-500 text-xs mt-3 italic text-justify">
+                        Si $x_e(t_{impacto})$ se encuentra dentro de una "zona protegida" (área urbana), el sistema activa el protocolo de intercepción.
+                    </p>
+                </section>
+
+                <section class="theory-panel p-8 tech-corners">
+                    <h3 class="section-header text-gray-200 border-brand-purple/30">3. Dinámica de Intercepción y Cita</h3>
+                    <p class="text-gray-400 text-sm mb-4 text-justify">
+                        A diferencia del proyectil enemigo, el interceptor Tamir no sigue una parábola balística simple; es un <strong>misil guiado</strong>. En la simulación, esto se modela calculando el <strong>Punto de Cita</strong> ($P_c$), donde ambas trayectorias coinciden en un tiempo $t_i$:
+                    </p>
+                    <div class="math-box p-3 text-center text-sm md:text-base text-gray-200 mb-4">
+                        $$x_e(t_i) = x_d(t_i) \quad \text{y} \quad y_e(t_i) = y_d(t_i)$$
+                    </div>
+                    <p class="text-gray-400 text-sm mb-4 text-justify">
+                        Para lograr esto, el interceptor mantiene una aceleración controlada $a_d$. El cálculo de la velocidad vertical necesaria ($v_{dy}$) para el interceptor es:
+                    </p>
+                    <div class="math-box p-5 text-center text-sm md:text-base text-white border-l-[6px] border-l-brand-purple">
+                        $$v_{dy} = \frac{y_{target} - y_{0d} + \frac{1}{2} a_d t_i^2}{t_i}$$
+                    </div>
+                </section>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-10 mb-12">
+                <section class="theory-panel p-8 tech-corners">
+                    <h3 class="section-header text-gray-200 border-brand-purple/30">4. Estadísticas y Realidad Estocástica</h3>
+                    <ul class="list-none text-gray-400 text-sm space-y-4 text-justify font-mono mt-4">
+                        <li class="flex gap-2">
+                            <span class="text-brand-purple">>></span> 
+                            <span><strong>Efectividad Nominal:</strong> El sistema declara una tasa de éxito operativa del 90% al 95%.</span>
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="text-brand-purple">>></span> 
+                            <span><strong>Lógica de Costo-Beneficio:</strong> Según datos de la BBC, cada interceptor cuesta aproximadamente <strong>$50,000 USD</strong>. Por ello, el sistema ignora proyectiles destinados a zonas despobladas.</span>
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="text-brand-purple">>></span> 
+                            <span><strong>Saturación del Sistema:</strong> La efectividad disminuye ante "ataques de enjambre", donde el número de objetivos ($n$) supera la capacidad de procesamiento del BMC o el inventario en batería.</span>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="theory-panel p-8 tech-corners">
+                    <h3 class="section-header text-gray-200 border-brand-purple/30">5. Limitaciones: Simulación vs Realidad</h3>
+                    <p class="text-gray-400 text-sm font-light text-justify mb-4">
+                        Aunque la simulación matemática es una aproximación robusta, existen factores que la alejan de la realidad absoluta:
+                    </p>
+                    <div class="overflow-x-auto mt-2">
+                        <table class="w-full text-[10px] md:text-xs text-left border-collapse font-mono text-gray-300">
+                            <thead>
+                                <tr class="border-b border-brand-purple/30 text-brand-purple">
+                                    <th class="py-2 pr-2">Factor</th>
+                                    <th class="py-2 px-2">En la Simulación</th>
+                                    <th class="py-2 pl-2">En la Realidad</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-800">
+                                <tr>
+                                    <td class="py-2 pr-2 font-bold text-gray-400">Resistencia Aire</td>
+                                    <td class="py-2 px-2 text-gray-500">Se ignora ($C_d = 0$)</td>
+                                    <td class="py-2 pl-2 text-gray-400">Arrastre cambia según altitud y vel.</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 pr-2 font-bold text-gray-400">Guía del Misil</td>
+                                    <td class="py-2 px-2 text-gray-500">Trayectoria lineal precalculada</td>
+                                    <td class="py-2 pl-2 text-gray-400">Navegación Proporcional (PN)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 pr-2 font-bold text-gray-400">Climatología</td>
+                                    <td class="py-2 px-2 text-gray-500">Constantes de viento = 0</td>
+                                    <td class="py-2 pl-2 text-gray-400">Vientos cruzados, densidad variable</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 pr-2 font-bold text-gray-400">Error de Sensor</td>
+                                    <td class="py-2 px-2 text-gray-500">Datos de posición perfectos</td>
+                                    <td class="py-2 pl-2 text-gray-400">Ruido y medición estocástica</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+            
+            <div class="text-center font-mono text-xs text-gray-500 border border-gray-800 bg-black/50 p-4 rounded mt-4">
+                <strong>CONCLUSIÓN TEÓRICA:</strong> Una simulación estocástica permite entender la probabilidad de defensa, pero en el campo de batalla, el éxito depende de la capacidad de procesamiento en milisegundos y la redundancia de los sensores ante el caos ambiental.
+            </div>
+        </div>
+
+        <section class="mb-4 mt-12">
+            <h2 class="section-header text-center text-white mb-6 border-brand-purple/30">6. CONSOLA DE RADAR DUAL Y SIMULACIÓN</h2>
+            
+            <div class="bg-[#0a0a0f] p-6 border border-gray-800 mb-6 relative tech-corners">
+                <div class="absolute top-2 left-2 w-4 h-4 border-l border-t border-brand-purple"></div>
+                <div class="absolute top-2 right-2 w-4 h-4 border-r border-t border-white"></div>
+                <div class="absolute bottom-2 left-2 w-4 h-4 border-l border-b border-white"></div>
+                <div class="absolute bottom-2 right-2 w-4 h-4 border-r border-b border-white"></div>
+                
+                <div class="flex flex-col w-full gap-6">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 px-4">
+                        <div class="w-full">
+                            <div class="flex justify-between mb-2 font-mono text-[10px] text-gray-400 uppercase">
+                                <label>Distancia (X)</label>
+                                <span id="x0_val" class="text-white">9000m</span>
+                            </div>
+                            <input type="range" id="x0_slider" min="0" max="10000" step="100" value="9000" class="w-full">
+                        </div>
+                        <div class="w-full">
+                            <div class="flex justify-between mb-2 font-mono text-[10px] text-gray-400 uppercase">
+                                <label>Altitud (Y)</label>
+                                <span id="h0_val" class="text-white">800m</span>
+                            </div>
+                            <input type="range" id="h0_slider" min="200" max="4000" step="100" value="800" class="w-full">
+                        </div>
+                        <div class="w-full">
+                            <div class="flex justify-between mb-2 font-mono text-[10px] text-gray-400 uppercase">
+                                <label>Velocidad |v|</label>
+                                <span id="v0_val" class="text-white">261m/s</span>
+                            </div>
+                            <input type="range" id="v0_slider" min="100" max="400" value="261" class="w-full">
+                        </div>
+                        <div class="w-full">
+                            <div class="flex justify-between mb-2 font-mono text-[10px] text-gray-400 uppercase">
+                                <label>Ángulo $\theta$</label>
+                                <span id="ang_val" class="text-white">61°</span>
+                            </div>
+                            <input type="range" id="ang_slider" min="15" max="75" value="61" class="w-full">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 w-full justify-end items-center border-t border-gray-800 pt-4">
+                        <label class="flex items-center gap-2 cursor-pointer font-mono text-xs text-gray-400 border border-gray-800 px-3 py-2 hover:border-brand-purple transition-colors">
+                            <input type="checkbox" id="fail_toggle" checked class="w-3 h-3 accent-brand-purple bg-black border-gray-500 rounded-none cursor-pointer">
+                            RIESGO_7%
+                        </label>
+                        <button id="btn_force_fail" class="btn-danger px-4 py-2 text-xs">FORZAR_ERROR</button>
+                        <button id="btn_random" class="btn-outline px-4 py-2 text-xs">MATRIZ_RND</button>
+                        <button id="btn_simulate" class="btn-primary px-8 py-2 text-sm font-bold shadow-[0_0_15px_rgba(167,139,250,0.3)] border-brand-purple text-brand-purple hover:bg-brand-purple hover:text-black">>> INTERCEPTAR</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-6">
+                
+                <div id="canvasContainer" class="flex-grow relative h-[600px] bg-[#020202] border border-gray-700 overflow-hidden tech-corners shadow-[0_0_30px_rgba(0,0,0,1)]">
+                    <div class="absolute inset-0 pointer-events-none z-30 opacity-30" style="background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.8) 2px, rgba(0,0,0,0.8) 4px);"></div>
+                    <canvas id="simCanvas" class="absolute inset-0 w-full h-full z-10"></canvas>
+                </div>
+
+                <div class="w-full lg:w-80 flex-shrink-0 bg-[#0a0a0f] border border-gray-700 tech-corners flex flex-col relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-brand-purple opacity-50"></div>
+                    <div class="p-6 flex-grow flex flex-col justify-between">
+                        
+                        <div>
+                            <h3 class="text-brand-purple font-mono text-sm tracking-widest mb-6 flex items-center gap-2 border-b border-gray-800 pb-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                LIVE_TELEMETRY
+                            </h3>
+
+                            <div id="live_alert_box" class="border border-gray-600 bg-black/50 p-4 mb-6 text-center transition-colors duration-300">
+                                <span id="live_alert_text" class="font-mono text-sm font-bold text-gray-500">STANDBY_MODE</span>
+                            </div>
+
+                            <div class="space-y-4 font-mono text-xs text-gray-400">
+                                <div>
+                                    <div class="flex justify-between mb-1 uppercase text-[10px] text-gray-500">T. de Encuentro</div>
+                                    <div id="live_t_cita" class="text-2xl text-white font-bold tabular-nums">00.00 s</div>
+                                </div>
+                                <div class="h-px bg-gray-800 w-full my-2"></div>
+                                <div class="flex justify-between">
+                                    <span>VEL. ENEMIGO:</span>
+                                    <span id="live_v_ene" class="text-white tabular-nums min-w-[60px] text-right">0 m/s</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>VEL. DEFENSA:</span>
+                                    <span id="live_v_def" class="text-white tabular-nums min-w-[60px] text-right">0 m/s</span>
+                                </div>
+                                <div class="h-px bg-gray-800 w-full my-2"></div>
+                                <div class="flex justify-between">
+                                    <span>CITA PREDIC X:</span>
+                                    <span id="live_c_x" class="text-brand-purple font-bold tabular-nums min-w-[60px] text-right">--</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>CITA PREDIC Y:</span>
+                                    <span id="live_c_y" class="text-brand-purple font-bold tabular-nums min-w-[60px] text-right">--</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 flex items-center justify-between border-t border-gray-800 pt-4">
+                            <span class="font-mono text-[10px] text-gray-500">RADAR FREQ 60Hz</span>
+                            <div class="flex gap-1">
+                                <span class="w-2 h-2 bg-brand-purple rounded-full animate-pulse"></span>
+                                <span class="w-2 h-2 bg-gray-700 rounded-full"></span>
+                                <span class="w-2 h-2 bg-gray-700 rounded-full"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div id="summary_panel" class="hidden-smooth mt-8 bg-[#0a0a0f] border border-gray-700 p-8 relative overflow-hidden mb-12 tech-corners shadow-2xl">
+            
+            <h3 class="text-center text-brand-purple font-mono text-sm tracking-widest uppercase mb-8 border-b border-gray-800 pb-3 flex justify-center items-center gap-3">
+                <span class="w-2 h-2 bg-brand-purple rounded-full animate-pulse"></span>
+                LOG DE ANÁLISIS POST-VUELO
+            </h3>
+            
+            <div class="grid lg:grid-cols-3 gap-6 font-mono text-xs">
+                
+                <div class="border border-gray-800 bg-black/50 p-5 relative hover:border-gray-600 transition-colors h-full flex flex-col">
+                    <div class="text-gray-300 font-bold mb-4 border-b border-gray-800 pb-2">>> OBJ. ALFA (AMENAZA)</div>
+                    <div class="space-y-3 text-gray-400 flex-grow">
+                        <div class="flex justify-between items-center w-full">
+                            <span class="truncate pr-2">Vector Inicio $\vec{r}_{0e}$:</span>
+                            <div class="w-28 shrink-0 text-right"><span id="sum_enemy_pos" class="text-white tabular-nums">--</span></div>
+                        </div>
+                        <div class="flex justify-between items-center w-full">
+                            <span class="truncate pr-2">Ángulo Lanz.:</span>
+                            <div class="w-28 shrink-0 text-right"><span id="sum_enemy_ang" class="text-white tabular-nums">--°</span></div>
+                        </div>
+                        <div class="flex justify-between items-center w-full">
+                            <span class="truncate pr-2">Mag. Vel. $|\vec{v}_{0e}|$:</span>
+                            <div class="w-28 shrink-0 text-right"><span id="sum_enemy_vel" class="text-white tabular-nums">--</span></div>
+                        </div>
+                        <div class="flex justify-between items-center w-full">
+                            <span class="truncate pr-2">Componente $v_{ex}$:</span>
+                            <div class="w-28 shrink-0 text-right"><span id="sum_enemy_vx" class="text-white tabular-nums">--</span></div>
+                        </div>
+                        <div class="flex justify-between items-center w-full">
+                            <span class="truncate pr-2">Componente $v_{ey}$:</span>
+                            <div class="w-28 shrink-0 text-right"><span id="sum_enemy_vy" class="text-white tabular-nums">--</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border border-gray-800 bg-black/50 p-5 relative hover:border-gray-600 transition-colors h-full flex flex-col">
+                    <div class="text-gray-300 font-bold mb-4 border-b border-gray-800 pb-2">>> INTERCEPTOR TAMIR</div>
+                    <div class="space-y-3 text-gray-400 flex-grow">
+                        <div class="flex justify-between items-center w-full">
+                            <span class="truncate pr-2">Silo de Origen:</span>
+                            <div class="w-28 shrink-0 text-right"><span class="text-white tabular-nums">5000m, 0m</span></div>
+                        </div>
+                        <div class="flex justify-between items-center w-full">
+                            <span class="truncate pr-2">Modo Vuelo:</span>
+                            <div class="w-28 shrink-0 text-right" id="sum_def_mode"><span class="text-white tabular-nums">--</span></div>
+                        </div>
+                        <div class="flex justify-between items-center w-full">
+                            <span class="truncate pr-2">Gravedad Neta $a_d$:</span>
+                            <div class="w-28 shrink-0 text-right"><span id="sum_def_ad" class="text-white tabular-nums">--</span></div>
+                        </div>
+                        <div class="flex justify-between items-center w-full">
+                            <span class="truncate pr-2">Vel. Req. $|\vec{v}_{0d}|$:</span>
+                            <div class="w-28 shrink-0 text-right"><span id="sum_def_vel" class="text-brand-purple font-bold tabular-nums">--</span></div>
+                        </div>
+                        <div class="flex justify-between items-center w-full">
+                            <span class="truncate pr-2">Vector Req. $v_{dx}$:</span>
+                            <div class="w-28 shrink-0 text-right"><span id="sum_def_vx" class="text-white tabular-nums">--</span></div>
+                        </div>
+                        <div class="flex justify-between items-center w-full">
+                            <span class="truncate pr-2">Vector Req. $v_{dy}$:</span>
+                            <div class="w-28 shrink-0 text-right"><span id="sum_def_vy" class="text-white tabular-nums">--</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border border-brand-purple/50 p-5 relative bg-brand-purple/5 shadow-[0_0_20px_rgba(167,139,250,0.1)] h-full flex flex-col">
+                    <div class="text-brand-purple font-bold mb-4 border-b border-brand-purple/40 pb-2 text-center tracking-widest">
+                        ⏱️ MATRIZ DE CITA
+                    </div>
+                    <div class="space-y-3 text-gray-300 flex-grow">
+                        <div class="flex justify-between items-center w-full">
+                            <span class="text-xs truncate pr-2">T. Vuelo Estimado:</span>
+                            <div class="w-24 shrink-0"><div id="sum_t_total" class="text-white tabular-nums bg-black/50 px-2 py-1 rounded text-center w-full">-- s</div></div>
+                        </div>
+                        <div class="flex justify-between items-center w-full">
+                            <span class="text-xs font-bold text-brand-purple truncate pr-2">$t_{int}$ Predicho:</span>
+                            <div class="w-24 shrink-0"><div id="sum_int_time" class="text-white font-bold tabular-nums border border-brand-purple/50 px-2 py-1 rounded text-center w-full">-- s</div></div>
+                        </div>
+                        <div class="flex justify-between items-center w-full">
+                            <span class="text-xs truncate pr-2">Impacto X ($x_{int}$):</span>
+                            <div class="w-24 shrink-0"><div id="sum_int_x" class="text-white tabular-nums bg-black/50 px-2 py-1 rounded text-center w-full">-- m</div></div>
+                        </div>
+                        <div class="flex justify-between items-center w-full">
+                            <span class="text-xs truncate pr-2">Impacto Y ($y_{int}$):</span>
+                            <div class="w-24 shrink-0"><div id="sum_int_y" class="text-white tabular-nums bg-black/50 px-2 py-1 rounded text-center w-full">-- m</div></div>
+                        </div>
+                    </div>
+                    <div class="mt-5 pt-4 border-t border-brand-purple/30 text-center h-16 flex flex-col justify-end">
+                        <div class="text-[10px] text-gray-500 mb-1 tracking-widest">VEREDICTO FINAL</div>
+                        <div id="sum_outcome" class="w-full text-center text-xl font-bold uppercase tracking-widest text-white whitespace-nowrap h-7 flex items-center justify-center">--</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+        <footer class="border-t border-dark-border mt-16 pt-8 pb-16 text-center md:text-left">
+            <h2 class="section-header text-gray-500 mb-3 text-xs border-dark-border">Referencias Bibliográficas</h2>
+            <ul class="list-none space-y-1 text-gray-600 text-[10px] font-mono">
+                <li>[1] Serway, R. A., & Jewett, J. W. (2018). Física para ciencias e ingeniería. Cengage Learning.</li>
+                <li>[2] BBC News Mundo (2025). Cómo es el sofisticado sistema de defensa de Israel.</li>
+                <li>[3] Rafael Advanced Defense Systems. (2024). C-RAM Iron Dome Specifications.</li>
+                <li>[4] Facultad de Ingeniería. Quiz 1 - Simulación computacional. Universidad de Antioquia, 2026.</li>
+            </ul>
+        </footer>
+    </div>
+
+    <script>
+        const canvasContainer = document.getElementById('canvasContainer');
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const summaryPanel = document.getElementById('summary_panel');
+        
+        // Elementos de Telemetría en Vivo
+        const liveAlertBox = document.getElementById('live_alert_box');
+        const liveAlertText = document.getElementById('live_alert_text');
+        const liveTCita = document.getElementById('live_t_cita');
+        const liveVEne = document.getElementById('live_v_ene');
+        const liveVDef = document.getElementById('live_v_def');
+        const liveCX = document.getElementById('live_c_x');
+        const liveCY = document.getElementById('live_c_y');
+
+        let width, height;
+
+        const x0Slider = document.getElementById('x0_slider');
+        const h0Slider = document.getElementById('h0_slider');
+        const v0Slider = document.getElementById('v0_slider');
+        const angSlider = document.getElementById('ang_slider');
+        
+        const failToggle = document.getElementById('fail_toggle');
+
+        let isSimulating = false;
+        let t = 0;
+        let reqAnim;
+
+        // FÍSICAS
+        const WORLD_W = 10000; 
+        const WORLD_H = 5000;  
+        const DEFENDER_X = 5000; 
+        const g = 9.81; 
+
+        let enemy = { x: 0, y: 0, vx: 0, vy: 0, startY: 0, startX: 0, angle: 0 };
+        let defender = { x: 0, y: 0, vx: 0, vy: 0, useThruster: false, ad: g, ap_extra: 0, systemFailure: false };
+        let interceptTimeExact = 0, interceptXExact = 0, interceptYExact = 0, totalEnemyTime = 0;
+        
+        let scale = 1, offsetX = 0, offsetY = 80; 
+        let dt = 0; 
+        
+        let enemyTrail = [], defenderTrail = [], particles = [], thrusterParticles = []; 
+        let shockwave = { x: 0, y: 0, radius: 0, alpha: 0, active: false, color: '167, 139, 250' };
+        let buildings = [], canvasStars = [], bgRockets = [];
+
+        function initEnvironmentData() {
+            canvasStars = [];
+            for(let i=0; i<400; i++) {
+                canvasStars.push({
+                    x: Math.random() * WORLD_W, 
+                    y: Math.random() * (WORLD_H * 2.5), 
+                    r: Math.random() * 1.5, 
+                    alpha: Math.random() * 0.8 + 0.2,
+                    isPurple: Math.random() > 0.85
+                });
+            }
+            
+            buildings = []; let x = 0;
+            while(x < WORLD_W) { 
+                let w = 150 + Math.random() * 250;
+                let maxH = (x > 4500 && x < 5500) ? 200 : 700; 
+                let h = 100 + Math.random() * maxH; 
+                
+                let windows = [];
+                for(let wy = 20; wy < h - 20; wy += 30) {
+                    for(let wx = 20; wx < w - 20; wx += 30) {
+                        if(Math.random() > 0.6) windows.push({x: wx, y: wy, color: Math.random() > 0.8 ? '#a78bfa' : '#444'});
+                    }
+                }
+                buildings.push({x: x, w: w, h: h, windows: windows}); 
+                x += w + (Math.random() * 50); 
+            }
+        }
+        initEnvironmentData(); 
+
+        function resizeCanvas() {
+            width = canvas.width = canvasContainer.clientWidth || 800;
+            height = canvas.height = canvasContainer.clientHeight || 600;
+            scale = Math.min((width - 60) / WORLD_W, (height - offsetY - 30) / WORLD_H);
+            offsetX = (width - (WORLD_W * scale)) / 2;
+            if(!isSimulating) drawEnvironment();
+        }
+        window.addEventListener('resize', resizeCanvas);
+        setTimeout(resizeCanvas, 50);
+
+        function updateLabels() {
+            document.getElementById('x0_val').textContent = x0Slider.value + "m";
+            document.getElementById('h0_val').textContent = h0Slider.value + "m";
+            document.getElementById('v0_val').textContent = v0Slider.value + "m/s";
+            document.getElementById('ang_val').textContent = angSlider.value + "°";
+            hideSummary(); 
+            if(!isSimulating) drawEnvironment(); 
+        }
+        
+        x0Slider.addEventListener('input', updateLabels);
+        h0Slider.addEventListener('input', updateLabels);
+        v0Slider.addEventListener('input', updateLabels);
+        angSlider.addEventListener('input', updateLabels);
+
+        function hideSummary() {
+            summaryPanel.classList.add('hidden-smooth');
+            
+            liveAlertBox.className = "border border-gray-600 bg-black/50 p-4 mb-6 text-center transition-colors duration-300";
+            liveAlertText.className = "font-mono text-sm font-bold text-gray-500";
+            liveAlertText.innerText = "STANDBY_MODE";
+            liveTCita.innerText = "00.00 s";
+            liveVEne.innerText = "0 m/s";
+            liveVDef.innerText = "0 m/s";
+            liveCX.innerText = "--";
+            liveCY.innerText = "--";
+
+            setTimeout(() => { if (summaryPanel.classList.contains('hidden-smooth')) summaryPanel.style.position = 'absolute'; }, 500);
+        }
+
+        function showSummary(success, interceptAlt, finalTime) {
+            summaryPanel.style.position = 'relative';
+            summaryPanel.classList.remove('hidden-smooth');
+
+            let v_def_mag = Math.hypot(defender.vx, defender.vy);
+            let v_ene_mag = Math.hypot(enemy.vx, enemy.vy);
+            
+            let outcomeEl = document.getElementById('sum_outcome');
+            if(success) {
+                outcomeEl.innerText = "OBJETIVO ABATIDO";
+                outcomeEl.className = "w-full text-center text-xl font-black tabular-nums drop-shadow-[0_0_10px_#a78bfa] text-brand-purple h-7 flex items-center justify-center";
+            } else {
+                outcomeEl.innerText = "❌ IMPACTO A LA CIUDAD D:";
+                outcomeEl.className = "w-full text-center text-xl font-black tabular-nums drop-shadow-[0_0_10px_#ef4444] text-red-500 h-7 flex items-center justify-center";
+            }
+
+            document.getElementById('sum_enemy_pos').innerText = `${enemy.startX.toFixed(0)}m, ${enemy.startY.toFixed(0)}m`;
+            document.getElementById('sum_enemy_ang').innerText = enemy.angle.toFixed(1) + "°";
+            document.getElementById('sum_enemy_vel').innerText = Math.hypot(enemy.vx, enemy.vy).toFixed(1) + " m/s";
+            document.getElementById('sum_enemy_vx').innerText = Math.abs(enemy.vx).toFixed(1) + " m/s"; 
+            document.getElementById('sum_enemy_vy').innerText = enemy.vy.toFixed(1) + " m/s";
+
+            document.getElementById('sum_def_ad').innerText = defender.ad.toFixed(2) + " m/s²";
+            
+            if (defender.systemFailure) {
+                document.getElementById('sum_def_mode').innerHTML = "<span class='text-red-500 font-bold'>ERR_DESYNC</span>";
+                document.getElementById('sum_def_vel').innerText = "ERR";
+                document.getElementById('sum_def_vx').innerText = "N/A";
+                document.getElementById('sum_def_vy').innerText = "N/A";
+            } else {
+                document.getElementById('sum_def_mode').innerHTML = defender.useThruster ? `<span class="text-brand-purple font-bold">PROPULSADO</span>` : "<span class='text-gray-400'>BALÍSTICO</span>";
+                document.getElementById('sum_def_vel').innerText = v_def_mag.toFixed(1) + " m/s";
+                document.getElementById('sum_def_vx').innerText = defender.vx.toFixed(1) + " m/s";
+                document.getElementById('sum_def_vy').innerText = defender.vy.toFixed(1) + " m/s";
+            }
+
+            document.getElementById('sum_t_total').innerText = totalEnemyTime.toFixed(2) + " s";
+            document.getElementById('sum_int_time').innerText = finalTime.toFixed(2) + " s";
+            document.getElementById('sum_int_x').innerText = interceptXExact.toFixed(0) + " m";
+            document.getElementById('sum_int_y').innerText = Math.max(0, interceptAlt).toFixed(0) + " m";
+        }
+
+        document.getElementById('btn_random').addEventListener('click', () => {
+            let x0;
+            do { x0 = Math.floor(Math.random() * 101) * 100; 
+            } while (Math.abs(x0 - DEFENDER_X) < 1500); 
+            
+            x0Slider.value = x0;
+            h0Slider.value = Math.floor(Math.random() * 76) * 50 + 200; 
+            v0Slider.value = Math.floor(Math.random() * (400 - 100 + 1)) + 100;
+            angSlider.value = Math.floor(Math.random() * (75 - 15 + 1)) + 15;
+            
+            updateLabels();
+            if(isSimulating) cancelAnimationFrame(reqAnim);
+            isSimulating = false; enemyTrail = []; defenderTrail = []; particles = []; thrusterParticles = []; bgRockets = []; shockwave.active = false;
+            canvasContainer.classList.remove('animate-shake'); hideSummary();
+            drawEnvironment();
+            
+            liveAlertText.innerText = "MATRIZ_RND CARGADA";
+        });
+
+        document.getElementById('btn_simulate').addEventListener('click', () => {
+            if(isSimulating) cancelAnimationFrame(reqAnim);
+            canvasContainer.classList.remove('animate-shake'); hideSummary(); resizeCanvas(); startSimulation(false); 
+        });
+
+        document.getElementById('btn_force_fail').addEventListener('click', () => {
+            if(isSimulating) cancelAnimationFrame(reqAnim);
+            canvasContainer.classList.remove('animate-shake'); hideSummary(); resizeCanvas(); startSimulation(true); 
+        });
+
+        function getPx(metersX) { return offsetX + (metersX * scale); }
+        function getPy(metersY) { return height - offsetY - (metersY * scale); }
+
+        function drawEnvironment() {
+            ctx.clearRect(0, 0, width, height);
+            
+            canvasStars.forEach(s => { 
+                if (s.y < WORLD_H) { 
+                    ctx.beginPath(); ctx.arc(getPx(s.x), getPy(s.y), s.r, 0, Math.PI*2); 
+                    ctx.fillStyle = s.isPurple ? `rgba(167, 139, 250, ${s.alpha})` : `rgba(255, 255, 255, ${s.alpha})`; 
+                    ctx.fill(); 
+                }
+            });
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            ctx.font = "10px 'Fira Code', monospace";
+            ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+            
+            for(let x = 0; x <= WORLD_W; x += 1000) {
+                let px = getPx(x); ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, height); ctx.stroke();
+                if(x >= 0 && x <= WORLD_W) { ctx.textAlign = "center"; ctx.fillText(x + "m", px, getPy(0) + 15); }
+            }
+            ctx.textAlign = "left";
+            for(let y = 1000; y <= WORLD_H; y += 1000) {
+                let py = getPy(y); ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(width, py); ctx.stroke();
+                ctx.fillText(y + "m", getPx(0) + 5, py - 5);
+            }
+
+            let groundPx = getPy(0);
+            
+            buildings.forEach(b => {
+                let pxX = getPx(b.x), pxW = b.w * scale, pxH = b.h * scale;
+                ctx.fillStyle = '#020202'; ctx.fillRect(pxX, groundPx - pxH, pxW, pxH);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)'; ctx.lineWidth = 1; ctx.strokeRect(pxX, groundPx - pxH, pxW, pxH);
+                
+                b.windows.forEach(w => {
+                    ctx.fillStyle = w.color;
+                    ctx.fillRect(pxX + w.x * scale, groundPx - pxH + w.y * scale, 2, 2);
+                });
+            });
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'; ctx.lineWidth = 1; 
+            ctx.beginPath(); ctx.moveTo(0, groundPx); ctx.lineTo(width, groundPx); ctx.stroke();
+            
+            let dx = getPx(DEFENDER_X) - 15 * scale, dy = getPy(0) - 15 * scale;
+            ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 1.5; ctx.strokeRect(dx, dy, 30 * scale, 15 * scale);
+            ctx.beginPath(); ctx.moveTo(dx, dy); ctx.lineTo(dx + 15 * scale, dy - 12 * scale); ctx.lineTo(dx + 30 * scale, dy); ctx.strokeStyle = "#fff"; ctx.stroke(); 
+
+            if(!isSimulating) {
+                let spawnX = parseFloat(x0Slider.value);
+                let ex = getPx(spawnX), ey = getPy(parseFloat(h0Slider.value));
+                
+                ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 1; 
+                ctx.beginPath(); ctx.arc(ex, ey, 12 * scale, 0, Math.PI*2); ctx.stroke();
+                
+                ctx.strokeStyle = "#fff";
+                ctx.beginPath(); ctx.moveTo(ex - 20 * scale, ey); ctx.lineTo(ex + 20 * scale, ey); ctx.moveTo(ex, ey - 20 * scale); ctx.lineTo(ex, ey + 20 * scale); ctx.stroke();
+                
+                ctx.beginPath(); ctx.moveTo(ex, ey + 15 * scale); ctx.lineTo(ex, groundPx); 
+                ctx.strokeStyle='rgba(167, 139, 250, 0.3)'; ctx.setLineDash([2,4]); ctx.stroke(); ctx.setLineDash([]);
+            }
+        }
+
+        function drawRocketShape(ctxLayer, x, y, angle, isEnemy = true, sizeMultiplier = 1) {
+            ctxLayer.save(); 
+            ctxLayer.translate(x, y); 
+            ctxLayer.rotate(angle); 
+            ctxLayer.scale(sizeMultiplier, sizeMultiplier);
+            
+            ctxLayer.fillStyle = isEnemy ? '#ffffff' : '#a78bfa'; 
+            
+            ctxLayer.beginPath();
+            ctxLayer.moveTo(10, 0); ctxLayer.lineTo(-6, -5); ctxLayer.lineTo(-3, 0); ctxLayer.lineTo(-6, 5);
+            ctxLayer.closePath(); ctxLayer.fill(); 
+
+            if(!isEnemy) {
+                ctxLayer.fillStyle = '#fff'; 
+                ctxLayer.beginPath(); ctxLayer.moveTo(-3, 0); ctxLayer.lineTo(-10 - Math.random()*5, 0); ctxLayer.lineTo(-6, 2); ctxLayer.lineTo(-6, -2);
+                ctxLayer.closePath(); ctxLayer.fill();
+            }
+            
+            ctxLayer.restore();
+        }
+
+        function updateLiveTelemetry(isActive, isHit, isFail) {
+            if (!isActive && !isHit && !isFail) return;
+
+            if (isHit) {
+                liveAlertBox.className = "border border-brand-purple bg-brand-purple/20 p-4 mb-6 text-center shadow-[0_0_20px_rgba(167,139,250,0.5)]";
+                liveAlertText.className = "font-mono text-sm font-bold text-brand-purple";
+                liveAlertText.innerText = "✅ OBJETIVO ABATIDO";
+            } else if (isFail) {
+                liveAlertBox.className = "border border-red-500 bg-red-500/20 p-4 mb-6 text-center shadow-[0_0_20px_rgba(239,68,68,0.5)]";
+                liveAlertText.className = "font-mono text-sm font-bold text-red-500";
+                liveAlertText.innerText = "❌ IMPACTO A LA CIUDAD D:";
+            } else {
+                liveAlertBox.className = "border border-red-500/50 bg-red-500/10 p-4 mb-6 text-center shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-alert";
+                liveAlertText.className = "font-mono text-sm font-bold text-red-500";
+                liveAlertText.innerText = "⚠️ ENEMIGO DETECTADO";
+            }
+
+            let timeLeft = Math.max(0, interceptTimeExact - t);
+            if (isHit || isFail) timeLeft = 0;
+
+            let velEnemigo = Math.hypot(enemy.vx, enemy.vy - g*t);
+            let velDefensa = Math.hypot(defender.vx, defender.vy - defender.ad*t);
+            if(isFail || isHit) velDefensa = 0; 
+            
+            liveTCita.innerText = `${timeLeft.toFixed(2)} s`;
+            liveVEne.innerText = `${velEnemigo.toFixed(0)} m/s`;
+            liveVDef.innerText = `${velDefensa.toFixed(0)} m/s`;
+            liveCX.innerText = `${interceptXExact.toFixed(0)}m`;
+            liveCY.innerText = `${interceptYExact.toFixed(0)}m`;
+        }
+
+        function drawGenericFadingTrail(ctxLayer, trailObj, color, widthLine, maxAlpha, pxFunc, pyFunc, isDashed = false) {
+            if(trailObj.length < 2) return; 
+            ctxLayer.lineCap = 'round'; ctxLayer.lineJoin = 'round';
+            ctxLayer.strokeStyle = color; ctxLayer.lineWidth = widthLine;
+            if (isDashed) ctxLayer.setLineDash([2, 4]);
+            
+            ctxLayer.beginPath(); ctxLayer.moveTo(pxFunc(trailObj[0].x), pyFunc(trailObj[0].y));
+            for(let i=1; i<trailObj.length; i++) { 
+                ctxLayer.lineTo(pxFunc(trailObj[i].x), pyFunc(trailObj[i].y)); 
+            }
+            ctxLayer.globalAlpha = maxAlpha;
+            ctxLayer.stroke(); 
+            ctxLayer.setLineDash([]);
+            ctxLayer.globalAlpha = 1;
+        }
+
+        function createAirExplosion(x, y) {
+            shockwave = { x: x, y: y, radius: 5, alpha: 1, active: true, color: '167, 139, 250' }; 
+            for(let i=0; i<40; i++) particles.push({ x: x, y: y, vx: Math.cos(Math.random() * Math.PI * 2) * (Math.random() * 6 + 2), vy: Math.sin(Math.random() * Math.PI * 2) * (Math.random() * 6 + 2), alpha: 1, color: Math.random() > 0.5 ? '#fff' : '#a78bfa' });
+        }
+        
+        function createGroundExplosion(x, y) {
+            shockwave = { x: x, y: y, radius: 10, alpha: 1, active: true, color: '239, 68, 68' }; 
+            for(let i=0; i<60; i++) particles.push({ x: x, y: y, vx: Math.cos(Math.PI + Math.random() * Math.PI) * (Math.random() * 10 + 2), vy: Math.sin(Math.PI + Math.random() * Math.PI) * (Math.random() * 10 + 2), alpha: 1, color: Math.random() > 0.5 ? '#ef4444' : '#fff' });
+        }
+
+        function drawGenericParticles(ctxLayer, pxFunc, pyFunc, pipScaleMult = 1) {
+            if(shockwave.active) {
+                ctxLayer.beginPath(); ctxLayer.arc(pxFunc(shockwave.x), pyFunc(shockwave.y), shockwave.radius * pipScaleMult, 0, Math.PI*2);
+                ctxLayer.strokeStyle = `rgba(${shockwave.color}, ${shockwave.alpha})`; ctxLayer.lineWidth = 2 * pipScaleMult; ctxLayer.stroke();
+            }
+            for(let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i]; 
+                ctxLayer.globalAlpha = p.alpha; 
+                ctxLayer.fillStyle = p.color; 
+                ctxLayer.fillRect(pxFunc(p.x), pyFunc(p.y), 2 * pipScaleMult, 2 * pipScaleMult); 
+            }
+            ctxLayer.globalAlpha = 1;
+        }
+
+        function updatePhysicsParticles() {
+            if(shockwave.active) {
+                shockwave.radius += 4; shockwave.alpha -= 0.03; if(shockwave.alpha <= 0) shockwave.active = false;
+            }
+            for(let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i]; p.x += p.vx; p.y += p.vy; p.vx *= 0.95; p.vy *= 0.95; p.vy += 0.2; p.alpha -= 0.03; 
+                if(p.alpha <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function drawPiPCamera(phys_ex, phys_ey, phys_dx, phys_dy, angle_enemy, angle_defender) {
+            let pipW = 200; let pipH = 200;
+            let pipX = width - pipW - 20; 
+            let pipY = 20; 
+            
+            ctx.fillStyle = '#050508';
+            ctx.fillRect(pipX, pipY, pipW, pipH);
+            ctx.strokeStyle = '#a78bfa';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(pipX, pipY, pipW, pipH);
+            
+            ctx.fillStyle = 'rgba(167, 139, 250, 0.2)';
+            ctx.fillRect(pipX, pipY, pipW, 25);
+            ctx.fillStyle = '#fff';
+            ctx.font = "10px 'Fira Code', monospace";
+            ctx.fillText("● OFF-SCREEN TRACKER // 3X", pipX + 10, pipY + 16);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(pipX, pipY + 25, pipW, pipH - 25); 
+            ctx.clip();
+
+            let focusX = phys_ex;
+            let focusY = phys_ey;
+            let dist_metros = Math.hypot(phys_ex - phys_dx, phys_ey - phys_dy);
+            
+            if (t >= interceptTimeExact || dist_metros < 300 || !isSimulating) { 
+                focusX = interceptXExact; 
+                focusY = interceptYExact; 
+            }
+
+            let pipScale = scale * 3.5; 
+            let pipPx = (mx) => pipX + pipW/2 + (mx - focusX) * pipScale;
+            let pipPy = (my) => pipY + pipH/2 - (my - focusY) * pipScale;
+
+            canvasStars.forEach(s => { 
+                ctx.beginPath(); ctx.arc(pipPx(s.x), pipPy(s.y), s.r * 1.5, 0, Math.PI*2); 
+                ctx.fillStyle = s.isPurple ? `rgba(167, 139, 250, ${s.alpha})` : `rgba(255, 255, 255, ${s.alpha})`; 
+                ctx.fill(); 
+            });
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(pipX, pipY + pipH/2); ctx.lineTo(pipX+pipW, pipY+pipH/2); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(pipX + pipW/2, pipY + 25); ctx.lineTo(pipX+pipW/2, pipY+pipH); ctx.stroke();
+
+            let groundPipY = pipPy(0);
+            if(groundPipY > pipY && groundPipY < pipY + pipH) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath(); ctx.moveTo(pipX, groundPipY); ctx.lineTo(pipX+pipW, groundPipY); ctx.stroke();
+            }
+
+            bgRockets.forEach(br => {
+                ctx.globalAlpha = 0.3; 
+                drawGenericFadingTrail(ctx, br.trail, 'rgba(225, 29, 72, 0.4)', 2, 0.5, pipPx, pipPy, true);
+                drawRocketShape(ctx, pipPx(br.trail[br.trail.length-1].x), pipPy(br.trail[br.trail.length-1].y), Math.atan2(-(br.v0y - g*t), br.v0x), true, 1.5); 
+                ctx.globalAlpha = 1;
+            });
+
+            drawGenericFadingTrail(ctx, enemyTrail, '#fff', 2, 0.9, pipPx, pipPy); 
+            ctx.globalAlpha = defender.systemFailure ? 0.5 : 1;
+            drawGenericFadingTrail(ctx, defenderTrail, '#a78bfa', 2, 0.9, pipPx, pipPy, defender.systemFailure); 
+            ctx.globalAlpha = 1;
+
+            if (isSimulating) {
+                drawRocketShape(ctx, pipPx(phys_ex), pipPy(phys_ey), angle_enemy, true, 1.8); 
+                drawRocketShape(ctx, pipPx(phys_dx), pipPy(phys_dy), angle_defender, false, 1.8); 
+            }
+
+            drawGenericParticles(ctx, pipPx, pipPy, 3);
+
+            ctx.restore();
+        }
+
+        function startSimulation(forceFail = false) {
+            t = 0; isSimulating = true; enemyTrail = []; defenderTrail = []; particles = []; thrusterParticles = []; shockwave.active = false;
+            
+            let x0 = parseFloat(x0Slider.value);
+            let h0 = parseFloat(h0Slider.value);
+            let v0 = parseFloat(v0Slider.value); 
+            let angle = parseFloat(angSlider.value);
+            
+            enemy.x = x0; enemy.y = h0; enemy.startX = x0; enemy.startY = h0; enemy.angle = angle;
+            
+            let dir = (x0 < DEFENDER_X) ? 1 : -1;
+            let vy_init = v0 * Math.sin(angle * (Math.PI / 180));
+            enemy.vx = dir * v0 * Math.cos(angle * (Math.PI / 180)); 
+            enemy.vy = vy_init;
+
+            bgRockets = [];
+            let numSecondary = Math.floor(Math.random() * 4) + 2; 
+            for(let i=0; i<numSecondary; i++) {
+                let b_v0 = 50 + Math.random() * 150, b_ang = (10 + Math.random() * 60) * Math.PI / 180; 
+                let spawnOffset = (Math.random() * 1500) * -dir; 
+                let b_startX = x0 + spawnOffset;
+                b_startX = Math.max(100, Math.min(9900, b_startX)); 
+                let b_dir = (b_startX < DEFENDER_X) ? 1 : -1;
+                
+                bgRockets.push({
+                    startX: b_startX, startY: h0 + (Math.random() * 1000 - 500), 
+                    v0x: b_dir * b_v0 * Math.cos(b_ang), v0y: b_v0 * Math.sin(b_ang), trail: []
+                });
+            }
+
+            totalEnemyTime = (enemy.vy + Math.sqrt(enemy.vy * enemy.vy + 2 * g * enemy.y)) / g;
+            defender.x = DEFENDER_X; defender.y = 0;
+            
+            let t_int = totalEnemyTime * 0.75; 
+            let x_int = enemy.x + enemy.vx * t_int;
+            let y_int = enemy.y + enemy.vy * t_int - 0.5 * g * (t_int * t_int);
+            
+            interceptTimeExact = t_int; interceptXExact = x_int; interceptYExact = y_int;
+            
+            defender.systemFailure = forceFail ? true : (failToggle.checked ? Math.random() < 0.07 : false);
+            defender.useThruster = (h0 <= 1500);
+            
+            if (defender.useThruster) {
+                let urgency = Math.max(0, Math.min(1, 1 - ((h0 - 200) / 1300)));
+                defender.ap_extra = 2 + (5.5 * urgency); 
+                defender.ad = g - defender.ap_extra; 
+            } else { defender.ap_extra = 0; defender.ad = g; }
+
+            if(defender.systemFailure) {
+                defender.vx = ((x_int - defender.x) / t_int) * 1.5; defender.vy = ((y_int - defender.y + 0.5 * defender.ad * (t_int * t_int)) / t_int) * 0.5;
+            } else {
+                defender.vx = (x_int - defender.x) / t_int; defender.vy = (y_int - defender.y + 0.5 * defender.ad * (t_int * t_int)) / t_int;
+            }
+
+            dt = totalEnemyTime / 350; 
+            
+            drawEnvironment(); loop();
+        }
+
+        function loop() {
+            let impactPx = getPx(interceptXExact);
+            let impactPy = getPy(interceptYExact);
+            let isImpactOffScreen = impactPx < 0 || impactPx > width || impactPy < 0 || impactPy > height;
+
+            if(!isSimulating && (particles.length > 0 || shockwave.active)) { 
+                drawEnvironment(); 
+                if (isImpactOffScreen && !defender.systemFailure) {
+                    drawPiPCamera(interceptXExact, interceptYExact, interceptXExact, interceptYExact, 0, 0);
+                }
+                drawGenericParticles(ctx, getPx, getPy, 1);
+                updatePhysicsParticles(); 
+                updateLiveTelemetry(true, !defender.systemFailure, defender.systemFailure); 
+                reqAnim = requestAnimationFrame(loop); 
+                return; 
+            }
+            if(!isSimulating && particles.length === 0 && !shockwave.active) return;
+            
+            t += dt; 
+            
+            let phys_ex = enemy.x + enemy.vx * t, phys_ey = enemy.y + enemy.vy * t - 0.5 * g * (t*t);
+            let phys_dx = defender.x + defender.vx * t, phys_dy = defender.y + defender.vy * t - 0.5 * defender.ad * (t*t);
+            let px_ex = getPx(phys_ex), px_ey = getPy(phys_ey), px_dx = getPx(phys_dx), px_dy = getPy(phys_dy);
+            
+            let isEnemyOffScreen = px_ex < 0 || px_ex > width || px_ey < 0 || px_ey > height;
+            let isDefenderOffScreen = px_dx < 0 || px_dx > width || px_dy < 0 || px_dy > height;
+
+            enemyTrail.push({x: phys_ex, y: phys_ey}); defenderTrail.push({x: phys_dx, y: phys_dy});
+            if(enemyTrail.length > 80) enemyTrail.shift(); if(defenderTrail.length > 80) defenderTrail.shift();
+
+            drawEnvironment();
+            
+            bgRockets.forEach(br => {
+                let bx = br.startX + br.v0x * t, by = br.startY + br.v0y * t - 0.5 * g * (t*t);
+                if(by >= 0) {
+                    let px_bx = getPx(bx), px_by = getPy(by);
+                    br.trail.push({x: px_bx, y: px_by}); if(br.trail.length > 25) br.trail.shift();
+                    ctx.globalAlpha = 0.3; 
+                    drawGenericFadingTrail(ctx, br.trail, 'rgba(225, 29, 72, 0.4)', 1.5, 0.5, getPx, getPy, true);
+                    drawRocketShape(ctx, getPx(bx), getPy(by), Math.atan2(-(br.v0y - g*t), br.v0x), true, 0.5); 
+                    ctx.globalAlpha = 1;
+                }
+            });
+
+            let d_canvas_vy = -(defender.vy - defender.ad*t);
+            let angle_defender = Math.atan2(d_canvas_vy, defender.vx);
+            let angle_enemy = Math.atan2(-(enemy.vy - g*t), enemy.vx);
+            
+            drawGenericFadingTrail(ctx, enemyTrail, '#fff', 1.5, 0.9, getPx, getPy); 
+            ctx.globalAlpha = defender.systemFailure ? 0.5 : 1;
+            drawGenericFadingTrail(ctx, defenderTrail, '#a78bfa', 1.5, 0.9, getPx, getPy, defender.systemFailure); 
+            ctx.globalAlpha = 1;
+
+            drawRocketShape(ctx, px_ex, px_ey, angle_enemy, true, 1.2); 
+            drawRocketShape(ctx, px_dx, px_dy, angle_defender, false, 1.2); 
+
+            let dist_metros = Math.hypot(phys_ex - phys_dx, phys_ey - phys_dy);
+            if (!defender.systemFailure && dist_metros < 1500) {
+                ctx.beginPath(); ctx.moveTo(px_ex, px_ey); ctx.lineTo(px_dx, px_dy);
+                ctx.strokeStyle = 'rgba(167, 139, 250, 0.3)'; ctx.setLineDash([2,4]); ctx.stroke(); ctx.setLineDash([]);
+            }
+
+            if (isImpactOffScreen && (isEnemyOffScreen || isDefenderOffScreen) && !defender.systemFailure) {
+                drawPiPCamera(phys_ex, phys_ey, phys_dx, phys_dy, angle_enemy, angle_defender);
+            }
+
+            drawGenericParticles(ctx, getPx, getPy, 1);
+            updatePhysicsParticles();
+            updateLiveTelemetry(true, false, false);
+
+            if(!defender.systemFailure && (dist_metros < 80 || t >= interceptTimeExact) && t > (dt*5)) { 
+                createAirExplosion(interceptXExact, interceptYExact);
+                updateLiveTelemetry(true, true, false);
+                isSimulating = false; showSummary(true, interceptYExact, interceptTimeExact); reqAnim = requestAnimationFrame(loop); return;
+            }
+
+            if (t > (dt * 5) && phys_ey < 0) {
+                canvasContainer.classList.add('animate-shake'); createGroundExplosion(phys_ex, 0);
+                updateLiveTelemetry(true, false, true);
+                isSimulating = false; showSummary(false, 0, t); reqAnim = requestAnimationFrame(loop); return;
+            }
+
+            if(isSimulating) reqAnim = requestAnimationFrame(loop);
+        }
+    </script>
+</body>
+</html>

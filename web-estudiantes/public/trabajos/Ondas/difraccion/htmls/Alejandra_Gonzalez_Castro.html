@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Estudio Avanzado: Anillos de Newton y Aplicaciones</title>
+    
+    <style>
+        /* --- VARIABLES GLOBALES Y RESET BÁSICO --- */
+        :root {
+            --panel-background: #ffffff;
+            --page-background: #f0f2f5;
+            --text-color: #212529;
+            --header-color: #2c3e50;
+            --accent-color: #007bff;
+            --border-color: #dee2e6;
+            --simulation-bg: #000000;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--page-background);
+            color: var(--text-color);
+            overflow: hidden;
+        }
+
+        /* --- LAYOUT PRINCIPAL --- */
+        .page-header {
+            text-align: center;
+            color: var(--header-color);
+            padding: 1rem;
+            background-color: var(--panel-background);
+            border-bottom: 2px solid var(--border-color);
+            font-size: 1.8rem;
+        }
+
+        .main-container {
+            display: flex;
+            height: calc(100vh - 68px); /* Altura total menos el header */
+            width: 100%;
+        }
+
+        .content-panel {
+            flex: 1;
+            padding: 1.5rem 2rem;
+            overflow-y: auto;
+            background-color: var(--panel-background);
+        }
+
+        .theory-panel {
+            border-right: 2px solid var(--border-color);
+        }
+
+        /* --- ESTILOS DE TEXTO Y CONTENIDO --- */
+        h2 {
+            color: var(--header-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 0.5rem;
+            margin-top: 1.5rem;
+        }
+        .theory-panel h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            color: #495057;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        p, li {
+            text-align: justify;
+            line-height: 1.7;
+            color: #343a40;
+            margin-bottom: 1rem;
+        }
+
+        strong {
+            color: var(--header-color);
+        }
+
+        /* --- FÓRMULAS MATEMÁTICAS --- */
+        .formula-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-left: 4px solid var(--accent-color);
+            border-radius: 4px;
+            font-size: 1.1rem;
+            font-family: 'Times New Roman', serif;
+            overflow-x: auto;
+        }
+
+        .term { display: inline-flex; flex-direction: column; text-align: center; vertical-align: middle; margin: 0 0.2em; }
+        .numerator { padding: 0 0.4em; border-bottom: 1.5px solid #333; }
+        .denominator { padding: 0 0.4em; }
+        .sqrt { font-size: 2.2em; vertical-align: middle; }
+        .radicand { display: inline-block; border-top: 1.5px solid #333; padding: 0.2em 0.4em 0 0.4em; margin-left: -0.2em; vertical-align: middle; }
+        i { font-style: italic; }
+        
+        /* --- PANEL DE SIMULACIÓN --- */
+        .simulation-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #simulation-area { display: flex; gap: 1.5rem; justify-content: center; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+        .canvas-container { text-align: center; }
+        canvas { border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--simulation-bg); }
+        #controls { width: 90%; max-width: 500px; margin-top: 1rem; }
+        .control-group { margin-bottom: 1.25rem; }
+        .control-group label { display: flex; justify-content: space-between; font-weight: 500; margin-bottom: 0.5rem; }
+        .control-group label .value-display { font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #d63384; background-color: #f8f9fa; padding: 2px 6px; border-radius: 4px; }
+        input[type="range"] { width: 100%; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <header class="page-header">
+        <h1>Fenómeno de los Anillos de Newton</h1>
+    </header>
+    
+    <main class="main-container">
+        <!-- =========== PANEL IZQUIERDO: TEORÍA, DEMOSTRACIÓN Y APLICACIONES =========== -->
+        <section class="content-panel theory-panel">
+            <h2>Problema Propuesto</h2>
+            <p>
+                Una lente plano-convexa con un radio de curvatura <i>R</i> se apoya sobre una placa de vidrio plana. Entre ambas superficies se encuentra una película delgada de índice <i>n</i><sub>película</sub>. Al iluminar el sistema perpendicularmente con luz de longitud de onda λ, demuestre que el radio <i>r</i> de los anillos oscuros (<i>m</i> = 0, 1, 2, ...) viene dado por:
+            </p>
+            <div class="formula-display">
+                <i>r</i><sub>m</sub> &nbsp;≈&nbsp; <span class="sqrt">√</span><span class="radicand"><div class="term"><span class="numerator"><i>m λ R</i></span><span class="denominator"><i>n</i><sub>película</sub></span></div></span>
+            </div>
+
+            <h2>Análisis y Demostración</h2>
+            <h3>1. Condición para Interferencia Destructiva</h3>
+            <p>La condición para un mínimo de interferencia (anillo oscuro) ocurre cuando la diferencia de camino óptico (2<i>t·n</i>) más el desfase de media longitud de onda en la segunda reflexión equivale a un múltiplo entero de la longitud de onda. Esto se simplifica a:</p>
+            <div class="formula-display">2<i>t</i> <i>n</i><sub>película</sub> = <i>mλ</i></div>
+            
+            <h3>2. Relación Geométrica y Aproximación</h3>
+            <p>Por el Teorema de Pitágoras, <i>R</i><sup>2</sup> = <i>r</i><sup>2</sup> + (<i>R</i> - <i>t</i>)<sup>2</sup>. Dado que el radio de la lente <i>R</i> es mucho mayor que el espesor <i>t</i>, el término <i>t</i><sup>2</sup> es despreciable, simplificando la relación a:</p>
+            <div class="formula-display"><i>r</i><sup>2</sup> ≈ 2<i>Rt</i></div>
+            
+            <h3>3. Demostración Final</h3>
+            <p>Despejando <i>t</i> de la condición de interferencia (<i>t</i> = <i>mλ</i> / 2<i>n</i>) y sustituyéndolo en la relación geométrica aproximada, se obtiene <i>r</i><sup>2</sup> ≈ 2<i>R</i>(<i>mλ</i> / 2<i>n</i>). Al simplificar y tomar la raíz cuadrada, llegamos a la expresión final.</p>
+            <div class="formula-display"><i>r</i><sub>m</sub> &nbsp;≈&nbsp; <span class="sqrt">√</span><span class="radicand"><div class="term"><span class="numerator"><i>m λ R</i></span><span class="denominator"><i>n</i><sub>película</sub></span></div></span></div>
+
+            <!-- =========== SECCIÓN DE APLICACIONES NUEVA =========== -->
+            <section class="applications">
+                <h2>Aplicaciones Prácticas</h2>
+                <p>
+                    Más allá de ser una demostración de la óptica ondulatoria, la alta sensibilidad de los anillos de Newton a las dimensiones físicas los convierte en una poderosa herramienta de metrología (ciencia de la medición).
+                </p>
+
+                <h3>1. Prueba de Calidad de Superficies Ópticas</h3>
+                <p>
+                    <strong>Para verificar la planitud o la curvatura de lentes y espejos.</strong> Se coloca una lente de prueba contra una superficie de referencia perfectamente plana (un "plano óptico"). Si la superficie probada es perfecta, los anillos serán circulares y concéntricos. Cualquier deformación, arañazo o imperfección en la superficie causará distorsiones y irregularidades en el patrón de los anillos, revelando defectos que serían invisibles a simple vista.
+                </p>
+
+                <h3>2. Medición del Radio de Curvatura</h3>
+                <p>
+                    <strong>Para determinar el radio de curvatura (R) de una lente.</strong> Reorganizando la fórmula, si se conoce la longitud de onda de la luz (λ) y se miden los radios (r) de varios anillos oscuros (m), se puede calcular el radio de curvatura R con una precisión muy alta. Este método es a menudo más preciso que los métodos mecánicos que utilizan un esferómetro.
+                </p>
+
+                <h3>3. Medición del Espesor de Películas Delgadas</h3>
+                <p>
+                    <strong>Para determinar el grosor de láminas o recubrimientos delgados y transparentes.</strong> Aunque el caso clásico usa aire, el principio se aplica a cualquier película delgada. Al observar los patrones de interferencia, y conociendo los índices de refracción, se puede calcular el espesor de recubrimientos antirreflectantes, filtros ópticos u otras capas aplicadas a un sustrato.
+                </p>
+
+                <h3>4. Determinación de Índices de Refracción</h3>
+                <p>
+                    <strong>Para medir el índice de refracción de un líquido.</strong> Se realiza el experimento primero con aire en el espacio. Luego, se introduce una pequeña cantidad de un líquido transparente en el espacio entre la lente y la placa. El diámetro de los anillos cambiará. Al comparar los diámetros de los anillos con y sin el líquido, y conociendo los otros parámetros, se puede calcular con precisión el índice de refracción del líquido.
+                </p>
+            </section>
+        </section>
+
+        <!-- =========== PANEL DERECHO: SIMULACIÓN =========== -->
+        <section class="content-panel simulation-panel">
+            <h2>Simulación Interactiva</h2>
+            <div id="simulation-area">
+                <figure class="canvas-container">
+                    <figcaption><h3>Sección Transversal</h3></figcaption>
+                    <canvas id="crossSectionCanvas" width="300" height="150"></canvas>
+                </figure>
+                <figure class="canvas-container">
+                    <figcaption><h3>Anillos Resultantes</h3></figcaption>
+                    <canvas id="topViewCanvas" width="300" height="300"></canvas>
+                </figure>
+            </div>
+            
+            <div id="controls">
+                <div class="control-group">
+                    <label for="lambdaSlider">Longitud de Onda (λ)<span class="value-display"><span id="lambdaValue">550</span> nm</span></label>
+                    <input type="range" id="lambdaSlider" min="380" max="750" value="550">
+                </div>
+                <div class="control-group">
+                    <label for="radiusSlider">Radio de Curvatura (R)<span class="value-display"><span id="radiusValue">2.0</span> m</span></label>
+                    <input type="range" id="radiusSlider" min="0.5" max="10" value="2" step="0.1">
+                </div>
+                <div class="control-group">
+                    <label for="nSlider">Índice Refracción Película (n)<span class="value-display"><span id="nValue">1.00</span></span></label>
+                    <input type="range" id="nSlider" min="1.00" max="2.00" value="1.00" step="0.01">
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <script>
+        class NewtonRingsSimulator {
+            constructor() {
+                // Referencias a elementos del DOM
+                this.lambdaSlider = document.getElementById('lambdaSlider');
+                this.radiusSlider = document.getElementById('radiusSlider');
+                this.nSlider = document.getElementById('nSlider');
+                
+                this.lambdaValueSpan = document.getElementById('lambdaValue');
+                this.radiusValueSpan = document.getElementById('radiusValue');
+                this.nValueSpan = document.getElementById('nValue');
+
+                this.topCanvas = document.getElementById('topViewCanvas');
+                this.topCtx = this.topCanvas.getContext('2d');
+                this.crossCanvas = document.getElementById('crossSectionCanvas');
+                this.crossCtx = this.crossCanvas.getContext('2d');
+
+                this.simParams = { lambda: 0, R: 0, n_film: 0, lambda_nm: 0 };
+                this.animationFrameId = null;
+                
+                this.init();
+            }
+
+            init() {
+                const sliders = [this.lambdaSlider, this.radiusSlider, this.nSlider];
+                sliders.forEach(slider => slider.addEventListener('input', () => this.requestUpdate()));
+                this.requestUpdate();
+            }
+
+            requestUpdate() {
+                this.updateValues();
+                if (!this.animationFrameId) {
+                    this.animationFrameId = requestAnimationFrame(() => this.startAnimationLoop());
+                }
+            }
+            
+            startAnimationLoop() {
+                this.drawTopDownView();
+                this.drawCrossSection();
+                this.animationFrameId = null;
+            }
+
+            updateValues() {
+                this.simParams.lambda_nm = parseFloat(this.lambdaSlider.value);
+                this.simParams.lambda = this.simParams.lambda_nm * 1e-9;
+                this.simParams.R = parseFloat(this.radiusSlider.value);
+                this.simParams.n_film = parseFloat(this.nSlider.value);
+
+                this.lambdaValueSpan.textContent = this.simParams.lambda_nm.toFixed(0);
+                this.radiusValueSpan.textContent = this.simParams.R.toFixed(1);
+                this.nValueSpan.textContent = this.simParams.n_film.toFixed(2);
+            }
+
+            wavelengthToRgb(lambda) {
+                let r = 0, g = 0, b = 0;
+                if (lambda >= 380 && lambda < 440) { r = -(lambda - 440) / (440 - 380); b = 1.0; } 
+                else if (lambda >= 440 && lambda < 490) { g = (lambda - 440) / (490 - 440); b = 1.0; } 
+                else if (lambda >= 490 && lambda < 510) { g = 1.0; b = -(lambda - 510) / (510 - 490); } 
+                else if (lambda >= 510 && lambda < 580) { r = (lambda - 510) / (580 - 510); g = 1.0; } 
+                else if (lambda >= 580 && lambda < 645) { r = 1.0; g = -(lambda - 645) / (645 - 580); } 
+                else if (lambda >= 645 && lambda < 751) { r = 1.0; }
+                const factor = 255;
+                return [Math.round(r * factor), Math.round(g * factor), Math.round(b * factor)];
+            }
+
+            drawTopDownView() {
+                const { lambda, R, n_film, lambda_nm } = this.simParams;
+                const { width, height } = this.topCanvas;
+                const centerX = width / 2;
+                const centerY = height / 2;
+                
+                this.topCtx.fillStyle = 'black';
+                this.topCtx.fillRect(0, 0, width, height);
+
+                const [rC, gC, bC] = this.wavelengthToRgb(lambda_nm);
+                const pixelScale = 8000;
+
+                for (let r_px = 0; r_px < centerX; r_px += 0.5) {
+                    const r_m = r_px / pixelScale;
+                    const t = (r_m * r_m) / (2 * R);
+                    const phaseDifferenceInTurns = (2 * n_film * t) / lambda;
+                    const intensity = Math.pow(Math.cos(phaseDifferenceInTurns * Math.PI), 2);
+
+                    if (intensity > 0.01) {
+                        this.topCtx.strokeStyle = `rgba(${rC}, ${gC}, ${bC}, ${intensity})`;
+                        this.topCtx.lineWidth = 1;
+                        this.topCtx.beginPath();
+                        this.topCtx.arc(centerX, centerY, r_px, 0, 2 * Math.PI);
+                        this.topCtx.stroke();
+                    }
+                }
+            }
+            
+            drawCrossSection() {
+                const { R } = this.simParams;
+                const { width, height } = this.crossCanvas;
+                
+                this.crossCtx.clearRect(0, 0, width, height);
+                
+                const scaleY = 3.5;
+                const groundLevel = height - 20;
+                const lensCenterY = groundLevel - R * scaleY;
+
+                this.crossCtx.fillStyle = 'rgba(189, 195, 199, 0.5)';
+                this.crossCtx.fillRect(0, groundLevel, width, 20);
+
+                this.crossCtx.beginPath();
+                this.crossCtx.arc(width / 2, lensCenterY, R * scaleY, 0.45 * Math.PI, 0.55 * Math.PI, false);
+                this.crossCtx.lineTo(width, 20); 
+                this.crossCtx.lineTo(0, 20); 
+                this.crossCtx.closePath();
+                
+                this.crossCtx.fillStyle = 'rgba(236, 240, 241, 0.6)';
+                this.crossCtx.fill();
+                this.crossCtx.strokeStyle = '#95a5a6';
+                this.crossCtx.stroke();
+            }
+        }
+
+        window.addEventListener('load', () => {
+            new NewtonRingsSimulator();
+        });
+    </script>
+</body>
+</html>

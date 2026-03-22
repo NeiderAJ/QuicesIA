@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación y Solución: Sistema Óptico de Dos Lentes</title>
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --main-text: #2c3e50;
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --lens-color: #a9d6e5;
+            --object-color: #e74c3c;
+            --image1-color: #f39c12;
+            --image-final-color: #2ecc71;
+            --ray-color-1: rgba(231, 76, 60, 0.6);
+            --ray-color-2: rgba(46, 204, 113, 0.7);
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --border-radius: 8px;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--main-text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 1400px;
+            background-color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        h1, h2 { text-align: center; color: var(--secondary-color); margin: 0 0 10px 0; }
+
+        .main-layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+        @media (max-width: 1000px) { .main-layout { grid-template-columns: 1fr; } }
+        
+        .simulation-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fdfdfd;
+            border-radius: var(--border-radius);
+            padding: 10px;
+        }
+
+        canvas {
+            border: 1px solid #bdc3c7;
+            border-radius: var(--border-radius);
+            width: 100%;
+            cursor: grab;
+        }
+        canvas:active { cursor: grabbing; }
+
+        .panels-container { display: flex; flex-direction: column; gap: 20px; }
+        .panel {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .panel h3, .panel h4 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .control-group { margin-bottom: 15px; }
+        .control-group label { display: block; margin-bottom: 8px; font-weight: 600; }
+        .control-group input[type="range"], .control-group select { width: 100%; padding: 5px; }
+        .control-group output { font-weight: bold; color: var(--secondary-color); }
+
+        #results-panel ul { list-style: none; padding: 0; margin: 0; }
+        #results-panel li { margin-bottom: 12px; font-size: 1.1em; }
+        #results-panel li strong { color: var(--secondary-color); width: 150px; display: inline-block; }
+
+        .info-container { grid-column: 1 / -1; }
+        .info-panel {
+            margin-top: 10px;
+            background-color: #e8f6fd;
+            border-left: 5px solid var(--primary-color);
+            padding: 20px;
+        }
+        .info-panel p, .info-panel li { line-height: 1.7; }
+        .info-panel strong, .info-panel code { color: var(--secondary-color); font-weight: bold; }
+        .solution-box { background-color: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-top: 10px;}
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: var(--primary-color); color: white; }
+        td:nth-child(2) { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🔬 Simulación y Solución: Sistema Óptico de Dos Lentes</h1>
+        
+        <div class="main-layout">
+            <div class="panels-container">
+                <div id="controls-panel" class="panel">
+                    <h3>Panel de Control</h3>
+                    <div class="control-group">
+                        <label for="object-position">Posición Objeto (s₁): <output id="object-position-value">40.0</output> cm</label>
+                        <input type="range" id="object-position" min="1" max="100" value="40" step="0.5">
+                    </div>
+                    <div class="control-group">
+                        <label for="lens-distance">Distancia entre Lentes: <output id="lens-distance-value">110</output> cm</label>
+                        <input type="range" id="lens-distance" min="10" max="250" value="110" step="1">
+                    </div>
+                    <div class="control-group">
+                        <label for="lens2-type">Tipo de Segunda Lente</label>
+                        <select id="lens2-type">
+                            <option value="divergent">Divergente (f = -20 cm)</option>
+                            <option value="convergent">Convergente (f = +20 cm)</option>
+                        </select>
+                    </div>
+                     <div class="control-group">
+                        <label for="object-height">Altura Objeto (h): <output id="object-height-value">2.0</output> cm</label>
+                        <input type="range" id="object-height" min="1" max="20" value="2" step="0.5">
+                    </div>
+                    <div class="control-group">
+                         <input type="checkbox" id="toggle-rays" checked>
+                         <label for="toggle-rays">Mostrar rayos auxiliares</label>
+                    </div>
+                </div>
+
+                <div id="results-panel" class="panel">
+                    <h3>Resultados Finales</h3>
+                    <ul>
+                        <li><strong>Posición (s'₂):</strong> <span id="final-pos"></span></li>
+                        <li><strong>Aumento Total (M):</strong> <span id="final-mag"></span></li>
+                        <li><strong>Altura Final (h'):</strong> <span id="final-height"></span></li>
+                        <li><strong>Orientación:</strong> <span id="final-orientation"></span></li>
+                        <li><strong>Tipo de Imagen:</strong> <span id="final-type"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="simulation-area">
+                <canvas id="optical-canvas" width="1000" height="500"></canvas>
+            </div>
+            
+            <div class="info-container">
+                <div id="problem-statement" class="panel">
+                    <h4>Enunciado del Problema Completo</h4>
+                    <p>
+                        Un objeto de <strong>2.00 cm</strong> de alto se coloca a <strong>40.0 cm</strong> a la izquierda de una lente convergente de distancia focal de <strong>+30.0 cm</strong>. Una segunda lente se coloca a <strong>110 cm</strong> a la derecha de la primera lente.
+                    </p>
+                    <p>
+                        a) Si la segunda lente es <strong>divergente</strong> con f = -20.0 cm, determine la posición y la amplificación de la imagen final.<br>
+                        b) ¿La imagen está hacia arriba o invertida?<br>
+                        c) Repita los incisos a) y b) para el caso en que la segunda lente sea <strong>convergente</strong> con f = +20.0 cm.
+                    </p>
+                    <h4>Solución Paso a Paso</h4>
+                    <div class="solution-box">
+                        <p><strong>Análisis de la Lente 1 (Común para ambos casos)</strong></p>
+                        <ul>
+                            <li>Datos: <code>s₁ = +40.0 cm</code>, <code>f₁ = +30.0 cm</code>.</li>
+                            <li>Posición Imagen 1 (I₁): <code>1/s'₁ = 1/30 - 1/40 = 1/120</code> ➔ <code>s'₁ = +120.0 cm</code> (Real, a 120 cm a la derecha de L₁).</li>
+                            <li>Aumento 1: <code>M₁ = -s'₁ / s₁ = -120 / 40 = -3.00</code>.</li>
+                            <li>Objeto para Lente 2: I₁ es el objeto. Su distancia a L₂ es <code>s₂ = 110 - 120 = -10.0 cm</code> (<strong>Objeto Virtual</strong>).</li>
+                        </ul>
+
+                        <p><strong>Solución para (a) y (b): Segunda Lente Divergente (f₂ = -20 cm)</strong></p>
+                        <ul>
+                            <li>Posición Final: <code>1/s'₂ = 1/(-20) - 1/(-10) = +0.05</code> ➔ <code>s'₂ = +20.0 cm</code>.</li>
+                            <li>Aumento 2: <code>M₂ = -s'₂ / s₂ = -(+20) / (-10) = +2.00</code>.</li>
+                            <li>Aumento Total: <code>M_total = M₁ × M₂ = (-3.00) × (+2.00) = -6.00</code>.</li>
+                            <li><strong>Respuesta: Imagen final a +20 cm de L₂, invertida (M < 0).</strong></li>
+                        </ul>
+
+                        <p><strong>Solución para (c): Segunda Lente Convergente (f₂ = +20 cm)</strong></p>
+                        <ul>
+                            <li>Posición Final: <code>1/s'₂ = 1/(+20) - 1/(-10) = 3/20</code> ➔ <code>s'₂ = +6.67 cm</code>.</li>
+                            <li>Aumento 2: <code>M₂ = -s'₂ / s₂ = -(+6.67) / (-10) ≈ +0.67</code>.</li>
+                            <li>Aumento Total: <code>M_total = M₁ × M₂ = (-3.00) × (+0.67) = -2.00</code>.</li>
+                             <li><strong>Respuesta: Imagen final a +6.67 cm de L₂, invertida (M < 0).</strong></li>
+                        </ul>
+                    </div>
+                </div>
+                <div id="comparison-panel" class="info-panel">
+                    <h4>Análisis Comparativo: Divergente vs. Convergente</h4>
+                    <p>El cambio en la segunda lente altera drásticamente el resultado, a pesar de que ambas parten del mismo <strong>objeto virtual</strong>. ¡Puedes verificar la solución del inciso (c) seleccionando la lente 'Convergente' en el panel de control!</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Característica</th>
+                                <th>Caso (a/b): Lente Divergente</th>
+                                <th>Caso (c): Lente Convergente</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Posición Final (s'₂)</strong></td>
+                                <td>+20.0 cm (más lejos de L₂)</td>
+                                <td>+6.67 cm (más cerca de L₂)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tipo de Imagen Final</strong></td>
+                                <td>Real</td>
+                                <td>Real</td>
+                            </tr>
+                             <tr>
+                                <td><strong>Aumento Total (M)</strong></td>
+                                <td>-6.00 (mayor magnificación)</td>
+                                <td>-2.00 (menor magnificación)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Orientación Final</strong></td>
+                                <td>Invertida</td>
+                                <td>Invertida</td>
+                            </tr>
+                             <tr>
+                                <td><strong>Conclusión Física</strong></td>
+                                <td>La lente divergente <strong>reduce la convergencia</strong> de los rayos que iban a formar el objeto virtual, moviendo la imagen real final más lejos.</td>
+                                <td>La lente convergente <strong>aumenta la convergencia</strong> de los rayos, haciendo que se enfoquen antes y formando una imagen real más cercana.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                 <div id="explanation-panel" class="info-panel">
+                    <h3>Guía y Análisis Físico de la Simulación</h3>
+                    <p>Esta simulación descompone el problema en pasos visuales. La clave es entender que <strong>la imagen formada por la primera lente (L₁) se convierte en el objeto para la segunda lente (L₂)</strong>.</p>
+                    
+                    <h4>Cómo Usar la Simulación:</h4>
+                    <ul>
+                        <li>Use los controles para cambiar los parámetros. Observe cómo la posición, tamaño y naturaleza de las imágenes cambian en tiempo real.</li>
+                        <li>Arrastre el <strong>objeto rojo (O)</strong> con el ratón para cambiar su posición dinámicamente.</li>
+                        <li>Fíjese en los colores: <strong><span style="color:var(--object-color)">Rojo</span></strong> es el objeto inicial. <strong><span style="color:var(--image1-color)">Naranja</span></strong> es la imagen intermedia (I₁). <strong><span style="color:var(--image-final-color)">Verde</span></strong> es la imagen final (I₂).</li>
+                        <li>Las flechas y rayos con <strong>líneas discontinuas</strong> representan entidades <strong>virtuales</strong>.</li>
+                    </ul>
+
+                    <h4>Análisis Físico Paso a Paso:</h4>
+                    <ol>
+                        <li><strong>Paso 1: La Primera Lente (Convergente)</strong><br>
+                        Los rayos (líneas rojas delgadas) salen del objeto <strong>O</strong> y convergen en la primera lente. La simulación calcula la posición de la primera imagen (<strong>I₁</strong>) usando la fórmula <code>1/s₁ + 1/s'₁ = 1/f₁</code>. En el caso inicial, <strong>I₁</strong> es real (formada por la convergencia real de rayos) e invertida (M₁ < 0).</li>
+                        
+                        <li><strong>Paso 2: El Puente - La Imagen se Convierte en Objeto</strong><br>
+                        Ahora, la imagen <strong>I₁</strong> es la fuente de luz para la segunda lente. Su distancia a L₂ (s₂) se calcula como <code>s₂ = (Distancia entre lentes) - s'₁</code>. Aquí ocurre el fenómeno más importante: si <strong>I₁</strong> se forma <em>a la derecha</em> de L₂, los rayos de luz nunca la alcanzan; L₂ los intercepta antes. Para L₂, esto es un <strong>objeto virtual</strong> y su distancia <code>s₂</code> es <strong>negativa</strong>. Observe esto en el caso inicial.</li>
+                        
+                        <li><strong>Paso 3: La Segunda Lente y la Imagen Final</strong><br>
+                        La simulación traza nuevos rayos (verdes) como si se originaran de <strong>I₁</strong>. La posición de la imagen final (<strong>I₂</strong>) se encuentra con <code>1/s₂ + 1/s'₂ = 1/f₂</code>. Dependiendo del tipo de L₂ (convergente o divergente) y de si s₂ es positivo o negativo, la imagen final puede ser real o virtual, derecha o invertida.</li>
+
+                        <li><strong>Paso 4: El Resultado Total</strong><br>
+                        El aumento total del sistema (<code>M_total = M₁ × M₂</code>) determina la orientación y el tamaño final. Si <code>M_total</code> es <strong>positivo</strong>, la imagen final está <strong>derecha</strong> respecto al objeto original. Si es <strong>negativo</strong>, está <strong>invertida</strong>.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('optical-canvas');
+            const ctx = canvas.getContext('2d');
+            const controls = {
+                objPosSlider: document.getElementById('object-position'), objPosValue: document.getElementById('object-position-value'),
+                lensDistSlider: document.getElementById('lens-distance'), lensDistValue: document.getElementById('lens-distance-value'),
+                lens2TypeSelect: document.getElementById('lens2-type'),
+                objHeightSlider: document.getElementById('object-height'), objHeightValue: document.getElementById('object-height-value'),
+                toggleRaysCheckbox: document.getElementById('toggle-rays')
+            };
+            const resultsPanel = {
+                pos: document.getElementById('final-pos'), mag: document.getElementById('final-mag'),
+                height: document.getElementById('final-height'), orientation: document.getElementById('final-orientation'),
+                type: document.getElementById('final-type')
+            };
+            
+            const computedStyles = getComputedStyle(document.body);
+            const colors = {
+                object: computedStyles.getPropertyValue('--object-color').trim(), image1: computedStyles.getPropertyValue('--image1-color').trim(),
+                imageFinal: computedStyles.getPropertyValue('--image-final-color').trim(), lens: computedStyles.getPropertyValue('--lens-color').trim(),
+                ray1: computedStyles.getPropertyValue('--ray-color-1').trim(), ray2: computedStyles.getPropertyValue('--ray-color-2').trim(),
+                mainText: computedStyles.getPropertyValue('--main-text').trim()
+            };
+            
+            let state = {
+                s1: 40.0, h_obj: 2.0, f1: 30.0, lens_dist: 110.0,
+                f2: -20.0, isDragging: false, showAuxRays: true
+            };
+            
+            const PIXELS_PER_CM = 2.5;
+            const AXIS_Y = canvas.height / 2;
+            const LENS1_X = canvas.width / 3.5; // Origen x=0
+
+            function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+            function drawCoordinateSystem() {
+                ctx.beginPath(); ctx.moveTo(0, AXIS_Y); ctx.lineTo(canvas.width, AXIS_Y);
+                ctx.strokeStyle = '#bdc3c7'; ctx.lineWidth = 1; ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(LENS1_X, 0); ctx.lineTo(LENS1_X, canvas.height);
+                ctx.setLineDash([5, 5]); ctx.stroke(); ctx.setLineDash([]);
+                ctx.font = '12px ' + computedStyles.getPropertyValue('--font-family').trim();
+                ctx.fillStyle = colors.mainText; ctx.textAlign = 'center';
+                for (let x_cm = -100; x_cm <= 300; x_cm += 50) {
+                    const x_px = LENS1_X + x_cm * PIXELS_PER_CM;
+                    ctx.beginPath();
+                    ctx.moveTo(x_px, AXIS_Y - 5); ctx.lineTo(x_px, AXIS_Y + 5);
+                    ctx.stroke();
+                    if (x_cm !== 0) {
+                        ctx.fillText(x_cm.toString(), x_px, AXIS_Y + 20);
+                    } else {
+                         ctx.fillText('0', x_px - 10, AXIS_Y + 20);
+                    }
+                }
+            }
+
+            function drawLens(x, f, label) {
+                const height = 150;
+                ctx.beginPath(); ctx.moveTo(x, AXIS_Y - height / 2); ctx.lineTo(x, AXIS_Y + height / 2);
+                ctx.strokeStyle = colors.lens; ctx.lineWidth = 4; ctx.stroke();
+                const arrowSize = 10;
+                ctx.strokeStyle = colors.mainText; ctx.lineWidth = 1.5;
+                if (f > 0) {
+                    ctx.moveTo(x, AXIS_Y - height/2); ctx.lineTo(x - arrowSize, AXIS_Y - height/2 - arrowSize);
+                    ctx.moveTo(x, AXIS_Y - height/2); ctx.lineTo(x + arrowSize, AXIS_Y - height/2 - arrowSize);
+                    ctx.moveTo(x, AXIS_Y + height/2); ctx.lineTo(x - arrowSize, AXIS_Y + height/2 + arrowSize);
+                    ctx.moveTo(x, AXIS_Y + height/2); ctx.lineTo(x + arrowSize, AXIS_Y + height/2 + arrowSize);
+                } else {
+                    ctx.moveTo(x - arrowSize, AXIS_Y - height/2); ctx.lineTo(x, AXIS_Y - height/2 - arrowSize);
+                    ctx.moveTo(x + arrowSize, AXIS_Y - height/2); ctx.lineTo(x, AXIS_Y - height/2 - arrowSize);
+                    ctx.moveTo(x - arrowSize, AXIS_Y + height/2); ctx.lineTo(x, AXIS_Y + height/2 + arrowSize);
+                    ctx.moveTo(x + arrowSize, AXIS_Y + height/2); ctx.lineTo(x, AXIS_Y + height/2 + arrowSize);
+                }
+                ctx.stroke();
+                ctx.fillStyle = colors.mainText; ctx.textAlign = 'center';
+                ctx.font = '14px ' + computedStyles.getPropertyValue('--font-family').trim();
+                ctx.fillText(label, x, AXIS_Y - height / 2 - 25);
+            }
+            function drawArrow(x, height, color, isVirtual, label) {
+                const h_px = height * PIXELS_PER_CM;
+                if (!isFinite(h_px) || Math.abs(h_px) > canvas.height * 2) return;
+                ctx.beginPath(); ctx.lineWidth = 3; ctx.strokeStyle = color;
+                if (isVirtual) ctx.setLineDash([5, 5]);
+                ctx.moveTo(x, AXIS_Y); ctx.lineTo(x, AXIS_Y - h_px);
+                ctx.lineTo(x - 5, AXIS_Y - h_px + Math.sign(h_px || 1) * 5);
+                ctx.moveTo(x, AXIS_Y - h_px); ctx.lineTo(x + 5, AXIS_Y - h_px + Math.sign(h_px || 1) * 5);
+                ctx.stroke(); ctx.setLineDash([]);
+                ctx.fillStyle = color; ctx.font = 'bold 16px ' + computedStyles.getPropertyValue('--font-family').trim();
+                ctx.fillText(label, x, AXIS_Y - h_px - Math.sign(h_px || 1) * 15);
+            }
+            function drawLine(x1, y1, x2, y2, color, isVirtual = false) {
+                ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+                if (isVirtual) ctx.setLineDash([4, 4]); else ctx.setLineDash([]);
+                ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+                ctx.stroke(); ctx.setLineDash([]);
+            }
+            function drawRaySystem(r) {
+                const obj_x = LENS1_X - r.s1 * PIXELS_PER_CM, obj_y = AXIS_Y - r.h_obj * PIXELS_PER_CM;
+                const img1_x = LENS1_X + r.s1_prime * PIXELS_PER_CM, img1_y = AXIS_Y - r.h1_prime * PIXELS_PER_CM;
+                const lens2_x = LENS1_X + r.lens_dist * PIXELS_PER_CM;
+                const img2_x = lens2_x + r.s2_prime * PIXELS_PER_CM, img2_y = AXIS_Y - r.h_final * PIXELS_PER_CM;
+
+                drawLine(obj_x, obj_y, LENS1_X, obj_y, colors.ray1);
+                drawLine(LENS1_X, obj_y, img1_x, img1_y, colors.ray1, r.s1_prime < 0);
+                drawLine(obj_x, obj_y, img1_x, img1_y, colors.ray1, r.s1_prime < 0);
+
+                if (state.showAuxRays) {
+                    const f1_front_x = LENS1_X - r.f1 * PIXELS_PER_CM;
+                    drawLine(obj_x, obj_y, LENS1_X, AXIS_Y + (AXIS_Y - obj_y) * (LENS1_X - obj_x) / (f1_front_x - obj_x), colors.ray1);
+                }
+
+                if (!isFinite(r.s1_prime)) return;
+
+                drawLine(img1_x, img1_y, lens2_x, img1_y, colors.ray2, r.s2 < 0);
+                drawLine(lens2_x, img1_y, img2_x, img2_y, colors.ray2, r.s2_prime < 0);
+                drawLine(img1_x, img1_y, img2_x, img2_y, colors.ray2, r.s2 < 0 || r.s2_prime < 0);
+            }
+            function runSimulation() {
+                let s1_prime = (state.f1 === state.s1) ? Infinity : 1 / (1 / state.f1 - 1 / state.s1);
+                const M1 = -s1_prime / state.s1; const h1_prime = M1 * state.h_obj;
+                const s2 = state.lens_dist - s1_prime;
+                let s2_prime = (state.f2 === s2) ? Infinity : 1 / (1 / state.f2 - 1 / s2);
+                const M2 = (s2 === 0 || !isFinite(s2)) ? 1 : -s2_prime / s2;
+                const M_total = M1 * M2; const h_final = M_total * state.h_obj;
+                const results = {s1: state.s1, h_obj: state.h_obj, f1: state.f1, s1_prime, h1_prime, lens_dist: state.lens_dist, s2, f2: state.f2, s2_prime, h_final};
+                updateUI(results); drawScene(results);
+            }
+            function updateUI(r) {
+                resultsPanel.pos.textContent = `${isFinite(r.s2_prime) ? r.s2_prime.toFixed(2) : 'Infinito'} cm`;
+                resultsPanel.mag.textContent = isFinite(r.h_final/r.h_obj) ? (r.h_final/r.h_obj).toFixed(2) : 'Indefinido';
+                resultsPanel.height.textContent = isFinite(r.h_final) ? `${r.h_final.toFixed(2)} cm` : 'Infinita';
+                resultsPanel.orientation.textContent = isFinite(r.h_final/r.h_obj) ? (r.h_final/r.h_obj > 0 ? 'Derecha' : 'Invertida') : 'N/A';
+                resultsPanel.type.textContent = isFinite(r.s2_prime) ? (r.s2_prime > 0 ? 'Real' : 'Virtual') : 'En el infinito';
+            }
+            function drawScene(r) {
+                clearCanvas();
+                drawCoordinateSystem();
+                const lens2_x = LENS1_X + r.lens_dist * PIXELS_PER_CM;
+                drawLens(LENS1_X, r.f1, `L₁ (x=0)`);
+                drawLens(lens2_x, r.f2, `L₂ (x=${r.lens_dist} cm)`);
+                const obj1_x = LENS1_X - r.s1 * PIXELS_PER_CM;
+                drawArrow(obj1_x, r.h_obj, colors.object, false, 'O');
+                if (isFinite(r.s1_prime)) drawArrow(LENS1_X + r.s1_prime * PIXELS_PER_CM, r.h1_prime, colors.image1, r.s1_prime < 0, 'I₁');
+                if (isFinite(r.s2_prime)) drawArrow(lens2_x + r.s2_prime * PIXELS_PER_CM, r.h_final, colors.imageFinal, r.s2_prime < 0, 'I₂');
+                drawRaySystem(r);
+            }
+            function handleInputChange() {
+                state.s1 = parseFloat(controls.objPosSlider.value); controls.objPosValue.textContent = state.s1.toFixed(1);
+                state.lens_dist = parseFloat(controls.lensDistSlider.value); controls.lensDistValue.textContent = state.lens_dist.toFixed(0);
+                state.h_obj = parseFloat(controls.objHeightSlider.value); controls.objHeightValue.textContent = state.h_obj.toFixed(1);
+                state.f2 = controls.lens2TypeSelect.value === 'convergent' ? 20.0 : -20.0;
+                state.showAuxRays = controls.toggleRaysCheckbox.checked;
+                runSimulation();
+            }
+            function handleMouseDown(e) {
+                const rect = canvas.getBoundingClientRect(); const mouseX = e.clientX - rect.left;
+                const obj_x_canvas = LENS1_X - state.s1 * PIXELS_PER_CM;
+                if (Math.abs(mouseX - obj_x_canvas) < 15) { state.isDragging = true; canvas.style.cursor = 'grabbing'; }
+            }
+            function handleMouseMove(e) {
+                if (!state.isDragging) return;
+                const rect = canvas.getBoundingClientRect(); const mouseX = e.clientX - rect.left;
+                let new_s1 = (LENS1_X - mouseX) / PIXELS_PER_CM;
+                new_s1 = Math.max(parseFloat(controls.objPosSlider.min), Math.min(parseFloat(controls.objPosSlider.max), new_s1));
+                controls.objPosSlider.value = new_s1; handleInputChange();
+            }
+            function handleMouseUp() { state.isDragging = false; canvas.style.cursor = 'grab'; }
+
+            Object.values(controls).forEach(el => { if(el.tagName === 'INPUT' || el.tagName === 'SELECT') { el.addEventListener('input', handleInputChange); } });
+            canvas.addEventListener('mousedown', handleMouseDown);
+            window.addEventListener('mousemove', handleMouseMove); window.addEventListener('mouseup', handleMouseUp);
+            window.addEventListener('resize', runSimulation);
+            handleInputChange();
+        });
+    </script>
+</body>
+</html>

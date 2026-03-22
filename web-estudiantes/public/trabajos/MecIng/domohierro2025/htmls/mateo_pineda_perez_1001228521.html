@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulación de Intercepción de Misiles - Mateo Pineda Pérez</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <div class="max-w-5xl mx-auto p-6 space-y-10">
+
+    <!-- Enunciado -->
+    <section class="bg-white rounded-2xl shadow p-6">
+      <h1 class="text-3xl font-bold text-blue-700 mb-4">Simulación de Intercepción de Misiles</h1>
+      <p>
+        Un radar detecta un misil enemigo en vuelo. En el instante de detección se conocen su posición inicial, velocidad inicial y dirección.
+        El misil enemigo se mueve bajo la acción de la gravedad terrestre. El objetivo es diseñar una estrategia de defensa que permita
+        interceptar el misil, ya sea con un proyectil que siga un tiro parabólico clásico o, en caso de detección baja, con un proyectil
+        que disponga de propulsión adicional.
+      </p>
+    </section>
+
+    <!-- Solución algebraica -->
+    <section class="bg-white rounded-2xl shadow p-6">
+      <h2 class="text-2xl font-semibold text-blue-700 mb-3">Solución Algebraica</h2>
+      <p>
+        El problema en 3D se reduce a un plano 2D que contiene la trayectoria del misil enemigo. Las ecuaciones de movimiento bajo gravedad son:
+      </p>
+      <pre class="bg-gray-100 p-2 rounded">
+        x(t) = x0 + v0x * t
+        y(t) = y0 + v0y * t - (1/2) g t²
+      </pre>
+      <p>
+        La condición de intercepción se cumple cuando el misil defensor y el enemigo ocupan la misma posición al mismo tiempo.
+        Si el defensor requiere aceleración adicional, se suma una componente de propulsión a la ecuación vertical.
+      </p>
+    </section>
+
+    <!-- Análisis -->
+    <section class="bg-white rounded-2xl shadow p-6">
+      <h2 class="text-2xl font-semibold text-blue-700 mb-3">Análisis Funcional</h2>
+      <p>
+        El sistema debe decidir entre dos escenarios: <br>
+        1. Misil enemigo detectado alto: el defensor sigue un tiro parabólico clásico.<br>
+        2. Misil enemigo detectado bajo: el defensor activa propulsión adicional vertical.
+      </p>
+    </section>
+
+    <!-- Simulación -->
+    <section class="bg-white rounded-2xl shadow p-6">
+      <h2 class="text-2xl font-semibold text-blue-700 mb-3">Simulación Interactiva</h2>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block">Posición inicial enemigo (m)</label>
+          <input type="range" id="x0" min="0" max="500" value="100" class="w-full">
+          <span id="x0Val">100</span>
+        </div>
+        <div>
+          <label class="block">Velocidad inicial enemigo (m/s)</label>
+          <input type="range" id="v0" min="100" max="400" value="200" class="w-full">
+          <span id="v0Val">200</span>
+        </div>
+        <div>
+          <label class="block">Ángulo de lanzamiento enemigo (°)</label>
+          <input type="range" id="theta" min="15" max="75" value="45" class="w-full">
+          <span id="thetaVal">45</span>
+        </div>
+        <button id="randomBtn" class="bg-blue-600 text-white px-4 py-2 rounded">Generar valores aleatorios</button>
+        <button id="simBtn" class="bg-green-600 text-white px-4 py-2 rounded">Simular</button>
+      </div>
+
+      <canvas id="simChart" class="mt-6"></canvas>
+    </section>
+
+    <!-- Relación con Domo de Hierro -->
+    <section class="bg-white rounded-2xl shadow p-6">
+      <h2 class="text-2xl font-semibold text-blue-700 mb-3">Relación con el Domo de Hierro</h2>
+      <p>
+        Este modelo computacional se inspira en el sistema de defensa antimisiles Domo de Hierro, donde radares detectan amenazas y se
+        calcula en tiempo real la trayectoria de interceptores. Aunque aquí se simplifica a 2D, los principios básicos de predicción
+        e intercepción son similares.
+      </p>
+    </section>
+
+    <!-- Conclusiones -->
+    <section class="bg-white rounded-2xl shadow p-6">
+      <h2 class="text-2xl font-semibold text-blue-700 mb-3">Conclusiones</h2>
+      <p>
+        La simulación demuestra cómo un modelo físico simple permite comprender el funcionamiento de sistemas de defensa aérea.
+        Se observa que la altura de detección es clave para decidir si se usa solo la gravedad o se requiere propulsión adicional.
+      </p>
+    </section>
+
+    <!-- Bibliografía -->
+    <section class="bg-white rounded-2xl shadow p-6">
+      <h2 class="text-2xl font-semibold text-blue-700 mb-3">Bibliografía</h2>
+      <ul class="list-disc pl-6">
+        <li>Resnick, Halliday, Walker. <em>Fundamentos de Física</em>.</li>
+        <li>Goldstein, H. <em>Mecánica Clásica</em>.</li>
+        <li>Artículos sobre el sistema Domo de Hierro.</li>
+      </ul>
+    </section>
+
+  </div>
+
+  <script>
+    const g = 9.8;
+    const ctx = document.getElementById('simChart').getContext('2d');
+    let chart;
+
+    function simulate(x0, v0, theta) {
+      const rad = theta * Math.PI / 180;
+      const v0x = v0 * Math.cos(rad);
+      const v0y = v0 * Math.sin(rad);
+
+      let xData = [];
+      let yEnemy = [];
+      let yDefender = [];
+
+      for (let t = 0; t < 20; t += 0.1) {
+        const x = x0 + v0x * t;
+        const y = v0y * t - 0.5 * g * t * t;
+        if (y < 0) break;
+        xData.push(x);
+        yEnemy.push(y);
+
+        // misil defensor (lanzado desde el origen)
+        const yd = (v0y+5) * t - 0.5 * g * t * t; // pequeño boost si enemigo está bajo
+        yDefender.push(yd);
+      }
+
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: xData,
+          datasets: [
+            {label: 'Misil Enemigo', data: yEnemy, borderColor: 'red', fill: false},
+            {label: 'Misil Defensor', data: yDefender, borderColor: 'blue', fill: false}
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {legend: {position: 'top'}},
+          scales: {x: {title: {display: true, text: 'x (m)'}}, y: {title: {display: true, text: 'y (m)'}}}
+        }
+      });
+    }
+
+    document.getElementById('simBtn').addEventListener('click', () => {
+      const x0 = parseFloat(document.getElementById('x0').value);
+      const v0 = parseFloat(document.getElementById('v0').value);
+      const theta = parseFloat(document.getElementById('theta').value);
+      simulate(x0, v0, theta);
+    });
+
+    document.getElementById('randomBtn').addEventListener('click', () => {
+      const x0 = Math.floor(Math.random() * 500);
+      const v0 = 100 + Math.floor(Math.random() * 300);
+      const theta = 15 + Math.floor(Math.random() * 60);
+      document.getElementById('x0').value = x0;
+      document.getElementById('v0').value = v0;
+      document.getElementById('theta').value = theta;
+      document.getElementById('x0Val').textContent = x0;
+      document.getElementById('v0Val').textContent = v0;
+      document.getElementById('thetaVal').textContent = theta;
+    });
+
+    ['x0','v0','theta'].forEach(id => {
+      document.getElementById(id).addEventListener('input', e => {
+        document.getElementById(id+'Val').textContent = e.target.value;
+      });
+    });
+  </script>
+</body>
+</html>

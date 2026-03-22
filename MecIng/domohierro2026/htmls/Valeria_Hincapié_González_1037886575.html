@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación Defensa - Domo de Hierro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600;700&family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            background-color: #000000; /* Fondo completamente negro */
+            color: #cbd5e1;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .mono {
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* Estilos específicos de la simulación */
+        .radar-screen {
+            background: #000000;
+            border: 2px solid #1e293b;
+            /* Brillo exterior sutil rosado */
+            box-shadow: 0 0 40px rgba(236, 72, 153, 0.15);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .radar-screen::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(236, 72, 153, 0.05) 50%);
+            background-size: 100% 4px;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid #1e293b;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            background: #1e293b;
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #ec4899; /* Rosado */
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 12px #ec4899;
+            border: 2px solid #831843;
+        }
+
+        .neon-text-pink { color: #ec4899; text-shadow: 0 0 15px rgba(236, 72, 153, 0.6); }
+        
+        .section-container {
+            background: rgba(15, 15, 20, 0.6); /* Fondo muy oscuro para el texto */
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto space-y-8">
+        
+        <header class="border-b border-slate-700 pb-6 text-center md:text-left">
+            <h1 class="text-3xl font-bold text-slate-100 tracking-widest flex flex-col md:flex-row items-center md:justify-between">
+                <span>
+                    <span class="w-3 h-3 inline-block bg-pink-500 rounded-full mr-3 animate-pulse"></span>
+                    PROYECTO: DOMO DE HIERRO
+                </span>
+                <span class="text-pink-500 text-sm font-normal border border-pink-500/30 px-3 py-1 rounded mt-4 md:mt-0">FÍSICA MECÁNICA</span>
+            </h1>
+            <p class="text-slate-400 mt-2 uppercase tracking-widest text-sm">Universidad de Antioquia - Facultad de Ingeniería</p>
+        </header>
+
+        <section class="section-container">
+            <h2 class="text-xl font-bold text-pink-400 mb-4 uppercase tracking-widest border-b border-pink-900 pb-2">1. Enunciado del problema</h2>
+            <p class="mb-3">Un radar detecta un misil enemigo en vuelo. En el instante de detección, se conocen su posición inicial $\vec{r}_{0}$, su velocidad inicial $\vec{v}_{0}$ y sus cosenos directores $(l, m, n)$, que determinan su dirección en 3D. El misil enemigo se mueve únicamente bajo la acción de la gravedad terrestre.</p>
+            <p>El sistema de defensa debe calcular la dirección y velocidad inicial con la que debe lanzarse un misil interceptor desde el origen. Se deben contemplar dos escenarios:</p>
+            <ul class="list-disc pl-6 mt-2 space-y-1 text-slate-300">
+                <li>Si el enemigo está alto, el misil defensor sigue una trayectoria parabólica clásica.</li>
+                <li>Si la detección ocurre cerca al suelo, el defensor activa propulsores para obtener una aceleración extra en línea recta y lograr interceptar a tiempo.</li>
+            </ul>
+        </section>
+
+        <section class="section-container">
+            <h2 class="text-xl font-bold text-pink-400 mb-4 uppercase tracking-widest border-b border-pink-900 pb-2">2. Solución Algebraica Propuesta</h2>
+            
+            <h3 class="font-bold text-slate-200 mt-4 mb-2">Reducción al Plano 2D</h3>
+            <p class="mb-4">Dado que el proyectil solo está sometido a la aceleración de la gravedad $\vec{g} = (0, 0, -g)$, el movimiento ocurre íntegramente en el plano definido por los vectores $\vec{r}_0$ y $\vec{v}_0$. Transformando el sistema de coordenadas mediante rotación, reducimos el problema a un plano cartesiano $XY$, donde el misil enemigo es detectado en una coordenada $(x_0, y_0)$ con un vector de velocidad $\vec{v}_e = (v_{ex}, v_{ey})$.</p>
+
+            <h3 class="font-bold text-slate-200 mt-4 mb-2">Ecuaciones Cinemáticas del Enemigo</h3>
+            <p class="mb-4">Asumiendo $y_0 = 0$ para simplificar la detección inicial en el radar, las ecuaciones de posición para el enemigo son:</p>
+            $$ x_e(t) = x_0 + v_{ex} t $$
+            $$ y_e(t) = v_{ey} t - \frac{1}{2}gt^2 $$
+
+            <h3 class="font-bold text-slate-200 mt-4 mb-2">Condiciones de Intercepción</h3>
+            <p class="mb-4">Sea $t_{int}$ el tiempo de intercepción. Para que los proyectiles colisionen, deben ocupar las mismas coordenadas espaciales en el mismo instante de tiempo. Se calcula un punto futuro $(x_{int}, y_{int})$ en la trayectoria del enemigo:</p>
+            $$ x_d(t_{int}) = x_e(t_{int}) \quad \text{y} \quad y_d(t_{int}) = y_e(t_{int}) $$
+
+            <h3 class="font-bold text-slate-200 mt-4 mb-2">Caso 1: Interceptor sin propulsor (Tiro Parabólico)</h3>
+            <p class="mb-4">Aplicado cuando $y_{int}$ es suficientemente alto. El interceptor está sometido únicamente a la gravedad. Sus componentes de velocidad inicial requeridas son:</p>
+            $$ v_{dx} = \frac{x_{int}}{t_{int}} $$
+            $$ v_{dy} = \frac{y_{int} + \frac{1}{2}gt_{int}^2}{t_{int}} $$
+
+            <h3 class="font-bold text-slate-200 mt-4 mb-2">Caso 2: Interceptor con propulsor (Línea Recta)</h3>
+            <p class="mb-4">Aplicado cuando $y_{int}$ es cercano al suelo y se requiere máxima velocidad. El motor proporciona una aceleración $a_y$ que anula exactamente la gravedad local, permitiendo un vuelo rectilíneo:</p>
+            $$ \Sigma a_y = a_{motor} - g = 0 $$
+            $$ v_{dx} = \frac{x_{int}}{t_{int}} \quad ; \quad v_{dy} = \frac{y_{int}}{t_{int}} $$
+        </section>
+
+        <section class="section-container">
+            <h2 class="text-xl font-bold text-pink-400 mb-4 uppercase tracking-widest border-b border-pink-900 pb-2">3. Análisis Funcional y Teórico</h2>
+            <p class="mb-3">El sistema prioriza el uso de la energía. Un misil balístico convencional (tiro parabólico libre) es considerablemente más económico de operar, ya que solo requiere el impulso inicial y aprovecha la mecánica celeste para llegar al punto de impacto.</p>
+            <p>Sin embargo, la física restringe severamente los tiempos de vuelo bajo pura influencia gravitacional. Cuando la amenaza es detectada a baja altitud, el tiempo $\Delta t$ hasta el impacto con la ciudad es mínimo. En este caso crítico, el sistema sacrifica eficiencia por velocidad, activando motores de estado sólido que vencen la inercia gravitatoria y fuerzan el interceptor a viajar en línea recta recta (la distancia más corta entre dos puntos en geometría euclidiana), minimizando el tiempo de llegada al objetivo.</p>
+        </section>
+
+        <section class="section-container">
+            <h2 class="text-xl font-bold text-pink-400 mb-4 uppercase tracking-widest border-b border-pink-900 pb-2">4. Planteamiento de la Simulación</h2>
+            <p class="mb-3">La simulación discretiza las ecuaciones de movimiento cinemático utilizando el método de integración de Euler. El intervalo de actualización de fotogramas procesa pequeños $\Delta t$ para actualizar las posiciones $x$ e $y$ de ambos misiles de forma continua en el canvas.</p>
+            <h3 class="font-bold text-slate-200 mt-4 mb-2">Manejo de Números Aleatorios (Estocástico)</h3>
+            <p class="mb-4">Para cumplir con el diseño estocástico del problema, se implementó un motor matemático (`Math.random()`) que mapea la aleatoriedad dentro de los siguientes límites físicos operacionales:</p>
+            <ul class="list-disc pl-6 space-y-1 text-slate-300 font-mono text-sm">
+                <li>Velocidad inicial del enemigo ($v_0$): Entre $100$ m/s y $400$ m/s.</li>
+                <li>Ángulo de ataque ($\theta$): Entre $105^\circ$ y $165^\circ$ (equivalente a $15^\circ$-$75^\circ$ desde el eje negativo para apuntar hacia la base).</li>
+                <li>Distancia del radar ($x_0$): Entre $800$ m y $2500$ m.</li>
+            </ul>
+        </section>
+
+        <section class="section-container border-pink-500/30">
+            <h2 class="text-xl font-bold text-pink-400 mb-6 uppercase tracking-widest border-b border-pink-900 pb-2 flex items-center">
+                <span class="w-2 h-2 bg-pink-500 rounded-full mr-2 animate-ping"></span> 5. Simulación Interactiva en Tiempo Real
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-black p-4 rounded-xl border border-slate-800">
+                
+                <aside class="lg:col-span-3 space-y-4 relative z-20">
+                    <section class="glass-panel p-5 rounded-xl border-t-2 border-t-cyan-500/50">
+                        <h3 class="text-xs font-bold text-cyan-400 mb-5 flex items-center tracking-widest uppercase">
+                            [!] Amenaza Enemiga
+                        </h3>
+                        <div class="space-y-5">
+                            <div>
+                                <div class="flex justify-between mb-2"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Velocidad ($v_0$)</label><span id="vVal" class="mono text-slate-200 text-xs">250 m/s</span></div>
+                                <input type="range" id="vEnemigo" min="100" max="400" value="250" class="w-full">
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-2"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Ángulo (105°-165°)</label><span id="angVal" class="mono text-slate-200 text-xs">135°</span></div>
+                                <input type="range" id="angEnemigo" min="105" max="165" value="135" class="w-full">
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-2"><label class="text-[10px] text-slate-400 uppercase tracking-widest">Posición ($r_0$)</label><span id="xVal" class="mono text-slate-200 text-xs">1500 m</span></div>
+                                <input type="range" id="xPos" min="400" max="3000" value="1500" class="w-full">
+                            </div>
+                        </div>
+                        <div class="mt-8 flex flex-col gap-3">
+                            <button onclick="generarAleatorio()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded border border-slate-600 font-bold text-[10px] transition-all uppercase tracking-[0.2em]">Valores Aleatorios</button>
+                            <button onclick="lanzar()" id="btnLaunch" class="bg-pink-600/20 hover:bg-pink-600/40 text-pink-400 border border-pink-500/50 py-3 rounded font-bold text-xs transition-all uppercase tracking-widest shadow-[0_0_15px_rgba(236,72,153,0.3)]">Ejecutar Defensa</button>
+                        </div>
+                    </section>
+                    <section class="glass-panel p-4 rounded-xl border-l-2 border-l-pink-500/50">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Telemetría</h3>
+                            <span id="propState" class="text-[9px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">STDBY</span>
+                        </div>
+                        <div id="telemetria" class="bg-black/80 rounded p-3 font-mono text-[10px] text-pink-400/80 min-h-[120px] max-h-[120px] overflow-y-auto leading-relaxed border border-slate-800 shadow-inner">
+                            > SISTEMA INICIALIZADO...<br>> RADAR EN ESPERA...
+                        </div>
+                    </section>
+                </aside>
+
+                <main class="lg:col-span-9 relative flex flex-col z-10">
+                    <div class="relative group flex-grow radar-screen flex items-center justify-center min-h-[400px]">
+                        <canvas id="world" width="1000" height="600" class="w-full h-auto object-contain"></canvas>
+                        
+                        <div class="absolute top-4 left-4 text-[10px] text-pink-500 font-mono tracking-widest pointer-events-none drop-shadow-[0_0_2px_#ec4899]">
+                            ESCALA RADAR: <span id="scaleLabel">1.00x</span>
+                        </div>
+                        
+                        <div id="overlay" class="absolute inset-0 flex items-center justify-center bg-black/80 opacity-0 pointer-events-none transition-opacity duration-300 z-50">
+                            <div class="border-2 p-8 bg-slate-900/95 backdrop-blur-md rounded-xl text-center transform scale-95 transition-transform duration-300 border-pink-900" id="msgBox">
+                                <h2 id="msg" class="text-3xl md:text-4xl font-black uppercase tracking-widest mb-2 neon-text-pink"></h2>
+                                <p id="msgSub" class="text-sm font-mono text-slate-400 mb-6"></p>
+                                <button onclick="resetSimulation()" class="pointer-events-auto bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded font-bold text-xs border border-pink-700 tracking-widest uppercase transition-colors">[ Reiniciar Radar ]</button>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </section>
+
+        <section class="section-container">
+            <h2 class="text-xl font-bold text-pink-400 mb-4 uppercase tracking-widest border-b border-pink-900 pb-2">6. Relación con el Sistema Domo de Hierro</h2>
+            <p class="mb-3">El principio fundamental mostrado en esta simulación refleja la arquitectura computacional del "Iron Dome" real. Este sistema emplea tecnología de radar EL/M-2084 para calcular instantáneamente los vectores de estado ($\vec{r}_0$ y $\vec{v}_0$) de un cohete enemigo entrante.</p>
+            <p>De igual forma que nuestro algoritmo calcula el punto de impacto futuro $(x_{int}, y_{int})$ resolviendo ecuaciones cuadráticas derivadas de la cinemática newtoniana, el Domo de Hierro evalúa si la amenaza balística caerá en una zona despoblada o en un centro urbano. Si decide interceptar, calcula las soluciones óptimas para lanzar el misil Tamir (nuestro interceptor), determinando en fracciones de segundo si este requiere empuje continuo o si puede neutralizar la amenaza aprovechando una parábola balística pasiva.</p>
+        </section>
+
+        <section class="section-container">
+            <h2 class="text-xl font-bold text-pink-400 mb-4 uppercase tracking-widest border-b border-pink-900 pb-2">7. Conclusiones</h2>
+            <ul class="list-disc pl-6 space-y-2 text-slate-300">
+                <li>El uso de la cinemática newtoniana clásica es suficiente para establecer sistemas predictivos altamente complejos, siempre que las condiciones ideales (sin resistencia del aire extrema) se aproximen al modelo matemático.</li>
+                <li>Se demostró que reducir un sistema tridimensional a un plano bidimensional no compromete la integridad del cálculo balístico, ya que ambos vectores iniciales y la gravedad son coplanares.</li>
+                <li>La implementación de lógica algorítmica permite que el sistema tome "decisiones" autónomas (uso o no de propulsores) basadas exclusivamente en las restricciones de altura calculadas antes del lanzamiento.</li>
+            </ul>
+        </section>
+
+        <section class="section-container">
+            <h2 class="text-xl font-bold text-pink-400 mb-4 uppercase tracking-widest border-b border-pink-900 pb-2">8. Bibliografía</h2>
+            <ul class="list-decimal pl-6 space-y-2 text-slate-300 text-sm">
+                <li>Sears, F. W., Zemansky, M. W., Young, H. D., & Freedman, R. A. (2013). <i>Física universitaria</i>. Pearson educación.</li>
+                <li>Rafael Advanced Defense Systems Ltd. (n.d.). <i>Iron Dome Air Defense System</i>. Recuperado de la literatura técnica militar.</li>
+                <li>Universidad de Antioquia. (2026). <i>Quiz - Simulación computacional de interceptación de misiles</i>. Facultad de Ingeniería, Curso de Física Mecánica.</li>
+            </ul>
+        </section>
+
+        <footer class="text-center text-slate-500 text-sm pb-8 font-mono">
+            UdeA - Simulación Finalizada // END OF FILE
+        </footer>
+
+    </div>
+
+    <script>
+        const canvas = document.getElementById('world');
+        const ctx = canvas.getContext('2d');
+        const g = 9.81;
+        const groundLevel = 50;
+        
+        let escalaVisual = 1.0; 
+        let anguloRadar = 0;
+        let isSimulating = false;
+        let showExplosion = false;
+        let expX = 0, expY = 0;
+        let misiles = { enemigo: null, defensor: null };
+
+        // Edificios estáticos de fondo
+        const buildings = [];
+        function generarCiudad() {
+            buildings.length = 0;
+            let currentX = 0;
+            while (currentX < canvas.width) {
+                const width = Math.random() * 40 + 20;
+                const height = Math.random() * 120 + 30;
+                const windows = [];
+                if (height > 50) {
+                    const rows = Math.floor(height / 15);
+                    const cols = Math.floor(width / 10);
+                    for(let r=0; r<rows; r++) {
+                        for(let c=0; c<cols; c++) {
+                            if(Math.random() > 0.8) { 
+                                windows.push({ x: c * 10 + 3, y: r * 15 + 3, w: 4, h: 6 });
+                            }
+                        }
+                    }
+                }
+                buildings.push({ x: currentX, w: width, h: height, windows });
+                currentX += width + (Math.random() * 5);
+            }
+        }
+        generarCiudad();
+
+        const sliders = {
+            v: document.getElementById('vEnemigo'),
+            ang: document.getElementById('angEnemigo'),
+            x: document.getElementById('xPos')
+        };
+
+        function logTelemetry(msg, type="info") {
+            const t = document.getElementById('telemetria');
+            const color = type === "alert" ? "text-cyan-400" : type === "success" ? "text-pink-400" : "text-slate-300";
+            t.innerHTML += `<br><span class="${color}">> ${msg}</span>`;
+            t.scrollTop = t.scrollHeight;
+        }
+
+        function getCinematica() {
+            const v0 = parseFloat(sliders.v.value);
+            const ang = parseFloat(sliders.ang.value) * Math.PI / 180;
+            const x0 = parseFloat(sliders.x.value);
+
+            const vx_e = v0 * Math.cos(ang); 
+            const vy_e = v0 * Math.sin(ang);
+            
+            const t_suelo = (vy_e + Math.sqrt(vy_e**2 + 2*g*0)) / g;
+            const t_base = Math.abs(x0 / vx_e); 
+            const t_target = t_base * 0.85; 
+            
+            const ex_final = x0 + vx_e * t_target;
+            const ey_final = vy_e * t_target - 0.5 * g * t_target**2;
+
+            const usaProp = ey_final < 200; 
+            let vx_d, vy_d, accY_net;
+            
+            if (usaProp) {
+                vx_d = ex_final / t_target;
+                vy_d = ey_final / t_target;
+                accY_net = 0; 
+            } else {
+                vx_d = ex_final / t_target;
+                vy_d = (ey_final + 0.5 * g * t_target**2) / t_target;
+                accY_net = -g;
+            }
+
+            const apogeo_enemigo = (vy_e**2) / (2 * g);
+            const apogeo_defensor = !usaProp ? (vy_d**2) / (2 * g) : ey_final; 
+
+            return { x0, vx_e, vy_e, t_target, ex_final, ey_final, usaProp, accY_net, vx_d, vy_d, apogeo_enemigo, apogeo_defensor, t_suelo };
+        }
+
+        function calcularEscala() {
+            const c = getCinematica();
+            const altitudMaxima = Math.max(c.apogeo_enemigo, c.apogeo_defensor, 300) + 100; 
+            const anchoMaximo = c.x0 + 150;
+
+            const scaleY = (canvas.height - groundLevel) / altitudMaxima;
+            const scaleX = canvas.width / anchoMaximo;
+
+            escalaVisual = Math.min(scaleX, scaleY, 1.0);
+            document.getElementById('scaleLabel').innerText = escalaVisual.toFixed(2) + "x";
+        }
+
+        const updateState = () => {
+            if(!isSimulating) hideOverlay();
+            document.getElementById('vVal').innerText = `${sliders.v.value} m/s`;
+            document.getElementById('angVal').innerText = `${sliders.ang.value}°`;
+            document.getElementById('xVal').innerText = `${sliders.x.value} m`;
+            calcularEscala();
+        };
+
+        Object.values(sliders).forEach(s => s.addEventListener('input', () => {
+            if(!isSimulating) updateState();
+        }));
+
+        function generarAleatorio() {
+            if(isSimulating) return;
+            sliders.v.value = Math.floor(Math.random() * (400 - 100) + 100);
+            sliders.ang.value = Math.floor(Math.random() * (165 - 105) + 105);
+            sliders.x.value = Math.floor(Math.random() * (2500 - 800) + 800);
+            logTelemetry("NUEVAS COORDENADAS RECIBIDAS");
+            updateState();
+        }
+
+        function resetSimulation() {
+            hideOverlay();
+            isSimulating = false;
+            showExplosion = false;
+            misiles.enemigo = null;
+            misiles.defensor = null;
+            document.getElementById('btnLaunch').classList.remove('opacity-50', 'cursor-not-allowed');
+            updateState();
+            logTelemetry("SISTEMA EN ESPERA...");
+        }
+
+        function hideOverlay() {
+            const overlay = document.getElementById('overlay');
+            overlay.classList.remove("pointer-events-auto");
+            overlay.classList.add("pointer-events-none");
+            overlay.classList.replace("opacity-100", "opacity-0");
+            document.getElementById('msgBox').classList.replace("scale-100", "scale-95");
+        }
+
+        function renderLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            drawEstheticBackground();
+            drawCity();
+            drawTacticalOverlay();
+            
+            if (!isSimulating && !showExplosion) drawPrediction();
+
+            if (isSimulating) {
+                updatePhysics();
+                drawTrails();
+                // Enemigo: Cian, Defensor: Rosado
+                if(misiles.enemigo && misiles.enemigo.active) dibujarMisilRealista(misiles.enemigo, '#06b6d4', false);
+                if(misiles.defensor && misiles.defensor.active) dibujarMisilRealista(misiles.defensor, '#ec4899', true);
+            }
+
+            if (showExplosion) drawExplosionParticle(expX, expY);
+
+            requestAnimationFrame(renderLoop);
+        }
+
+        function drawEstheticBackground() {
+            // Fondo Negro puro arriba, difuminándose a magenta oscuro en el horizonte
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height - groundLevel);
+            skyGrad.addColorStop(0, '#000000');
+            skyGrad.addColorStop(0.6, '#000000');
+            skyGrad.addColorStop(1, '#2e0219'); 
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Sol synthwave rosado/fucsia
+            const sunY = canvas.height - groundLevel + 20; 
+            const sunRadius = 80;
+            ctx.save();
+            ctx.shadowBlur = 40;
+            ctx.shadowColor = '#ec4899';
+            ctx.fillStyle = '#ec4899';
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, sunY, sunRadius, Math.PI, 0); 
+            ctx.fill();
+            ctx.restore();
+
+            ctx.fillStyle = skyGrad; 
+            for (let i = 1; i < 6; i++) {
+                const thickness = i * 2.5;
+                const ly = sunY - sunRadius + (i * (sunRadius*2 / 7));
+                if(ly < sunY) {
+                     ctx.fillRect(canvas.width/2 - sunRadius - 10, ly, sunRadius*2 + 20, thickness);
+                }
+            }
+        }
+
+        function drawCity() {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, canvas.height - groundLevel, canvas.width, groundLevel);
+
+            // Línea de neón rosado en el suelo
+            ctx.strokeStyle = '#ec4899';
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 10; ctx.shadowColor = '#ec4899';
+            ctx.beginPath(); ctx.moveTo(0, canvas.height - groundLevel); ctx.lineTo(canvas.width, canvas.height - groundLevel); ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            ctx.save();
+            ctx.fillStyle = '#050505'; // Edificios casi negros puros
+            buildings.forEach(b => {
+                const drawY = canvas.height - groundLevel - b.h;
+                ctx.fillRect(b.x, drawY, b.w, b.h);
+                
+                ctx.fillStyle = 'rgba(236, 72, 153, 0.6)'; // Ventanas fucsias tenues
+                if(Math.random() > 0.5) ctx.fillStyle = 'rgba(6, 182, 212, 0.6)'; // O cian
+                b.windows.forEach(w => {
+                    ctx.fillRect(b.x + w.x, drawY + w.y, w.w, w.h);
+                });
+                ctx.fillStyle = '#050505'; 
+            });
+            ctx.restore();
+        }
+
+        function drawTacticalOverlay() {
+            const rx = 0; 
+            const ry = canvas.height - groundLevel;
+            
+            ctx.save();
+            ctx.strokeStyle = 'rgba(236, 72, 153, 0.15)'; // Anillos rosados tenues
+            ctx.lineWidth = 1;
+            const pasoAnillo = 500; 
+            
+            for(let r = pasoAnillo; r <= 4000; r += pasoAnillo) {
+                const radioVisual = r * escalaVisual;
+                if(radioVisual > canvas.width * 1.5) break; 
+                ctx.beginPath();
+                ctx.arc(rx, ry, radioVisual, Math.PI * 1.5, Math.PI * 2); 
+                ctx.stroke();
+                
+                ctx.fillStyle = 'rgba(236, 72, 153, 0.4)'; 
+                ctx.font = '9px monospace';
+                ctx.fillText(`${r}m`, rx + radioVisual - 30, ry - 5);
+            }
+
+            anguloRadar -= 0.015;
+            ctx.translate(rx, ry);
+            ctx.rotate(anguloRadar);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.arc(0, 0, canvas.width, 0, 0.15);
+            ctx.closePath();
+            const grad = ctx.createRadialGradient(0,0,0, 0,0, canvas.width/2);
+            grad.addColorStop(0, 'rgba(236, 72, 153, 0.08)');
+            grad.addColorStop(1, 'rgba(236, 72, 153, 0)');
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.restore();
+
+            // Base Domo (Rosado)
+            ctx.fillStyle = '#ec4899';
+            ctx.shadowBlur = 15; ctx.shadowColor = '#ec4899';
+            ctx.fillRect(0, ry - 5, 25, 5);
+            
+            // Origen Enemigo (Cian)
+            const x0_visual = parseFloat(sliders.x.value) * escalaVisual;
+            ctx.fillStyle = '#06b6d4';
+            ctx.shadowColor = '#06b6d4';
+            ctx.fillRect(x0_visual - 15, ry - 4, 30, 4);
+            ctx.shadowBlur = 0;
+        }
+
+        function drawPrediction() {
+            const c = getCinematica();
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 6]);
+
+            // Enemigo (Cian punteado)
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(6, 182, 212, 0.5)';
+            for(let t=0; t<=c.t_suelo; t+=0.1) {
+                let px = (c.x0 + c.vx_e * t) * escalaVisual;
+                let py = canvas.height - groundLevel - ((c.vy_e * t - 0.5 * g * t*t) * escalaVisual);
+                if(py > canvas.height - groundLevel + 10) break;
+                if(t===0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            // Defensor (Rosado)
+            ctx.beginPath();
+            ctx.strokeStyle = c.usaProp ? 'rgba(236, 72, 153, 0.9)' : 'rgba(236, 72, 153, 0.4)';
+            for(let t=0; t<=c.t_target; t+=0.05) {
+                let px = (c.vx_d * t) * escalaVisual;
+                let py = canvas.height - groundLevel - ((c.vy_d * t + 0.5 * c.accY_net * t*t) * escalaVisual);
+                if(t===0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]); 
+
+            // Punto de Impacto (Blanco/Rosado)
+            const ix = c.ex_final * escalaVisual;
+            const iy = canvas.height - groundLevel - (c.ey_final * escalaVisual);
+            ctx.beginPath(); ctx.strokeStyle = '#fbcfe8'; ctx.lineWidth = 1;
+            ctx.arc(ix, iy, 12, 0, Math.PI*2);
+            ctx.moveTo(ix - 18, iy); ctx.lineTo(ix + 18, iy);
+            ctx.moveTo(ix, iy - 18); ctx.lineTo(ix, iy + 18);
+            ctx.stroke();
+
+            const propUI = document.getElementById('propState');
+            if(c.usaProp) {
+                propUI.innerText = "DEFENSA: LÍNEA RECTA (MOTOR ACTIVO)";
+                propUI.className = "text-[9px] px-2 py-0.5 rounded bg-pink-900 text-pink-300 border border-pink-500 animate-pulse";
+            } else {
+                propUI.innerText = "DEFENSA: PARÁBOLA (MOTOR OFF)";
+                propUI.className = "text-[9px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700";
+            }
+        }
+
+        function dibujarMisilRealista(obj, colorNose, isDefensor) {
+            const px = obj.x * escalaVisual;
+            const py = canvas.height - groundLevel - (obj.y * escalaVisual);
+            const angle = Math.atan2(-obj.vy, obj.vx);
+
+            ctx.save();
+            ctx.translate(px, py);
+            ctx.rotate(angle);
+            ctx.scale(0.8, 0.8);
+
+            if (obj.active) {
+                const longitudFuego = obj.boosting ? 60 : 25;
+                ctx.beginPath();
+                ctx.moveTo(-15, 0);
+                ctx.lineTo(-15 - longitudFuego - Math.random()*10, -4);
+                ctx.lineTo(-15 - longitudFuego - 10 - Math.random()*10, 0);
+                ctx.lineTo(-15 - longitudFuego - Math.random()*10, 4);
+                
+                ctx.fillStyle = isDefensor ? '#fbcfe8' : '#cffafe'; 
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = isDefensor ? '#ec4899' : '#06b6d4';
+                ctx.fill();
+            }
+
+            ctx.shadowBlur = 0; 
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.moveTo(-15, -4); ctx.lineTo(-18, -10); ctx.lineTo(-8, -10); ctx.lineTo(-5, -4);
+            ctx.moveTo(-15, 4); ctx.lineTo(-18, 10); ctx.lineTo(-8, 10); ctx.lineTo(-5, 4);
+            ctx.fill();
+
+            let grad = ctx.createLinearGradient(0, -4, 0, 4);
+            grad.addColorStop(0, '#64748b'); grad.addColorStop(0.5, '#cbd5e1'); grad.addColorStop(1, '#475569');
+            ctx.fillStyle = grad; ctx.fillRect(-15, -4, 30, 8);
+
+            ctx.fillStyle = colorNose;
+            ctx.beginPath(); ctx.moveTo(15, -4); ctx.lineTo(25, 0); ctx.lineTo(15, 4); ctx.closePath(); ctx.fill();
+            ctx.restore();
+        }
+
+        function drawTrails() {
+            ctx.lineWidth = 2.5;
+            ctx.shadowBlur = 6;
+            [misiles.enemigo, misiles.defensor].forEach((m, idx) => {
+                if(!m || m.trail.length < 2) return;
+                
+                if(idx === 0) { // Enemigo cian
+                    ctx.strokeStyle = 'rgba(6, 182, 212, 0.7)'; 
+                    ctx.shadowColor = '#06b6d4';
+                } else { // Defensor rosado
+                    ctx.strokeStyle = m.boosting ? 'rgba(236, 72, 153, 1)' : 'rgba(236, 72, 153, 0.6)';
+                    ctx.shadowColor = '#ec4899';
+                }
+
+                ctx.beginPath();
+                m.trail.forEach((t, i) => {
+                    let px = t.x * escalaVisual;
+                    let py = canvas.height - groundLevel - (t.y * escalaVisual);
+                    if(i===0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+            });
+            ctx.shadowBlur = 0;
+        }
+
+        function lanzar() {
+            if(isSimulating) return;
+            hideOverlay();
+            
+            updateState(); 
+            isSimulating = true;
+            showExplosion = false;
+            
+            document.getElementById('btnLaunch').classList.add('opacity-50', 'cursor-not-allowed');
+            
+            const c = getCinematica();
+
+            misiles.enemigo = {
+                x: c.x0, y: 0, 
+                vx: c.vx_e, vy: c.vy_e,
+                ay: -g,
+                active: true, trail: []
+            };
+
+            misiles.defensor = {
+                x: 0, y: 0,
+                vx: c.vx_d, vy: c.vy_d,
+                ay: c.accY_net,
+                active: true, boosting: c.usaProp, trail: []
+            };
+            
+            logTelemetry(`LANZAMIENTO HOSTIL DETECTADO.`, "alert");
+            logTelemetry(c.usaProp ? `INTERCEPTOR: TRAYECTORIA RECTA` : `INTERCEPTOR: TIRO PARABÓLICO LIBRE`);
+        }
+
+        function updatePhysics() {
+            const dt = 0.08; 
+
+            [misiles.enemigo, misiles.defensor].forEach((m, idx) => {
+                if (!m || !m.active) return;
+                
+                m.vy += m.ay * dt;
+                m.x += m.vx * dt;
+                m.y += m.vy * dt;
+
+                m.trail.push({x: m.x, y: m.y});
+                if(m.trail.length > 80) m.trail.shift();
+            });
+
+            if(misiles.enemigo.active && misiles.defensor.active) {
+                const dist = Math.hypot(misiles.enemigo.x - misiles.defensor.x, misiles.enemigo.y - misiles.defensor.y);
+                if (dist < 40) { 
+                    finalizarSimulacion(true, misiles.enemigo.x, misiles.enemigo.y);
+                }
+            }
+            if(misiles.enemigo.active && misiles.enemigo.y < -10) {
+                 finalizarSimulacion(false, misiles.enemigo.x, 0);
+            }
+        }
+
+        function finalizarSimulacion(exito, x, y) {
+            misiles.enemigo.active = false;
+            misiles.defensor.active = false;
+            expX = x; expY = y;
+            showExplosion = true;
+            isSimulating = false;
+            
+            setTimeout(() => { showExplosion = false; drawStaticExplosion(x,y, exito); }, 1200);
+
+            const ov = document.getElementById('overlay');
+            const msg = document.getElementById('msg');
+            const sub = document.getElementById('msgSub');
+            const box = document.getElementById('msgBox');
+
+            if(exito) {
+                msg.innerText = "Interceptación Exitosa";
+                msg.className = "text-3xl md:text-4xl font-black uppercase tracking-widest mb-2 neon-text-pink";
+                sub.innerText = `Amenaza neutralizada a ${Math.round(y)}m.`;
+                box.style.borderColor = "#be185d";
+                logTelemetry("AMENAZA NEUTRALIZADA.", "success");
+            } else {
+                msg.innerText = "Fallo de Defensa";
+                msg.className = "text-3xl md:text-4xl font-black uppercase tracking-widest mb-2 text-cyan-500";
+                sub.innerText = "Impacto registrado en zona táctica.";
+                box.style.borderColor = "#0891b2";
+                logTelemetry("IMPACTO ENEMIGO.", "alert");
+            }
+
+            setTimeout(() => {
+                ov.classList.replace("opacity-0", "opacity-100");
+                ov.classList.add("pointer-events-auto");
+                box.classList.replace("scale-95", "scale-100");
+            }, 1500);
+        }
+
+        const particles = [];
+        function drawExplosionParticle(x, y) {
+            const px = x * escalaVisual;
+            const py = canvas.height - groundLevel - (y * escalaVisual);
+            
+            if(particles.length === 0) {
+                for(let i=0; i<60; i++) {
+                    particles.push({
+                        x: 0, y: 0,
+                        vx: (Math.random() - 0.5) * 35,
+                        vy: (Math.random() - 0.5) * 35,
+                        life: Math.random() * 60 + 30,
+                        size: Math.random() * 5 + 2
+                    });
+                }
+            }
+
+            ctx.save();
+            ctx.translate(px, py);
+            particles.forEach(p => {
+                if(p.life > 0) {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${p.life/90})`; 
+                    if(Math.random()>0.5) ctx.fillStyle = `rgba(236, 72, 153, ${p.life/90})`; // Fucsia
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                    ctx.fill();
+                    p.x += p.vx; p.y += p.vy;
+                    p.vy += 0.5; 
+                    p.life--; p.size *= 0.96;
+                }
+            });
+            ctx.restore();
+        }
+
+        function drawStaticExplosion(x,y, exito) {
+            const px = x * escalaVisual;
+            const py = canvas.height - groundLevel - (y * escalaVisual);
+            ctx.save();
+            ctx.beginPath();
+            const grad = ctx.createRadialGradient(px, py, 0, px, py, 60);
+            if(exito) {
+                grad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+                grad.addColorStop(0.3, 'rgba(236, 72, 153, 0.6)');
+                grad.addColorStop(1, 'rgba(236, 72, 153, 0)');
+            } else {
+                grad.addColorStop(0, 'rgba(255, 255, 255, 0.9)'); 
+                grad.addColorStop(0.5, 'rgba(6, 182, 212, 0.6)');
+                grad.addColorStop(1, 'rgba(6, 182, 212, 0)');
+            }
+            ctx.fillStyle = grad;
+            ctx.arc(px, py, 80, 0, Math.PI*2);
+            ctx.fill();
+            ctx.restore();
+            particles.length = 0;
+        }
+
+        updateState();
+        renderLoop();
+        window.addEventListener('resize', updateState);
+
+    </script>
+</body>
+</html>

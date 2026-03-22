@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trabajo de Física Mecánica - Interceptación Profesional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;700&display=swap');
+
+        :root {
+            --bg-dark: #0a0c0a;
+            --panel-bg: #121612;
+            --accent-green: #4ade80;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #e5e7eb;
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        .font-military { font-family: 'Orbitron', sans-serif; }
+
+        .glass-panel {
+            background: rgba(18, 22, 18, 0.95);
+            border: 1px solid rgba(74, 222, 128, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 1.5rem;
+        }
+
+        .formula-container {
+            background: #1a1f1a;
+            padding: 1.2rem;
+            border-left: 4px solid var(--accent-green);
+            margin: 1rem 0;
+            overflow-x: auto;
+            border-radius: 0 8px 8px 0;
+        }
+
+        canvas {
+            background: radial-gradient(circle, #1a241b 0%, #050705 100%);
+            border-bottom: 4px solid #1e261e;
+            width: 100%;
+            display: block;
+        }
+
+        input[type=range] { accent-color: var(--accent-green); }
+
+        .telemetry-bar {
+            background: #0f120f;
+            border-bottom: 2px solid #2d3a28;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .telemetry-item {
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .telemetry-label {
+            font-size: 9px;
+            color: #6b7280;
+            text-transform: uppercase;
+            display: block;
+        }
+
+        .telemetry-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            color: var(--accent-green);
+            font-weight: bold;
+        }
+
+        .section-title {
+            color: var(--accent-green);
+            font-family: 'Orbitron', sans-serif;
+            border-bottom: 1px solid rgba(74, 222, 128, 0.3);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 1.1rem;
+        }
+
+        .tactical-box { position: relative; }
+        .tactical-box::before, .tactical-box::after, .corner-tr, .corner-bl {
+            content: ''; position: absolute; width: 16px; height: 16px; pointer-events: none; z-index: 20;
+        }
+        .tactical-box::before { top: -1px; left: -1px; border-top: 2px solid var(--accent-green); border-left: 2px solid var(--accent-green); border-top-left-radius: 12px; }
+        .tactical-box::after { bottom: -1px; right: -1px; border-bottom: 2px solid var(--accent-green); border-right: 2px solid var(--accent-green); border-bottom-right-radius: 12px; }
+        .corner-tr { top: -1px; right: -1px; border-top: 2px solid var(--accent-green); border-right: 2px solid var(--accent-green); border-top-right-radius: 12px; }
+        .corner-bl { bottom: -1px; left: -1px; border-bottom: 2px solid var(--accent-green); border-left: 2px solid var(--accent-green); border-bottom-left-radius: 12px; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-8 relative">
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 mb-4">
+                <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="1.2" stroke-linejoin="round" class="opacity-90">
+                    <polygon points="12,2 21,17 3,17" />
+                    <polygon points="12,22 3,7 21,7" />
+                </svg>
+                <div class="text-center md:text-left">
+                    <h1 class="text-3xl md:text-5xl font-bold text-white font-military uppercase tracking-tighter leading-none">Simulación Domo de Hierro</h1>
+                </div>
+            </div>
+            <div class="h-[2px] w-64 bg-green-500 mx-auto mb-3 shadow-[0_0_10px_#4ade80]"></div>
+            <p class="text-gray-400 font-military text-[10px] tracking-widest uppercase">Universidad de Antioquia - Física Mecánica</p>
+        </header>
+
+        <section class="glass-panel p-6 tactical-box">
+            <div class="corner-tr"></div><div class="corner-bl"></div>
+            <h2 class="section-title">1. ENUNCIADO DEL PROBLEMA</h2>
+            <div class="space-y-3 text-gray-300 text-xs leading-relaxed text-justify">
+                <p>Un radar táctico detecta un misil enemigo en vuelo. En el instante de detección, se conocen la posición inicial \(\vec{r}_{0}\), su velocidad inicial \(\vec{v}_{0}\) y sus cosenos directores \((l, m, n)\), que determinan su dirección en 3D. El misil se mueve únicamente bajo la acción de la gravedad terrestre.</p>
+                <p>El sistema de defensa debe calcular la dirección y velocidad inicial para lanzar un misil interceptor. Si el enemigo es detectado alto, se usa tiro parabólico clásico; si está muy cerca al suelo, se activan propulsores (aceleración extra).</p>
+            </div>
+        </section>
+
+        <section class="glass-panel p-6 tactical-box">
+            <div class="corner-tr"></div><div class="corner-bl"></div>
+            <h2 class="section-title">2. SOLUCIÓN ALGEBRAICA (REDUCCIÓN A 2D)</h2>
+            <div class="space-y-3 text-gray-300 text-xs leading-relaxed text-justify">
+                <p>Para simplificar la trayectoria del misil enemigo de 3D a un plano 2D de intercepción, utilizamos los cosenos directores \((l, m, n)\) del vector velocidad original \(\vec{v}_{0}\).</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="formula-container">
+                        <span class="text-[9px] text-green-500 block">Eje Horizontal Combinado (x')</span>
+                        \[ v_{x'} = |\vec{v}_0| \sqrt{l^2 + n^2} \]
+                    </div>
+                    <div class="formula-container">
+                        <span class="text-[9px] text-green-500 block">Componente Vertical Real (y)</span>
+                        \[ v_y = |\vec{v}_0| \cdot m \]
+                    </div>
+                </div>
+                <p>Ecuaciones cinemáticas de posición en el plano proyectado:</p>
+                <div class="formula-container">
+                    \[ x_e(t) = x_{e0} + v_{xe}t \]
+                    \[ y_e(t) = y_{e0} + v_{ye}t - \frac{1}{2}gt^2 \]
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-panel p-6 tactical-box">
+            <div class="corner-tr"></div><div class="corner-bl"></div>
+            <h2 class="section-title">3. ANÁLISIS FUNCIONAL Y TEÓRICO</h2>
+            <div class="space-y-3 text-gray-300 text-xs leading-relaxed text-justify">
+                <p>La condición matemática para el éxito de la intercepción establece que los vectores de posición de ambos proyectiles deben igualarse en un mismo instante de tiempo \(t_c\) (tiempo de colisión): \(\vec{r}_e(t_c) = \vec{r}_d(t_c)\).</p>
+                <p>Dado que el tiempo de reacción es limitado, el uso de propulsores adicionales en el misil defensor permite anular parcialmente el efecto de la gravedad en su sistema de referencia local, permitiéndole trazar trayectorias más directas y alcanzar altas velocidades necesarias para impactos a baja altitud.</p>
+            </div>
+        </section>
+
+        <section class="glass-panel p-6 tactical-box">
+            <div class="corner-tr"></div><div class="corner-bl"></div>
+            <h2 class="section-title">4. PLANTEAMIENTO DE LA SIMULACIÓN</h2>
+            <div class="space-y-3 text-gray-300 text-xs leading-relaxed text-justify">
+                <p>Para la simulación computacional, se incorporó un elemento estocástico mediante el uso de generadores de números aleatorios (<code>Math.random()</code>). Esto permite que cada ejecución del simulador represente un escenario táctico único.</p>
+                <ul class="list-disc pl-5 space-y-1 text-gray-400">
+                    <li><strong>Posición enemiga \(\vec{r}_0\):</strong> Se asigna aleatoriamente a una distancia de 4,000 a 7,000 metros.</li>
+                    <li><strong>Velocidad inicial \(\vec{v}_0\):</strong> Varía aleatoriamente entre 150 m/s y 250 m/s.</li>
+                    <li><strong>Ángulo de inclinación:</strong> Asignado según los cosenos directores aleatorizados.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 5. SIMULACIÓN INTERACTIVA (MANUAL) -->
+        <h2 class="section-title mt-8">5. SIMULACIÓN INTERACTIVA</h2>
+        <div class="glass-panel overflow-hidden border-2 border-green-900/50 mb-8 tactical-box">
+            <div class="corner-tr"></div><div class="corner-bl"></div>
+            <div class="telemetry-bar">
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Tiempo de Vuelo</span>
+                    <span id="dataTime" class="telemetry-value">0.00 s</span>
+                </div>
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Distancia al Impacto</span>
+                    <span id="dataDist" class="telemetry-value">---</span>
+                </div>
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Velocidad Enemiga</span>
+                    <span id="dataVelE" class="telemetry-value">0.00 m/s</span>
+                </div>
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Altitud Objetivo</span>
+                    <span id="dataAltE" class="telemetry-value">0.00 m</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row">
+                <div class="flex-1 bg-black relative">
+                    <canvas id="radarCanvas"></canvas>
+                    <div class="absolute top-2 left-2 pointer-events-none">
+                        <div class="bg-black/40 border-l-2 border-red-500 p-1 text-[9px] font-military text-red-400">
+                            ESCANEO TÁCTICO EN TIEMPO REAL
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full md:w-64 bg-[#0c0f0c] p-5 space-y-6 border-t md:border-t-0 md:border-l border-green-900/40">
+                    <button id="btnScan" class="w-full py-3 bg-green-800 hover:bg-green-700 text-white font-bold rounded shadow transition-all font-military text-[10px]">
+                        DETECTAR NUEVO OBJETIVO
+                    </button>
+
+                    <div class="space-y-5">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-[9px] text-green-500 font-military uppercase">Velocidad de Lanzamiento</label>
+                                <span id="valV" class="text-[10px] text-white font-military">250 m/s</span>
+                            </div>
+                            <input type="range" id="inputV" min="50" max="450" value="250" class="w-full h-1">
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-[9px] text-green-500 font-military uppercase">Elevación (θ)</label>
+                                <span id="valAng" class="text-[10px] text-white font-military">45°</span>
+                            </div>
+                            <input type="range" id="inputAng" min="5" max="85" value="45" class="w-full h-1">
+                        </div>
+
+                        <div class="bg-green-900/5 p-2 rounded border border-green-900/20 flex items-center gap-2">
+                            <input type="checkbox" id="checkProp" class="w-3 h-3 bg-black border-green-900 rounded">
+                            <label for="checkProp" class="text-[9px] text-green-400 font-military uppercase">Propulsor Extra</label>
+                        </div>
+                    </div>
+
+                    <button id="btnFire" disabled class="w-full py-4 bg-red-700 hover:bg-red-600 disabled:bg-gray-800 disabled:opacity-20 text-white font-bold text-lg rounded shadow-lg transition-all font-military">
+                        FUEGO
+                    </button>
+                    <p id="statusMsg" class="text-center text-[9px] font-military uppercase text-gray-500 tracking-tighter"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. SECCIÓN MODO AUTOMÁTICO IRON DOME -->
+        <section class="glass-panel p-8 tactical-box relative">
+            <div class="corner-tr"></div><div class="corner-bl"></div>
+            <h2 class="section-title">6. RELACIÓN CON EL SISTEMA DOMO DE HIERRO (SIMULACIÓN AUTOMÁTICA)</h2>
+            <p class="text-[11px] text-gray-500 font-military mb-4 uppercase">Ráfaga de misiles simultáneos - Precisión de Interceptación 100%</p>
+            
+            <div class="relative bg-black rounded border border-green-900/30 overflow-hidden mb-4">
+                <canvas id="autoCanvas" class="w-full"></canvas>
+                
+                <!-- Overlay de Inicio -->
+                <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm z-20" id="autoOverlay">
+                    <div class="mb-6 text-center">
+                        <label class="text-green-400 font-military text-xs uppercase block mb-2">Misiles Simultáneos en la Ráfaga (Máx 100)</label>
+                        <input type="number" id="autoMissileCount" min="1" max="100" value="10" class="bg-black border border-green-500 text-green-400 font-military text-center p-2 rounded w-32 outline-none focus:border-green-300">
+                    </div>
+                    <button id="startAuto" class="bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-4 rounded font-military text-sm border-2 border-white/20 shadow-[0_0_20px_rgba(220,38,38,0.5)] transition-all transform hover:scale-105">
+                        INICIAR PROTOCOLO IRON DOME
+                    </button>
+                </div>
+
+                <!-- Botón para detener -->
+                <div class="absolute top-4 right-4 z-10 hidden" id="autoControls">
+                    <button id="stopAuto" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold px-4 py-2 rounded font-military text-[10px] border border-white/20 shadow-lg transition-all">
+                        DETENER SIMULACIÓN
+                    </button>
+                </div>
+
+                <div class="absolute bottom-4 left-4 bg-black/80 p-3 border-l-2 border-green-500 rounded-r shadow-lg z-10">
+                    <p class="text-[10px] font-military text-yellow-500 uppercase">Estado: <span id="autoStatus">Standby</span></p>
+                    <p class="text-[10px] font-military text-white uppercase mt-1">Amenazas Neutralizadas: <span id="autoKills" class="text-green-400 text-sm">0 / 0</span></p>
+                </div>
+            </div>
+            <p class="text-[12px] text-gray-400 italic text-justify">El comportamiento de este modo emula la saturación de espacio aéreo que maneja el Domo de Hierro (Iron Dome) real. El sistema es capaz de detectar múltiples lanzamientos simultáneos, calcular trayectorias y disparar interceptores tipo 'Tamir' guiados que impactan al objetivo en el aire asegurando un 100% de neutralización para las zonas urbanas.</p>
+        </section>
+
+        <!-- 7 Y 8. CONCLUSIONES Y BIBLIOGRAFÍA -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 mb-10">
+            <section class="glass-panel p-6 tactical-box">
+                <div class="corner-tr"></div><div class="corner-bl"></div>
+                <h2 class="section-title">7. CONCLUSIONES</h2>
+                <ul class="list-disc pl-5 space-y-2 text-gray-300 text-xs leading-relaxed">
+                    <li>La reducción al plano 2D simplifica drásticamente el modelo matemático sin perder precisión en la física del impacto.</li>
+                    <li>Un mínimo error en el ángulo de lanzamiento en un entorno manual resulta en un fallo crítico defensivo.</li>
+                    <li>La propulsión activa en el misil defensor es esencial para corregir trayectorias en vuelo y combatir la gravedad, emulando la tecnología moderna antimisiles.</li>
+                </ul>
+            </section>
+            
+            <section class="glass-panel p-6 tactical-box">
+                <div class="corner-tr"></div><div class="corner-bl"></div>
+                <h2 class="section-title">8. BIBLIOGRAFÍA</h2>
+                <ul class="list-disc pl-5 space-y-2 text-gray-300 text-xs leading-relaxed">
+                    <li>Serway, R. A., & Jewett, J. W. (2018). <em>Física para ciencias e ingeniería</em>. Cengage Learning.</li>
+                    <li>Documentación oficial de la Facultad de Ingeniería. Universidad de Antioquia (2026). <em>Curso de Física Mecánica</em>.</li>
+                    <li>Información técnica de sistemas de interceptación. Rafael Advanced Defense Systems (Iron Dome).</li>
+                </ul>
+            </section>
+        </div>
+
+        <footer class="text-center pb-6 text-gray-700 text-[9px] font-military uppercase tracking-[3px]">
+            © 2026 - Universidad de Antioquia - Proyecto Interceptor
+        </footer>
+    </div>
+
+    <script>
+        // --- FUNCIÓN UTILITARIA: GENERAR VENTANAS ESTRUCTURADAS ---
+        function generateSimpleWindows(bw, bh) {
+            let windows = [];
+            let padX = bw * 0.15;
+            let padY = bh * 0.15;
+            let winW = (bw - padX * 3) / 2;
+            let winH = (bh - padY * 3) / 2;
+            
+            windows.push({ x: padX, y: padY, w: winW, h: winH });
+            windows.push({ x: padX * 2 + winW, y: padY, w: winW, h: winH });
+            windows.push({ x: padX, y: padY * 2 + winH, w: winW, h: winH });
+            windows.push({ x: padX * 2 + winW, y: padY * 2 + winH, w: winW, h: winH });
+            
+            return windows;
+        }
+
+        // --- SISTEMA DE PARTÍCULAS AVANZADO ---
+        class Effect {
+            constructor(x, y, vx, vy, color, life, size = 2) {
+                this.x = x; this.y = y; this.vx = vx; this.vy = vy; 
+                this.color = color; this.life = life; this.maxLife = life; this.size = size;
+            }
+            update() { 
+                this.x += this.vx; this.y += this.vy; 
+                this.life -= 0.025; this.size *= 0.96; 
+            }
+            draw(context, sc) {
+                if (this.life <= 0) return;
+                context.globalAlpha = Math.max(0, this.life / this.maxLife);
+                context.fillStyle = this.color;
+                context.beginPath();
+                context.arc(this.x * sc, context.canvas.height - 40 - (this.y * sc), this.size * sc, 0, Math.PI * 2);
+                context.fill();
+                context.globalAlpha = 1;
+            }
+        }
+
+        class Shockwave {
+            constructor(x, y, color) { 
+                this.x = x; this.y = y; this.color = color; this.radius = 1; this.life = 1.0; 
+            }
+            update() { this.radius += 25; this.life -= 0.05; }
+            draw(context, sc) {
+                if(this.life <= 0) return;
+                context.globalAlpha = Math.max(0, this.life);
+                context.strokeStyle = this.color;
+                context.lineWidth = 3;
+                context.beginPath();
+                context.arc(this.x * sc, context.canvas.height - 40 - (this.y * sc), this.radius * sc, 0, Math.PI * 2);
+                context.stroke();
+                context.globalAlpha = 1;
+            }
+        }
+
+        function createLaunchSmoke(x, y, targetArr) {
+            targetArr.push(new Shockwave(x, y, '#fbbf24'));
+            for(let i=0; i<40; i++) {
+                const angle = (Math.PI/2) + (Math.random() - 0.5) * 1.5;
+                const spd = Math.random() * 8 + 2;
+                let size = 10 + Math.random() * 15; 
+                let pColor = Math.random() < 0.3 ? '#6b7280' : '#4b5563';
+                targetArr.push(new Effect(x, y, Math.cos(angle)*spd, Math.sin(angle)*spd, pColor, 1.5 + Math.random(), size));
+            }
+            for(let i=0; i<15; i++) {
+                const angle = (Math.PI/2) + (Math.random() - 0.5) * 2;
+                const spd = Math.random() * 12 + 5;
+                targetArr.push(new Effect(x, y, Math.cos(angle)*spd, Math.sin(angle)*spd, '#fbbf24', 0.8, 5));
+            }
+        }
+
+        function createExplosion(x, y, type, targetArr) {
+            const isHuge = (type === 'building' || type === 'ground');
+            let pCount = isHuge ? 150 : 60;
+            targetArr.push(new Shockwave(x, y, isHuge ? '#ef4444' : '#fbbf24'));
+
+            for(let i=0; i<pCount; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const spd = Math.random() * (isHuge ? 18 : 10);
+                let rnd = Math.random();
+                let pColor = '#fbbf24'; 
+                if(rnd < 0.2) pColor = '#ffffff'; 
+                else if(rnd < 0.5) pColor = '#f97316'; 
+                else if(rnd < 0.7) pColor = '#ef4444'; 
+                else pColor = '#4b5563'; 
+                
+                let life = (isHuge ? 1.5 : 0.8) + Math.random() * 0.8;
+                let size = (isHuge ? 8 : 4) + Math.random() * 6;
+                targetArr.push(new Effect(x, y, Math.cos(angle)*spd, Math.sin(angle)*spd, pColor, life, size));
+            }
+        }
+
+        function createTrail(x, y, color, targetArr) {
+            targetArr.push(new Effect(x, y, (Math.random()-0.5)*1, -0.5 - Math.random(), '#6b7280', 0.4, 2 + Math.random()));
+        }
+
+        function createExhaust(x, y, targetArr) {
+            targetArr.push(new Effect(x, y, (Math.random()-0.5)*4, -1.5 - Math.random()*3, '#fbbf24', 0.6, 6));
+            targetArr.push(new Effect(x, y, (Math.random()-0.5)*4, -1.5 - Math.random()*3, '#ef4444', 0.6, 5));
+            for(let i=0; i<3; i++) {
+                targetArr.push(new Effect(x, y, (Math.random()-0.5)*6, -1 - Math.random()*3, '#9ca3af', 1.2, 8 + Math.random()*4));
+            }
+        }
+
+        // --- LÓGICA COMÚN Y MANUAL ---
+        const canvas = document.getElementById('radarCanvas');
+        const ctx = canvas.getContext('2d');
+        const g = 9.81;
+        const dt = 0.085;
+
+        let enemy = null;
+        let defender = null;
+        let particles = [];
+        let isSimulating = false;
+        let animationFrameId = null;
+        let time = 0;
+        let clockRunning = false;
+        let enemyData = null; 
+        let scale = 0.2;
+        let buildings = [];
+
+        function initCity() {
+            buildings = [];
+            let cx = 400;
+            // Se aumentó el límite a 20,000 para cubrir hasta los monitores ultra panorámicos
+            while(cx < 20000) {
+                let w = 300 + Math.random() * 400;
+                let h = 350 + Math.random() * 500;
+                
+                // Variedad: 15% de probabilidad de generar un RASCACIELOS gigante
+                if (Math.random() > 0.85) {
+                    h += 500 + Math.random() * 600; // Mucho más alto
+                    w += 100 + Math.random() * 300; // Un poco más ancho
+                }
+
+                buildings.push({ x: cx, w: w, h: h, currentH: h, hp: 2, state: 'normal', windows: generateSimpleWindows(w, h), holes: [] });
+                cx += w + 100 + Math.random() * 250;
+            }
+        }
+
+        class Projectile {
+            constructor(x, y, vx, vy, color, isDef = false, targetArray = particles) {
+                this.x = x; this.y = y;
+                this.vx = vx; this.vy = vy;
+                this.color = color;
+                this.isDef = isDef;
+                this.active = true;
+                this.history = [];
+                this.hasPropulsor = isDef && document.getElementById('checkProp')?.checked;
+                this.targetArray = targetArray;
+                this.target = null;
+                this.passedTarget = false;
+            }
+            update() {
+                if (!this.active) return;
+                let gravityFactor = g;
+
+                if (this.target && this.target.active && !this.passedTarget) {
+                    const dx = this.target.x - this.x;
+                    const dy = this.target.y - this.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    const dotProduct = (this.vx * dx) + (this.vy * dy);
+                    
+                    if (dotProduct < 0) {
+                        this.passedTarget = true;
+                    } else if (dist > 20) {
+                        const speed = Math.max(800, Math.sqrt(this.vx**2 + this.vy**2) + 50);
+                        const idealVx = (dx / dist) * speed;
+                        const idealVy = (dy / dist) * speed;
+                        this.vx += (idealVx - this.vx) * 0.35;
+                        this.vy += (idealVy - this.vy) * 0.35;
+                        gravityFactor = 0; 
+                    }
+                }
+
+                createTrail(this.x, this.y, this.color, this.targetArray);
+
+                if (this.hasPropulsor) {
+                    createExhaust(this.x, this.y, this.targetArray);
+                    if (!this.target) gravityFactor = g * 0.25; 
+                }
+
+                this.vy -= gravityFactor * dt;
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+                this.history.push({x: this.x, y: this.y});
+                if (this.history.length > 50) this.history.shift();
+                
+                if (this.y < -500 || this.x > 12000 || this.x < -1000) this.active = false;
+            }
+            draw(context, sc) {
+                context.beginPath();
+                context.strokeStyle = this.color;
+                context.globalAlpha = 0.15;
+                context.lineWidth = 2;
+                this.history.forEach((p, i) => {
+                    const hx = p.x * sc;
+                    const hy = context.canvas.height - 40 - (p.y * sc);
+                    if (i === 0) context.moveTo(hx, hy); else context.lineTo(hx, hy);
+                });
+                context.stroke();
+                context.globalAlpha = 1;
+
+                const cx = this.x * sc;
+                const cy = context.canvas.height - 40 - (this.y * sc);
+                const angle = Math.atan2(-this.vy, this.vx);
+                context.save();
+                context.translate(cx, cy);
+                context.rotate(angle);
+                
+                context.fillStyle = this.color;
+                context.beginPath();
+                context.fillRect(-12, -4, 20, 8); 
+                
+                context.moveTo(8, -4); context.lineTo(16, 0); context.lineTo(8, 4); context.fill();
+                context.moveTo(-8, -4); context.lineTo(-14, -10); context.lineTo(-2, -4); context.fill();
+                context.moveTo(-8, 4); context.lineTo(-14, 10); context.lineTo(-2, 4); context.fill();
+                
+                context.fillStyle = '#888';
+                context.beginPath();
+                context.moveTo(-12, -3); context.lineTo(-16, -5); context.lineTo(-16, 5); context.lineTo(-12, 3); context.fill();
+                
+                context.restore();
+            }
+        }
+
+        function scan() {
+            stopSimulation();
+            time = 0; clockRunning = true; particles = []; defender = null;
+            const dist = 4000 + Math.random() * 3000; 
+            const alt = 2500 + Math.random() * 2000;
+            const vel = 150 + Math.random() * 100;   
+            const angle = (195 + Math.random() * 30) * Math.PI / 180; 
+            enemyData = { x: dist, y: alt, vx: vel * Math.cos(angle), vy: vel * Math.sin(angle), vInit: vel };
+            enemy = new Projectile(enemyData.x, enemyData.y, enemyData.vx, enemyData.vy, '#f87171', false, particles);
+            document.getElementById('dataVelE').innerText = vel.toFixed(1) + " m/s";
+            document.getElementById('dataTime').innerText = "0.00 s";
+            document.getElementById('statusMsg').innerText = "AMENAZA AÉREA DETECTADA";
+            document.getElementById('statusMsg').className = "text-center text-[9px] font-military text-red-500 uppercase";
+            document.getElementById('btnFire').disabled = false;
+            refresh();
+        }
+
+        function stopSimulation() {
+            isSimulating = false;
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        }
+
+        function fire() {
+            stopSimulation();
+            time = 0; clockRunning = true; particles = [];
+            
+            createLaunchSmoke(0, 0, particles);
+
+            enemy = new Projectile(enemyData.x, enemyData.y, enemyData.vx, enemyData.vy, '#f87171', false, particles);
+            const v0 = parseFloat(document.getElementById('inputV').value);
+            const ang = parseFloat(document.getElementById('inputAng').value) * Math.PI / 180;
+            defender = new Projectile(0, 0, v0 * Math.cos(ang), v0 * Math.sin(ang), '#4ade80', true, particles);
+            isSimulating = true;
+            loop();
+        }
+
+        function loop() {
+            if (!isSimulating) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.save();
+            ctx.translate(50, 0); 
+            
+            drawHUD(ctx, scale, buildings);
+            if (clockRunning) {
+                time += dt;
+                document.getElementById('dataTime').innerText = time.toFixed(2) + " s";
+            }
+            
+            if (enemy && enemy.active) {
+                enemy.update(); enemy.draw(ctx, scale);
+                document.getElementById('dataAltE').innerText = Math.max(0, enemy.y).toFixed(1) + " m";
+                
+                let hitBuilding = buildings.find(b => b.state !== 'destroyed' && enemy.x >= b.x && enemy.x <= b.x + b.w);
+                let groundLevel = hitBuilding ? hitBuilding.currentH : 0;
+                
+                if (enemy.y <= groundLevel) {
+                    enemy.active = false; clockRunning = false;
+                    
+                    if (hitBuilding) {
+                        hitBuilding.hp--; 
+                        createExplosion(enemy.x, hitBuilding.currentH, 'building', particles);
+                        
+                        if (hitBuilding.hp <= 0) {
+                            hitBuilding.state = 'collapsing';
+                            document.getElementById('statusMsg').innerText = "EDIFICIO DESTRUIDO";
+                        } else {
+                            let numHoles = 8 + Math.floor(Math.random() * 6);
+                            for(let h = 0; h < numHoles; h++) {
+                                let hw = 40 + Math.random() * 50;
+                                let hh = 40 + Math.random() * 50;
+                                let hx = Math.random() * (hitBuilding.w - hw);
+                                let hy = Math.random() * (hitBuilding.h - hh);
+                                hitBuilding.holes.push({x: hx, y: hy, w: hw, h: hh});
+                            }
+                            document.getElementById('statusMsg').innerText = `EDIFICIO DAÑADO (RESTAN ${hitBuilding.hp} IMPACTOS)`;
+                        }
+                    } else {
+                        createExplosion(enemy.x, 0, 'ground', particles);
+                        document.getElementById('statusMsg').innerText = "OBJETIVO IMPACTÓ EN TIERRA";
+                    }
+                }
+            }
+            if (defender && defender.active) {
+                defender.update(); defender.draw(ctx, scale);
+            }
+            if (enemy && enemy.active && defender && defender.active) {
+                const dist = Math.sqrt((enemy.x-defender.x)**2 + (enemy.y-defender.y)**2);
+                document.getElementById('dataDist').innerText = dist.toFixed(1) + " m";
+                if (dist < 35) {
+                    enemy.active = false; defender.active = false; clockRunning = false;
+                    createExplosion(enemy.x, enemy.y, 'air', particles);
+                    document.getElementById('statusMsg').innerText = "¡INTERCEPTACIÓN EXITOSA!";
+                }
+            }
+            
+            particles.forEach((p, i) => { p.update(); p.draw(ctx, scale); if (p.life <= 0) particles.splice(i, 1); });
+            
+            ctx.restore();
+
+            if (!enemy?.active && !defender?.active && particles.length === 0 && !buildings.some(b => b.state === 'collapsing')) {
+                stopSimulation();
+            } else animationFrameId = requestAnimationFrame(loop);
+        }
+
+        function drawHUD(context, sc, blds) {
+            context.fillStyle = '#0f120f';
+            context.fillRect(-50, context.canvas.height - 40, context.canvas.width + 50, 40);
+            context.strokeStyle = 'rgba(74, 222, 128, 0.03)';
+            const gridGap = 1000 * sc;
+            for(let i=0; i<context.canvas.width; i+=gridGap) {
+                context.beginPath(); context.moveTo(i, 0); context.lineTo(i, context.canvas.height); context.stroke();
+            }
+            const groundY = context.canvas.height - 40;
+            
+            blds.forEach(b => {
+                const bx = b.x * sc; const bw = b.w * sc;
+                
+                if (b.state === 'collapsing') {
+                    b.currentH -= 800 * 0.03; 
+                    if (b.currentH <= b.h * 0.2) { b.currentH = b.h * 0.2; b.state = 'destroyed'; }
+                }
+                
+                if (b.state === 'normal' || b.state === 'collapsing') {
+                    const bh = b.currentH * sc;
+                    context.fillStyle = 'rgba(15, 20, 15, 0.95)';
+                    context.fillRect(bx, groundY - bh, bw, bh);
+                    context.strokeStyle = 'rgba(74, 222, 128, 0.4)';
+                    context.strokeRect(bx, groundY - bh, bw, bh);
+
+                    context.fillStyle = 'rgba(255, 255, 180, 0.6)'; 
+                    
+                    b.windows.forEach(win => {
+                        let wx = bx + win.x * sc;
+                        let wyOriginal = groundY - (b.h * sc) + win.y * sc;
+                        let wW = win.w * sc;
+                        let wH = win.h * sc;
+                        let roofY = groundY - bh;
+                        
+                        if (wyOriginal + wH > roofY) {
+                            let visibleY = Math.max(wyOriginal, roofY);
+                            let visibleH = (wyOriginal + wH) - visibleY;
+                            if (visibleH > 0) context.fillRect(wx, visibleY, wW, visibleH);
+                        }
+                    });
+
+                    context.fillStyle = '#0f120f'; 
+                    b.holes.forEach(hole => {
+                        let hx = bx + hole.x * sc;
+                        let hy = groundY - (hole.y * sc) - (hole.h * sc);
+                        let hw = hole.w * sc;
+                        let hh = hole.h * sc;
+                        
+                        if (hy > groundY - bh) {
+                            context.fillRect(hx, hy, hw, hh);
+                            context.strokeStyle = '#273127';
+                            context.strokeRect(hx, hy, hw, hh);
+                        }
+                    });
+
+                } else if (b.state === 'destroyed') {
+                    const bh = (b.h * 0.15) * sc;
+                    context.fillStyle = '#1f2937'; 
+                    context.beginPath(); 
+                    context.moveTo(bx, groundY); 
+                    context.lineTo(bx + bw*0.1, groundY - bh*0.8); 
+                    context.lineTo(bx + bw*0.3, groundY - bh*0.4); 
+                    context.lineTo(bx + bw*0.5, groundY - bh*1.0); 
+                    context.lineTo(bx + bw*0.7, groundY - bh*0.6); 
+                    context.lineTo(bx + bw*0.9, groundY - bh*0.3); 
+                    context.lineTo(bx + bw, groundY); 
+                    context.fill();
+                }
+            });
+            context.fillStyle = '#4ade80';
+            context.beginPath(); context.arc(0, groundY, 5, 0, Math.PI*2); context.fill();
+        }
+
+        function refresh() { 
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
+            ctx.save();
+            ctx.translate(50, 0); 
+            drawHUD(ctx, scale, buildings); 
+            if (enemy) enemy.draw(ctx, scale); 
+            ctx.restore();
+        }
+
+        document.getElementById('btnScan').onclick = scan;
+        document.getElementById('btnFire').onclick = fire;
+        document.getElementById('inputV').oninput = (e) => document.getElementById('valV').innerText = e.target.value + " m/s";
+        document.getElementById('inputAng').oninput = (e) => document.getElementById('valAng').innerText = e.target.value + "°";
+
+        // --- LÓGICA MODO AUTOMÁTICO (IRON DOME) ---
+        const autoCanvas = document.getElementById('autoCanvas');
+        const autoCtx = autoCanvas.getContext('2d');
+        let autoEnemies = [];
+        let autoDefenders = [];
+        let autoParticles = [];
+        let autoBuildings = [];
+        let autoKills = 0;
+        let autoActive = false;
+        let autoScale = 0.15;
+        let autoFrameId = null;
+        let concurrentLimit = 10;
+        let enemiesProcessed = 0;
+
+        function initAutoCity() {
+            autoBuildings = [];
+            let cx = 400;
+            // Se aumentó el límite a 25,000 para pantallas completas ultra panorámicas
+            while(cx < 25000) {
+                let w = 400 + Math.random() * 600;
+                let h = 700 + Math.random() * 1100;
+                
+                // Variedad: 15% de probabilidad de generar un super rascacielos
+                if (Math.random() > 0.85) {
+                    h += 600 + Math.random() * 1000;
+                    w += 200 + Math.random() * 300;
+                }
+
+                autoBuildings.push({ x: cx, w: w, h: h, currentH: h, hp: 2, state: 'normal', windows: generateSimpleWindows(w, h), holes: [] });
+                cx += w + 80;
+            }
+        }
+
+        function spawnSingleEnemy() {
+            const dist = 5000 + Math.random() * 4000;
+            const alt = 4000 + Math.random() * 2000;
+            const vel = 60 + Math.random() * 40; 
+            const angle = (190 + Math.random() * 40) * Math.PI / 180;
+            const e = new Projectile(dist, alt, vel * Math.cos(angle), vel * Math.sin(angle), '#f87171', false, autoParticles);
+            autoEnemies.push(e);
+
+            setTimeout(() => {
+                if (!autoActive || !e.active) return;
+                createLaunchSmoke(0, 0, autoParticles); 
+                
+                const vDef = 350; 
+                const aDef = 60 * Math.PI / 180;
+                const defender = new Projectile(0, 0, vDef * Math.cos(aDef), vDef * Math.sin(aDef), '#4ade80', true, autoParticles);
+                
+                defender.target = e; 
+                defender.hasPropulsor = true; 
+                autoDefenders.push(defender);
+            }, 300 + Math.random() * 300);
+        }
+
+        function autoLoop() {
+            if (!autoActive) return;
+            autoCtx.clearRect(0, 0, autoCanvas.width, autoCanvas.height);
+            
+            autoCtx.save();
+            autoCtx.translate(50, 0); 
+
+            drawHUD(autoCtx, autoScale, autoBuildings);
+
+            autoEnemies.forEach((e, i) => {
+                if (e.active) {
+                    e.update(); e.draw(autoCtx, autoScale);
+                    let hitB = autoBuildings.find(b => b.state !== 'destroyed' && e.x >= b.x && e.x <= b.x + b.w);
+                    let gL = hitB ? hitB.currentH : 0;
+                    if (e.y <= gL) {
+                        e.active = false;
+                        if (hitB) { 
+                            hitB.hp--;
+                            createExplosion(e.x, hitB.currentH, 'building', autoParticles);
+                            if (hitB.hp <= 0) hitB.state = 'collapsing'; 
+                            else {
+                                let numHoles = 8 + Math.floor(Math.random() * 6);
+                                for(let h = 0; h < numHoles; h++) {
+                                    let hw = 40 + Math.random() * 50;
+                                    let hh = 40 + Math.random() * 50;
+                                    let hx = Math.random() * (hitB.w - hw);
+                                    let hy = Math.random() * (hitB.h - hh);
+                                    hitB.holes.push({x: hx, y: hy, w: hw, h: hh});
+                                }
+                            }
+                        } else {
+                            createExplosion(e.x, 0, 'ground', autoParticles);
+                        }
+                    }
+                } else autoEnemies.splice(i, 1);
+            });
+
+            autoDefenders.forEach((d, i) => {
+                if (d.active) {
+                    d.update(); d.draw(autoCtx, autoScale);
+                    autoEnemies.forEach(e => {
+                        if (e.active) {
+                            const dsq = (e.x-d.x)**2 + (e.y-d.y)**2;
+                            if (dsq < 10000) { 
+                                e.active = false; d.active = false;
+                                createExplosion(e.x, e.y, 'air', autoParticles);
+                                autoKills++;
+                                document.getElementById('autoKills').innerText = autoKills + " / " + concurrentLimit;
+                            }
+                        }
+                    });
+                } else autoDefenders.splice(i, 1);
+            });
+
+            autoParticles.forEach((p, i) => { p.update(); p.draw(autoCtx, autoScale); if (p.life <= 0) autoParticles.splice(i, 1); });
+            
+            autoCtx.restore(); 
+
+            if (enemiesProcessed >= concurrentLimit && autoEnemies.length === 0 && autoDefenders.length === 0 && autoActive) {
+                setTimeout(() => { if (autoActive) document.getElementById('stopAuto').click(); }, 1500);
+            } else {
+                autoFrameId = requestAnimationFrame(autoLoop);
+            }
+        }
+
+        document.getElementById('startAuto').onclick = () => {
+            let countInput = parseInt(document.getElementById('autoMissileCount').value);
+            concurrentLimit = isNaN(countInput) || countInput < 1 ? 10 : Math.min(countInput, 100);
+            enemiesProcessed = 0;
+
+            autoActive = true;
+            autoKills = 0;
+            document.getElementById('autoKills').innerText = "0 / " + concurrentLimit;
+            document.getElementById('autoOverlay').classList.add('hidden');
+            document.getElementById('autoControls').classList.remove('hidden');
+            
+            const statusEl = document.getElementById('autoStatus');
+            statusEl.innerText = "DEFENSA ACTIVA - MODO RÁFAGA";
+            statusEl.className = "text-red-500 font-bold";
+            
+            initAutoCity();
+            autoEnemies = [];
+            autoDefenders = [];
+            autoParticles = [];
+            
+            for (let i = 0; i < concurrentLimit; i++) {
+                setTimeout(() => {
+                    if (!autoActive) return;
+                    spawnSingleEnemy();
+                    enemiesProcessed++;
+                }, i * 350 + Math.random() * 200); 
+            }
+
+            autoLoop();
+        };
+
+        document.getElementById('stopAuto').onclick = () => {
+            autoActive = false;
+            if (autoFrameId) cancelAnimationFrame(autoFrameId);
+            
+            document.getElementById('autoOverlay').classList.remove('hidden');
+            document.getElementById('autoControls').classList.add('hidden');
+            document.getElementById('startAuto').innerText = "REINICIAR PROTOCOLO";
+            
+            const statusEl = document.getElementById('autoStatus');
+            statusEl.innerText = "SISTEMA DETENIDO";
+            statusEl.className = "text-yellow-500";
+        };
+
+        function resizeAndScale() {
+            canvas.width = canvas.parentElement.clientWidth;
+            autoCanvas.width = autoCanvas.parentElement.clientWidth;
+            
+            let dynamicHeight = Math.max(450, window.innerHeight * 0.5);
+            canvas.height = dynamicHeight;
+            autoCanvas.height = dynamicHeight;
+
+            let scaleX = (canvas.width - 60) / 8000;
+            let scaleY = (canvas.height - 60) / 4500; 
+            scale = Math.min(scaleX, scaleY);
+
+            let autoScaleX = (autoCanvas.width - 60) / 11000;
+            let autoScaleY = (autoCanvas.height - 60) / 4500;
+            autoScale = Math.min(autoScaleX, autoScaleY);
+
+            refresh();
+
+            if(!autoActive) { 
+                autoCtx.clearRect(0, 0, autoCanvas.width, autoCanvas.height);
+                autoCtx.save();
+                autoCtx.translate(50, 0);
+                drawHUD(autoCtx, autoScale, autoBuildings);
+                autoCtx.restore();
+            }
+        }
+
+        window.addEventListener('resize', resizeAndScale);
+
+        window.onload = () => {
+            initCity();
+            initAutoCity();
+            resizeAndScale(); 
+        };
+    </script>
+</body>
+</html>

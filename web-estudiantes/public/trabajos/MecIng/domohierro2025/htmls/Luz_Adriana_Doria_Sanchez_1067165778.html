@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Simulación: Intercepción de Misiles — Luz Adriana Doria Sanchez</title>
+<style>
+  /* Paleta: lila - morado - azul (conservada) */
+  :root{
+    --bg-grad: linear-gradient(180deg,#f6f2fb 0%, #eef3ff 100%);
+    --card:#ffffff;
+    --accent1:#7c3aed; /* morado */
+    --accent2:#6b21a8; /* morado oscuro */
+    --accent3:#4f46e5; /* azul violeta */
+    --muted:#4b5563;
+    --shadow: 0 8px 24px rgba(11,15,40,0.06);
+    --glass: rgba(255,255,255,0.85);
+  }
+  html,body{height:100%; margin:0; padding:18px; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:var(--bg-grad); color:#071130;}
+  header{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;
+    padding:14px; border-radius:12px;
+    background: linear-gradient(90deg, rgba(124,58,237,0.12), rgba(79,70,229,0.08));
+    box-shadow: var(--shadow);
+  }
+  h1{font-size:20px; color:var(--accent2); margin:0;}
+  .subtitle{color:var(--muted); font-size:13px;}
+  .layout{display:grid; grid-template-columns:420px 1fr; gap:14px; align-items:start;}
+  .card{background:var(--card); padding:14px; border-radius:12px; box-shadow:var(--shadow);}
+  .section-title{font-weight:700; color:var(--accent3); margin-bottom:8px;}
+  label{display:block; font-size:13px; color:var(--muted); margin-top:10px;}
+  input[type=range]{width:100%;}
+  select,input[type=number]{width:100%; padding:8px; border-radius:8px; border:1px solid #e6eef8; margin-top:6px;}
+  .row{display:flex; gap:8px; align-items:center;}
+  button{background:linear-gradient(180deg,var(--accent3),var(--accent2)); color:white; border:0; padding:8px 12px; border-radius:8px; cursor:pointer;}
+  button.ghost{background:#f3f6ff; color:var(--accent3); border:1px solid rgba(79,70,229,0.08);}
+  .small{font-size:13px; color:var(--muted);}
+  pre{background:#f4eefd; color:#3b0766; padding:10px; border-radius:8px; overflow:auto; font-size:13px;}
+  .legend{display:flex; gap:12px; align-items:center; margin-top:8px; flex-wrap:wrap;}
+  .dot{width:12px; height:12px; border-radius:50%;}
+  .dot.enemy{background:#8b5cf6;}  /* lila */
+  .dot.def{background:#06b6d4;}    /* azul cian */
+  .dot.pred{background:#f59e0b;}   /* ámbar */
+  canvas{width:100%; height:auto; border-radius:10px; background:linear-gradient(180deg,#ffffff,#f8fbff);}
+  footer{margin-top:12px; font-size:13px; color:var(--muted);}
+  .info{background:linear-gradient(180deg,#fbf8ff,#f3f2ff); padding:10px; border-radius:8px; border:1px solid rgba(124,58,237,0.06);}
+  .muted{color:var(--muted);}
+  .grid-cols{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .kbd{background:#eef2ff; border:1px solid #e6e6ff; padding:2px 6px; border-radius:6px; font-family:monospace;}
+  .result{font-weight:700; color:#071130;}
+  @media(max-width:980px){ .layout{grid-template-columns:1fr; } }
+
+  /* Estilo para fracciones en línea (g/2 como fracción) */
+  .frac{display:inline-block; vertical-align:middle; line-height:1; text-align:center;}
+  .frac .num{display:block; padding:0 2px;}
+  .frac .den{display:block; border-top:1px solid currentColor; padding:0 2px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Simulación: Intercepción de Misiles — Luz Adriana Doria Sanchez</h1>
+    <div class="subtitle">Proyecto: reducción 3D → 2D, simulación interactiva y análisis</div>
+  </div>
+  <div style="text-align:right;">
+    <div class="small">Paleta: lila · morado · azul</div>
+    <div style="margin-top:6px;">
+      <span class="kbd">Archivo listo para entregar</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- CONTROLES -->
+  <div class="card">
+    <div class="section-title">Controles & parámetros</div>
+
+    <div class="row" style="gap:8px; margin-bottom:8px;">
+      <button id="randBtn">Generar aleatorio</button>
+      <button id="resetBtn" class="ghost">Reset</button>
+      <button id="exportBtn" class="ghost">Exportar PNG</button>
+    </div>
+
+    <div class="section-title">Misil enemigo (3D)</div>
+
+    <label>Posición inicial r₀.x (m)</label>
+    <input type="range" id="r0x" min="-1000" max="1000" value="200">
+    <div class="small">r₀.x = <span id="r0xval">200</span> m</div>
+
+    <label>Altura r₀.y (m)</label>
+    <input type="range" id="r0y" min="1" max="1200" value="200">
+    <div class="small">r₀.y = <span id="r0yval">200</span> m</div>
+
+    <label>Posición r₀.z (m)</label>
+    <input type="range" id="r0z" min="-1000" max="1000" value="0">
+    <div class="small">r₀.z = <span id="r0zval">0</span> m</div>
+
+    <label>Velocidad inicial |v₀| (m/s)</label>
+    <input type="range" id="v0mag" min="50" max="500" value="300">
+    <div class="small">|v₀| = <span id="v0magval">300</span> m/s</div>
+
+    <div class="grid-cols" style="margin-top:6px;">
+      <div>
+        <label>Elevación (grados)</label>
+        <input type="range" id="thetaE" min="0" max="90" value="40">
+        <div class="small">elevación = <span id="thetaEval">40</span>°</div>
+      </div>
+      <div>
+        <label>Azimut (grados)</label>
+        <input type="range" id="phiE" min="0" max="360" value="0">
+        <div class="small">azimut = <span id="phiEval">0</span>°</div>
+      </div>
+    </div>
+
+    <div class="small" style="margin-top:6px;">Cosenos directores: <span id="cosines">—</span></div>
+
+    <hr style="margin:10px 0"/>
+
+    <div class="section-title">Misil defensor</div>
+
+    <label>Posición de lanzamiento x_d (m)</label>
+    <input type="range" id="xd" min="-1000" max="1000" value="0">
+    <div class="small">x_d = <span id="xdval">0</span> m</div>
+
+    <label>Velocidad disponible v_d (m/s)</label>
+    <input type="range" id="vd" min="50" max="800" value="350">
+    <div class="small">v_d = <span id="vdval">350</span> m/s</div>
+
+    <label>Modo defensor</label>
+    <select id="mode">
+      <option value="auto">Automático (elige según altura)</option>
+      <option value="ballistic">Balístico (sin propulsor)</option>
+      <option value="thrust">Con propulsor</option>
+    </select>
+
+    <label id="thrustLabel" style="display:none">Aceleración del propulsor (m/s²)</label>
+    <input type="range" id="aprop" min="0" max="200" value="40" style="display:none;">
+    <div class="small" id="apropVal" style="display:none">a_prop = 40 m/s²</div>
+
+    <label>Tiempo máximo de simulación (s)</label>
+    <input type="range" id="tmax" min="5" max="120" value="40">
+    <div class="small">t_max = <span id="tmaxval">40</span> s</div>
+
+    <label>Tolerancia de intercepción (m)</label>
+    <input type="range" id="tol" min="0.5" max="20" step="0.5" value="5.0">
+    <div class="small">tol = <span id="tolval">5.0</span> m</div>
+
+    <label>Umbral de altura para decidir el modo (m)</label>
+    <input type="range" id="heightThreshold" min="10" max="600" value="120">
+    <div class="small">umbral = <span id="heightThresholdVal">120</span> m</div>
+
+    <div style="margin-top:10px;" class="row">
+      <button id="solveBtn">Calcular intercepción</button>
+      <button id="simBtn" class="ghost">Simular animación</button>
+    </div>
+
+    <div style="margin-top:10px;" class="section-title">Resultados</div>
+    <div class="small">Estado: <b id="status" class="result">—</b></div>
+    <div class="small">Tiempo de intercepción (s): <b id="tIntercept" class="result">—</b></div>
+    <div class="small">Posición de intercepción (m): <b id="posIntercept" class="result">—</b></div>
+    <div class="small">Ángulo del defensor sugerido (°): <b id="thetaDef" class="result">—</b></div>
+
+    <footer class="muted" style="margin-top:10px;">Guardar con nombre: <span class="kbd">nombre_estudiante_cc.html</span></footer>
+  </div>
+
+  <!-- SIMULACIÓN + DOCUMENTACIÓN -->
+  <div>
+    <div class="card" id="canvasWrap">
+      <div class="section-title">Gráfica de trayectorias (plano 2D reducido)</div>
+      <canvas id="simCanvas" width="980" height="540"></canvas>
+      <div class="legend">
+        <div class="dot enemy"></div><div class="small">Enemigo (analítico)</div>
+        <div class="dot def"></div><div class="small">Defensor</div>
+        <div class="dot pred"></div><div class="small">Punto de intercepción</div>
+      </div>
+    </div>
+
+    <!-- 1. Enunciado -->
+    <div class="card" style="margin-top:12px;">
+      <div class="section-title">1. Enunciado (resumen)</div>
+      <div class="muted">
+        Se detecta un misil enemigo en 3D: conocemos su posición inicial r₀, la magnitud de su velocidad |v₀| y su dirección (elevación y azimut). Debemos planear el lanzamiento de un interceptor desde el suelo. Para simplificar, reducimos el movimiento a un plano 2D que contiene la trayectoria y aplicamos dos modos: balístico (sin propulsor) y con propulsor.
+      </div>
+    </div>
+
+    <!-- 2. Solución algebraica PASO A PASO (texto legible, sin LaTeX) -->
+    <div class="card" style="margin-top:12px;">
+      <div class="section-title">2. Solución algebraica — Paso a paso (texto legible)</div>
+      <div class="muted">
+        <ol>
+          <li><b>Datos conocidos en 3D:</b> posición inicial r₀ = (x₀, y₀, z₀), velocidad inicial v₀ con magnitud |v₀| y dirección dada por elevación (ángulo respecto del plano horizontal) y azimut (ángulo en el plano horizontal). La gravedad actúa hacia abajo con valor aproximado g = 9,81 m/s².</li>
+          <li><b>Elección del plano 2D:</b> toda la trayectoria ocurre en un plano que contiene la dirección inicial del movimiento y el eje vertical. En ese plano definimos ejes: x horizontal (hacia donde apunta la componente horizontal de v₀) y y vertical (positivo hacia arriba).</li>
+          <li><b>Proyección de variables al plano:</b> proyectamos r₀ y v₀ sobre el plano elegido. Así obtenemos (x₀′, y₀′) y (v<sub>0x</sub>′, v<sub>0y</sub>′). Esta es la “escena” en 2D con la que trabajaremos.</li>
+          <li><b>Movimiento del enemigo (solo gravedad):</b> en el tiempo t, la posición en 2D es:
+            <br>— Componente horizontal: <b>x<sub>e</sub>(t) = x₀′ + v<sub>0x</sub>′·t</b>
+            <br>— Componente vertical: <b>y<sub>e</sub>(t) = y₀′ + v<sub>0y</sub>′·t − (</b><span class="frac"><span class="num">g</span><span class="den">2</span></span><b>)·t²</b>
+          </li>
+          <li><b>Movimiento del defensor sin propulsor (balístico):</b> parte desde el suelo en x = x<sub>d</sub> y y = 0, con rapidez v<sub>d</sub> y ángulo de disparo θ (medido desde el eje x hacia arriba):
+            <br>— <b>x<sub>d</sub>(t) = x<sub>d</sub> + v<sub>d</sub>·cos(θ)·t</b>
+            <br>— <b>y<sub>d</sub>(t) = v<sub>d</sub>·sin(θ)·t − (</b><span class="frac"><span class="num">g</span><span class="den">2</span></span><b>)·t²</b>
+          </li>
+          <li><b>Condición de intercepción:</b> buscamos un instante t &gt; 0 en el que las posiciones coincidan: <b>x<sub>d</sub>(t) = x<sub>e</sub>(t)</b> y <b>y<sub>d</sub>(t) = y<sub>e</sub>(t)</b>. Como ambos incluyen el mismo término − (g/2)·t², se puede resolver por búsqueda numérica probando θ y t hasta que la distancia entre misiles sea menor que una tolerancia definida (tol).</li>
+          <li><b>Defensor con propulsor:</b> si se activa un empuje constante a lo largo de la dirección inicial de disparo, el movimiento del defensor gana una aceleración adicional a<sub>prop</sub> en esa misma dirección, mientras que la gravedad sigue actuando hacia abajo. Se integra paso a paso en el tiempo para obtener la trayectoria y se verifica si se alcanza al enemigo (distancia menor que la tolerancia).</li>
+          <li><b>Regla práctica para elegir el modo:</b> si el enemigo se detecta alto (y₀ grande), normalmente basta el modo balístico; si está muy bajo o queda poco tiempo, conviene el propulsor para ganar alcance y altura más rápido.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 4. Planteamiento de la simulación -->
+    <div class="card" style="margin-top:12px;">
+      <div class="section-title">4. Planteamiento de la simulación</div>
+      <div class="muted">
+        <p><b>Generador estocástico:</b> se generan r₀ (x, y, z), |v₀|, elevación y azimut en rangos razonables (posiciones de cientos de metros, |v₀| entre 100 y 400 m/s, elevación entre 15° y 75°).</p>
+        <p><b>Reducción 3D → 2D:</b> se construye el eje horizontal del plano con la componente horizontal de v₀ y el eje vertical coincide con la vertical física. Se proyectan r₀ y v₀ a 2D.</p>
+        <p><b>Trayectorias:</b> el enemigo se calcula de forma analítica (fórmulas anteriores). El defensor se calcula con fórmulas cerradas en modo balístico y por integración numérica en modo con propulsor.</p>
+        <p><b>Búsqueda de intercepción:</b> para balístico se barre ángulo y tiempo; para propulsor se integra y se compara la distancia en cada paso. Se considera éxito si la distancia cae por debajo de la tolerancia y ambas alturas son físicamente válidas.</p>
+      </div>
+    </div>
+
+    <!-- 5. Relación con Domo de Hierro -->
+    <div class="card" style="margin-top:12px;">
+      <div class="section-title">5. Relación con el sistema "Domo de Hierro"</div>
+      <div class="muted">
+        <p>La idea central es la misma: predecir la trayectoria y resolver un encuentro en el aire. El sistema real añade guiado, correcciones continuas, viento y priorización de amenazas. Aquí trabajamos con un modelo didáctico para entender bien la intercepción.</p>
+      </div>
+    </div>
+
+    <!-- 6. Conclusiones -->
+    <div class="card" style="margin-top:12px;">
+      <div class="section-title">6. Conclusiones</div>
+      <div class="muted">
+        <ul>
+          <li>La reducción 3D→2D permite analizar el problema con claridad y sin perder los elementos esenciales.</li>
+          <li>El modo balístico funciona cuando hay altura y tiempo; el propulsor amplía el conjunto de puntos alcanzables cuando la amenaza está baja o el tiempo es escaso.</li>
+          <li>La intercepción se formula de forma consistente: igualdad de posiciones en un mismo instante y verificación numérica robusta.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 7. Bibliografía -->
+    <div class="card" style="margin-top:12px;">
+      <div class="section-title">7. Bibliografía</div>
+      <div class="muted">
+        <ol>
+          <li>Serway, R. A., & Jewett, J. W. — Física para ciencia e ingeniería (proyectiles y movimiento bajo gravedad).</li>
+          <li>Material de curso: Quiz — Simulación computacional de intercepción de misiles (enunciado y requerimientos).</li>
+        </ol>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SCRIPT: simulación (conserva estilo de la gráfica) -->
+<script>
+/* ---------- Utilidades y constantes ---------- */
+const G = 9.81;
+const el = id => document.getElementById(id);
+const canvas = el('simCanvas'); const ctx = canvas.getContext('2d');
+
+/* Estado */
+let state = {
+  r0: {x:200,y:200,z:0},
+  v0mag:300,
+  thetaE:40*Math.PI/180, // elevación
+  phiE:0*Math.PI/180,    // azimut
+  v0: {x:0,y:0,z:0},
+  xd:0,
+  vd:350,
+  mode:'auto',
+  a_prop:40,
+  tmax:40,
+  tol:5,
+  heightThreshold:120
+};
+
+/* helper ranges → textos */
+function bindRange(id, outId, fmt=(v)=>v){
+  const I = el(id), O = el(outId);
+  O.textContent = fmt(I.value);
+  I.addEventListener('input', ()=> O.textContent = fmt(I.value));
+}
+bindRange('r0x','r0xval');
+bindRange('r0y','r0yval');
+bindRange('r0z','r0zval');
+bindRange('v0mag','v0magval');
+bindRange('thetaE','thetaEval');
+bindRange('phiE','phiEval');
+bindRange('xd','xdval');
+bindRange('vd','vdval');
+bindRange('aprop','apropVal', v=>'a_prop = '+v+' m/s²');
+bindRange('tmax','tmaxval');
+bindRange('tol','tolval');
+bindRange('heightThreshold','heightThresholdVal');
+
+/* mostrar/ocultar propulsor */
+el('mode').addEventListener('change', (e)=>{
+  const v = e.target.value;
+  if(v==='thrust'){ el('thrustLabel').style.display='block'; el('aprop').style.display='block'; el('apropVal').style.display='block'; }
+  else { el('thrustLabel').style.display='none'; el('aprop').style.display='none'; el('apropVal').style.display='none'; }
+});
+
+/* 3D vector helpers */
+function v3(x,y,z){return {x:+x,y:+y,z:+z};}
+function sub(a,b){return {x:a.x-b.x,y:a.y-b.y,z:a.z-b.z};}
+function mul(a,s){return {x:a.x*s,y:a.y*s,z:a.z*s};}
+function dot(a,b){return a.x*b.x + a.y*b.y + a.z*b.z;}
+function norm(a){return Math.sqrt(dot(a,a));}
+function normalize(a){ const n=norm(a); return n===0? {x:1,y:0,z:0}: mul(a,1/n); }
+
+/* Base 2D: ex horizontal en el plano de movimiento; ey vertical */
+function compute2DBasis(v0){
+  const ghat = {x:0,y:-1,z:0};              // dirección “hacia abajo”
+  const vdotg = dot(v0, ghat);
+  const u = sub(v0, mul(ghat, vdotg));      // componente horizontal de v0
+  const ex = norm(u) < 1e-8 ? {x:1,y:0,z:0} : normalize(u);
+  const ey = {x:0,y:1,z:0};                 // vertical física
+  return {ex,ey};
+}
+function project2D(vec, basis){
+  return {x: dot(vec, basis.ex), y: dot(vec, basis.ey)};
+}
+
+/* Ecuaciones en 2D (consistentes con el planteamiento) */
+function enemyAt2D(r0_2, v0_2, t){ return {x: r0_2.x + v0_2.x*t, y: r0_2.y + v0_2.y*t - 0.5*G*t*t}; }
+function defenderBallistic(xd, vd, theta, t){ return {x: xd + vd*Math.cos(theta)*t, y: vd*Math.sin(theta)*t - 0.5*G*t*t}; }
+
+/* Con propulsor: aceleración constante alineada con la dirección inicial */
+function defenderWithThrust(xd, vd, theta, a_prop, t, dt=0.02){
+  let pos={x:xd,y:0};
+  let vel={x:vd*Math.cos(theta), y:vd*Math.sin(theta)};
+  const axDir = Math.cos(theta), ayDir = Math.sin(theta);
+  for(let time=0; time<t; time+=dt){
+    const ax = a_prop * axDir;
+    const ay = a_prop * ayDir - G;
+    vel.x += ax*dt; vel.y += ay*dt;
+    pos.x += vel.x*dt; pos.y += vel.y*dt;
+    if(pos.y < -200) break;
+  }
+  return pos;
+}
+
+/* Búsqueda numérica: balístico (barrido de θ y t) */
+function findInterceptBallistic(r0_2, v0_2, xd, vd, tmax, tol=5.0){
+  let best={dist:1e9};
+  const t_steps = 300;
+  const theta_steps = 220;
+  for(let i=1;i<=theta_steps;i++){
+    const theta = (i/(theta_steps+1))*(Math.PI/2 - 1e-6);
+    for(let j=1;j<=t_steps;j++){
+      const t = j/t_steps * tmax;
+      const Re = enemyAt2D(r0_2, v0_2, t);
+      const Rd = defenderBallistic(xd, vd, theta, t);
+      const dist = Math.hypot(Re.x - Rd.x, Re.y - Rd.y);
+      if(dist < tol && Rd.y >= -1) return {found:true, t, theta, pos:Re, dist};
+      if(dist < best.dist) best = {found:false, dist, t, theta, pos:Re};
+    }
+  }
+  return best;
+}
+
+/* Búsqueda numérica: con propulsor (integración) */
+function findInterceptThrust(r0_2, v0_2, xd, vd, a_prop, tmax, tol=5.0){
+  let best={dist:1e9};
+  const theta_steps = 120;
+  for(let i=0;i<=theta_steps;i++){
+    const theta = (i/theta_steps)*(Math.PI/2 - 1e-6);
+    const dt = 0.05;
+    for(let t=0;t<=tmax; t+=dt){
+      const Re = enemyAt2D(r0_2, v0_2, t);
+      const Rd = defenderWithThrust(xd, vd, theta, a_prop, t, dt);
+      const dist = Math.hypot(Re.x - Rd.x, Re.y - Rd.y);
+      if(dist < tol && Rd.y >= -1) return {found:true, t, theta, pos:Re, dist};
+      if(dist < best.dist) best = {found:false, dist, t, theta, pos:Re};
+    }
+  }
+  return best;
+}
+
+/* Dibujo (mismo estilo de tu gráfica) */
+function clearCanvas(){ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#fbfdff'; ctx.fillRect(0,0,canvas.width,canvas.height); }
+function drawGrid(){
+  ctx.save(); ctx.strokeStyle='rgba(7,17,40,0.06)'; ctx.lineWidth=1;
+  const nx=12, ny=8;
+  for(let i=0;i<=nx;i++){ const x=i/nx*canvas.width; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+  for(let j=0;j<=ny;j++){ const y=j/ny*canvas.height; ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+  ctx.restore();
+}
+function toCanvas(pt,bounds){ const {xmin,xmax,ymin,ymax} = bounds; const W=canvas.width, H=canvas.height; const sx=(pt.x - xmin)/(xmax-xmin); const sy=(pt.y - ymin)/(ymax-ymin); return {cx: sx*W, cy: H - sy*H}; }
+function drawTrajectoryPts(pts, bounds, color='#8b5cf6', width=3){
+  if(pts.length<2) return;
+  ctx.beginPath();
+  const p0 = toCanvas(pts[0],bounds); ctx.moveTo(p0.cx,p0.cy);
+  for(let i=1;i<pts.length;i++){ const p = toCanvas(pts[i],bounds); ctx.lineTo(p.cx,p.cy); }
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke();
+}
+
+/* Lectura de UI → estado + display cosenos */
+function readUItoState(){
+  state.r0.x = +el('r0x').value;
+  state.r0.y = +el('r0y').value;
+  state.r0.z = +el('r0z').value;
+  state.v0mag = +el('v0mag').value;
+  state.thetaE = (+el('thetaE').value) * Math.PI/180;
+  state.phiE = (+el('phiE').value) * Math.PI/180;
+  state.xd = +el('xd').value;
+  state.vd = +el('vd').value;
+  state.mode = el('mode').value;
+  state.a_prop = +el('aprop').value;
+  state.tmax = +el('tmax').value;
+  state.tol = +el('tol').value;
+  state.heightThreshold = +el('heightThreshold').value;
+
+  const vm = state.v0mag;
+  state.v0.x = vm * Math.cos(state.thetaE) * Math.cos(state.phiE);
+  state.v0.y = vm * Math.sin(state.thetaE);
+  state.v0.z = vm * Math.cos(state.thetaE) * Math.sin(state.phiE);
+}
+function updateCosinesDisplay(){
+  const v = state.v0; const n = Math.sqrt(v.x*v.x+v.y*v.y+v.z*v.z)||1;
+  el('cosines').textContent = `l = ${(v.x/n).toFixed(3)}, m = ${(v.y/n).toFixed(3)}, n = ${(v.z/n).toFixed(3)}`;
+}
+
+/* Construcción y dibujo principal */
+function buildAndDraw(){
+  readUItoState(); updateCosinesDisplay();
+
+  // base y proyecciones 3D→2D
+  const r0_3 = v3(state.r0.x, state.r0.y, state.r0.z);
+  const v0_3 = v3(state.v0.x, state.v0.y, state.v0.z);
+  const basis = compute2DBasis(v0_3);
+  const r0_2 = project2D(r0_3, basis);
+  const v0_2 = project2D(v0_3, basis);
+
+  // puntos del enemigo
+  const samples = 800;
+  const enemyPts = [];
+  let xmin=1e9,xmax=-1e9,ymin=1e9,ymax=-1e9;
+  for(let i=0;i<=samples;i++){
+    const t = i/samples * state.tmax;
+    const p = enemyAt2D(r0_2, v0_2, t);
+    enemyPts.push({...p, t});
+    xmin=Math.min(xmin,p.x); xmax=Math.max(xmax,p.x);
+    ymin=Math.min(ymin,p.y); ymax=Math.max(ymax,p.y);
+  }
+
+  // decidir modo (auto)
+  let chosenMode = state.mode;
+  if(state.mode === 'auto') chosenMode = (state.r0.y >= state.heightThreshold) ? 'ballistic' : 'thrust';
+
+  // buscar intercepción
+  let interceptResult = null;
+  if(chosenMode === 'ballistic') interceptResult = findInterceptBallistic(r0_2, v0_2, state.xd, state.vd, state.tmax, state.tol);
+  else interceptResult = findInterceptThrust(r0_2, v0_2, state.xd, state.vd, state.a_prop, state.tmax, state.tol);
+
+  // ángulo sugerido (si no hay intercepción exacta)
+  let thetaSuggest;
+  if(interceptResult && interceptResult.found && interceptResult.theta !== undefined) thetaSuggest = interceptResult.theta;
+  else thetaSuggest = Math.atan2(r0_2.y, r0_2.x - state.xd + 1e-6);
+
+  // trayectoria del defensor con el θ sugerido
+  const defPts = [];
+  for(let i=0;i<=samples;i++){
+    const t = i/samples * state.tmax;
+    let p = (chosenMode === 'ballistic')
+      ? defenderBallistic(state.xd, state.vd, thetaSuggest, t)
+      : defenderWithThrust(state.xd, state.vd, thetaSuggest, state.a_prop, t, 0.02);
+    defPts.push({...p,t});
+    xmin=Math.min(xmin,p.x); xmax=Math.max(xmax,p.x);
+    ymin=Math.min(ymin,p.y); ymax=Math.max(ymax,p.y);
+  }
+
+  // límites y padding
+  const xpad = (xmax - xmin) * 0.12 + 40;
+  const ypad = (ymax - ymin) * 0.12 + 40;
+  xmin -= xpad; xmax += xpad; ymin = Math.max(-10, ymin - ypad); ymax += ypad;
+  const bounds = {xmin,xmax,ymin,ymax};
+
+  // dibujar
+  clearCanvas(); drawGrid();
+  drawTrajectoryPts(enemyPts, bounds, '#8b5cf6', 3); // lila
+  drawTrajectoryPts(defPts, bounds, '#06b6d4', 2);   // cian
+
+  // marcadores
+  const startE = toCanvas(project2D(r0_3,basis), bounds);
+  ctx.beginPath(); ctx.fillStyle='#7c3aed'; ctx.arc(startE.cx, startE.cy,7,0,Math.PI*2); ctx.fill();
+  const startD = toCanvas({x:state.xd,y:0}, bounds);
+  ctx.beginPath(); ctx.fillStyle='#06b6d4'; ctx.arc(startD.cx, startD.cy,7,0,Math.PI*2); ctx.fill();
+
+  // intercepción / mejor intento
+  if(interceptResult && interceptResult.found){
+    const c = toCanvas(interceptResult.pos, bounds);
+    ctx.beginPath(); ctx.fillStyle='#f59e0b'; ctx.arc(c.cx, c.cy,9,0,Math.PI*2); ctx.fill();
+    el('status').textContent = 'INTERCEPCIÓN ENCONTRADA';
+    el('tIntercept').textContent = interceptResult.t.toFixed(3);
+    el('posIntercept').textContent = `(${interceptResult.pos.x.toFixed(1)}, ${interceptResult.pos.y.toFixed(1)})`;
+    el('thetaDef').textContent = (interceptResult.theta*180/Math.PI).toFixed(1);
+  } else if(interceptResult && interceptResult.dist){
+    el('status').textContent = 'NO PERFECTA — MEJOR INTENTO';
+    el('tIntercept').textContent = interceptResult.t ? interceptResult.t.toFixed(3) : '—';
+    el('posIntercept').textContent = interceptResult.pos ? `(${interceptResult.pos.x.toFixed(1)}, ${interceptResult.pos.y.toFixed(1)})` : '—';
+    el('thetaDef').textContent = interceptResult.theta ? (interceptResult.theta*180/Math.PI).toFixed(1) : (thetaSuggest*180/Math.PI).toFixed(1);
+  } else {
+    el('status').textContent = 'SIN RESULTADO';
+    el('tIntercept').textContent = '—';
+    el('posIntercept').textContent = '—';
+    el('thetaDef').textContent = (thetaSuggest*180/Math.PI).toFixed(1);
+  }
+}
+
+/* Aleatorizar parámetros con los mismos rangos que propusiste */
+function randomize(){
+  el('r0x').value = Math.round((Math.random()*1600 - 800));
+  el('r0y').value = Math.round(100 + Math.random()*700);
+  el('r0z').value = Math.round((Math.random()*1400 - 700));
+  el('v0mag').value = Math.round(100 + Math.random()*300);
+  el('thetaE').value = Math.round(15 + Math.random()*60);
+  el('phiE').value = Math.round(Math.random()*360);
+  el('xd').value = Math.round(-200 + Math.random()*400);
+  el('vd').value = Math.round(200 + Math.random()*400);
+  el('mode').value = Math.random()>0.5 ? 'auto' : 'ballistic';
+  if(el('mode').value==='thrust'){ el('aprop').value = Math.round(10 + Math.random()*120); el('thrustLabel').style.display='block'; el('aprop').style.display='block'; el('apropVal').style.display='block'; }
+  else { el('thrustLabel').style.display='none'; el('aprop').style.display='none'; el('apropVal').style.display='none'; }
+  ['r0x','r0y','r0z','v0mag','thetaE','phiE','xd','vd','aprop'].forEach(id=> el(id).dispatchEvent(new Event('input')));
+  buildAndDraw();
+}
+
+/* Eventos UI */
+el('randBtn').addEventListener('click', randomize);
+el('resetBtn').addEventListener('click', ()=>{
+  el('r0x').value=200; el('r0y').value=200; el('r0z').value=0;
+  el('v0mag').value=300; el('thetaE').value=40; el('phiE').value=0;
+  el('xd').value=0; el('vd').value=350; el('mode').value='auto'; el('aprop').value=40;
+  ['r0x','r0y','r0z','v0mag','thetaE','phiE','xd','vd','aprop'].forEach(id=> el(id).dispatchEvent(new Event('input')));
+  el('thrustLabel').style.display='none'; el('aprop').style.display='none'; el('apropVal').style.display='none';
+  buildAndDraw();
+});
+el('solveBtn').addEventListener('click', buildAndDraw);
+
+/* Exportar imagen de la gráfica */
+el('exportBtn').addEventListener('click', ()=>{
+  const link = document.createElement('a');
+  link.download = 'intercepcion_trayectorias.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+});
+
+/* Animación simple (opcional) */
+let animId = null;
+el('simBtn').addEventListener('click', ()=>{
+  if(animId){ cancelAnimationFrame(animId); animId = null; el('simBtn').textContent='Simular animación'; return; }
+  el('simBtn').textContent='Detener animación';
+  readUItoState();
+  const basis = compute2DBasis(v3(state.v0.x, state.v0.y, state.v0.z));
+  const r0_2 = project2D(v3(state.r0.x,state.r0.y,state.r0.z), basis);
+  const v0_2 = project2D(v3(state.v0.x,state.v0.y,state.v0.z), basis);
+
+  // estimar θ que minimiza la distancia (búsqueda rápida)
+  let bestTheta = Math.atan2(r0_2.y, r0_2.x - state.xd + 1e-6);
+  let bestDist = 1e9;
+  for(let i=1;i<=120;i++){
+    const theta = (i/121)*(Math.PI/2 - 1e-6);
+    for(let t=0;t<=state.tmax;t+=0.1){
+      const Re = enemyAt2D(r0_2, v0_2, t);
+      const Rd = (state.mode==='thrust') ? defenderWithThrust(state.xd,state.vd,theta,state.a_prop,t,0.05) : defenderBallistic(state.xd,state.vd,theta,t);
+      const dist = Math.hypot(Re.x-Rd.x, Re.y-Rd.y);
+      if(dist < bestDist){ bestDist = dist; bestTheta = theta; }
+    }
+  }
+
+  let t = 0; const fps=60;
+  function step(){
+    t += 1/fps;
+    readUItoState();
+    const basis2 = compute2DBasis(v3(state.v0.x,state.v0.y,state.v0.z));
+    const r0_2b = project2D(v3(state.r0.x,state.r0.y,state.r0.z), basis2);
+    const v0_2b = project2D(v3(state.v0.x,state.v0.y,state.v0.z),basis2);
+
+    const enemyPts = [];
+    for(let ti=0; ti<=t; ti+=Math.max(0.02,t/200)) enemyPts.push(enemyAt2D(r0_2b, v0_2b, ti));
+    const defPts = [];
+    for(let ti=0; ti<=t; ti+=Math.max(0.02,t/200)){
+      if(state.mode==='thrust') defPts.push(defenderWithThrust(state.xd,state.vd,bestTheta,state.a_prop,ti,0.02));
+      else defPts.push(defenderBallistic(state.xd,state.vd,bestTheta,ti));
+    }
+
+    let xmin=1e9,xmax=-1e9,ymin=1e9,ymax=-1e9;
+    enemyPts.concat(defPts).forEach(p=>{ xmin=Math.min(xmin,p.x); xmax=Math.max(xmax,p.x); ymin=Math.min(ymin,p.y); ymax=Math.max(ymax,p.y); });
+    xmin = Math.min(xmin, state.xd - 100); xmax = Math.max(xmax, state.xd + 100);
+    const bounds = {xmin:xmin-40, xmax:xmax+40, ymin:Math.min(-10,ymin-40), ymax:ymax+40};
+
+    clearCanvas(); drawGrid();
+    drawTrajectoryPts(enemyPts,bounds,'#8b5cf6',3);
+    drawTrajectoryPts(defPts,bounds,'#06b6d4',3);
+
+    if(t < state.tmax) animId = requestAnimationFrame(step);
+    else{ cancelAnimationFrame(animId); animId=null; el('simBtn').textContent='Simular animación'; }
+  }
+  animId = requestAnimationFrame(step);
+});
+
+/* init */
+document.addEventListener('DOMContentLoaded', ()=>{
+  ['r0x','r0y','r0z','v0mag','thetaE','phiE','xd','vd','aprop','tmax','tol','heightThreshold'].forEach(id=> el(id).dispatchEvent(new Event('input')));
+  buildAndDraw();
+});
+</script>
+
+</body>
+</html>
+
+

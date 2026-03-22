@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis Avanzado de la Dispersión Espectral</title>
+    <style>
+        /* --- Estilos Generales y Variables --- */
+        :root {
+            --bg-main: #f4f7f9;
+            --bg-panel: #ffffff;
+            --bg-canvas: #0a0e1a;
+            --text-primary: #1a2b3c;
+            --text-secondary: #4a5b6c;
+            --accent-primary: #2a6592;
+            --accent-secondary: #eaf1f7;
+            --border-color: #dce3e9;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --formula-bg: #f3f6f9;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 2em;
+            line-height: 1.6;
+        }
+
+        /* --- Contenedor Principal y Título --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--bg-panel);
+            border-radius: 16px;
+            box-shadow: 0 8px 30px var(--shadow-color);
+            overflow: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 25px;
+            margin: 0;
+            background-color: var(--accent-primary);
+            color: white;
+            font-weight: 500;
+            font-size: 1.8em;
+        }
+
+        /* --- Sección de Simulación Interactiva --- */
+        .simulation-section {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+            padding: 25px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel { padding: 25px; border-radius: 12px; background-color: #fcfdfe; }
+
+        .canvas-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background-color: var(--bg-canvas);
+            min-height: 300px;
+        }
+
+        canvas { width: 100%; height: auto; }
+
+        h2 { margin-top: 0; border-bottom: 2px solid var(--accent-primary); padding-bottom: 10px; color: var(--accent-primary); font-weight: 600; }
+
+        .control-group { margin-bottom: 24px; }
+        .control-group label { display: block; font-weight: 500; margin-bottom: 10px; }
+        .control-group input[type="range"] { width: 100%; cursor: pointer; }
+        .value-display { font-weight: 600; color: var(--accent-primary); background-color: var(--accent-secondary); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+
+        .fixed-params { margin-top: 20px; padding: 15px; background-color: var(--accent-secondary); border-radius: 8px; }
+        .fixed-params p { margin: 5px 0; }
+
+        .result-item { margin-bottom: 18px; font-size: 1.1em; }
+        .result-item strong { display: block; margin-bottom: 5px; color: var(--text-secondary); }
+        .result-item .value { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-weight: bold; font-size: 1.2em; color: var(--accent-primary); }
+        #error-message { color: #d93025; font-weight: bold; margin-top: 20px; text-align: center; }
+
+        /* --- Sección de Explicación Detallada --- */
+        .explanation-section { padding: 30px 40px; }
+        .explanation-section article { margin-bottom: 2.5em; }
+        .explanation-section p, .explanation-section li { text-align: justify; color: var(--text-secondary); font-size: 1.05em; }
+        .explanation-section em { font-style: normal; font-weight: 600; color: var(--text-primary); }
+        .formula { display: block; text-align: center; margin: 25px auto; padding: 15px; background-color: var(--formula-bg); border: 1px solid var(--border-color); border-radius: 8px; font-family: 'Courier New', Courier, monospace; font-size: 1.25em; color: var(--text-primary); max-width: 90%; overflow-x: auto; }
+
+        @media (max-width: 1000px) {
+            .simulation-section { grid-template-columns: 1fr; }
+            body { padding: 1em; }
+            .explanation-section { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Análisis Avanzado de la Dispersión Espectral</h1>
+
+        <section class="simulation-section">
+            <div class="panel controls-results">
+                <h2>Simulación Interactiva</h2>
+                
+                <div class="control-group">
+                    <label for="wavelength">Longitud de Onda (λ): <span class="value-display" id="wavelengthValue">550</span> nm</label>
+                    <input type="range" id="wavelength" min="400" max="700" value="550">
+                </div>
+                <div class="control-group">
+                    <label for="screenDistance">Distancia a Pantalla (L): <span class="value-display" id="screenDistanceValue">2.4</span> m</label>
+                    <input type="range" id="screenDistance" min="0.5" max="5" step="0.1" value="2.4">
+                </div>
+                <div class="control-group">
+                    <label for="diffractionOrder">Orden de Difracción (m): <span class="value-display" id="diffractionOrderValue">1</span></label>
+                    <input type="range" id="diffractionOrder" min="1" max="3" step="1" value="1">
+                </div>
+
+                <div class="fixed-params">
+                    <strong>Parámetro Fijo:</strong>
+                    <p>Rejilla: 8000 ranuras/cm</p>
+                </div>
+                
+                <h2 style="margin-top: 30px;">Resultados Calculados</h2>
+                <div class="result-item"><strong>Ángulo (θ):</strong> <span class="value" id="angleResult"></span></div>
+                <div class="result-item"><strong>Posición (y):</strong> <span class="value" id="positionResult"></span></div>
+                <div class="result-item"><strong>Dispersión (dλ/dy):</strong> <span class="value" id="dispersionResult"></span></div>
+                <div id="error-message" style="display: none;"></div>
+            </div>
+
+            <div class="canvas-wrapper">
+                <canvas id="simulationCanvas" width="600" height="400"></canvas>
+            </div>
+        </section>
+
+        <section class="explanation-section">
+            <article>
+                <h2>Enunciado del Problema (Basado en Serway & Jewett, 38.61)</h2>
+                <p>La escala de un mapa está dada en kilómetros por centímetro, especificando la distancia sobre la Tierra que representa cualquier distancia en el mapa. La escala de un espectro es su <em>dispersión</em>, dada en nanómetros por centímetro, que define el cambio en longitud de onda que representa una distancia en el espectro. Es necesario conocer cuál es la dispersión para poder comparar un espectro con otro y efectuar mediciones de (por ejemplo) un corrimiento Doppler.</p>
+                <ol type="a">
+                    <li>Haga que <em>y</em> represente la posición relativa con el centro de un patrón de difracción proyectado en una pantalla plana a una distancia <em>L</em> por una rejilla de difracción con un espaciamiento de rendijas <em>d</em>. La dispersión es igual a <em>dλ/dy</em>. Pruebe que la dispersión se conoce por:
+                    <div class="formula">dλ/dy = (d⋅L²) / (m⋅(L² + y²)^(3/2))</div>
+                    </li>
+                    <li>Calcule la dispersión en el primer orden (<em>m=1</em>) para una luz con longitud de onda media de 550 nm, analizada mediante una rejilla que tiene 8000 ranuras/cm y proyectada sobre una pantalla a 2.40 m de distancia.</li>
+                </ol>
+            </article>
+
+            <article>
+                <h2>Fundamento Físico: ¿Por qué se separan los colores?</h2>
+                <p>El fenómeno se basa en dos principios de la física de ondas: <strong>difracción</strong> e <strong>interferencia</strong>. Cuando la luz atraviesa las miles de rendijas diminutas de la rejilla, cada rendija actúa como una nueva fuente de ondas (difracción). Estas miles de ondas se expanden y se superponen.</p>
+                <p>La clave es que solo en ciertos ángulos específicos las crestas de todas estas ondas coinciden perfectamente, reforzándose mutuamente para crear un punto de luz brillante (interferencia constructiva). La ecuación que gobierna estos ángulos es la <strong>Ecuación de la Rejilla</strong>:</p>
+                <div class="formula">d ⋅ sin(θ) = m ⋅ λ</div>
+                <p>Esta ecuación nos dice que el ángulo <em>θ</em> donde aparece la luz depende directamente de la longitud de onda <em>λ</em> (el color). La luz roja (λ más larga) se desvía más que la luz azul (λ más corta). Es esta dependencia directa del ángulo con el color lo que permite a la rejilla actuar como un "súper prisma", separando la luz blanca en un espectro completo.</p>
+            </article>
+            
+            <article>
+                <h2>Análisis e Interpretación de la Respuesta Numérica</h2>
+                <p>Para la configuración inicial del problema (λ=550 nm, L=2.40 m, 8000 ranuras/cm, m=1), la simulación y el cálculo manual arrojan un valor de dispersión de aproximadamente:</p>
+                <div class="formula">dλ/dy ≈ 3.77 nm/cm</div>
+
+                <h3>Paso 1: ¿De dónde sale el valor de `y`?</h3>
+                <p>Para poder usar la fórmula final de dispersión, primero necesitamos saber en qué posición `y` de la pantalla se encuentra el máximo de 550 nm. Este cálculo se realiza en dos pasos, combinando la física y la geometría:</p>
+                <ol>
+                    <li><strong>Encontrar el ángulo `θ` (Física):</strong> Usamos la Ecuación de la Rejilla `d sin(θ) = mλ`. Primero calculamos el espaciamiento `d`: `d = 1 / (8000 ranuras/cm) = 1.25 x 10⁻⁴ cm = 1.25 x 10⁻⁶ m`. Luego despejamos `sin(θ)`:
+                    <div class="formula">sin(θ) = (mλ) / d = (1 ⋅ 550×10⁻⁹ m) / (1.25×10⁻⁶ m) = 0.44</div>
+                    Tomando el arcoseno, obtenemos el ángulo: <em>θ = arcsin(0.44) ≈ 26.1°</em>.
+                    </li>
+                    <li><strong>Encontrar la posición `y` (Geometría):</strong> Ahora usamos la relación trigonométrica `y = L tan(θ)`:
+                    <div class="formula">y = 2.40 m ⋅ tan(26.1°) ≈ 1.18 m</div>
+                    Este valor de `y = 1.18 m` es la posición en la pantalla que se utiliza en el denominador de la fórmula de dispersión.
+                    </li>
+                </ol>
+
+                <h3>Paso 2: ¿Qué significa realmente el resultado `3.77 nm/cm`?</h3>
+                <p>Este valor es la "escala" del espectro en ese punto específico. Significa que:</p>
+                <ul>
+                    <li>Si desde el punto donde vemos la luz verde de 550 nm, movemos nuestro detector <strong>1 centímetro</strong> por la pantalla, el color que detectaremos habrá cambiado en <strong>3.77 nanómetros</strong>.</li>
+                    <li>Es una medida de cuán "comprimidos" o "extendidos" están los colores. Un valor más pequeño (ej. 1 nm/cm) es mejor, ya que indica una mayor separación física para un mismo cambio de color (mayor resolución).</li>
+                </ul>
+                
+                <h3>Paso 3: ¿Cómo afectan los parámetros a la dispersión?</h3>
+                <p>Usa la simulación para observar lo siguiente:</p>
+                <ul>
+                    <li><strong>Distancia `L`</strong>: Al aumentar `L`, la pantalla se aleja y el valor `dλ/dy` disminuye. Esto significa que alejar la pantalla "estira" el espectro, mejorando la separación de los colores, aunque la imagen se vuelve más tenue.</li>
+                    <li><strong>Orden `m`</strong>: Al aumentar el orden a `m=2` o `m=3`, el ángulo `θ` y la posición `y` aumentan drásticamente. El valor de `dλ/dy` se hace más pequeño, lo que indica una <strong>mejor dispersión</strong>. La desventaja es que los espectros de órdenes superiores son mucho más tenues y pueden llegar a superponerse. La simulación te mostrará que para longitudes de onda largas y órdenes altos, la condición se vuelve físicamente imposible (`sin(θ) > 1`).</li>
+                </ul>
+            </article>
+
+        </section>
+    </div>
+
+    <script>
+        // --- INICIO DEL SCRIPT ---
+        const controls = {
+            wavelength: document.getElementById('wavelength'),
+            screenDistance: document.getElementById('screenDistance'),
+            diffractionOrder: document.getElementById('diffractionOrder'),
+        };
+        const values = {
+            wavelength: document.getElementById('wavelengthValue'),
+            screenDistance: document.getElementById('screenDistanceValue'),
+            diffractionOrder: document.getElementById('diffractionOrderValue'),
+        };
+        const results = {
+            angle: document.getElementById('angleResult'),
+            position: document.getElementById('positionResult'),
+            dispersion: document.getElementById('dispersionResult'),
+            error: document.getElementById('error-message'),
+        };
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const GRATING_DENSITY_LINES_PER_CM = 8000;
+        const D_SPACING_METERS = 1 / (GRATING_DENSITY_LINES_PER_CM * 100);
+
+        function updateSimulation() {
+            const lambda = parseFloat(controls.wavelength.value) * 1e-9;
+            const L = parseFloat(controls.screenDistance.value);
+            const m = parseInt(controls.diffractionOrder.value);
+            const d = D_SPACING_METERS;
+
+            values.wavelength.textContent = controls.wavelength.value;
+            values.screenDistance.textContent = controls.screenDistance.value;
+            values.diffractionOrder.textContent = controls.diffractionOrder.value;
+
+            const sinThetaArg = (m * lambda) / d;
+            let theta = NaN, y = NaN, dispersion = NaN;
+            results.error.style.display = 'none';
+
+            if (Math.abs(sinThetaArg) <= 1) {
+                theta = Math.asin(sinThetaArg);
+                y = L * Math.tan(theta);
+                dispersion = (d * L**2) / (m * (L**2 + y**2)**1.5);
+            } else {
+                results.error.textContent = `¡Físicamente Imposible para m=${m} y λ=${controls.wavelength.value} nm!`;
+                results.error.style.display = 'block';
+            }
+
+            if (!isNaN(theta)) {
+                results.angle.textContent = `${(theta * 180 / Math.PI).toFixed(2)} °`;
+                results.position.textContent = `${(y * 100).toFixed(2)} cm`;
+                const dispersion_nm_cm = dispersion * 1e7;
+                results.dispersion.textContent = `${dispersion_nm_cm.toFixed(2)} nm/cm`;
+            } else {
+                results.angle.textContent = "N/A";
+                results.position.textContent = "N/A";
+                results.dispersion.textContent = "N/A";
+            }
+
+            drawOnCanvas({ L, theta, y });
+        }
+
+        function drawOnCanvas({ L, theta, y }) {
+            const width = canvas.width;
+            const height = canvas.height;
+            ctx.clearRect(0, 0, width, height);
+
+            const originX = width * 0.1;
+            const originY = height / 2;
+
+            // --- Lógica del canvas dinámico para L ---
+            const maxL = parseFloat(controls.screenDistance.max);
+            const drawingWidth = width * 0.8; // Área de dibujo para la distancia L
+            const scaleX = drawingWidth / maxL;
+            const screenX = originX + L * scaleX;
+
+            // Dibujar rejilla, pantalla y eje óptico
+            ctx.strokeStyle = '#a0b4c8'; ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.moveTo(originX, height * 0.1); ctx.lineTo(originX, height * 0.9); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(screenX, height * 0.1); ctx.lineTo(screenX, height * 0.9); ctx.stroke();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'; ctx.lineWidth = 1; ctx.setLineDash([5, 5]);
+            ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(width, originY); ctx.stroke();
+            ctx.setLineDash([]);
+
+            if (isNaN(theta)) return;
+
+            const rayColor = wavelengthToRgb(controls.wavelength.value);
+            // Escala vertical para que la 'y' no se salga de la pantalla
+            const scaleY = (height / 2.2) / (maxL * Math.tan(Math.PI/2 * 0.9)); // Escala basada en un ángulo y L máximos
+            const endY = originY - y * scaleY;
+
+            // Dibujar rayos
+            ctx.strokeStyle = rayColor; ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(originX, originY); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(originX, originY); ctx.lineTo(screenX, endY); ctx.stroke();
+
+            // Dibujar punto brillante y anotaciones
+            ctx.fillStyle = rayColor; ctx.shadowColor = rayColor; ctx.shadowBlur = 10;
+            ctx.beginPath(); ctx.arc(screenX, endY, 6, 0, 2 * Math.PI); ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)'; ctx.fillStyle = 'white'; ctx.lineWidth = 1;
+            const arcRadius = 40;
+            ctx.beginPath(); ctx.arc(originX, originY, arcRadius, -theta, 0); ctx.stroke();
+            ctx.font = "14px Arial"; ctx.fillText("θ", originX + arcRadius * Math.cos(theta / 2) + 5, originY - arcRadius * Math.sin(theta / 2) - 5);
+        }
+        
+        function wavelengthToRgb(wavelength) {
+            let r, g, b;
+            if (wavelength >= 380 && wavelength < 440) { r = -(wavelength - 440) / 60; g = 0; b = 1; }
+            else if (wavelength >= 440 && wavelength < 490) { r = 0; g = (wavelength - 440) / 50; b = 1; }
+            else if (wavelength >= 490 && wavelength < 510) { r = 0; g = 1; b = -(wavelength - 510) / 20; }
+            else if (wavelength >= 510 && wavelength < 580) { r = (wavelength - 510) / 70; g = 1; b = 0; }
+            else if (wavelength >= 580 && wavelength < 645) { r = 1; g = -(wavelength - 645) / 65; b = 0; }
+            else if (wavelength >= 645 && wavelength <= 780) { r = 1; g = 0; b = 0; }
+            else { r = 0; g = 0; b = 0; }
+            let factor = 1;
+            if (wavelength >= 380 && wavelength < 420) factor = 0.3 + 0.7 * (wavelength - 380) / 40;
+            else if (wavelength > 645 && wavelength <= 780) factor = 0.3 + 0.7 * (780 - wavelength) / 135;
+            const gamma = 0.8;
+            return `rgb(${Math.pow(r * factor, gamma) * 255}, ${Math.pow(g * factor, gamma) * 255}, ${Math.pow(b * factor, gamma) * 255})`;
+        }
+
+        Object.values(controls).forEach(slider => slider.addEventListener('input', updateSimulation));
+        window.addEventListener('load', updateSimulation);
+    </script>
+</body>
+</html>

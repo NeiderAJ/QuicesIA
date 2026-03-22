@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación: Interferencia en Cuña Delgada</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            width: 95%;
+            max-width: 1200px;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            margin: 20px;
+            flex-grow: 1;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: #4fc3f7;
+            margin: 20px 0;
+            font-size: 2.2em;
+            text-align: center;
+            width: 100%;
+        }
+
+        .panel {
+            padding: 20px;
+            background-color: #2a2a2a;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .controls-panel {
+            width: 280px;
+            border-right: 1px solid #3a3a3a;
+        }
+
+        .results-panel {
+            width: 350px;
+            border-left: 1px solid #3a3a3a;
+        }
+
+        .simulation-area {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background-color: #1e1e1e;
+        }
+
+        canvas {
+            display: block;
+            background-color: #121212;
+            border-radius: 8px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .control-group {
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #81d4fa;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 8px;
+            background: #424242;
+            outline: none;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4fc3f7;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid #e1f5fe;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #4fc3f7;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid #e1f5fe;
+        }
+
+        .value-display {
+            font-size: 0.9em;
+            color: #b3e5fc;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .equation-box {
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: 'Times New Roman', serif;
+            font-size: 1.1em;
+            line-height: 1.6;
+            overflow-x: auto;
+            border: 1px solid #3a3a3a;
+        }
+        .equation-box strong { color: #4fc3f7; }
+
+        .results-output p {
+            margin: 8px 0;
+            font-size: 0.95em;
+        }
+        .results-output span.label {
+            color: #81d4fa;
+            font-weight: bold;
+        }
+        .results-output span.value {
+            color: #e1f5fe;
+        }
+
+        .run-button {
+            background-color: #0288d1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.3s;
+        }
+        .run-button:hover {
+            background-color: #0277bd;
+        }
+
+        .theory-panel {
+            background-color: #1e1e1e;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 1000px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            line-height: 1.6;
+        }
+
+        .theory-panel h2 {
+            color: #4fc3f7;
+            border-bottom: 1px solid #3a3a3a;
+            padding-bottom: 10px;
+        }
+
+        .theory-panel h3 {
+            color: #81d4fa;
+            margin-top: 20px;
+        }
+
+        .theory-panel p, .theory-panel ul {
+            margin-bottom: 15px;
+        }
+
+        .theory-panel .equation {
+            background-color: #2a2a2a;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: 'Times New Roman', serif;
+            overflow-x: auto;
+        }
+
+        .theory-panel .diagram {
+            text-align: center;
+            margin: 20px 0;
+            color: #b3e5fc;
+            font-style: italic;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            .controls-panel, .results-panel {
+                width: auto;
+                border: none;
+                border-bottom: 1px solid #3a3a3a;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Simulación: Interferencia en Cuña Delgada</h1>
+
+    <div class="theory-panel">
+        <h2>Fundamentos Teóricos</h2>
+        
+        <h3>Interferencia por reflexión en una cuña delgada</h3>
+        <p>Cuando luz monocromática incide normalmente sobre una cuña delgada de material transparente, se producen interferencias entre:</p>
+        <ul>
+            <li>La onda reflejada en la superficie superior (aire-material)</li>
+            <li>La onda reflejada en la superficie inferior (material-aire)</li>
+        </ul>
+
+        <div class="diagram">
+            Diagrama conceptual:
+            <pre>
+               Luz incidente
+                   ↓
+            ------------------- (Superficie superior: reflexión con cambio de fase π)
+               |  ↑
+               |  | Reflexión 1
+               ↓  |
+            ------------------- (Superficie inferior: reflexión sin cambio de fase)
+                   ↑ Reflexión 2
+            </pre>
+        </div>
+
+        <h3>Condiciones para interferencia</h3>
+        <p>La diferencia de camino óptico (Δ) entre las dos ondas reflejadas es:</p>
+        <div class="equation">
+            Δ = 2n·t(x) + λ/2
+        </div>
+        <p>Donde:</p>
+        <ul>
+            <li><strong>n</strong>: Índice de refracción del material</li>
+            <li><strong>t(x)</strong>: Espesor de la cuña en la posición x</li>
+            <li><strong>λ/2</strong>: Cambio de fase adicional por reflexión en la superficie superior</li>
+        </ul>
+
+        <h3>Espesor de la cuña</h3>
+        <p>Para una cuña con ángulo pequeño, el espesor varía linealmente con x:</p>
+        <div class="equation">
+            t(x) = (h/l)·x
+        </div>
+        <p>Donde:</p>
+        <ul>
+            <li><strong>h</strong>: Altura máxima de la cuña (en x = l)</li>
+            <li><strong>l</strong>: Ancho total de la cuña</li>
+        </ul>
+
+        <h3>Posiciones de franjas de interferencia</h3>
+        <p><strong>Franjas brillantes</strong> (interferencia constructiva):</p>
+        <div class="equation">
+            2n·t(x) + λ/2 = mλ  ⇒  x = λl(m + ½)/(2hn)  (m = 0,1,2,...)
+        </div>
+
+        <p><strong>Franjas oscuras</strong> (interferencia destructiva):</p>
+        <div class="equation">
+            2n·t(x) + λ/2 = (m + ½)λ  ⇒  x = λlm/(2hn)  (m = 0,1,2,...)
+        </div>
+
+        <h3>Separación entre franjas</h3>
+        <p>La distancia Δx entre franjas consecutivas (brillantes o oscuras) es:</p>
+        <div class="equation">
+            Δx = λl/(2hn)
+        </div>
+    </div>
+
+    <button class="run-button" onclick="runSimulation()">Ejecutar Simulación</button>
+
+    <div class="container" id="simulationContainer" style="display: none;">
+        <div class="panel controls-panel">
+            <h2>Controles</h2>
+            <div class="control-group">
+                <label for="lambda">Longitud de Onda (λ):</label>
+                <input type="range" id="lambda" min="400" max="750" value="550" step="1">
+                <div class="value-display" id="lambdaValue">550 nm</div>
+            </div>
+            <div class="control-group">
+                <label for="n">Índice de Refracción (n):</label>
+                <input type="range" id="n" min="1.0" max="2.5" value="1.5" step="0.01">
+                <div class="value-display" id="nValue">1.5</div>
+            </div>
+            <div class="control-group">
+                <label for="h">Altura Máxima (h):</label>
+                <input type="range" id="h" min="0.5" max="100" value="20" step="0.1">
+                <div class="value-display" id="hValue">20 µm</div>
+            </div>
+            <div class="control-group">
+                <label for="l">Ancho de la Cuña (l):</label>
+                <input type="range" id="l" min="1" max="50" value="10" step="0.1">
+                <div class="value-display" id="lValue">10 cm</div>
+            </div>
+        </div>
+
+        <div class="simulation-area">
+            <canvas id="simulationCanvas"></canvas>
+        </div>
+
+        <div class="panel results-panel">
+            <h2>Resultados y Fórmulas</h2>
+            <div class="equation-box">
+                <p><strong>Espesor de la cuña:</strong></p>
+                <p>t(x) = h·x / l</p>
+                <p><strong>Franjas Brillantes (Constructiva):</strong></p>
+                <p>x = λ·l·(m + ½) / (2·h·n)</p>
+                <p><strong>Franjas Oscuras (Destructiva):</strong></p>
+                <p>x = λ·l·m / (2·h·n)</p>
+            </div>
+            <div class="results-output">
+                <h3>Posiciones Calculadas:</h3>
+                <p><span class="label">λ:</span> <span class="value" id="currentLambda"></span></p>
+                <p><span class="label">n:</span> <span class="value" id="currentN"></span></p>
+                <p><span class="label">h:</span> <span class="value" id="currentH"></span></p>
+                <p><span class="label">l:</span> <span class="value" id="currentL"></span></p>
+                <h4>Franjas Brillantes:</h4>
+                <div id="brightFringes"></div>
+                <h4>Franjas Oscuras:</h4>
+                <div id="darkFringes"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para ejecutar la simulación
+        function runSimulation() {
+            document.getElementById('simulationContainer').style.display = 'flex';
+            initializeSimulation();
+        }
+
+        // Función principal de inicialización
+        function initializeSimulation() {
+            const canvas = document.getElementById('simulationCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Dimensiones iniciales del canvas
+            let canvasWidth = 800;
+            let canvasHeight = 400;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+
+            // Valores iniciales de los parámetros
+            let lambda = parseFloat(document.getElementById('lambda').value);
+            let n = parseFloat(document.getElementById('n').value);
+            let h = parseFloat(document.getElementById('h').value);
+            let l = parseFloat(document.getElementById('l').value);
+
+            // Elementos de la interfaz
+            const lambdaSlider = document.getElementById('lambda');
+            const nSlider = document.getElementById('n');
+            const hSlider = document.getElementById('h');
+            const lSlider = document.getElementById('l');
+
+            const lambdaValueDisplay = document.getElementById('lambdaValue');
+            const nValueDisplay = document.getElementById('nValue');
+            const hValueDisplay = document.getElementById('hValue');
+            const lValueDisplay = document.getElementById('lValue');
+
+            const currentLambdaDisplay = document.getElementById('currentLambda');
+            const currentNDisplay = document.getElementById('currentN');
+            const currentHDisplay = document.getElementById('currentH');
+            const currentLDisplay = document.getElementById('currentL');
+            const brightFringesDisplay = document.getElementById('brightFringes');
+            const darkFringesDisplay = document.getElementById('darkFringes');
+
+            // Función para actualizar parámetros
+            function updateParameters() {
+                lambda = parseFloat(lambdaSlider.value);
+                n = parseFloat(nSlider.value);
+                h = parseFloat(hSlider.value);
+                l = parseFloat(lSlider.value);
+
+                // Actualizar displays
+                lambdaValueDisplay.textContent = `${lambda} nm`;
+                nValueDisplay.textContent = `${n}`;
+                hValueDisplay.textContent = `${h} µm`;
+                lValueDisplay.textContent = `${l} cm`;
+
+                // Redibujar simulación
+                drawSimulation();
+                updateResults();
+            }
+
+            // Event listeners para los controles
+            lambdaSlider.addEventListener('input', updateParameters);
+            nSlider.addEventListener('input', updateParameters);
+            hSlider.addEventListener('input', updateParameters);
+            lSlider.addEventListener('input', updateParameters);
+
+            // Función para dibujar la simulación
+            function drawSimulation() {
+                // Limpiar canvas
+                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                ctx.fillStyle = '#121212';
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+                // Configuración para vista desde arriba
+                const baseL = 10; // Valor base de referencia para el ancho (10 cm)
+                const widthScale = Math.min(l / baseL, 1.5); // Factor de escala para el ancho
+
+                const startX = canvasWidth * 0.1;
+                const endX = startX + (canvasWidth * 0.7 * widthScale);
+                const centerY = canvasHeight / 2;
+                const patternHeight = canvasHeight * 0.8;
+
+                // Dibujar el fondo de la cuña (vista desde arriba)
+                ctx.fillStyle = '#2d2d2d';
+                ctx.fillRect(startX, centerY - patternHeight/2, endX - startX, patternHeight);
+
+                // Dibujar las franjas de interferencia (vista desde arriba)
+                const maxM = 100;
+                for (let m = 0; m <= maxM; m++) {
+                    // Franjas brillantes
+                    const xBright_cm = (lambda * 1e-7 * l * (m + 0.5)) / (2 * h * 1e-4 * n);
+                    const canvasXBright = startX + (xBright_cm / l) * (endX - startX);
+
+                    if (canvasXBright > startX && canvasXBright < endX) {
+                        ctx.fillStyle = 'rgba(255, 213, 79, 0.8)'; // Amarillo brillante
+                        ctx.fillRect(canvasXBright - 2, centerY - patternHeight/2, 4, patternHeight);
+                    }
+
+                    // Franjas oscuras (no se dibujan explícitamente, son los espacios entre brillantes)
+                }
+
+                // Dibujar ejes y marcadores
+                ctx.strokeStyle = '#4fc3f7';
+                ctx.lineWidth = 1;
+                
+                // Eje X
+                ctx.beginPath();
+                ctx.moveTo(startX, centerY);
+                ctx.lineTo(endX, centerY);
+                ctx.stroke();
+                
+                // Flecha del eje X
+                ctx.beginPath();
+                ctx.moveTo(endX, centerY);
+                ctx.lineTo(endX - 10, centerY - 5);
+                ctx.lineTo(endX - 10, centerY + 5);
+                ctx.closePath();
+                ctx.fillStyle = '#4fc3f7';
+                ctx.fill();
+
+                // Marcador x=0
+                ctx.fillStyle = '#ff5252';
+                ctx.beginPath();
+                ctx.arc(startX, centerY, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.font = '12px Arial';
+                ctx.fillStyle = '#ff5252';
+                ctx.fillText('x=0', startX + 10, centerY + 15);
+                ctx.fillStyle = '#4fc3f7';
+                ctx.fillText('x', endX + 10, centerY + 5);
+
+                // Etiqueta de la cuña
+                ctx.font = '14px Arial';
+                ctx.fillStyle = '#b3e5fc';
+                ctx.fillText('Cuña delgada (vista desde arriba)', startX, centerY - patternHeight/2 - 10);
+            }
+
+            // Función para actualizar resultados numéricos
+            function updateResults() {
+                currentLambdaDisplay.textContent = `${lambda} nm`;
+                currentNDisplay.textContent = `${n}`;
+                currentHDisplay.textContent = `${h} µm`;
+                currentLDisplay.textContent = `${l} cm`;
+
+                brightFringesDisplay.innerHTML = '';
+                darkFringesDisplay.innerHTML = '';
+
+                const maxFringesToShow = 5;
+
+                for (let m = 0; m < maxFringesToShow; m++) {
+                    const xBright_cm = (lambda * 1e-7 * l * (m + 0.5)) / (2 * h * 1e-4 * n);
+                    brightFringesDisplay.innerHTML += `<p>m=${m}: x = <span class="value">${xBright_cm.toFixed(4)}</span> cm</p>`;
+
+                    const xDark_cm = (lambda * 1e-7 * l * m) / (2 * h * 1e-4 * n);
+                    darkFringesDisplay.innerHTML += `<p>m=${m}: x = <span class="value">${xDark_cm.toFixed(4)}</span> cm</p>`;
+                }
+            }
+
+            // Función para redimensionar el canvas
+            function resizeCanvas() {
+                const simulationArea = canvas.parentElement;
+                canvasWidth = simulationArea.clientWidth - 20;
+                canvasHeight = simulationArea.clientHeight - 20;
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+                drawSimulation();
+            }
+
+            // Event listener para redimensionamiento
+            window.addEventListener('resize', resizeCanvas);
+
+            // Inicialización
+            updateParameters();
+            resizeCanvas();
+        }
+    </script>
+</body>
+</html>

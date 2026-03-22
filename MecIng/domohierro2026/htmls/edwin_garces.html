@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domo de Hierro - Sistema Híbrido UdeA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-200 p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto space-y-6">
+        <header class="text-center p-6 bg-slate-900 rounded-3xl border border-blue-500/30 shadow-2xl">
+            <h1 class="text-3xl font-black text-blue-400 uppercase tracking-tighter italic">Domo de Hierro: Interceptación</h1>
+            <p class="text-slate-500 font-bold text-[10px] uppercase tracking-widest mt-1">Manual + Aleatorio | Física Mecánica</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <aside class="lg:col-span-1 bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-6 shadow-xl">
+                <div class="space-y-4">
+                    <h2 class="text-blue-400 font-bold text-[10px] uppercase border-b border-slate-800 pb-2 text-center">Configuración</h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Velocidad (m/s)</label>
+                            <input type="range" id="vE" min="150" max="400" value="280" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                            <div id="vE-txt" class="text-right text-blue-400 font-mono text-xs mt-1">280</div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Ángulo (°)</label>
+                            <input type="range" id="aE" min="20" max="75" value="45" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                            <div id="aE-txt" class="text-right text-blue-400 font-mono text-xs mt-1">45°</div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 space-y-3">
+                        <button onclick="lanzar(false)" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-black text-xs transition-all active:scale-95 shadow-lg">
+                            SIMULACIÓN MANUAL
+                        </button>
+                        <button onclick="lanzar(true)" class="w-full py-4 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black text-xs transition-all active:scale-95 shadow-lg border-b-4 border-red-800">
+                            GENERAR ALEATORIO
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-black p-4 rounded-xl border border-slate-800">
+                    <p class="text-[9px] text-slate-600 uppercase font-bold mb-2">Radar Console</p>
+                    <div id="radar-log" class="font-mono text-[10px] text-green-500 space-y-1 italic">
+                        <p>> SISTEMA LISTO</p>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="lg:col-span-3 relative">
+                <canvas id="simCanvas" class="w-full h-[500px] bg-black rounded-3xl border-2 border-slate-800 shadow-2xl"></canvas>
+                
+                <div class="absolute top-6 left-6 flex flex-col gap-2">
+                    <div class="bg-black/60 p-2 rounded border-l-4 border-red-500 backdrop-blur-md">
+                        <p class="text-[8px] text-slate-400 uppercase font-bold">Misil Enemigo</p>
+                        <p id="info-e" class="text-[10px] font-mono text-red-400">---</p>
+                    </div>
+                    <div class="bg-black/60 p-2 rounded border-l-4 border-cyan-400 backdrop-blur-md">
+                        <p class="text-[8px] text-slate-400 uppercase font-bold">Interceptor</p>
+                        <p id="info-d" class="text-[10px] font-mono text-cyan-400">---</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const log = document.getElementById('radar-log');
+        
+        // UI Sync
+        const vE = document.getElementById('vE');
+        const aE = document.getElementById('aE');
+        vE.oninput = () => document.getElementById('vE-txt').innerText = vE.value;
+        aE.oninput = () => document.getElementById('aE-txt').innerText = aE.value + "°";
+
+        let loop, t = 0;
+        const g = 9.81;
+
+        function lanzar(esAleatorio) {
+            if (loop) cancelAnimationFrame(loop);
+            t = 0;
+            
+            // Forzar tamaño del canvas
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            const L = canvas.width;
+
+            if (esAleatorio) {
+                vE.value = Math.floor(Math.random() * 250) + 150;
+                aE.value = Math.floor(Math.random() * 55) + 20;
+                vE.oninput(); aE.oninput();
+            }
+
+            const v0e = Number(vE.value);
+            const angRad = Number(aE.value) * Math.PI / 180;
+            const vex = v0e * Math.cos(angRad);
+            const vey = v0e * Math.sin(angRad);
+
+            // IA: Cálculo de interceptación frontal
+            // Escala para que el proyectil se mantenga dentro del área visual
+            const escala = 0.45; 
+            const xImpacto = L * (0.5 + Math.random() * 0.2); // Punto de choque entre el 50% y 70%
+            const tImpacto = xImpacto / (vex * escala);
+
+            // El defensor sale de la derecha (L) hacia la izquierda
+            const vdx = (L - xImpacto) / (tImpacto * escala);
+            const vdy = vey; // Misma altura para forzar choque
+
+            log.innerHTML = `<p class="text-orange-500 font-bold">> DETECTADO</p><p class="text-cyan-400">> INTERCEPTANDO...</p>`;
+            document.getElementById('info-e').innerText = `V:${v0e}m/s A:${aE.value}°`;
+            document.getElementById('info-d').innerText = `MODO AUTOMÁTICO`;
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Línea de tierra
+                ctx.strokeStyle = "#1e293b";
+                ctx.strokeRect(0, canvas.height-5, L, 5);
+
+                // Ecuaciones de movimiento
+                // Enemigo (sale de x=0)
+                let ex = (vex * t) * escala;
+                let ey = canvas.height - 10 - (vey * t - 0.5 * g * t**2) * escala;
+
+                // Defensor (sale de x=L)
+                let dx = L - (vdx * t) * escala;
+                let dy = canvas.height - 10 - (vdy * t - 0.5 * g * t**2) * escala;
+
+                // Dibujar puntos
+                draw(ex, ey, "#ef4444");
+                draw(dx, dy, "#22d3ee");
+
+                // Colisión
+                const dist = Math.sqrt((ex-dx)**2 + (ey-dy)**2);
+                if (dist < 15 && t > 0.5) {
+                    boom(ex, ey);
+                    log.innerHTML += `<p class="text-white font-black">> CONTACTO CONFIRMADO</p>`;
+                    return;
+                }
+
+                // Fuera de límites o impacto en suelo
+                if (ey > canvas.height || ex > L || dx < 0) {
+                    log.innerHTML += `<p class="text-red-600 font-bold">> OBJETIVO PERDIDO</p>`;
+                    return;
+                }
+
+                t += 0.1; // Velocidad de animación
+                loop = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        function draw(x, y, col) {
+            ctx.shadowBlur = 15; ctx.shadowColor = col;
+            ctx.fillStyle = col;
+            ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        function boom(x, y) {
+            ctx.fillStyle = "white";
+            ctx.beginPath(); ctx.arc(x, y, 50, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = "#f97316";
+            ctx.beginPath(); ctx.arc(x, y, 25, 0, Math.PI*2); ctx.fill();
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación - Domo de Hierro (Física Mecánica)</title>
+    
+    <!-- Tailwind CSS para el diseño -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- MathJax para las ecuaciones tipo LaTeX -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body { background-color: #f3f4f6; }
+        canvas { background-color: #ffffff; cursor: crosshair; }
+        .slider-container { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    </style>
+</head>
+<body class="text-gray-800 font-sans p-6 max-w-5xl mx-auto">
+
+    <!-- Encabezado -->
+    <header class="bg-blue-900 text-white p-6 rounded-t-xl shadow-lg text-center">
+        <h1 class="text-3xl font-bold">Simulación Computacional de Interceptación de Misiles</h1>
+        <h2 class="text-xl mt-2">Inspirado en el sistema Domo de Hierro</h2>
+        <p class="mt-2 text-blue-200">Curso de Física Mecánica - Universidad de Antioquia</p>
+    </header>
+
+    <main class="bg-white p-8 rounded-b-xl shadow-lg space-y-10">
+
+        <!-- 1. Enunciado -->
+        <section id="enunciado">
+            <h3 class="text-2xl font-bold text-blue-800 border-b-2 border-blue-200 pb-2 mb-4">1. Enunciado del problema</h3>
+            <p class="mb-2">Un radar detecta un misil enemigo en vuelo. En el instante de detección, se conocen:</p>
+            <ul class="list-disc ml-6 mb-4 space-y-1">
+                <li>La posición inicial \(\vec{r}_0\) del misil enemigo.</li>
+                <li>Su velocidad inicial \(\vec{v}_0\).</li>
+                <li>Sus cosenos directores \((l, m, n)\), que determinan su dirección en 3D.</li>
+            </ul>
+            <p>El misil enemigo se mueve únicamente bajo la acción de la gravedad terrestre. El sistema de defensa debe calcular la dirección y velocidad del misil defensor. Si el enemigo está alto, basta con una trayectoria parabólica. <strong>Si la detección ocurre demasiado cerca al suelo, el misil defensor debe activar propulsores adicionales que le proporcionen una aceleración extra además de la gravedad.</strong></p>
+        </section>
+
+        <!-- 2. Solución Algebraica -->
+        <section id="solucion">
+            <h3 class="text-2xl font-bold text-blue-800 border-b-2 border-blue-200 pb-2 mb-4">2. Solución Algebraica</h3>
+            
+            <h4 class="font-bold text-lg text-gray-700 mt-4">Reducción de 3D a 2D</h4>
+            <p class="mb-2">A partir de la posición \(\vec{r}_0 = (x_0, y_0, z_0)\) y velocidad \(\vec{v}_0 = v_0 (l\hat{i} + m\hat{j} + n\hat{k})\), reducimos al plano 2D \((X, Y)\) donde \(Y\) es la altitud y \(X\) la distancia horizontal:</p>
+            <p class="bg-gray-50 p-3 rounded text-center">
+                $$ X_0 = \sqrt{x_0^2 + z_0^2}, \quad Y_0 = y_0 $$
+                $$ V_{0X} = -v_0 \sqrt{l^2 + n^2}, \quad V_{0Y} = v_0 m $$
+            </p>
+
+            <h4 class="font-bold text-lg text-gray-700 mt-4">Intercepción: Caso Detección Alta (Solo Gravedad)</h4>
+            <p class="mb-2">Si el misil se detecta alto, el defensor realiza un tiro parabólico (\(a_y = -g\)). Calculamos la velocidad inicial requerida para coincidir en el punto de intercepción \((X_{int}, Y_{int})\) en el tiempo \(t_{int}\):</p>
+            <p class="bg-gray-50 p-3 rounded text-center">
+                $$ V_{Dx} = \frac{X_{int}}{t_{int}}, \quad V_{Dy} = \frac{Y_{int} + \frac{1}{2} g t_{int}^2}{t_{int}} $$
+            </p>
+
+            <h4 class="font-bold text-lg text-gray-700 mt-4">Intercepción: Caso Detección Cerca al Suelo (Gravedad + Propulsor)</h4>
+            <p class="mb-2">Si la detección \(Y_0\) ocurre demasiado cerca al suelo, la gravedad no permite interceptar a tiempo. Se activa una <strong>aceleración extra \(a_p\)</strong> generada por propulsores, de modo que la aceleración total vertical es \(a_{total} = a_p - g\). Asumiendo una velocidad vertical inicial \(V_{Dy}\), la aceleración extra necesaria es:</p>
+            <p class="bg-gray-50 p-3 rounded text-center border-l-4 border-red-500">
+                $$ Y_{int} = V_{Dy} t_{int} + \frac{1}{2}(a_p - g) t_{int}^2 \implies a_p = \frac{2(Y_{int} - V_{Dy} t_{int})}{t_{int}^2} + g $$
+            </p>
+        </section>
+
+        <!-- 3. Análisis -->
+        <section id="analisis">
+            <h3 class="text-2xl font-bold text-blue-800 border-b-2 border-blue-200 pb-2 mb-4">3. Análisis Funcional</h3>
+            <p>El algoritmo de defensa evalúa constantemente la altitud de detección (\(Y_0\)). Se establece un umbral de seguridad (ej. 1500 metros). Si la amenaza se detecta por debajo de este umbral, el sistema deduce que el tiempo de vuelo antes del impacto es crítico. Para compensar la caída libre y el poco tiempo, el interceptor enciende propulsores activos que vencen la gravedad (\(a_p > g\)), asegurando una trayectoria tensa y rápida hacia el objetivo.</p>
+        </section>
+
+        <!-- 4 y 5. Simulación -->
+        <section id="simulacion">
+            <h3 class="text-2xl font-bold text-blue-800 border-b-2 border-blue-200 pb-2 mb-4">4 & 5. Planteamiento y Simulación Interactiva</h3>
+            <p class="mb-4">Modifica los parámetros o usa el generador estocástico. ¡La cámara (canvas) se autoajustará a la magnitud de la trayectoria dinámicamente! Si la "Altura \(Y_0\)" es menor a 1500m, verás cómo el defensor activa propulsores.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Controles -->
+                <div class="col-span-1 bg-gray-100 p-4 rounded-lg shadow border border-gray-200">
+                    <h4 class="font-bold text-lg mb-4 text-center">Parámetros del Enemigo</h4>
+                    
+                    <div class="slider-container">
+                        <label class="w-24 text-sm font-semibold">Dist. \(X_0\) (m):</label>
+                        <input type="range" id="s_x0" min="1000" max="6000" class="w-full">
+                        <span id="v_x0" class="w-12 text-sm text-right text-gray-600"></span>
+                    </div>
+                    <div class="slider-container">
+                        <label class="w-24 text-sm font-semibold">Altura \(Y_0\) (m):</label>
+                        <input type="range" id="s_y0" min="200" max="2000" class="w-full">
+                        <span id="v_y0" class="w-12 text-sm text-right text-gray-600"></span>
+                    </div>
+                    <div class="slider-container">
+                        <label class="w-24 text-sm font-semibold">Vel. \(V_0\) (m/s):</label>
+                        <input type="range" id="s_v0" min="80" max="180" class="w-full">
+                        <span id="v_v0" class="w-12 text-sm text-right text-gray-600"></span>
+                    </div>
+                    <div class="slider-container">
+                        <label class="w-24 text-sm font-semibold">Ángulo (°):</label>
+                        <input type="range" id="s_ang" min="15" max="75" class="w-full">
+                        <span id="v_ang" class="w-12 text-sm text-right text-gray-600"></span>
+                    </div>
+
+                    <button onclick="generarAleatorio()" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300">
+                        Generar Aleatorio
+                    </button>
+                    <button onclick="iniciarSimulacion()" class="mt-2 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition duration-300">
+                        ¡Lanzar Interceptor!
+                    </button>
+
+                    <div id="status_panel" class="mt-4 p-3 bg-white rounded border border-gray-300 text-sm hidden">
+                        <p><strong>Estado:</strong> <span id="status_est"></span></p>
+                        <p><strong>Gravedad:</strong> -9.81 m/s²</p>
+                        <p><strong>Acel. Extra:</strong> <span id="status_acc" class="font-bold"></span></p>
+                    </div>
+                </div>
+
+                <!-- Canvas -->
+                <div class="col-span-1 md:col-span-2 relative">
+                    <canvas id="simCanvas" width="600" height="400" class="w-full h-full border-2 border-gray-400 rounded-lg shadow-inner"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Domo de Hierro y Conclusiones -->
+        <section id="conclusiones">
+            <h3 class="text-2xl font-bold text-blue-800 border-b-2 border-blue-200 pb-2 mb-4">6 & 7. Domo de Hierro y Conclusiones</h3>
+            <p class="mb-2"><strong>Domo de Hierro:</strong> Así como en esta simulación el misil defensor evalúa la proximidad al suelo para encender propulsores direccionales adicionales, el misil Tamir real del Domo de Hierro posee toberas laterales que le otorgan aceleraciones cinemáticas extremas para corregir trayectorias de cohetes de corto alcance que están a punto de impactar.</p>
+            <p><strong>Conclusiones:</strong> La simulación demuestra el principio físico: la gravedad por sí sola es insuficiente para un misil interceptor cuando el tiempo de vuelo es mínimo (detecciones a baja altitud). Introducir una variable de aceleración extra (\(a_p\)) permite resolver el sistema de ecuaciones cinemáticas a tiempo, garantizando la colisión.</p>
+        </section>
+
+    </main>
+
+    <!-- Lógica de Simulación con JavaScript -->
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const g = 9.81;
+
+        const s_x0 = document.getElementById('s_x0');
+        const s_y0 = document.getElementById('s_y0');
+        const s_v0 = document.getElementById('s_v0');
+        const s_ang = document.getElementById('s_ang');
+
+        const v_x0 = document.getElementById('v_x0');
+        const v_y0 = document.getElementById('v_y0');
+        const v_v0 = document.getElementById('v_v0');
+        const v_ang = document.getElementById('v_ang');
+
+        let animId;
+        let t = 0;
+        let enemigo = {};
+        let defensor = {};
+        let t_int = 0;
+        let simulando = false;
+
+        // Variables dinámicas para el Canvas (auto-escalable)
+        let MAX_X = 6000;
+        let MAX_Y = 4000;
+
+        function w2cX(x) { return (x / MAX_X) * canvas.width; }
+        function w2cY(y) { return canvas.height - (y / MAX_Y) * canvas.height; }
+
+        // Función que predice la altura de los misiles para escalar dinámicamente el Canvas
+        function calcularEscala() {
+            let X0 = parseFloat(s_x0.value);
+            let Y0 = parseFloat(s_y0.value);
+            let V0 = parseFloat(s_v0.value);
+            let angulo = parseFloat(s_ang.value) * (Math.PI / 180);
+
+            let V0X = -V0 * Math.cos(angulo);
+            let V0Y = V0 * Math.sin(angulo);
+
+            // Altura máxima teórica del enemigo
+            let enemy_peak_t = V0Y / g;
+            let enemy_max_y = Y0;
+            if (enemy_peak_t > 0) {
+                enemy_max_y = Y0 + V0Y * enemy_peak_t - 0.5 * g * enemy_peak_t * enemy_peak_t;
+            }
+
+            // Calculo estimado del punto de intersección
+            let t_impact_y = (V0Y + Math.sqrt(V0Y*V0Y + 2*g*Y0)) / g;
+            let t_impact_x = Math.abs(X0 / V0X);
+            let t_max_flight = Math.min(t_impact_y, t_impact_x);
+            let t_int_est = t_max_flight * 0.6; // Intersección al 60% del vuelo total
+            
+            let Y_int = Y0 + V0Y * t_int_est - 0.5 * g * t_int_est * t_int_est;
+
+            // Altura máxima teórica del defensor
+            let def_max_y = Math.max(0, Y_int);
+            if (Y0 >= 1500) {
+                let Vdy = (Y_int + 0.5 * g * t_int_est * t_int_est) / t_int_est;
+                let def_peak_t = Vdy / g;
+                if (def_peak_t > 0 && def_peak_t < t_int_est) {
+                    let peak_y = Vdy * def_peak_t - 0.5 * g * def_peak_t * def_peak_t;
+                    if (peak_y > def_max_y) def_max_y = peak_y;
+                }
+            }
+
+            // Limites dinámicos sumándole un margen visual para que nunca toque el borde
+            MAX_Y = Math.max(enemy_max_y, def_max_y, Y0) * 1.3; 
+            if (MAX_Y < 1000) MAX_Y = 1000;
+
+            MAX_X = X0 * 1.1; 
+            if (MAX_X < 2000) MAX_X = 2000;
+        }
+
+        function updateSliderValues() {
+            v_x0.innerText = s_x0.value;
+            v_y0.innerText = s_y0.value;
+            v_v0.innerText = s_v0.value;
+            v_ang.innerText = s_ang.value;
+            calcularEscala(); // Auto-ajusta el canvas según los valores actuales
+            dibujarEscenarioInicial();
+        }
+
+        s_x0.oninput = updateSliderValues;
+        s_y0.oninput = updateSliderValues;
+        s_v0.oninput = updateSliderValues;
+        s_ang.oninput = updateSliderValues;
+
+        function generarAleatorio() {
+            s_x0.value = Math.floor(Math.random() * (5000 - 2000) + 2000);
+            s_y0.value = Math.floor(Math.random() * (2000 - 300) + 300); 
+            s_v0.value = Math.floor(Math.random() * (180 - 80) + 80);    
+            s_ang.value = Math.floor(Math.random() * (75 - 15) + 15);
+            updateSliderValues();
+        }
+
+        function dibujarEscenarioInicial() {
+            if(simulando) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Base/Radar asegurándose que su escala se vea bien sin importar MAX_Y
+            ctx.fillStyle = '#1e3a8a';
+            let radarH = (100 / MAX_Y) * canvas.height;
+            if (radarH < 10) radarH = 10;
+            ctx.fillRect(w2cX(0), w2cY(0) - radarH, 20, radarH);
+
+            let x = parseFloat(s_x0.value);
+            let y = parseFloat(s_y0.value);
+            ctx.beginPath();
+            ctx.arc(w2cX(x), w2cY(y), 5, 0, Math.PI * 2);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+        }
+
+        function iniciarSimulacion() {
+            cancelAnimationFrame(animId);
+            
+            let X0 = parseFloat(s_x0.value);
+            let Y0 = parseFloat(s_y0.value);
+            let V0 = parseFloat(s_v0.value);
+            let angulo = parseFloat(s_ang.value) * (Math.PI / 180);
+
+            let V0X = -V0 * Math.cos(angulo);
+            let V0Y = V0 * Math.sin(angulo);
+
+            // NUEVA LÓGICA DE INTERCEPCIÓN: Garantiza que choquen en pleno vuelo
+            let t_impact_y = (V0Y + Math.sqrt(V0Y*V0Y + 2*g*Y0)) / g; // Tiempo en chocar con el piso
+            let t_impact_x = Math.abs(X0 / V0X); // Tiempo en pasar por encima de la base defensora
+            let t_max_flight = Math.min(t_impact_y, t_impact_x);
+
+            // Establecemos el intercepto al 60% del tiempo que le queda para asegurar que sea en el aire
+            t_int = t_max_flight * 0.6; 
+            let X_int = X0 + V0X * t_int;
+            let Y_int = Y0 + V0Y * t_int - 0.5 * g * t_int * t_int;
+
+            enemigo = { X0, Y0, V0X, V0Y };
+            defensor = { X0: 0, Y0: 0, Vdx: 0, Vdy: 0, a_extra: 0, a_total: -g };
+
+            let statusEst = document.getElementById('status_est');
+            let statusAcc = document.getElementById('status_acc');
+            document.getElementById('status_panel').classList.remove('hidden');
+
+            if(Y0 >= 1500) {
+                // DETECCIÓN ALTA: Solo gravedad
+                defensor.Vdx = X_int / t_int;
+                defensor.Vdy = (Y_int + 0.5 * g * t_int * t_int) / t_int;
+                defensor.a_extra = 0;
+                defensor.a_total = -g;
+                
+                statusEst.innerText = "Detección ALTA (≥1500m). Tiro Parabólico.";
+                statusEst.className = "text-green-600 font-bold";
+                statusAcc.innerText = "0.00 m/s² (Sin propulsor)";
+                statusAcc.className = "text-green-600";
+            } else {
+                // DETECCIÓN CERCA AL SUELO: Requiere propulsor extra
+                defensor.Vdx = X_int / t_int;
+                defensor.Vdy = Math.max(V0Y, (Y_int / t_int)); // Velocidad inicial base razonable
+                
+                // Calculamos la aceleración extra requerida para llegar a Y_int
+                let a_necesaria = (2 * (Y_int - defensor.Vdy * t_int)) / (t_int * t_int);
+                
+                // Excepción controlada: Evitamos propulsar en negativo (frenar menos que la gravedad)
+                if (a_necesaria + g < 0) {
+                    defensor.a_extra = 0;
+                    defensor.a_total = -g;
+                    defensor.Vdy = (Y_int + 0.5 * g * t_int * t_int) / t_int;
+                } else {
+                    defensor.a_extra = a_necesaria + g;
+                    defensor.a_total = defensor.a_extra - g;
+                }
+
+                statusEst.innerText = "Detección BAJA (<1500m). ¡PROPULSORES ACTIVOS!";
+                statusEst.className = "text-red-600 font-bold";
+                statusAcc.innerText = "+" + defensor.a_extra.toFixed(2) + " m/s² (Aceleración Extra)";
+                statusAcc.className = "text-red-600 font-bold";
+            }
+
+            calcularEscala(); // Recalculamos con los valores finales para no pifiar
+            t = 0;
+            simulando = true;
+            animar();
+        }
+
+        function animar() {
+            if(!simulando) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            t += 0.05;
+
+            // Cinemática Enemigo
+            let Ex = enemigo.X0 + enemigo.V0X * t;
+            let Ey = enemigo.Y0 + enemigo.V0Y * t - 0.5 * g * t * t;
+
+            // Cinemática Defensor (Gravedad + Propulsor si aplica)
+            let Dx = defensor.Vdx * t;
+            let Dy = defensor.Vdy * t + 0.5 * defensor.a_total * t * t;
+
+            // Dibujar trayectoria enemigo (recorre historial)
+            ctx.beginPath();
+            for(let pt=0; pt<t; pt+=0.1){
+                let px = enemigo.X0 + enemigo.V0X * pt;
+                let py = enemigo.Y0 + enemigo.V0Y * pt - 0.5 * g * pt * pt;
+                if (pt === 0) ctx.moveTo(w2cX(px), w2cY(py));
+                else ctx.lineTo(w2cX(px), w2cY(py));
+            }
+            ctx.strokeStyle = 'rgba(255, 0, 0, 0.4)';
+            ctx.stroke();
+
+            // Dibujar trayectoria defensor
+            ctx.beginPath();
+            for(let pt=0; pt<t; pt+=0.1){
+                let px = defensor.Vdx * pt;
+                let py = defensor.Vdy * pt + 0.5 * defensor.a_total * pt * pt;
+                if (pt === 0) ctx.moveTo(w2cX(px), w2cY(py));
+                else ctx.lineTo(w2cX(px), w2cY(py));
+            }
+            ctx.strokeStyle = 'rgba(0, 0, 255, 0.4)';
+            ctx.stroke();
+
+            // Dibujar Misil Enemigo
+            ctx.beginPath();
+            ctx.arc(w2cX(Ex), w2cY(Ey), 6, 0, Math.PI * 2);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+
+            // Dibujar Misil Defensor
+            ctx.beginPath();
+            ctx.arc(w2cX(Dx), w2cY(Dy), 6, 0, Math.PI * 2);
+            ctx.fillStyle = 'blue';
+            ctx.fill();
+
+            // EFECTO VISUAL DE PROPULSOR (Fuego) si la aceleración extra > 0
+            if(defensor.a_extra > 0) {
+                ctx.beginPath();
+                ctx.arc(w2cX(Dx) - 5, w2cY(Dy) + 8, 4, 0, Math.PI * 2);
+                ctx.fillStyle = 'orange';
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(w2cX(Dx) - 5, w2cY(Dy) + 12, 2, 0, Math.PI * 2);
+                ctx.fillStyle = 'yellow';
+                ctx.fill();
+            }
+
+            // Chequeo de intercepción y Explosión Segura
+            if(t >= t_int) {
+                ctx.beginPath();
+                ctx.arc(w2cX(Ex), w2cY(Ey), 30, 0, Math.PI * 2);
+                ctx.fillStyle = 'orange';
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(w2cX(Ex), w2cY(Ey), 15, 0, Math.PI * 2);
+                ctx.fillStyle = 'yellow';
+                ctx.fill();
+                simulando = false;
+                return;
+            }
+
+            // Fallback (solo si algo extremadamente anómalo cruza el suelo, evitamos errores pero no cortamos antes)
+            if(Ey < -100 || Dy < -100) {
+                simulando = false;
+                return;
+            }
+
+            animId = requestAnimationFrame(animar);
+        }
+
+        // Inicializamos actualizando el diseño base
+        generarAleatorio();
+    </script>
+</body>
+</html>

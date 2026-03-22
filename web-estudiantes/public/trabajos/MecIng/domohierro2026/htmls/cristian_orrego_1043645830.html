@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Intercepción de Proyectiles</title>
+    <style>
+        /* === Variables y Configuración Global === */
+        :root {
+            --bg-body: #f1f5f9;      /* Fondo gris suave */
+            --bg-panel: #ffffff;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            
+            --primary: #2563eb;      /* Azul principal */
+            --primary-dark: #1e40af; /* Azul oscuro (títulos) */
+            --primary-light: #eff6ff;
+            --primary-border: #bfdbfe;
+            
+            --danger: #dc2626;       /* Rojo */
+            --danger-dark: #b91c1c;
+            --danger-light: #fef2f2;
+            --danger-border: #fca5a5;
+            
+            --success: #16a34a;      /* Verde */
+            --warning: #ea580c;      /* Naranja */
+            --gray-hover: #e2e8f0;
+            
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* === Diseño General === */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        @media (min-width: 1024px) {
+            .container {
+                flex-direction: row;
+            }
+        }
+
+        .panel {
+            background-color: var(--bg-panel);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+        }
+
+        .controls-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .canvas-area {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* === Tipografía === */
+        h1 {
+            color: var(--primary-dark);
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+
+        h2 {
+            color: var(--primary-dark);
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-bottom: 16px;
+        }
+
+        .badge-red { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: var(--danger); }
+        .badge-blue { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: var(--primary); }
+
+        /* === Tarjetas de Secciones === */
+        .card {
+            border-radius: var(--radius-md);
+            padding: 16px;
+            border: 1px solid var(--gray-hover);
+        }
+
+        .card-enemy {
+            background-color: var(--danger-light);
+            border-color: var(--danger-border);
+        }
+
+        .card-defender {
+            background-color: var(--primary-light);
+            border-color: var(--primary-border);
+            flex: 1;
+        }
+
+        /* === Información y Grillas === */
+        .grid-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 0.875rem;
+            color: #7f1d1d;
+            margin-bottom: 16px;
+            font-family: monospace;
+        }
+
+        .grid-info span { font-weight: bold; }
+        .full-col { grid-column: span 2; font-size: 0.75rem; }
+
+        /* === Botones === */
+        .btn {
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-red { background-color: var(--danger); color: white; }
+        .btn-red:hover { background-color: var(--danger-dark); }
+
+        .btn-blue { background-color: var(--primary); color: white; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3); }
+        .btn-blue:hover { background-color: var(--primary-dark); }
+
+        .btn-outline { background-color: transparent; color: var(--primary-dark); }
+        .btn-outline:hover { background-color: #dbeafe; }
+
+        .btn-gray { background-color: var(--gray-hover); color: var(--text-main); }
+        .btn-gray:hover { background-color: #cbd5e1; }
+
+        /* === Modos de Operación === */
+        .mode-toggle {
+            display: flex;
+            gap: 4px;
+            background: rgba(191, 219, 254, 0.5);
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .mode-toggle .btn { padding: 6px 12px; font-size: 0.875rem; box-shadow: none; }
+
+        /* === Controles (Sliders) === */
+        .input-group { margin-bottom: 16px; }
+        .input-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .val-text { color: var(--primary); font-family: monospace; }
+        input[type=range] { width: 100%; accent-color: var(--primary); cursor: pointer; }
+        
+        .disabled-group { opacity: 0.4; pointer-events: none; }
+
+        /* === Toggle Switch (Propulsor) === */
+        .propulsor-header {
+            border-top: 1px solid var(--primary-border);
+            padding-top: 12px;
+            margin-top: 8px;
+        }
+        .toggle-switch-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute; content: "";
+            height: 18px; width: 18px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        .toggle-label { font-size: 0.875rem; font-weight: 500; }
+
+        /* === Botones de Acción y Footer === */
+        .action-row {
+            display: flex;
+            gap: 12px;
+            margin-top: auto;
+            padding-top: 16px;
+        }
+        .action-row .btn-gray { flex: 1; }
+        .action-row .btn-blue { flex: 2; font-size: 1.1rem; }
+        
+        .footer-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 12px;
+        }
+        .checkbox-label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+        /* === Barra de Estado === */
+        .status-bar {
+            text-align: center;
+            font-weight: 600;
+            padding-bottom: 12px;
+            font-size: 0.95rem;
+            min-height: 32px;
+        }
+        .status-default { color: var(--text-muted); }
+        .status-flying { color: var(--primary); }
+        .status-success { color: var(--success); }
+        .status-fail { color: var(--danger); }
+        .status-high { color: var(--warning); }
+        .status-low { color: var(--danger); }
+
+        /* === Canvas (Área de Simulación) === */
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background-color: #0f172a;
+        }
+        @media (min-width: 1024px) {
+            .canvas-wrapper { flex: 1; aspect-ratio: auto; }
+        }
+        canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: bottom left;
+            touch-action: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- Panel de Controles -->
+        <div class="panel controls-area">
+            <div>
+                <h1>Simulador Táctico</h1>
+                <p class="subtitle">Intercepta el proyectil enemigo ajustando los parámetros físicos.</p>
+            </div>
+
+            <!-- Controles del Enemigo -->
+            <div class="card card-enemy">
+                <h2>
+                    <span class="badge-red"></span> Proyectil Enemigo
+                </h2>
+                <div class="grid-info">
+                    <div>Pos X: <span id="e-posX">0</span> m</div>
+                    <div>Pos Y: <span id="e-posY">0</span> m</div>
+                    <div>Velocidad: <span id="e-vel">0</span> m/s</div>
+                    <div>Ángulo: <span id="e-ang">0</span>°</div>
+                    <div class="full-col">Cosenos dir (l,m,n): <span id="e-cos">0, 0, 0</span></div>
+                </div>
+                <button id="btn-random-enemy" class="btn btn-red">
+                    Generar Enemigo Aleatorio
+                </button>
+            </div>
+
+            <!-- Controles del Defensor -->
+            <div class="card card-defender">
+                <h2>
+                    <span class="badge-blue"></span> Misil Defensor
+                </h2>
+
+                <!-- Selector de Modo -->
+                <div class="mode-toggle">
+                    <button id="btn-mode-manual" class="btn btn-blue">Modo Manual</button>
+                    <button id="btn-mode-auto" class="btn btn-outline">Automático</button>
+                </div>
+                
+                <div>
+                    <!-- Posición X Defensor -->
+                    <div class="input-group">
+                        <div class="input-header">
+                            <label for="d-x">Posición de Lanzamiento X</label>
+                            <span id="val-d-x" class="val-text">0 m</span>
+                        </div>
+                        <input type="range" id="d-x" min="0" max="1000" step="10" value="50">
+                    </div>
+
+                    <!-- Velocidad Defensor -->
+                    <div class="input-group" id="group-vel">
+                        <div class="input-header">
+                            <label for="d-v">Velocidad Inicial</label>
+                            <span id="val-d-v" class="val-text">0 m/s</span>
+                        </div>
+                        <input type="range" id="d-v" min="10" max="500" step="0.01" value="150">
+                    </div>
+
+                    <!-- Ángulo Defensor -->
+                    <div class="input-group" id="group-ang">
+                        <div class="input-header">
+                            <label for="d-ang">Ángulo de Lanzamiento</label>
+                            <span id="val-d-ang" class="val-text">0°</span>
+                        </div>
+                        <input type="range" id="d-ang" min="0" max="180" step="0.01" value="60">
+                    </div>
+
+                    <!-- Toggle Propulsor -->
+                    <div class="propulsor-header">
+                        <label class="toggle-switch-container">
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="d-thrust-toggle">
+                                <span class="slider"></span>
+                            </div>
+                            <span class="toggle-label">Activar Propulsor Constante</span>
+                        </label>
+                        
+                        <!-- Aceleración Propulsor -->
+                        <div id="thrust-container" class="input-group disabled-group">
+                            <div class="input-header">
+                                <label for="d-thrust">Fuerza (Aceleración)</label>
+                                <span id="val-d-thrust" class="val-text">0 m/s²</span>
+                            </div>
+                            <input type="range" id="d-thrust" min="0" max="30" step="0.5" value="10">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="action-row">
+                <button id="btn-reset" class="btn btn-gray">Reiniciar</button>
+                <button id="btn-fire" class="btn btn-blue">🚀 ¡DISPARAR!</button>
+            </div>
+            
+            <div class="footer-info">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="show-prediction" checked>
+                    Mostrar Predicción
+                </label>
+                <span>Gravedad: 9.81 m/s²</span>
+            </div>
+        </div>
+
+        <!-- Área de Simulación (Canvas) -->
+        <div class="panel canvas-area">
+            <!-- Estado de la simulación -->
+            <div id="sim-status" class="status-bar status-default">
+                Ajusta los parámetros y presiona Disparar.
+            </div>
+            
+            <div class="canvas-wrapper">
+                <canvas id="sim-canvas"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Configuración principal y Constantes Físicas
+        const GRAVITY = 9.81;
+        const DT = 0.04; // Paso de tiempo de simulación (segundos por frame)
+        let PIXELS_PER_METER = 0.5; // Escala visual dinámica
+        let cameraOffsetX = -100; // Desplazamiento horizontal para la cámara
+        const EXPLOSION_RADIUS = 40; // Distancia para considerar colisión en metros
+
+        // Elementos DOM
+        const canvas = document.getElementById('sim-canvas');
+        const ctx = canvas.getContext('2d');
+        const statusText = document.getElementById('sim-status');
+        
+        // Elementos UI
+        const btnRandomEnemy = document.getElementById('btn-random-enemy');
+        const btnFire = document.getElementById('btn-fire');
+        const btnReset = document.getElementById('btn-reset');
+        const chkPrediction = document.getElementById('show-prediction');
+        
+        const uiEnemyX = document.getElementById('e-posX');
+        const uiEnemyY = document.getElementById('e-posY');
+        const uiEnemyV = document.getElementById('e-vel');
+        const uiEnemyAng = document.getElementById('e-ang');
+        const uiEnemyCos = document.getElementById('e-cos');
+
+        const inDefX = document.getElementById('d-x');
+        const inDefV = document.getElementById('d-v');
+        const inDefAng = document.getElementById('d-ang');
+        const inDefThrustToggle = document.getElementById('d-thrust-toggle');
+        const inDefThrust = document.getElementById('d-thrust');
+        
+        // Contenedores para aplicar clases de deshabilitado
+        const groupVel = document.getElementById('group-vel');
+        const groupAng = document.getElementById('group-ang');
+        const thrustContainer = document.getElementById('thrust-container');
+
+        const btnModeManual = document.getElementById('btn-mode-manual');
+        const btnModeAuto = document.getElementById('btn-mode-auto');
+
+        // Referencias a etiquetas de valor
+        const valDefX = document.getElementById('val-d-x');
+        const valDefV = document.getElementById('val-d-v');
+        const valDefAng = document.getElementById('val-d-ang');
+        const valDefThrust = document.getElementById('val-d-thrust');
+
+        // Estado del sistema
+        let width, height; // Dimensiones lógicas del canvas
+        let isSimulating = false;
+        let animationFrameId = null;
+        let particles = []; // Para la explosión
+        let simTime = 0; // Tiempo interno exacto
+
+        // Variables de los proyectiles (Física real en metros)
+        let enemy = {
+            startX: 0, startY: 0, startVx: 0, startVy: 0,
+            x: 0, y: 0, vx: 0, vy: 0,
+            path: [], active: false
+        };
+
+        let defender = {
+            startX: 0, startY: 0, startVx: 0, startVy: 0,
+            x: 0, y: 0, vx: 0, vy: 0,
+            ax: 0, ay: 0, // Aceleración extra (propulsor)
+            path: [], active: false, hasThrust: false
+        };
+
+        let isAutoMode = false;
+
+        function setMode(mode) {
+            isAutoMode = mode === 'auto';
+            
+            if (isAutoMode) {
+                btnModeAuto.className = "btn btn-blue";
+                btnModeManual.className = "btn btn-outline";
+                
+                // Deshabilitar controles manuales
+                inDefV.disabled = true;
+                inDefAng.disabled = true;
+                groupVel.classList.add('disabled-group');
+                groupAng.classList.add('disabled-group');
+                
+                autoConfigure();
+            } else {
+                btnModeManual.className = "btn btn-blue";
+                btnModeAuto.className = "btn btn-outline";
+                
+                // Habilitar controles manuales
+                inDefV.disabled = false;
+                inDefAng.disabled = false;
+                groupVel.classList.remove('disabled-group');
+                groupAng.classList.remove('disabled-group');
+            }
+        }
+
+        function autoConfigure() {
+            if (!isAutoMode) return;
+
+            // 1. Calcular tiempo de vuelo del enemigo hasta el suelo
+            const a_q = 0.5 * GRAVITY;
+            const b_q = -enemy.startVy;
+            const c_q = -enemy.startY;
+            
+            const discriminant = b_q*b_q - 4*a_q*c_q;
+            if (discriminant < 0) return;
+            
+            const t_impact = (-b_q + Math.sqrt(discriminant)) / (2*a_q);
+            
+            // Calcular cuándo se saldrá de la pantalla
+            let t_out_x = Infinity;
+            if (enemy.startVx < 0) {
+                t_out_x = (-1000 - enemy.startX) / enemy.startVx;
+            } else if (enemy.startVx > 0) {
+                t_out_x = (2000 - enemy.startX) / enemy.startVx;
+            }
+
+            // Vida útil del misil enemigo en la simulación
+            const t_life = Math.min(t_impact, t_out_x);
+
+            const x_d0 = parseFloat(inDefX.value);
+            let thrust = inDefThrustToggle.checked ? parseFloat(inDefThrust.value) : 0;
+
+            let best_T = t_life * 0.5;
+            let best_v0 = 0;
+            let best_angleDeg = 0;
+            let found_valid = false;
+
+            // 2. Buscar el tiempo de intercepción (T) que requiera una velocidad manejable (>=10)
+            for(let fraction = 0.1; fraction <= 0.95; fraction += 0.01) {
+                let T_test = t_life * fraction;
+                let X_T = enemy.startX + enemy.startVx * T_test;
+                let Y_T = enemy.startY + enemy.startVy * T_test - 0.5 * GRAVITY * T_test * T_test;
+                
+                let deltaX = X_T - x_d0;
+                let deltaY_eff = Y_T + 0.5 * GRAVITY * T_test * T_test;
+                
+                let S = Math.sqrt(deltaX*deltaX + deltaY_eff*deltaY_eff);
+                let v0_test = (S / T_test) - (0.5 * thrust * T_test);
+                
+                if (v0_test >= 10 && v0_test <= 1000) {
+                    best_T = T_test;
+                    best_v0 = v0_test;
+                    let angleRad = Math.atan2(deltaY_eff, deltaX);
+                    best_angleDeg = toDeg(angleRad);
+                    if (best_angleDeg < 0) best_angleDeg += 360;
+                    found_valid = true;
+                }
+            }
+
+            if (!found_valid) {
+                // Fallback seguro si no encontró uno perfecto
+                let T = t_life * 0.5;
+                let X_T = enemy.startX + enemy.startVx * T;
+                let Y_T = enemy.startY + enemy.startVy * T - 0.5 * GRAVITY * T * T;
+                let deltaX = X_T - x_d0;
+                let deltaY_eff = Y_T + 0.5 * GRAVITY * T * T;
+                let S = Math.sqrt(deltaX*deltaX + deltaY_eff*deltaY_eff);
+                best_v0 = (S / T) - (0.5 * thrust * T);
+                if (best_v0 < 10) best_v0 = 10;
+                let angleRad = Math.atan2(deltaY_eff, deltaX);
+                best_angleDeg = toDeg(angleRad);
+                if (best_angleDeg < 0) best_angleDeg += 360;
+            }
+
+            // Ajustar dinámicamente el slider de velocidad
+            if (best_v0 > parseFloat(inDefV.max)) {
+                inDefV.max = Math.ceil(best_v0 / 50) * 50;
+            }
+
+            // Aplicar cálculos a la UI
+            inDefV.value = best_v0.toFixed(2);
+            inDefAng.value = best_angleDeg.toFixed(2);
+            
+            updateDefenderConfig();
+        }
+
+        // Sistema de Cámara Dinámica: Calcula los límites máximos del vuelo y ajusta la escala
+        function updateScale() {
+            if (!width || !height) return;
+
+            let minX = Math.min(enemy.startX, parseFloat(inDefX.value));
+            let maxX = Math.max(enemy.startX, parseFloat(inDefX.value));
+            let maxY = Math.max(enemy.startY, 0);
+
+            let simT = 0;
+            let dt = 0.05;
+            
+            let eStartX = enemy.startX;
+            let eStartY = enemy.startY;
+            let eVx = enemy.startVx;
+            let eVy = enemy.startVy;
+            
+            let dStartX = parseFloat(inDefX.value);
+            let dStartY = 0;
+            let dV = parseFloat(inDefV.value);
+            let dAng = parseFloat(inDefAng.value);
+            let dVx = dV * Math.cos(toRad(dAng));
+            let dVy = dV * Math.sin(toRad(dAng));
+            
+            let dHasThrust = inDefThrustToggle.checked;
+            let dThrust = parseFloat(inDefThrust.value);
+            let dAx = dHasThrust ? dThrust * Math.cos(toRad(dAng)) : 0;
+            let dAy = dHasThrust ? dThrust * Math.sin(toRad(dAng)) : 0;
+
+            let eActive = true;
+            let dActive = true;
+
+            // Simulación rápida simultánea para encontrar el punto exacto donde chocan o caen
+            while ((eActive || dActive) && simT < 100) {
+                simT += dt;
+                
+                let ex = eStartX, ey = eStartY;
+                if (eActive) {
+                    ex = eStartX + eVx * simT;
+                    ey = eStartY + eVy * simT - 0.5 * GRAVITY * simT * simT;
+                    if (ex < minX) minX = ex;
+                    if (ex > maxX) maxX = ex;
+                    if (ey > maxY) maxY = ey;
+                    if (ey < 0) eActive = false;
+                }
+
+                let dx = dStartX, dy = dStartY;
+                if (dActive) {
+                    dx = dStartX + dVx * simT + 0.5 * dAx * simT * simT;
+                    dy = dStartY + dVy * simT + 0.5 * (dAy - GRAVITY) * simT * simT;
+                    if (dx < minX) minX = dx;
+                    if (dx > maxX) maxX = dx;
+                    if (dy > maxY) maxY = dy;
+                    if (dy < 0 && simT > 0.5) dActive = false;
+                }
+
+                // ¡Clave! Si detectamos que chocan, dejamos de expandir la cámara inmediatamente
+                if (eActive && dActive) {
+                    let dist = Math.sqrt(Math.pow(ex - dx, 2) + Math.pow(ey - dy, 2));
+                    if (dist <= EXPLOSION_RADIUS) {
+                        break; 
+                    }
+                }
+            }
+
+            // Aplicar márgenes adaptativos (15% horizontal, 30% vertical para asegurar el arco parabólico)
+            let rangeX = Math.max(maxX - minX, 200); 
+            let marginX = rangeX * 0.15; 
+            
+            let paddedRangeX = rangeX + marginX * 2;
+            let paddedMaxY = Math.max(maxY, 200) * 1.3; 
+
+            cameraOffsetX = minX - marginX;
+
+            let scaleX = width / paddedRangeX;
+            let scaleY = (height - 50) / paddedMaxY; // Dejar espacio inferior para el suelo
+
+            PIXELS_PER_METER = Math.min(scaleX, scaleY);
+        }
+
+        // Redimensionar Canvas
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            width = canvas.width;
+            height = canvas.height;
+            
+            if (!isSimulating) {
+                updateScale();
+                drawFrame(); // Redibujar si estamos en pausa
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // Funciones de utilidad matemática
+        const toRad = (deg) => deg * Math.PI / 180;
+        const toDeg = (rad) => rad * 180 / Math.PI;
+
+        function canvasX(mX) { return (mX - cameraOffsetX) * PIXELS_PER_METER; }
+        function canvasY(mY) { return height - (mY * PIXELS_PER_METER) - 30; } // Añadimos 30px para ver la zona por debajo del suelo
+
+        // Inicializar Enemigo Aleatorio
+        function generateRandomEnemy() {
+            // Decidir aleatoriamente si aparece por la izquierda o la derecha
+            let spawnRight = Math.random() > 0.5;
+            let ang;
+            let dirTexto;
+
+            if (spawnRight) {
+                enemy.startX = 800 + Math.random() * 1000; // 800 a 1800
+                ang = 180 - (15 + Math.random() * 60); // Hacia la izquierda (105° a 165°)
+                dirTexto = " (izq)";
+            } else {
+                enemy.startX = -800 + Math.random() * 800; // -800 a 0
+                ang = 15 + Math.random() * 60; // Hacia la derecha (15° a 75°)
+                dirTexto = " (der)";
+            }
+
+            enemy.startY = 100 + Math.random() * 900;
+            let vel = 100 + Math.random() * 300;
+
+            // Calcular cosenos directores
+            let l = Math.cos(toRad(ang));
+            let m = Math.sin(toRad(ang));
+            let n = 0; 
+
+            uiEnemyX.textContent = Math.round(enemy.startX);
+            uiEnemyY.textContent = Math.round(enemy.startY);
+            uiEnemyV.textContent = Math.round(vel);
+            uiEnemyAng.textContent = Math.round(ang) + "°" + dirTexto;
+            uiEnemyCos.textContent = `${l.toFixed(3)}, ${m.toFixed(3)}, ${n}`;
+
+            enemy.startVx = vel * l;
+            enemy.startVy = vel * m;
+            
+            // Detectar altura para estrategia del defensor
+            if (enemy.startY > 500) {
+                inDefThrustToggle.checked = false;
+            } else {
+                inDefThrustToggle.checked = true;
+                inDefThrust.value = 15 + Math.random() * 10;
+            }
+            
+            if (isAutoMode) {
+                autoConfigure(); 
+            } else {
+                updateDefenderConfig();
+            }
+            
+            // Actualizar el estado visual
+            if (enemy.startY > 500) {
+                statusText.textContent = "¡Enemigo ALTO! Defensor configurado en tiro parabólico.";
+                statusText.className = "status-bar status-high";
+            } else {
+                statusText.textContent = "¡Enemigo BAJO! Defensor usará PROPULSORES.";
+                statusText.className = "status-bar status-low";
+            }
+        }
+
+        // Leer inputs del defensor
+        function updateDefenderConfig() {
+            defender.startX = parseFloat(inDefX.value);
+            defender.startY = 0;
+            let vel = parseFloat(inDefV.value);
+            let ang = parseFloat(inDefAng.value);
+            
+            valDefX.textContent = defender.startX + ' m';
+            valDefV.textContent = vel + ' m/s';
+            valDefAng.textContent = ang + '°';
+            
+            defender.startVx = vel * Math.cos(toRad(ang));
+            defender.startVy = vel * Math.sin(toRad(ang));
+
+            defender.hasThrust = inDefThrustToggle.checked;
+            let thrustAcc = parseFloat(inDefThrust.value);
+            valDefThrust.textContent = thrustAcc + ' m/s²';
+
+            // El propulsor empuja en la dirección inicial de lanzamiento
+            if (defender.hasThrust) {
+                defender.ax = thrustAcc * Math.cos(toRad(ang));
+                defender.ay = thrustAcc * Math.sin(toRad(ang));
+                thrustContainer.classList.remove('disabled-group');
+            } else {
+                defender.ax = 0;
+                defender.ay = 0;
+                thrustContainer.classList.add('disabled-group');
+            }
+
+            if (!isSimulating) {
+                updateScale();
+                resetPositions();
+            }
+        }
+
+        // Reiniciar posiciones al punto de partida
+        function resetPositions() {
+            isSimulating = false;
+            cancelAnimationFrame(animationFrameId);
+            simTime = 0;
+            
+            enemy.x = enemy.startX;
+            enemy.y = enemy.startY;
+            enemy.vx = enemy.startVx;
+            enemy.vy = enemy.startVy;
+            enemy.path = [];
+            enemy.active = true;
+
+            defender.x = defender.startX;
+            defender.y = defender.startY;
+            defender.vx = defender.startVx;
+            defender.vy = defender.startVy;
+            defender.path = [];
+            defender.active = true;
+
+            particles = [];
+            statusText.textContent = "Ajusta los parámetros y presiona Disparar.";
+            statusText.className = "status-bar status-default";
+            
+            btnFire.disabled = false;
+            drawFrame();
+        }
+
+        // Iniciar Simulación
+        function startSimulation() {
+            if (isSimulating) return;
+            resetPositions();
+            isSimulating = true;
+            statusText.textContent = "Misil en vuelo...";
+            statusText.className = "status-bar status-flying";
+            
+            btnFire.disabled = true;
+            lastTime = performance.now();
+            simulationLoop(lastTime);
+        }
+
+        let lastTime = 0;
+        
+        // Bucle Principal de Física y Render
+        function simulationLoop(currentTime) {
+            if (!isSimulating) return;
+
+            updatePhysics();
+            drawFrame();
+
+            if ((enemy.active || defender.active) || particles.length > 0) {
+                animationFrameId = requestAnimationFrame(simulationLoop);
+            }
+        }
+
+        function updatePhysics() {
+            simTime += DT;
+            let currentMaxX = cameraOffsetX + (width / PIXELS_PER_METER);
+
+            // Actualizar Enemigo (Cinemática Exacta)
+            if (enemy.active) {
+                enemy.path.push({x: enemy.x, y: enemy.y});
+                enemy.x = enemy.startX + enemy.startVx * simTime;
+                enemy.y = enemy.startY + enemy.startVy * simTime - 0.5 * GRAVITY * simTime * simTime;
+                enemy.vx = enemy.startVx;
+                enemy.vy = enemy.startVy - GRAVITY * simTime;
+
+                // Destruir si se sale demasiado del marco visible de la cámara
+                if (enemy.y < 0 || enemy.x < cameraOffsetX - 500 || enemy.x > currentMaxX + 500) {
+                    enemy.active = false;
+                }
+            }
+
+            // Actualizar Defensor (Cinemática Exacta con Propulsor Constante)
+            if (defender.active) {
+                defender.path.push({x: defender.x, y: defender.y});
+                defender.x = defender.startX + defender.startVx * simTime + 0.5 * defender.ax * simTime * simTime;
+                defender.y = defender.startY + defender.startVy * simTime + 0.5 * (defender.ay - GRAVITY) * simTime * simTime;
+                defender.vx = defender.startVx + defender.ax * simTime;
+                defender.vy = defender.startVy + (defender.ay - GRAVITY) * simTime;
+
+                // Destruir si se sale demasiado del marco visible de la cámara
+                if (defender.y < 0 || defender.x < cameraOffsetX - 500 || defender.x > currentMaxX + 500) {
+                    defender.active = false;
+                }
+            }
+
+            // Chequeo de Colisión (Intercepción)
+            if (enemy.active && defender.active) {
+                const dx = enemy.x - defender.x;
+                const dy = enemy.y - defender.y;
+                const distance = Math.sqrt(dx*dx + dy*dy);
+
+                if (distance < EXPLOSION_RADIUS) {
+                    enemy.active = false;
+                    defender.active = false;
+                    createExplosion((enemy.x + defender.x)/2, (enemy.y + defender.y)/2);
+                    
+                    statusText.textContent = "¡INTERCEPCIÓN EXITOSA!";
+                    statusText.className = "status-bar status-success";
+                    setTimeout(() => isSimulating = false, 2000);
+                }
+            }
+
+            // Chequeo de fallo
+            if (!enemy.active && !defender.active && particles.length === 0 && isSimulating) {
+                statusText.textContent = "¡FALLO! El enemigo escapó o impactó.";
+                statusText.className = "status-bar status-fail";
+                isSimulating = false;
+            }
+
+            // Actualizar Partículas
+            particles.forEach((p, index) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= p.decay;
+                if (p.life <= 0) particles.splice(index, 1);
+            });
+        }
+
+        function createExplosion(x, y) {
+            for (let i = 0; i < 40; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 1;
+                particles.push({
+                    x: x, y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1.0,
+                    decay: Math.random() * 0.05 + 0.02,
+                    color: Math.random() > 0.5 ? '#f59e0b' : '#ef4444'
+                });
+            }
+        }
+
+        // Dibujar un frame
+        function drawFrame() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // Dibujar Ejes de Referencia (Suelo)
+            ctx.fillStyle = '#16a34a'; // Verde suelo
+            ctx.fillRect(0, canvasY(0), width, height); // Cubrir todo el marco hacia abajo para evitar recortes visuales
+
+            // Predicción
+            if (chkPrediction.checked && !isSimulating && enemy.startX > 0) {
+                drawPrediction();
+            }
+
+            // Trayectorias pasadas
+            drawPath(enemy.path, 'rgba(239, 68, 68, 0.4)');
+            drawPath(defender.path, 'rgba(59, 130, 246, 0.4)');
+
+            // Proyectiles (Misiles con orientación)
+            if (enemy.active) {
+                // Al enemigo le damos una llama decorativa para que parezca un cohete
+                drawMissile(enemy.x, enemy.y, enemy.vx, enemy.vy, '#ef4444', true);
+            }
+            if (defender.active) {
+                // El defensor muestra su llama si tiene el propulsor activado
+                drawMissile(defender.x, defender.y, defender.vx, defender.vy, '#3b82f6', defender.hasThrust);
+            }
+
+            // Explosión
+            particles.forEach(p => {
+                ctx.beginPath();
+                // Aumentado el multiplicador de tamaño de las partículas de la explosión
+                ctx.arc(canvasX(p.x), canvasY(p.y), 4.5 * p.life, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            });
+        }
+
+        function drawPath(pathArray, color) {
+            if (pathArray.length < 2) return;
+            ctx.beginPath();
+            ctx.moveTo(canvasX(pathArray[0].x), canvasY(pathArray[0].y));
+            for (let i = 1; i < pathArray.length; i++) {
+                ctx.lineTo(canvasX(pathArray[i].x), canvasY(pathArray[i].y));
+            }
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 4; // Línea de trayectoria más gruesa
+            ctx.stroke();
+        }
+
+        function drawMissile(x, y, vx, vy, color, isThrusting) {
+            const cx = canvasX(x);
+            const cy = canvasY(y);
+            
+            // Ángulo basado en el vector de velocidad (invertimos Y por el sistema de coordenadas del canvas)
+            const speed = Math.sqrt(vx*vx + vy*vy);
+            const angle = (speed > 0.1) ? Math.atan2(-vy, vx) : 0;
+            
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(angle);
+            
+            // Escala visual del misil
+            const len = 32; 
+            const wid = 8;
+            
+            // Llama de propulsión animada
+            if (isThrusting) {
+                const flameLen = 15 + Math.random() * 10;
+                
+                // Llama exterior (Naranja)
+                ctx.beginPath();
+                ctx.moveTo(-len/2, 0);
+                ctx.lineTo(-len/2 - flameLen, 0);
+                ctx.strokeStyle = '#f97316'; 
+                ctx.lineWidth = wid - 2;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                
+                // Llama interior (Amarillo claro)
+                ctx.beginPath();
+                ctx.moveTo(-len/2, 0);
+                ctx.lineTo(-len/2 - flameLen*0.6, 0);
+                ctx.strokeStyle = '#fef08a'; 
+                ctx.lineWidth = wid - 4;
+                ctx.stroke();
+            }
+
+            // Cuerpo principal
+            ctx.fillStyle = color;
+            ctx.fillRect(-len/2, -wid/2, len - 10, wid);
+            
+            // Nariz del misil (Punta aerodinámica)
+            ctx.beginPath();
+            ctx.moveTo(len/2 - 10, -wid/2);
+            ctx.lineTo(len/2, 0);
+            ctx.lineTo(len/2 - 10, wid/2);
+            ctx.closePath();
+            ctx.fillStyle = '#ffffff'; // Punta blanca
+            ctx.fill();
+            
+            // Aletas traseras
+            ctx.fillStyle = '#475569'; // Gris pizarra
+            
+            // Aleta superior
+            ctx.beginPath();
+            ctx.moveTo(-len/2 + 6, -wid/2);
+            ctx.lineTo(-len/2 - 2, -wid/2 - 6);
+            ctx.lineTo(-len/2 + 10, -wid/2);
+            ctx.fill();
+            
+            // Aleta inferior
+            ctx.beginPath();
+            ctx.moveTo(-len/2 + 6, wid/2);
+            ctx.lineTo(-len/2 - 2, wid/2 + 6);
+            ctx.lineTo(-len/2 + 10, wid/2);
+            ctx.fill();
+
+            // Detalles visuales (contorno suave)
+            ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(-len/2, -wid/2, len - 10, wid);
+            ctx.beginPath();
+            ctx.moveTo(len/2 - 10, -wid/2);
+            ctx.lineTo(len/2, 0);
+            ctx.lineTo(len/2 - 10, wid/2);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // Calcula y dibuja la trayectoria teórica
+        function drawPrediction() {
+            ctx.beginPath();
+            ctx.moveTo(canvasX(enemy.startX), canvasY(enemy.startY));
+            for(let t = 0; t < 60; t += 0.2) {
+                let ex = enemy.startX + enemy.startVx * t;
+                let ey = enemy.startY + enemy.startVy * t - 0.5 * GRAVITY * t * t;
+                if(ey < 0) break;
+                ctx.lineTo(canvasX(ex), canvasY(ey));
+            }
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.3)';
+            ctx.setLineDash([5, 5]);
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.beginPath();
+            ctx.moveTo(canvasX(defender.startX), canvasY(defender.startY));
+            for(let t = 0; t < 60; t += 0.2) {
+                let dx = defender.startX + defender.startVx * t + 0.5 * defender.ax * t * t;
+                let dy = defender.startY + defender.startVy * t + 0.5 * (defender.ay - GRAVITY) * t * t;
+                if(dy < 0 && t > 0.5) break;
+                ctx.lineTo(canvasX(dx), canvasY(dy));
+            }
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.3)';
+            ctx.setLineDash([5, 5]);
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // Listeners
+        btnRandomEnemy.addEventListener('click', generateRandomEnemy);
+        btnFire.addEventListener('click', startSimulation);
+        btnReset.addEventListener('click', resetPositions);
+        chkPrediction.addEventListener('change', drawFrame);
+
+        btnModeManual.addEventListener('click', () => setMode('manual'));
+        btnModeAuto.addEventListener('click', () => setMode('auto'));
+
+        inDefX.addEventListener('input', () => {
+            if (isAutoMode) autoConfigure();
+            else updateDefenderConfig();
+        });
+
+        [inDefV, inDefAng, inDefThrust, inDefThrustToggle].forEach(input => {
+            input.addEventListener('input', () => {
+                if (isAutoMode && (input.id === 'd-thrust' || input.id === 'd-thrust-toggle')) {
+                    autoConfigure(); 
+                } else {
+                    updateDefenderConfig();
+                }
+            });
+        });
+
+        // Inicialización
+        window.onload = () => {
+            resizeCanvas();
+            updateDefenderConfig();
+            generateRandomEnemy();
+        };
+
+    </script>
+</body>
+</html>

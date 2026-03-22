@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Física Mecánica - Simulación Interceptación UdeA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        .section-card { @apply bg-white p-8 rounded-xl shadow-lg mb-8 border-l-4 border-green-700; }
+        .math-block { @apply bg-gray-50 p-4 rounded-md overflow-x-auto my-4 text-center; }
+        canvas { background-color: #0f172a; border: 2px solid #334155; border-radius: 0.5rem; width: 100%; height: auto; }
+        .highlight-box { @apply bg-blue-50 border-l-4 border-blue-500 p-4 my-4 italic text-sm; }
+        .biblio-list { @apply list-decimal ml-8 text-sm text-gray-700 space-y-2; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+
+    <header class="bg-green-800 text-white py-10 shadow-md">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl font-bold mb-2">UNIVERSIDAD DE ANTIOQUIA</h1>
+            <h2 class="text-xl opacity-90">Facultad de Ingeniería - Física Mecánica</h2>
+            <p class="mt-4 italic">Simulación de Interceptación de Misiles - Proyecto Domo de Hierro</p>
+            <p class="mt-4 italic">Samuel Echeverri Ortiz - 1038868306</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- 1. ENUNCIADO -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-green-800 mb-4">1. Enunciado del Problema</h2>
+            <p class="mb-4">
+                Un radar detecta un misil enemigo en vuelo parabólico. Se requiere diseñar un sistema de defensa que, tras identificar la trayectoria en un plano 2D, lance un proyectil defensor para neutralizar la amenaza. El lanzamiento del enemigo es estocástico dentro de un rango de <strong>15° a 75°</strong>.
+            </p>
+        </section>
+
+        <!-- 2. SOLUCIÓN ALGEBRAICA -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-green-800 mb-4">2. Solución Algebraica (Cinemática)</h2>
+            <p class="mb-2">Para que ocurra la interceptación, las partículas deben ocupar la misma posición en el mismo instante de tiempo \(t_{int}\):</p>
+            
+            <div class="math-block">
+                $$\vec{r}_e(t_{int}) = \vec{r}_d(t_{int})$$
+            </div>
+
+            <p class="mt-4">Descomponiendo en los ejes coordenados para el misil enemigo (e) y defensor (d):</p>
+            
+            <div class="math-block">
+                $$x_{e0} + v_{ex}t = x_{d0} + v_{dx}t$$
+                $$y_{e0} + v_{ey}t - \frac{1}{2}gt^2 = y_{d0} + v_{dy}t - \frac{1}{2}(g - a_p)t^2$$
+            </div>
+
+            <p class="mb-2">El sistema resuelve para las componentes de velocidad del defensor despejando de las ecuaciones de posición:</p>
+            <div class="math-block">
+                $$v_{dx} = \frac{(x_{e0} - x_{d0}) + v_{ex}t}{t}$$
+                $$v_{dy} = \frac{(y_{e0} - y_{d0}) + v_{ey}t + \frac{1}{2}a_p t^2}{t}$$
+            </div>
+
+            <div class="highlight-box">
+                <strong>Análisis del Ángulo de Lanzamiento (\(\theta_d\)):</strong> 
+                Una vez calculadas las componentes vectoriales de la velocidad inicial necesarias para el impacto (\(v_{dx}\) y \(v_{dy}\)), el ángulo de elevación del lanzador se determina mediante la función arcotangente:
+                $$\theta_d = \tan^{-1}\left( \frac{v_{dy}}{v_{dx}} \right)$$
+                Este ángulo representa la dirección del vector velocidad inicial \(\vec{v}_d\) respecto al eje horizontal.
+            </div>
+        </section>
+
+        <!-- 3. ANÁLISIS FUNCIONAL O TEÓRICO -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-green-800 mb-4">3. Análisis Funcional o Teórico</h2>
+            <p class="mb-4">
+                El análisis se fundamenta en el principio de independencia de los movimientos (Galileo). En el eje horizontal, se asume un Movimiento Rectilíneo Uniforme (MRU) dado que la resistencia del aire se considera despreciable para efectos de este modelo de física básica. En el eje vertical, se presenta un Movimiento Rectilíneo Uniformemente Variado (MRUV) bajo la acción de la aceleración de la gravedad (\(g\)).
+            </p>
+            <p>
+                Un aspecto crítico es la determinación del <strong>tiempo de encuentro (\(t_{int}\))</strong>. Para que la interceptación sea físicamente posible, este tiempo debe ser menor al tiempo total de vuelo del misil enemigo hasta el impacto con el suelo (\(t_{vuelo} = \frac{2v_{0y}}{g}\) si parte desde \(y=0\)). El sistema debe recalcular dinámicamente si se requiere asistencia de propulsores (\(a_p\)) para compensar trayectorias de interceptación que demanden velocidades iniciales superiores a la capacidad del lanzador.
+            </p>
+        </section>
+
+        <!-- 4. PLANTEAMIENTO DE LA SIMULACIÓN -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-green-800 mb-4">4. Planteamiento de la Simulación</h2>
+            <p class="mb-4">
+                La simulación se implementa mediante un motor de pasos discretos (\(dt = 0.05s\)). La naturaleza <strong>estocástica</strong> del ejercicio se garantiza mediante el uso de generadores de números pseudoaleatorios para definir la posición inicial en Y y el ángulo de ataque del enemigo.
+            </p>
+            <div class="bg-gray-100 p-4 rounded font-mono text-sm mb-4">
+                // Ejemplo de lógica estocástica implementada:<br>
+                enemy.y0 = Math.random() * 200 + 200;<br>
+                angle = Math.random() * (75 - 15) + 15;
+            </div>
+            <p>
+                Cada cuadro de la animación actualiza las posiciones basándose en las ecuaciones de Euler, permitiendo visualizar la colisión cuando la distancia euclidiana entre ambos proyectiles es inferior al umbral crítico definido (\(15m\) a escala).
+            </p>
+        </section>
+
+        <!-- 5. SIMULACIÓN INTERACTIVA (Apartado original 3) -->
+        <section class="section-card border-l-4 border-blue-600">
+            <h2 class="text-2xl font-bold text-blue-800 mb-6">5. Simulación Interactiva</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- Controles -->
+                <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
+                    <h3 class="font-bold mb-4 border-b pb-2">Parámetros de Lanzamiento</h3>
+                    
+                    <div class="mb-4 text-sm bg-blue-50 p-2 rounded border border-blue-100">
+                        <p><strong>Restricción:</strong> El ángulo debe estar entre 15° y 75° según el protocolo.</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold">Velocidad Enemigo (m/s)</label>
+                        <input type="range" id="v0_slider" min="100" max="400" value="200" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        <span id="v0_val" class="text-xs font-mono text-blue-600 font-bold">200</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold">Ángulo Enemigo (Grados)</label>
+                        <input type="range" id="angle_slider" min="15" max="75" value="45" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        <span id="angle_val" class="text-xs font-mono text-blue-600 font-bold">45</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <button id="btnRandom" class="w-full bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700 transition">
+                            Generar Aleatorio (15°-75°)
+                        </button>
+                        <button id="btnStart" class="w-full bg-green-700 text-white py-2 rounded font-bold hover:bg-green-800 transition">
+                            Lanzar Interceptación
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Gráfico -->
+                <div class="md:col-span-2 flex flex-col">
+                    <canvas id="simCanvas" height="450"></canvas>
+                    <div class="flex justify-between mt-3 p-2 bg-white rounded shadow-sm border border-gray-100">
+                        <div class="flex items-center space-x-4">
+                            <span class="flex items-center text-red-500 font-bold text-xs"><span class="w-3 h-3 bg-red-500 rounded-full mr-1"></span> Enemigo</span>
+                            <span class="flex items-center text-blue-500 font-bold text-xs"><span class="w-3 h-3 bg-blue-500 rounded-full mr-1"></span> Defensor</span>
+                        </div>
+                        <span id="statusLabel" class="font-mono text-xs text-gray-500 uppercase tracking-wider font-bold">Estado: Radar Activo</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="resultBox" class="hidden p-4 rounded-lg border">
+                <h4 id="resultTitle" class="font-bold text-lg"></h4>
+                <p id="resultText" class="text-sm"></p>
+            </div>
+        </section>
+
+        <!-- 6. RELACIÓN CON EL SISTEMA DOMO DE HIERRO -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-green-800 mb-4">6. Relación con el Sistema Domo de Hierro</h2>
+            <p class="mb-4">
+                El sistema real "Iron Dome" (Cúpula de Hierro) utiliza un radar EL/M-2084 para detectar la trayectoria del misil entrante en milisegundos. Al igual que en esta simulación, el sistema estima el punto de impacto. Una diferencia clave es que el Domo de Hierro solo lanza el interceptor "Tamir" si el cálculo indica que el misil caerá en una zona habitada o infraestructura crítica, optimizando así los recursos.
+            </p>
+            <p>
+                Esta simulación modela la etapa de <strong>guiado proporcional</strong> y la resolución de las ecuaciones cinemáticas que permiten al interceptor coincidir con el blanco, un concepto fundamental en los sistemas de defensa de punto modernos.
+            </p>
+        </section>
+
+        <!-- 7. CONCLUSIONES -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-green-800 mb-4">7. Conclusiones</h2>
+            <p>La precisión del sistema depende de la resolución de las ecuaciones cinemáticas en tiempo real. Se concluye que ángulos de lanzamiento bajos aumentan la velocidad necesaria del interceptor para evitar el impacto en tierra del proyectil agresor.</p>
+        </section>
+
+        <!-- 8. BIBLIOGRAFÍA -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-green-800 mb-4">8. Bibliografía</h2>
+            <ol class="biblio-list">
+                <li>Serway, R. A., & Jewett, J. W. (2018). <i>Física para ciencias e ingeniería</i>. Cengage Learning.</li>
+                <li>Beer, F. P., Johnston, E. R., & Cornwell, P. J. (2019). <i>Mecánica vectorial para ingenieros: Dinámica</i>. McGraw-Hill.</li>
+                <li>UdeA. (2024). <i>Guía de laboratorio de Física Mecánica - Facultad de Ingeniería</i>.</li>
+                <li>Raytheon Missiles & Defense. (2023). <i>Iron Dome Weapon System Technology Overview</i>.</li>
+            </ol>
+        </section>
+
+    </main>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const statusLabel = document.getElementById('statusLabel');
+        const resultBox = document.getElementById('resultBox');
+        
+        const g = 9.81;
+        const dt = 0.05;
+        let scale = 0.45; 
+
+        let simRunning = false;
+        let animationId;
+
+        let enemy = { x: 0, y: 0, vx: 0, vy: 0, x0: 0, y0: 0, history: [] };
+        let defender = { x: 0, y: 0, vx: 0, vy: 0, x0: 50, y0: 0, history: [], ap: 0, type: 'parabolic' };
+
+        const v0S = document.getElementById('v0_slider');
+        const angS = document.getElementById('angle_slider');
+
+        function updateLabels() {
+            document.getElementById('v0_val').innerText = v0S.value;
+            document.getElementById('angle_val').innerText = angS.value;
+            resetSim();
+        }
+
+        v0S.addEventListener('input', updateLabels);
+        angS.addEventListener('input', updateLabels);
+
+        function resetSim() {
+            simRunning = false;
+            cancelAnimationFrame(animationId);
+            
+            const v0 = parseFloat(v0S.value);
+            const angDeg = parseFloat(angS.value);
+            const rad = (180 - angDeg) * Math.PI / 180; 
+
+            enemy.x0 = (canvas.width * 0.9) / scale; 
+            enemy.y0 = (Math.random() * 200 + 200); 
+            
+            enemy.x = enemy.x0;
+            enemy.y = enemy.y0;
+            enemy.vx = v0 * Math.cos(rad);
+            enemy.vy = v0 * Math.sin(rad);
+            enemy.history = [];
+
+            defender.x = defender.x0;
+            defender.y = defender.y0;
+            defender.history = [];
+            
+            resultBox.classList.add('hidden');
+            statusLabel.innerText = "Radar Activo";
+            draw();
+        }
+
+        function generateRandom() {
+            v0S.value = Math.floor(Math.random() * 150 + 150);
+            angS.value = Math.floor(Math.random() * (75 - 15) + 15);
+            updateLabels();
+        }
+
+        function calculateDefense() {
+            if (enemy.y < 300) {
+                defender.type = 'propulsor';
+                defender.ap = 25.0; 
+            } else {
+                defender.type = 'parabolic';
+                defender.ap = 0;
+            }
+
+            const t_int = 3.5; 
+            const targetX = enemy.x + enemy.vx * t_int;
+            const targetY = enemy.y + enemy.vy * t_int - 0.5 * g * t_int**2;
+
+            defender.vx = (targetX - defender.x0) / t_int;
+            const accY_def = -(g - defender.ap); 
+            defender.vy = (targetY - defender.y0 - 0.5 * accY_def * t_int**2) / t_int;
+
+            statusLabel.innerText = `Lanzamiento (${defender.type})`;
+        }
+
+        function startSimulation() {
+            if (simRunning) return;
+            resetSim();
+            calculateDefense();
+            simRunning = true;
+            animate();
+        }
+
+        function animate() {
+            if (!simRunning) return;
+
+            enemy.x += enemy.vx * dt;
+            enemy.vy -= g * dt;
+            enemy.y += enemy.vy * dt;
+            enemy.history.push({x: enemy.x, y: enemy.y});
+
+            const currentAccY = -(g - defender.ap);
+            defender.x += defender.vx * dt;
+            defender.vy += currentAccY * dt;
+            defender.y += defender.vy * dt;
+            defender.history.push({x: defender.x, y: defender.y});
+
+            draw();
+
+            const dist = Math.sqrt((enemy.x - defender.x)**2 + (enemy.y - defender.y)**2);
+
+            if (dist < 15) {
+                simRunning = false;
+                endSim(true);
+            } else if (enemy.y < 0 || enemy.x < 0 || defender.y < 0) {
+                simRunning = false;
+                endSim(false);
+            } else {
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+
+        function endSim(success) {
+            resultBox.classList.remove('hidden');
+            const title = document.getElementById('resultTitle');
+            const text = document.getElementById('resultText');
+
+            const distHorizontal = Math.abs(defender.x - defender.x0);
+
+            if (success) {
+                resultBox.className = "p-4 rounded-lg border bg-green-50 border-green-200 mt-4 block";
+                title.className = "font-bold text-lg text-green-800";
+                title.innerText = "INTERCEPTACIÓN EXITOSA";
+                text.innerText = `El objetivo fue neutralizado a una altura de ${enemy.y.toFixed(1)} m y a una distancia horizontal de ${distHorizontal.toFixed(1)} m desde el punto de lanzamiento del defensor.`;
+            } else {
+                resultBox.className = "p-4 rounded-lg border bg-red-50 border-red-200 mt-4 block";
+                title.className = "font-bold text-lg text-red-800";
+                title.innerText = "FALLO EN LA DEFENSA";
+                text.innerText = "El objetivo no pudo ser neutralizado antes del impacto en el terreno.";
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const h = canvas.height;
+
+            ctx.strokeStyle = "#1e293b";
+            ctx.lineWidth = 1;
+            for(let i=0; i<canvas.width; i+=50) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke();
+            }
+
+            ctx.fillStyle = "#1e293b";
+            ctx.fillRect(0, h - 20, canvas.width, 20);
+
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "rgba(239, 68, 68, 0.4)";
+            ctx.beginPath();
+            enemy.history.forEach((p, i) => {
+                if(i===0) ctx.moveTo(p.x * scale, h - 20 - p.y * scale);
+                else ctx.lineTo(p.x * scale, h - 20 - p.y * scale);
+            });
+            ctx.stroke();
+
+            ctx.strokeStyle = "rgba(59, 130, 246, 0.4)";
+            ctx.beginPath();
+            defender.history.forEach((p, i) => {
+                if(i===0) ctx.moveTo(p.x * scale, h - 20 - p.y * scale);
+                else ctx.lineTo(p.x * scale, h - 20 - p.y * scale);
+            });
+            ctx.stroke();
+
+            ctx.fillStyle = "#ef4444";
+            ctx.beginPath();
+            ctx.arc(enemy.x * scale, h - 20 - enemy.y * scale, 6, 0, Math.PI*2);
+            ctx.fill();
+
+            ctx.fillStyle = "#3b82f6";
+            ctx.beginPath();
+            ctx.arc(defender.x * scale, h - 20 - defender.y * scale, 5, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        document.getElementById('btnRandom').onclick = generateRandom;
+        document.getElementById('btnStart').onclick = startSimulation;
+
+        window.onload = () => {
+            resetSim();
+        };
+    </script>
+</body>
+</html>

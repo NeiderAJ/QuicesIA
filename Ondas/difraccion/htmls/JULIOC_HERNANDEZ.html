@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación Avanzada de Doblete Óptico</title>
+    <style>
+        /* --- CSS Variables para Theming (Modo Claro/Oscuro) --- */
+        :root {
+            --bg-color: #f0f4f8;
+            --container-bg: #ffffff;
+            --simulation-bg: #fafcff;
+            --text-color: #333;
+            --header-color: #1a5a99;
+            --label-color: #555;
+            --border-color: #dbe2ea;
+            --output-bg: #eaf2fa;
+            --output-value-color: #0077cc;
+            --button-primary-bg: #0077cc;
+            --button-primary-hover: #005fa3;
+            --button-secondary-bg: #7f8c8d;
+            --button-secondary-hover: #6c7a7b;
+            --lens1-fill: #3498db;
+            --lens1-stroke: #2980b9;
+            --lens2-fill: #e74c3c;
+            --lens2-stroke: #c0392b;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1c2128;
+            --container-bg: #2d333b;
+            --simulation-bg: #22272e;
+            --text-color: #cdd9e5;
+            --header-color: #58a6ff;
+            --label-color: #909dab;
+            --border-color: #444c56;
+            --output-bg: #373e47;
+            --output-value-color: #58a6ff;
+            --button-primary-bg: #238636;
+            --button-primary-hover: #2ea043;
+            --button-secondary-bg: #8b949e;
+            --button-secondary-hover: #a0a9b2;
+            --lens1-fill: #58a6ff;
+            --lens1-stroke: #80b6f9;
+            --lens2-fill: #f85149;
+            --lens2-stroke: #f78179;
+        }
+
+        /* --- Estilos Generales --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            background: var(--container-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            max-width: 1200px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        
+        .main-content {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: nowrap;
+        }
+
+        .controls { flex: 1; min-width: 320px; }
+        .simulation-container { flex: 2; min-width: 600px; }
+
+        .header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 { font-size: 1.8rem; color: var(--header-color); margin: 0;}
+        h2 { font-size: 1.2rem; margin-bottom: 1.5rem; color: var(--text-color); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;}
+        p { line-height: 1.6; }
+
+        /* --- Controles y Salidas --- */
+        .control-group { margin-bottom: 1.25rem; }
+        label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--label-color); }
+        input[type="range"] { width: 100%; cursor: pointer; }
+        .value-display { font-weight: 500; color: var(--output-value-color); background-color: var(--output-bg); padding: 2px 8px; border-radius: 4px; min-width: 40px; text-align: center; display: inline-block; margin-left: 0.5rem; }
+        
+        .output-container { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
+        .output-group { padding: 1rem; background-color: var(--output-bg); border-radius: 8px; text-align: center; }
+        .output-group .label { font-size: 1rem; font-weight: 600; color: var(--label-color); }
+        .output-group .value { font-size: 1.4rem; font-weight: 700; color: var(--output-value-color); margin-top: 0.5rem; }
+        .total-output { grid-column: 1 / -1; } /* Ocupa todo el ancho */
+        
+        .button-group { margin-top: 1.5rem; display: flex; gap: 0.75rem; }
+        button { flex-grow: 1; padding: 0.75rem 1rem; border: none; border-radius: 6px; background-color: var(--button-primary-bg); color: white; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+        button:hover { background-color: var(--button-primary-hover); }
+        button.secondary { background-color: var(--button-secondary-bg); color: var(--bg-color); }
+        button.secondary:hover { background-color: var(--button-secondary-hover); }
+
+        /* --- Simulación SVG --- */
+        .simulation { border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--simulation-bg); overflow: hidden; }
+        .optical-axis { stroke: var(--label-color); stroke-width: 1.5; stroke-dasharray: 8 4; }
+        .lens { fill-opacity: 0.4; stroke-width: 2; transition: fill 0.3s, stroke 0.3s;}
+        .lens-plano-concave { fill: var(--lens1-fill); stroke: var(--lens1-stroke); }
+        .lens-biconvex { fill: var(--lens2-fill); stroke: var(--lens2-stroke); }
+        
+        .ray-path { fill: none; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+        .ray-path--incident { stroke: #f1c40f; }
+        .ray-path--refracted1 { stroke: #e67e22; }
+        .ray-path--refracted2 { stroke: #2ecc71; }
+        .ray-path--virtual { stroke: #2ecc71; stroke-dasharray: 6 6; }
+        
+        /* Animación de Trazado */
+        .ray-path.animated {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: draw-ray 2s ease-out forwards;
+        }
+        @keyframes draw-ray { to { stroke-dashoffset: 0; } }
+        
+        .focal-point { fill: #e67e22; }
+        .focal-line { stroke: #e67e22; stroke-width: 1.5; stroke-dasharray: 5 5; }
+        .focal-label, .normal-label { font-size: 12px; fill: var(--text-color); font-weight: bold; }
+        .normal-vector { stroke: #9b59b6; stroke-width: 1; stroke-dasharray: 3 3; }
+        
+        /* --- Leyenda y Explicaciones --- */
+        .legend { list-style: none; padding: 0; margin-top: 1rem; }
+        .legend li { display: flex; align-items: center; margin-bottom: 0.5rem; }
+        .legend-color { width: 20px; height: 4px; margin-right: 10px; border-radius: 2px; }
+
+        .explanation-box {
+            background-color: var(--output-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin-top: 2rem;
+        }
+        .explanation-box h3 { margin-top: 0; color: var(--header-color); }
+        .explanation-box code { background: var(--bg-color); padding: 2px 5px; border-radius: 4px; font-family: monospace; }
+        
+        /* --- Responsividad --- */
+        @media (max-width: 1024px) {
+            body { padding: 1rem; }
+            .main-content { flex-direction: column; }
+            .controls, .simulation-container { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Simulación de Doblete Óptico (Trazado de Rayos)</h1>
+            <button id="dark-mode-toggle">🌓</button>
+        </div>
+        
+        <div class="main-content">
+            <div class="controls">
+                <h2>Parámetros del Sistema</h2>
+                <div class="control-group">
+                    <label>Índice de refracción n₁ (Plano-Cóncava): <span class="value-display" id="n1-value">1.50</span></label>
+                    <input type="range" id="n1" min="1.0" max="2.0" value="1.5" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label>Índice de refracción n₂ (Biconvexa): <span class="value-display" id="n2-value">1.70</span></label>
+                    <input type="range" id="n2" min="1.0" max="2.0" value="1.7" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label>Radio de Curvatura |R| (mm): <span class="value-display" id="R-value">100</span></label>
+                    <input type="range" id="R" min="50" max="200" value="100" step="1">
+                </div>
+                <div class="control-group">
+                    <label for="show-normals">Mostrar Normales en Interfaz: 
+                        <input type="checkbox" id="show-normals" style="vertical-align: middle;">
+                    </label>
+                </div>
+                <div class="button-group">
+                    <button id="reset-button">Restablecer</button>
+                    <button id="export-svg-button" class="secondary">Exportar SVG</button>
+                </div>
+                
+                <div class="output-container">
+                    <div class="output-group">
+                        <div class="label">Potencia Lente 1 (D)</div>
+                        <div class="value" id="power1-output">--</div>
+                    </div>
+                    <div class="output-group">
+                        <div class="label">Potencia Lente 2 (D)</div>
+                        <div class="value" id="power2-output">--</div>
+                    </div>
+                    <div class="output-group total-output">
+                        <div class="label">Distancia Focal Total Teórica (f<sub>total</sub>)</div>
+                        <div class="value" id="focal-length-output">-- mm</div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="simulation-container">
+                 <h2>Visualización del Sistema Óptico</h2>
+                <div class="simulation">
+                   <svg id="optical-system" width="100%" height="100%" viewBox="0 0 800 400"></svg>
+                </div>
+                <ul class="legend">
+                    <li><div class="legend-color" style="background-color: #f1c40f;"></div>Rayo Incidente</li>
+                    <li><div class="legend-color" style="background: linear-gradient(90deg, #e67e22, #2ecc71);"></div>Rayos Refractados</li>
+                    <li><div class="legend-color" style="border: 1px dashed #2ecc71; width: 18px;"></div>Rayo Virtual</li>
+                    <li><div class="legend-color" style="background-color: #e67e22; height: 10px; width: 10px; border-radius: 50%;"></div>Punto Focal</li>
+                    <li><div class="legend-color" style="background-color: var(--label-color); height: 2px; border-top: 2px dashed var(--label-color);"></div>Eje Óptico</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="explanation-box">
+            <h3>Fórmulas Físicas Utilizadas</h3>
+            <p>Esta simulación aplica la <strong>Ley de Snell</strong> en cada interfaz (aire-lente, lente-lente, lente-aire): <code>n₁ sin(θ₁) = n₂ sin(θ₂)</code></p>
+            <p>La potencia óptica (en Dioptrías, D) y la distancia focal (f) de cada lente se calculan con la <strong>fórmula del fabricante de lentes</strong>:</p>
+            <ul>
+                <li>Lente 1 (Plano-Cóncava): <code>P₁ = (n₁ - 1) * (1/∞ - 1/(-R)) = (n₁ - 1) / R</code></li>
+                <li>Lente 2 (Biconvexa): <code>P₂ = (n₂ - 1) * (1/R - 1/(-R)) = 2 * (n₂ - 1) / R</code></li>
+                <li>Potencia Total: <code>P_total = P₁ + P₂</code>. Distancia Focal: <code>f_total = 1 / P_total</code> (en metros).</li>
+            </ul>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- ELEMENTOS DEL DOM ---
+    const n1Slider = document.getElementById('n1');
+    const n2Slider = document.getElementById('n2');
+    const RSlider = document.getElementById('R');
+    const showNormalsCheckbox = document.getElementById('show-normals');
+    
+    const n1Value = document.getElementById('n1-value');
+    const n2Value = document.getElementById('n2-value');
+    const RValue = document.getElementById('R-value');
+    
+    const power1Output = document.getElementById('power1-output');
+    const power2Output = document.getElementById('power2-output');
+    const focalLengthOutput = document.getElementById('focal-length-output');
+    
+    const svg = document.getElementById('optical-system');
+    const resetButton = document.getElementById('reset-button');
+    const exportSvgButton = document.getElementById('export-svg-button');
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+
+    // --- CONSTANTES DE LA SIMULACIÓN ---
+    const SVG_WIDTH = 800;
+    const SVG_HEIGHT = 400;
+    const OPTICAL_AXIS_Y = SVG_HEIGHT / 2;
+    const LENS_CENTER_X = SVG_WIDTH / 4; // Dar más espacio para rayos
+    const LENS_HEIGHT = 180;
+    const N_AIR = 1.0;
+
+    const DEFAULTS = { n1: 1.5, n2: 1.7, R: 100, showNormals: false };
+
+    // --- LÓGICA DE FÍSICA Y TRAZADO DE RAYOS ---
+
+    /**
+     * Calcula la intersección de una línea (rayo) con una esfera (superficie de la lente).
+     * @param {object} ray - { x, y, angle }
+     * @param {object} sphere - { cx, cy, R }
+     * @returns {object|null} - Punto de intersección { x, y }
+     */
+    function findIntersection(ray, sphere) {
+        const dx = Math.cos(ray.angle);
+        const dy = Math.sin(ray.angle);
+        
+        const a = dx*dx + dy*dy;
+        const b = 2 * (dx * (ray.x - sphere.cx) + dy * (ray.y - sphere.cy));
+        const c = (ray.x - sphere.cx)**2 + (ray.y - sphere.cy)**2 - sphere.R**2;
+        
+        const discriminant = b*b - 4*a*c;
+        if (discriminant < 0) return null;
+        
+        const t1 = (-b - Math.sqrt(discriminant)) / (2*a);
+        const t2 = (-b + Math.sqrt(discriminant)) / (2*a);
+
+        // Queremos la intersección que está "adelante" en la dirección del rayo.
+        const t = (sphere.R > 0) ? Math.min(t1, t2) : Math.max(t1, t2); // Convexo vs Cóncavo
+        if (t < 1e-6) { // Si la intersección está detrás o es el punto de partida
+            const alt_t = (sphere.R > 0) ? Math.max(t1,t2) : Math.min(t1,t2);
+            if (alt_t < 1e-6) return null;
+            return { x: ray.x + dx * alt_t, y: ray.y + dy * alt_t };
+        }
+        return { x: ray.x + dx * t, y: ray.y + dy * t };
+    }
+
+    /**
+     * Aplica la Ley de Snell para encontrar el nuevo ángulo del rayo.
+     * @param {number} n1 - Índice de refracción del medio actual.
+     * @param {number} n2 - Índice de refracción del nuevo medio.
+     * @param {number} rayAngle - Ángulo del rayo incidente.
+     * @param {number} normalAngle - Ángulo de la normal a la superficie.
+     * @returns {number|null} - Nuevo ángulo del rayo o null si hay reflexión total interna.
+     */
+    function refract(n1, n2, rayAngle, normalAngle) {
+        const theta1 = rayAngle - normalAngle;
+        const sin_theta1 = Math.sin(theta1);
+        const sin_theta2 = n1 / n2 * sin_theta1;
+
+        if (Math.abs(sin_theta2) > 1) return null; // Reflexión total interna
+        
+        const theta2 = Math.asin(sin_theta2);
+        return normalAngle + theta2;
+    }
+
+    /**
+     * Traza un solo rayo a través de todo el sistema óptico.
+     * @param {number} y0 - Altura inicial del rayo.
+     * @returns {Array} - Una lista de puntos [p0, p1, p2, p3] que definen la trayectoria.
+     */
+    function traceRay(y0) {
+        const R = parseFloat(RSlider.value);
+        const n1 = parseFloat(n1Slider.value);
+        const n2 = parseFloat(n2Slider.value);
+
+        const path = [];
+        let ray = { x: 0, y: y0, angle: 0 };
+        path.push({x: ray.x, y: ray.y});
+
+        // 1. Interfaz: Aire -> Lente 1 (Plano-Cóncava) - Superficie Plana
+        const s1_x = LENS_CENTER_X - 10; // Posición de la cara plana
+        ray.x = s1_x;
+        path.push({x: ray.x, y: ray.y}); // No hay refracción en la superficie plana para un rayo paralelo
+
+        // 2. Interfaz: Lente 1 (n1) -> Lente 2 (n2) - Superficie Cóncava
+        const surface2 = { cx: s1_x - R, cy: OPTICAL_AXIS_Y, R: -R };
+        const p2 = { x: s1_x, y: y0 }; // No se propaga, las lentes están en contacto.
+        let normalAngle = Math.atan2(p2.y - surface2.cy, p2.x - surface2.cx);
+        let newAngle = refract(n1, n2, ray.angle, normalAngle);
+        if (newAngle === null) return path;
+        ray.angle = newAngle;
+        path.push({x: p2.x, y: p2.y, normal: normalAngle});
+        
+        // 3. Interfaz: Lente 2 (n2) -> Aire (N_AIR) - Superficie Convexa
+        const visualCurvature = 4000 / R;
+        const lens2Thickness = visualCurvature / 4; // Estimación del grosor
+        const surface3 = { cx: s1_x + lens2Thickness + R, cy: OPTICAL_AXIS_Y, R: R };
+
+        // Propagar rayo a través de la lente 2
+        const p3 = findIntersection(ray, surface3);
+        if (!p3) return path;
+
+        normalAngle = Math.atan2(p3.y - surface3.cy, p3.x - surface3.cx);
+        newAngle = refract(n2, N_AIR, ray.angle, normalAngle);
+        if (newAngle === null) return path;
+        ray = {x: p3.x, y: p3.y, angle: newAngle};
+        path.push({x: ray.x, y: ray.y, normal: normalAngle});
+
+        // 4. Propagación final
+        const finalX = SVG_WIDTH;
+        const finalY = ray.y + Math.tan(ray.angle) * (finalX - ray.x);
+        path.push({ x: finalX, y: finalY });
+        
+        return path;
+    }
+
+
+    // --- LÓGICA DE DIBUJADO EN SVG ---
+    function draw() {
+        svg.innerHTML = '';
+        const R = parseFloat(RSlider.value);
+        const n1 = parseFloat(n1Slider.value);
+        const n2 = parseFloat(n2Slider.value);
+
+        // Actualizar UI
+        updateUI(n1, n2, R);
+
+        // Dibujar componentes estáticos
+        drawOpticalAxis();
+        drawLenses(R);
+
+        // Trazar y dibujar rayos
+        const numRays = 11;
+        let focalPointSum = 0;
+        let focalPointCount = 0;
+
+        for (let i = 0; i < numRays; i++) {
+            const y0 = OPTICAL_AXIS_Y + (LENS_HEIGHT / 2) - (i * LENS_HEIGHT / (numRays - 1));
+            if (Math.abs(y0 - OPTICAL_AXIS_Y) < 1) continue;
+
+            const pathPoints = traceRay(y0);
+            drawRayPath(pathPoints);
+
+            // Calcular foco a partir del primer rayo no central
+            if (focalPointCount === 0 && pathPoints.length > 3) {
+                const lastSegment = { p1: pathPoints[pathPoints.length - 2], p2: pathPoints[pathPoints.length-1] };
+                const slope = (lastSegment.p2.y - lastSegment.p1.y) / (lastSegment.p2.x - lastSegment.p1.x);
+                if (Math.abs(slope) > 1e-6) {
+                    const focalX = lastSegment.p1.x - (lastSegment.p1.y - OPTICAL_AXIS_Y) / slope;
+                    if (isFinite(focalX)) {
+                        focalPointSum += focalX;
+                        focalPointCount++;
+                    }
+                }
+            }
+        }
+        
+        // Dibujar el foco promedio
+        if (focalPointCount > 0) {
+            const avgFocalX = focalPointSum / focalPointCount;
+            drawFocalPoint(avgFocalX);
+        }
+    }
+    
+    function updateUI(n1, n2, R) {
+        n1Value.textContent = n1.toFixed(2);
+        n2Value.textContent = n2.toFixed(2);
+        RValue.textContent = R.toFixed(0);
+
+        const R_m = R / 1000; // Convertir R a metros
+        const P1 = (n1 - 1) / R_m;
+        const P2 = 2 * (n2 - 1) / R_m;
+        const P_total = P1 + P2;
+        
+        power1Output.textContent = P1.toFixed(2);
+        power2Output.textContent = P2.toFixed(2);
+        
+        if (Math.abs(P_total) < 1e-6) {
+            focalLengthOutput.innerHTML = `∞ mm`;
+        } else {
+            const f_total_mm = (1 / P_total) * 1000;
+            focalLengthOutput.textContent = `${f_total_mm.toFixed(2)} mm`;
+        }
+    }
+
+    function drawOpticalAxis() {
+        const axis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        axis.setAttribute('x1', 0);
+        axis.setAttribute('y1', OPTICAL_AXIS_Y);
+        axis.setAttribute('x2', SVG_WIDTH);
+        axis.setAttribute('y2', OPTICAL_AXIS_Y);
+        axis.setAttribute('class', 'optical-axis');
+        svg.appendChild(axis);
+    }
+    
+    function drawLenses(R) {
+        const visualCurvature = 4000 / R;
+        const lens1Thickness = 10;
+        const lens1_x_start = LENS_CENTER_X - lens1Thickness;
+
+        // Lente 1: Plano-Cóncava
+        const lens1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const d1 = `M ${lens1_x_start} ${OPTICAL_AXIS_Y - LENS_HEIGHT/2} 
+                     L ${lens1_x_start} ${OPTICAL_AXIS_Y + LENS_HEIGHT/2} 
+                     Q ${lens1_x_start - visualCurvature} ${OPTICAL_AXIS_Y}, ${lens1_x_start} ${OPTICAL_AXIS_Y - LENS_HEIGHT/2} Z`;
+        lens1.setAttribute('d', d1);
+        lens1.setAttribute('class', 'lens lens-plano-concave');
+        svg.appendChild(lens1);
+        
+        // Lente 2: Biconvexa
+        const lens2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const lens2Thickness = visualCurvature / 4; // El grosor depende de R
+        const d2 = `M ${lens1_x_start} ${OPTICAL_AXIS_Y - LENS_HEIGHT/2} 
+                     Q ${lens1_x_start + lens2Thickness} ${OPTICAL_AXIS_Y}, ${lens1_x_start} ${OPTICAL_AXIS_Y + LENS_HEIGHT/2} 
+                     Q ${lens1_x_start - visualCurvature} ${OPTICAL_AXIS_Y}, ${lens1_x_start} ${OPTICAL_AXIS_Y - LENS_HEIGHT/2} Z`;
+        lens2.setAttribute('d', d2);
+        lens2.setAttribute('class', 'lens lens-biconvex');
+        svg.appendChild(lens2);
+    }
+
+    function drawRayPath(points) {
+        if (points.length < 2) return;
+        
+        const pathData = `M ${points[0].x} ${points[0].y} ` + points.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ');
+        const rayPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        rayPath.setAttribute('d', pathData);
+        rayPath.setAttribute('class', 'ray-path ray-path--refracted2 animated'); // Clase base y de animación
+        svg.appendChild(rayPath);
+        
+        // Dibujar normal si está activado
+        if (showNormalsCheckbox.checked) {
+            points.forEach(p => {
+                if(p.normal !== undefined) {
+                    const normalLength = 40;
+                    const x2 = p.x + normalLength * Math.cos(p.normal);
+                    const y2 = p.y + normalLength * Math.sin(p.normal);
+                    const normalLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    normalLine.setAttribute('x1', p.x);
+                    normalLine.setAttribute('y1', p.y);
+                    normalLine.setAttribute('x2', x2);
+                    normalLine.setAttribute('y2', y2);
+                    normalLine.setAttribute('class', 'normal-vector');
+                    svg.appendChild(normalLine);
+                }
+            });
+        }
+    }
+    
+    function drawFocalPoint(focalX) {
+        if (!isFinite(focalX) || focalX < 0 || focalX > SVG_WIDTH) return;
+
+        const isVirtual = focalX < LENS_CENTER_X;
+
+        // Círculo del punto focal
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute('cx', focalX);
+        circle.setAttribute('cy', OPTICAL_AXIS_Y);
+        circle.setAttribute('r', 6);
+        circle.setAttribute('class', 'focal-point');
+        svg.appendChild(circle);
+        
+        // Línea vertical
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute('x1', focalX);
+        line.setAttribute('y1', OPTICAL_AXIS_Y - 40);
+        line.setAttribute('x2', focalX);
+        line.setAttribute('y2', OPTICAL_AXIS_Y + 40);
+        line.setAttribute('class', 'focal-line');
+        svg.appendChild(line);
+        
+        // Etiqueta
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        label.setAttribute('x', focalX + 10);
+        label.setAttribute('y', OPTICAL_AXIS_Y - 45);
+        label.setAttribute('class', 'focal-label');
+        label.textContent = isVirtual ? 'Foco Virtual' : 'Foco Real';
+        svg.appendChild(label);
+    }
+    
+    // --- MANEJADORES DE EVENTOS ---
+    [n1Slider, n2Slider, RSlider, showNormalsCheckbox].forEach(el => el.addEventListener('input', draw));
+    
+    resetButton.addEventListener('click', () => {
+        n1Slider.value = DEFAULTS.n1;
+        n2Slider.value = DEFAULTS.n2;
+        RSlider.value = DEFAULTS.R;
+        showNormalsCheckbox.checked = DEFAULTS.showNormals;
+        draw();
+    });
+
+    darkModeToggle.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        if (currentTheme === 'dark') {
+            document.documentElement.removeAttribute('data-theme');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+        draw(); // Redibujar para aplicar colores del tema en SVG
+    });
+
+    exportSvgButton.addEventListener('click', () => {
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'doblete-optico.svg';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+    
+    // --- INICIALIZACIÓN ---
+    draw();
+});
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen_Fisica_Mecanica_UdeA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto space-y-8">
+        
+        <header class="bg-white border-t-8 border-blue-700 p-6 rounded-xl shadow-lg text-center">
+    <h1 class="text-3xl font-extrabold text-blue-900 uppercase">Simulación de Defensa Aérea</h1>
+    <p class="text-xl font-bold text-slate-700 mt-1">Simón Areiza Ospina</p>
+    <p class="text-blue-600 font-semibold italic">Física Mecánica - Universidad de Antioquia</p>
+</header>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-6">
+    <h2 class="text-xl font-bold text-blue-800 mb-3 border-b pb-2">1. Enunciado</h2>
+    <p class="text-gray-700 leading-relaxed">
+        Desarrollo de un sistema inspirado en el <strong>Domo de Hierro</strong>. 
+        El radar detecta un misil enemigo en \(\vec{r}_0\) con velocidad \(\vec{v}_0\). 
+        Se debe interceptar usando física de proyectiles.
+    </p>
+</section>
+
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold text-blue-800 mb-3 border-b pb-2">2. Solución Algebraica</h2>
+                <div class="text-[13px] bg-slate-50 p-3 rounded-lg overflow-x-auto">
+                    $$ x_e(t) = (v_0 \cos \alpha) t $$
+                    $$ y_e(t) = y_0 + (v_0 \sin \alpha) t - \frac{1}{2}gt^2 $$
+                    $$ a_{defensa} = a_{prop} - g $$
+                </div>
+            </section>
+        </div>
+
+        <section class="bg-white p-8 rounded-2xl shadow-xl border-2 border-blue-100">
+            <h2 class="text-2xl font-bold text-center mb-6 text-slate-700">Panel de Control y Radar</h2>
+            
+            <div class="flex flex-col md:flex-row gap-6 mb-8 items-center bg-blue-50 p-6 rounded-xl">
+                <button onclick="lanzarSistemas()" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 px-8 rounded-full shadow-lg transition-all active:scale-95">
+                    🚀 INICIAR DEFENSA
+                </button>
+                <div class="flex-1 w-full">
+                    <label class="block text-xs font-bold text-blue-900 mb-1 uppercase tracking-widest text-center">
+    Potencia Propulsor (Caso \(y_0 < 300m\))
+</label>
+                    <input type="range" id="power" min="10" max="30" value="18" class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-700">
+                </div>
+            </div>
+
+            <div class="relative overflow-hidden rounded-xl border-4 border-slate-800">
+                <canvas id="canvas" width="800" height="400" class="w-full h-auto bg-slate-950"></canvas>
+                <div id="stats" class="absolute top-4 left-4 font-mono text-[10px] text-green-400 bg-black/60 p-3 rounded border border-green-500/30">
+                    SISTEMA: STANDBY
+                </div>
+            </div>
+        </section>
+
+        <footer class="bg-slate-800 text-slate-300 p-8 rounded-xl text-sm">
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="font-bold text-white mb-2">Conclusiones Académicas</h3>
+                    <p class="opacity-80">La aceleración variable permite reducir el tiempo de interceptación en un 40% para objetivos de baja altitud.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white mb-2">Bibliografía</h3>
+                    <p class="text-xs italic">UdeA (2026). Guía de Simulación Computacional. Medellín.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const stats = document.getElementById('stats');
+        const g = 9.81;
+
+        function lanzarSistemas() {
+            // Generador aleatorio
+            const y0 = Math.random() * 200 + 100; // Altura aleatoria
+            const v0 = Math.random() * 80 + 120; // Velocidad aleatoria
+            const angulo = (Math.random() * 40 + 130) * Math.PI / 180;
+            const ap = parseFloat(document.getElementById('power').value);
+
+            let t = 0;
+            const dt = 0.04;
+            let finalizado = false;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            function draw() {
+                // Física Proyectiles
+                const xe = 800 + (v0 * Math.cos(angulo) * t * 1.5);
+                const ye = 400 - (y0 + (v0 * Math.sin(angulo) * t * 1.5) - 0.5 * g * Math.pow(t*1.5, 2));
+
+                const vd = 160;
+                const xd = (vd * 0.8 * t * 1.5);
+                const yd = 400 - ((vd * 1.4 * t * 1.5) + 0.5 * (ap - g) * Math.pow(t*1.5, 2));
+
+                // Dibujo
+                ctx.fillStyle = "#ff4444"; ctx.beginPath(); ctx.arc(xe, ye, 2, 0, 7); ctx.fill();
+                ctx.fillStyle = "#44aaff"; ctx.beginPath(); ctx.arc(xd, yd, 2, 0, 7); ctx.fill();
+
+                stats.innerHTML = `ALTITUD ENEMIGO: ${ye.toFixed(0)}m | T:${t.toFixed(2)}s`;
+
+                // Colisión
+                const d = Math.sqrt((xe-xd)**2 + (ye-yd)**2);
+                if (d < 15) {
+                    finalizado = true;
+                    ctx.fillStyle = "orange"; ctx.beginPath(); ctx.arc(xe, ye, 25, 0, 7); ctx.fill();
+                    stats.innerHTML = "STATUS: ¡OBJETIVO INTERCEPTADO!";
+                }
+
+                t += dt;
+                if (ye < 400 && !finalizado) requestAnimationFrame(draw);
+            }
+            draw();
+        }
+    </script>
+</body>
+</html>

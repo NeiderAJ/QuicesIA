@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación y Análisis de Refracción y Reflexión</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0a58ca;
+            --secondary-color: #6c757d;
+            --bg-light: #f8f9fa;
+            --bg-white: #ffffff;
+            --border-color: #dee2e6;
+            --text-dark: #212529;
+            --text-light: #495057;
+            --bg-gradient: linear-gradient(180deg, #e7f2ff 0%, #d8eaff 100%);
+        }
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.7;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 25px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1, h2, h3 {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.25rem;
+        }
+        .card {
+            background-color: var(--bg-white);
+            padding: 25px 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        canvas {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: #fdfdfd;
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            width: 100%;
+            margin: 25px 0;
+        }
+        .control-group label {
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 5px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            border-radius: 50%;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            border: none;
+        }
+        .value-display {
+            text-align: center;
+            font-size: 0.9em;
+            color: var(--secondary-color);
+            margin-top: 8px;
+        }
+        .math-expression, .math-inline {
+            font-family: "Times New Roman", Times, serif;
+            color: var(--text-dark);
+        }
+        .math-expression {
+            font-size: 1.6em;
+            text-align: center;
+            margin: 25px 0;
+            padding: 10px;
+        }
+        .fraction {
+            display: inline-block; vertical-align: middle; text-align: center;
+        }
+        .numerator {
+            border-bottom: 2px solid var(--text-dark); padding: 0 10px;
+        }
+        .denominator {
+            padding: 0 10px;
+        }
+        .proof-steps {
+            padding-left: 25px;
+            list-style-type: none;
+        }
+        .proof-steps li {
+            margin-bottom: 15px;
+        }
+        .proof-steps li::before {
+            content: "Paso " counter(step-counter) ":";
+            counter-increment: step-counter;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-right: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.95em;
+        }
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th {
+            background-color: var(--bg-light);
+            font-weight: 600;
+        }
+        td:last-child {
+            width: 180px;
+            text-align: center;
+            font-family: 'Menlo', 'Consolas', 'Courier New', monospace;
+        }
+        i, sub { font-family: "Times New Roman", Times, serif; }
+        i { font-style: italic; }
+        sub { vertical-align: sub; font-size: smaller; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Análisis de la Reflexión y Refracción de la Luz</h1>
+    
+    <div class="card">
+        <h2>Problema Físico</h2>
+        <p>Una luz viaja en un medio con un índice de refracción <i>n</i><sub>1</sub> e incide sobre la superficie de un medio con índice <i>n</i><sub>2</sub>. El ángulo de incidencia es <i>θ</i> (medido con la normal). Si el ángulo entre el rayo reflejado y el rayo refractado es <i>β</i>, el objetivo es demostrar la siguiente relación:</p>
+        <div class="math-expression">
+            tan(<i>θ</i>) = 
+            <div class="fraction">
+                <div class="numerator"><i>n</i><sub>2</sub> sin(<i>β</i>)</div>
+                <div class="denominator"><i>n</i><sub>1</sub> - <i>n</i><sub>2</sub> cos(<i>β</i>)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Solución Detallada del Problema</h2>
+        <h3>a) Demostración de la Fórmula</h3>
+        <ol class="proof-steps" style="counter-reset: step-counter;">
+            <li>Se parte de la <strong>Ley de Snell</strong>, que relaciona los ángulos de incidencia y refracción: <span class="math-inline"><i>n</i><sub>1</sub> sin(<i>θ</i>) = <i>n</i><sub>2</sub> sin(<i>φ</i>)</span>.</li>
+            <li>Observando la geometría del diagrama, la suma del ángulo de reflexión (que es igual a <i>θ</i>), el ángulo <i>β</i> y el ángulo de refracción <i>φ</i> es 180° o π radianes: <span class="math-inline"><i>θ</i> + <i>β</i> + <i>φ</i> = π</span>.</li>
+            <li>De lo anterior, despejamos <i>φ</i>: <span class="math-inline"><i>φ</i> = π - (<i>θ</i> + <i>β</i>)</span>.</li>
+            <li>Aplicamos el seno a ambos lados y usamos la identidad trigonométrica <span class="math-inline">sin(π - x) = sin(x)</span>, lo que nos da: <span class="math-inline">sin(<i>φ</i>) = sin(<i>θ</i> + <i>β</i>)</span>.</li>
+            <li>Expandimos el término <span class="math-inline">sin(<i>θ</i> + <i>β</i>)</span> usando la identidad de la suma de ángulos: <span class="math-inline">sin(<i>φ</i>) = sin(<i>θ</i>)cos(<i>β</i>) + cos(<i>θ</i>)sin(<i>β</i>)</span>.</li>
+            <li>Sustituimos esta expresión para sin(<i>φ</i>) en la Ley de Snell (Paso 1): <span class="math-inline"><i>n</i><sub>1</sub> sin(<i>θ</i>) = <i>n</i><sub>2</sub> [sin(<i>θ</i>)cos(<i>β</i>) + cos(<i>θ</i>)sin(<i>β</i>)]</span>.</li>
+            <li>Finalmente, se reagrupan los términos y se resuelve para tan(<i>θ</i>), llegando a la expresión final.</li>
+        </ol>
+        
+        <h3>b) Caso Especial: Ley de Brewster</h3>
+        <p>Cuando el ángulo <i>β</i> es 90°, el rayo reflejado y el refractado son perpendiculares. Si además el primer medio es el vacío (<span class="math-inline"><i>n</i><sub>1</sub> = 1</span>) y el segundo medio tiene un índice <span class="math-inline"><i>n</i><sub>2</sub> = n</span>, la fórmula se reduce a la <strong>Ley de Brewster</strong>. [1] En estas condiciones, la luz reflejada está completamente polarizada. [2, 11]</p>
+        <div class="math-expression" style="font-size: 1.2em;">
+            tan(<i>θ</i>) = 
+            <div class="fraction">
+                <div class="numerator"><i>n</i> sin(90°)</div>
+                <div class="denominator">1 - <i>n</i> cos(90°)</div>
+            </div>
+             = 
+            <div class="fraction">
+                <div class="numerator"><i>n</i> (1)</div>
+                <div class="denominator">1 - <i>n</i> (0)</div>
+            </div>
+             = n
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>Simulación Interactiva</h2>
+        <canvas id="simulationCanvas" width="600" height="400"></canvas>
+        <div class="controls">
+            <div class="control-group">
+                <label for="n1">Índice de refracción n₁:</label>
+                <input type="range" id="n1" min="1.0" max="2.0" step="0.01" value="1.0">
+                <div class="value-display">Valor: <span id="n1-value">1.00</span></div>
+            </div>
+            <div class="control-group">
+                <label for="n2">Índice de refracción n₂:</label>
+                <input type="range" id="n2" min="1.0" max="2.0" step="0.01" value="1.5">
+                <div class="value-display">Valor: <span id="n2-value">1.50</span></div>
+            </div>
+            <div class="control-group">
+                <label for="theta">Ángulo θ (grados):</label>
+                <input type="range" id="theta" min="0" max="90" step="1" value="30">
+                <div class="value-display">Valor: <span id="theta-value">30</span>°</div>
+            </div>
+        </div>
+        <table>
+            <tr><th>Variable</th><th>Valor</th></tr>
+            <tr><td>Ángulo de incidencia θ</td><td id="theta-result">30.00°</td></tr>
+            <tr><td>Ángulo reflejado θ'</td><td id="reflected-angle">30.00°</td></tr>
+            <tr><td>Ángulo refractado φ</td><td id="refracted-angle">19.47°</td></tr>
+            <tr><td>Ángulo β entre rayos</td><td id="beta-angle">130.53°</td></tr>
+            <tr><td>tan(θ) directa</td><td id="calculated-tan">0.577</td></tr>
+            <tr><td>tan(θ) por fórmula de β</td><td id="formula-tan">0.577</td></tr>
+        </table>
+    </div>
+
+</div>    
+    <script>
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+        const PI = Math.PI;
+
+        const n1Slider = document.getElementById('n1');
+        const n2Slider = document.getElementById('n2');
+        const thetaSlider = document.getElementById('theta');
+        
+        const n1Value = document.getElementById('n1-value');
+        const n2Value = document.getElementById('n2-value');
+        const thetaValue = document.getElementById('theta-value');
+        
+        const thetaResult = document.getElementById('theta-result');
+        const reflectedAngle = document.getElementById('reflected-angle');
+        const refractedAngle = document.getElementById('refracted-angle');
+        const betaAngle = document.getElementById('beta-angle');
+        const calculatedTan = document.getElementById('calculated-tan');
+        const formulaTan = document.getElementById('formula-tan');
+        
+        n1Slider.addEventListener('input', updateSimulation);
+        n2Slider.addEventListener('input', updateSimulation);
+        thetaSlider.addEventListener('input', updateSimulation);
+        
+        function updateSimulation() {
+            n1Value.textContent = parseFloat(n1Slider.value).toFixed(2);
+            n2Value.textContent = parseFloat(n2Slider.value).toFixed(2);
+            thetaValue.textContent = thetaSlider.value + "°";
+            drawSimulation();
+        }
+        
+        function drawSimulation() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const n1 = parseFloat(n1Slider.value);
+            const n2 = parseFloat(n2Slider.value);
+            let theta = parseInt(thetaSlider.value);
+            
+            const thetaRad = theta * PI / 180;
+            
+            const sinPhi = (n1 / n2) * Math.sin(thetaRad);
+            let phiRad = Math.asin(sinPhi);
+            let phi = phiRad * 180 / PI;
+            
+            let beta = 180 - theta - phi;
+            const betaRad = beta * PI / 180;
+            
+            const tanTheta1 = Math.tan(thetaRad);
+            const tanTheta2 = (n2 * Math.sin(betaRad)) / (n1 - n2 * Math.cos(betaRad));
+            
+            thetaResult.innerHTML = `${theta.toFixed(2)}°`;
+            reflectedAngle.innerHTML = `${theta.toFixed(2)}°`;
+            refractedAngle.innerHTML = isNaN(phi) ? "Reflexión Interna Total" : `${phi.toFixed(2)}°`;
+            betaAngle.innerHTML = isNaN(beta) ? "---" : `${beta.toFixed(2)}°`;
+            calculatedTan.textContent = tanTheta1.toFixed(3);
+            formulaTan.textContent = isNaN(tanTheta2) || !isFinite(tanTheta2) ? "---" : tanTheta2.toFixed(3);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const rayLength = 150;
+            
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(canvas.width, centerY);
+            ctx.strokeStyle = '#34495e';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.font = '16px Poppins';
+            ctx.fillStyle = '#333';
+            ctx.fillText(`n₁ = ${n1.toFixed(2)}`, 20, centerY - 20);
+            ctx.fillText(`n₂ = ${n2.toFixed(2)}`, 20, centerY + 30);
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, canvas.height);
+            ctx.strokeStyle = '#adb5bd';
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            const incidentStartX = centerX - rayLength * Math.sin(thetaRad);
+            const incidentStartY = centerY - rayLength * Math.cos(thetaRad);
+            
+            ctx.beginPath();
+            ctx.moveTo(incidentStartX, incidentStartY);
+            ctx.lineTo(centerX, centerY);
+            ctx.strokeStyle = '#d9534f';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            const reflectX = centerX + rayLength * Math.sin(thetaRad);
+            const reflectY = centerY - rayLength * Math.cos(thetaRad);
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(reflectX, reflectY);
+            ctx.strokeStyle = '#0a58ca';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            if (!isNaN(phiRad)) {
+                const refractX = centerX + rayLength * Math.sin(phiRad);
+                const refractY = centerY + rayLength * Math.cos(phiRad);
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(refractX, refractY);
+                ctx.strokeStyle = '#198754';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+
+            const normalUpRad = -PI / 2;
+            const normalDownRad = PI / 2;
+            const reflectedRayRad = normalUpRad + thetaRad;
+            const refractedRayRad = normalDownRad - phiRad;
+
+            function drawAngleArc(startAngle, endAngle, radius, label, color, labelRadiusOffset = 18) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.stroke();
+                
+                const labelAngle = startAngle + (endAngle - startAngle) / 2;
+                ctx.font = 'italic 20px "Times New Roman"';
+                ctx.fillStyle = color;
+                ctx.save();
+                ctx.translate(centerX + (radius + labelRadiusOffset) * Math.cos(labelAngle), centerY + (radius + labelRadiusOffset) * Math.sin(labelAngle));
+                ctx.rotate(labelAngle + PI / 2);
+                ctx.textAlign = "center";
+                ctx.fillText(label, 0, 0);
+                ctx.restore();
+            }
+
+            drawAngleArc(normalUpRad - thetaRad, normalUpRad, 40, 'θ', '#555');
+            drawAngleArc(normalUp-rad, normalUp-rad + thetaRad, 40, 'θ', '#555');
+
+            if (!isNaN(phiRad)) {
+                drawAngleArc(normalDownRad, refractedRayRad, 40, 'φ', '#555');
+                drawAngleArc(reflectedRayRad, refractedRayRad, 65, 'β', '#9c27b0', 22);
+            }
+        }
+        
+        updateSimulation();
+    </script>
+</body>
+</html>

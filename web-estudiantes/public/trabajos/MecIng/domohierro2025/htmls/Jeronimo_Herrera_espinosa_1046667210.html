@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quiz — Simulación de intercepción de misiles</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #f3f4f6; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+    canvas { background: #ffffff; border-radius: 8px; border: 1px solid #e5e7eb; }
+    pre.math { background: #f9fafb; padding: 12px; border-radius: 8px; overflow:auto; }
+  </style>
+</head>
+<body class="p-6 font-sans text-gray-800">
+  <div class="max-w-6xl mx-auto">
+    <header class="mb-6">
+      <h1 class="text-3xl font-bold text-blue-700">Quiz — Simulación computacional de intercepción de misiles</h1>
+      <p class="mt-2 text-sm text-gray-600">Versión autocontenida. Cambia los parámetros o usa "Aleatorio" para generar un caso nuevo.</p>
+    </header>
+
+    <!-- Secciones requeridas -->
+    <section class="card p-4 mb-4">
+      <h2 class="text-xl font-semibold text-blue-600">1) Enunciado del problema</h2>
+      <p class="mt-2 text-sm text-gray-700">Un radar detecta un misil enemigo en vuelo. En el instante de detección se conoce la posición inicial r₀, la velocidad inicial v₀ y la dirección (cosenos directores). El enemigo se mueve solo por gravedad. Reducimos el problema al plano que contiene la trayectoria y simulamos la intercepción por un misil defensor (parabólico sin propulsor o con propulsor adicional si hace falta).</p>
+    </section>
+
+    <section class="card p-4 mb-4">
+      <h2 class="text-xl font-semibold text-blue-600">2) Solución algebraica (reducción a 2D y condición de intercepción)</h2>
+      <div class="mt-2 text-sm text-gray-700">
+        <p>Elegimos un sistema de coordenadas con <strong>y</strong> apuntando hacia arriba (altura). Dado r₀=(x₀,y₀,z₀) y la velocidad v₀ en 3D (calculada a partir de velocidad escalar, elevación y azimut), existe un plano vertical que contiene la trayectoria: el plano definido por la dirección horizontal de v₀ y la vertical (e_y). Reducimos al sistema 2D tomando:</p>
+        <pre class="math">e_y = (0,1,0)
+h = proyección de v₀ sobre el plano horizontal = (v₀_x, 0, v₀_z)
+si |h| &gt; 0: e_x = h/|h|  (dirección horizontal de avance)
+si |h| ≈ 0: e_x = (1,0,0)  (caso degenerado)
+
+Coordenadas en el plano:
+ x₀' = (x₀,z₀)·e_x    (componente horizontal a lo largo de la trayectoria)
+ y₀' = y₀
+ v_{x0}' = (v₀_x, v₀_z)·e_x
+ v_{y0}' = v₀_y
+
+a partir de aquí el proyectil enemigo en 2D sigue:
+ x_e(t) = x₀' + v_{x0}'·t
+ y_e(t) = y₀' + v_{y0}'·t - (1/2) g t²
+</pre>
+        <p class="mt-2">Supongamos que el defensor se lanza desde r_L (en el suelo, y_L = 0) con velocidad inicial V y ángulo θ (sin propulsor). Las ecuaciones del defensor son análogas:</p>
+        <pre class="math"> x_d(t) = x_L + V cosθ · t
+ y_d(t) = y_L + V sinθ · t - (1/2) g t²
+
+a condiciones de intercepción pedimos x_d(t*) = x_e(t*) y y_d(t*) = y_e(t*). Al cancelar los -½ g t² obtenemos las fórmulas útiles:</pre>
+        <pre class="math">V cosθ = (x_e(t) - x_L)/t  = (x₀' - x_L)/t + v_{x0}'
+V sinθ = (y_e(t) - y_L)/t  = (y₀' - y_L)/t + v_{y0}'
+
+Por tanto la magnitud requerida es:
+ V(t) = sqrt( [ (x₀' - x_L)/t + v_{x0}' ]² + [ (y₀' - y_L)/t + v_{y0}' ]² )
+</pre>
+        <p>Entonces: barrimos tiempos t&gt;0 (hasta que el enemigo impacte suelo) y buscamos t con V(t) ≤ V_max (limitación física). Si existe, el defensor puede lanzarse en tiro parabólico clásico con V=V(t) y θ=atan2((y_diff/t+v_{y0}'), (x_diff/t+v_{x0}')).</p>
+
+        <h3 class="mt-2 font-semibold">Caso con propulsor</h3>
+        <p>Si no existe solución parabólica factible, consideramos un defensor que puede aplicar una aceleración constante a (propulsor) dirigida inicialmente hacia el punto de intercepción. Tomando u_dir como la dirección (unitaria) desde r_L hacia el punto de intercepción d=r_e(t)-r_L, proyectamos la ecuación vectorial:</p>
+        <pre class="math">d·u_dir = u0·t + (1/2) a t² + (1/2) (g_vector·u_dir) t²
+
+De donde la aceleración escalar requerida (a) cuando el propulsor actúa en la dirección u_dir es:
+ a(t) = 2( d·u_dir - u0 t - 0.5 (g_vector·u_dir) t² ) / t²
+
+con g_vector·u_dir = -g · u_dir_y.</pre>
+        <p>Si existe t tal que a(t) > 0 y a(t) ≤ a_max (capacidad del propulsor), entonces la intercepción con propulsor es factible.</p>
+      </div>
+    </section>
+
+    <section class="card p-4 mb-4">
+      <h2 class="text-xl font-semibold text-blue-600">3) Análisis funcional / teórico</h2>
+      <p class="text-sm text-gray-700">Resumen: la reducción a 2D es exacta siempre que se tome el plano que contiene la velocidad inicial y la vertical. Las ecuaciones de intercepción simplifican porque la componente -½ g t² aparece en ambos proyectiles y se elimina al igualarlos. La búsqueda numérica en tiempo t es un método robusto para decidir si la intercepción es posible con tiro balístico o si es necesario propulsor.</p>
+    </section>
+
+    <section class="card p-4 mb-4">
+      <h2 class="text-xl font-semibold text-blue-600">4) Planteamiento de la simulación</h2>
+      <div class="text-sm text-gray-700">
+        <ul class="list-disc pl-5">
+          <li>Generador estocástico para r₀ en rangos: x,z en [200,2000] m, y en [50,1200] m.</li>
+          <li>Velocidad v₀ en [100,400] m/s. Ángulo de elevación entre 15° y 75°, azimut entre 0° y 360°.</li>
+          <li>Se calcula la reducción a 2D y se itera t desde t_min=0.1 s hasta t_max=tiempo de impacto enemigo (resuelto por fórmula), con paso Δt ≈ 0.02–0.05 s.</li>
+          <li>Para cada t se evalúa V(t) (balístico) y a(t) (propulsor). Se selecciona la solución factible de menor esfuerzo (menor V o menor a).</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card p-4 mb-6">
+      <h2 class="text-xl font-semibold text-blue-600">5) Simulación interactiva</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-3">
+          <h3 class="font-semibold">Controles</h3>
+          <div class="space-y-2 text-sm mt-2">
+            <label class="block">x₀ (m) <span id="x0_lbl">500</span></label>
+            <input id="x0" type="range" min="200" max="2000" value="500" step="10" class="w-full">
+
+            <label>y₀ (m) <span id="y0_lbl">300</span></label>
+            <input id="y0" type="range" min="50" max="1200" value="300" step="10" class="w-full">
+
+            <label>Velocidad enemigo (m/s) <span id="speed_lbl">200</span></label>
+            <input id="speed" type="range" min="100" max="400" value="200" step="1" class="w-full">
+
+            <label>Elevación (°) <span id="elev_lbl">40</span></label>
+            <input id="elev" type="range" min="15" max="75" value="40" step="1" class="w-full">
+
+            <label>Azimut (°) <span id="az_lbl">0</span></label>
+            <input id="az" type="range" min="0" max="360" value="0" step="1" class="w-full">
+
+            <label>Velocidad inicial defensor (u0, m/s) (para propulsor) <span id="u0_lbl">100</span></label>
+            <input id="u0" type="range" min="0" max="500" value="100" step="1" class="w-full">
+
+            <label>V_max balístico (m/s) <span id="vdmax_lbl">600</span></label>
+            <input id="vdmax" type="range" min="100" max="1000" value="600" step="10" class="w-full">
+
+            <label>a_max propulsor (m/s²) <span id="amax_lbl">50</span></label>
+            <input id="amax" type="range" min="0" max="200" value="50" step="1" class="w-full">
+
+            <div class="flex gap-2 pt-2">
+              <button id="btnRand" class="px-3 py-1 bg-blue-600 text-white rounded">Aleatorio</button>
+              <button id="btnCalc" class="px-3 py-1 bg-green-600 text-white rounded">Calcular intercepción</button>
+              <button id="btnAnim" class="px-3 py-1 bg-indigo-600 text-white rounded">Iniciar animación</button>
+              <button id="btnStop" class="px-3 py-1 bg-gray-400 text-white rounded">Detener</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-span-2 p-3">
+          <h3 class="font-semibold">Gráfica</h3>
+          <canvas id="trajCanvas" width="900" height="500"></canvas>
+
+          <div class="mt-3 text-sm">
+            <strong>Resultado:</strong>
+            <div id="result" class="mt-2 text-sm text-gray-700">Presiona "Calcular intercepción" o "Aleatorio".</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card p-4 mb-4">
+      <h2 class="text-xl font-semibold text-blue-600">6) Relación con el sistema Domo de Hierro</h2>
+      <p class="text-sm text-gray-700">El sistema real (Iron Dome) detecta cohetes y calcula soluciones de intercepción de alta velocidad con guiado activo y propulsores. Nuestra versión es una simplificación educativa: reduce la geometría a 2D por cada amenaza y evalúa si una trayectoria balística (sin propulsión adicional) basta o si se necesita propulsión. Además, el sistema real incorpora detección/seguimiento, incertidumbre, múltiples interceptores y criterios de prioridad—elementos que pueden introducirse en extensiones del proyecto.</p>
+    </section>
+
+    <section class="card p-4 mb-4">
+      <h2 class="text-xl font-semibold text-blue-600">7) Conclusiones</h2>
+      <p class="text-sm text-gray-700">Se entregó una solución algebraica, un planteamiento numérico y una simulación interactiva que permite probar escenarios aleatorios y ajustar parámetros de defensa. El método es reproducible y ampliable.</p>
+    </section>
+
+    <section class="card p-4 mb-8">
+      <h2 class="text-xl font-semibold text-blue-600">8) Bibliografía</h2>
+      <ul class="text-sm text-gray-700 list-disc pl-5">
+        <li>Fundamentos de mecánica clásica (movimiento parabólico).</li>
+        <li>Documentación académica sobre intercepción de proyectiles y guías de misiles (material de referencia para el curso).</li>
+      </ul>
+    </section>
+
+    <footer class="text-center text-xs text-gray-500 py-4">Archivo generado automáticamente — modifica el nombre del archivo para subirlo como "nombre_estudiante_cc.html" según lo solicitado por el curso.</footer>
+  </div>
+
+<script>
+// ---------- Utilidades vectoriales simples (2D/3D) ----------
+function dot(a,b){ return a[0]*b[0] + a[1]*b[1] + (a[2]||0)*(b[2]||0); }
+function norm2(a){ return Math.sqrt((a[0]*a[0])+(a[1]*a[1]) + (a[2]||0)*(a[2]||0)); }
+function normalize(a){ const n = norm2(a)||1; return [a[0]/n, a[1]/n, (a[2]||0)/n]; }
+function mul(a,s){ return [a[0]*s,a[1]*s,(a[2]||0)*s]; }
+function add(a,b){ return [a[0]+b[0], a[1]+b[1], (a[2]||0)+(b[2]||0)]; }
+
+// ---------- Parámetros y elementos DOM ----------
+const g = 9.81; // m/s^2
+const canvas = document.getElementById('trajCanvas');
+const ctx = canvas.getContext('2d');
+let animReq = null;
+
+// Inputs
+const inputs = ['x0','y0','speed','elev','az','u0','vdmax','amax'];
+function $(id){return document.getElementById(id);} inputs.forEach(id=>{ if($(id)) $(id).addEventListener('input', updateLabels); });
+function updateLabels(){
+  $('x0_lbl').innerText = $('x0').value;
+  $('y0_lbl').innerText = $('y0').value;
+  $('speed_lbl').innerText = $('speed').value;
+  $('elev_lbl').innerText = $('elev').value;
+  $('az_lbl').innerText = $('az').value;
+  $('u0_lbl').innerText = $('u0').value;
+  $('vdmax_lbl').innerText = $('vdmax').value;
+  $('amax_lbl').innerText = $('amax').value;
+}
+updateLabels();
+
+// Random generator
+$('btnRand').addEventListener('click', ()=>{ randomScene(); computeAndDraw(); });
+$('btnCalc').addEventListener('click', computeAndDraw);
+$('btnAnim').addEventListener('click', startAnim);
+$('btnStop').addEventListener('click', stopAnim);
+
+function randomRange(a,b){ return a + Math.random()*(b-a); }
+function randomScene(){
+  $('x0').value = Math.round(randomRange(200,2000));
+  $('y0').value = Math.round(randomRange(50,1200));
+  $('speed').value = Math.round(randomRange(100,400));
+  $('elev').value = Math.round(randomRange(15,75));
+  $('az').value = Math.round(randomRange(0,360));
+  $('u0').value = Math.round(randomRange(0,300));
+  $('vdmax').value = 600;
+  $('amax').value = 50;
+  updateLabels();
+}
+
+// ---------- Reducción 3D -> 2D ----------
+function to3DVelocity(speed, elevDeg, azDeg){
+  const el = elevDeg*Math.PI/180; const az = azDeg*Math.PI/180;
+  // v_x (m), v_y (up), v_z
+  const vx = speed*Math.cos(el)*Math.cos(az);
+  const vy = speed*Math.sin(el);
+  const vz = speed*Math.cos(el)*Math.sin(az);
+  return [vx, vy, vz];
+}
+
+function reduceToPlane(r0, v0){
+  // r0 = [x,y,z], v0 = [vx,vy,vz]
+  const e_y = [0,1,0];
+  const h = [v0[0], 0, v0[2]];
+  let e_x;
+  if (norm2(h) < 1e-6) e_x = [1,0,0]; else e_x = normalize(h);
+  // Coordinates in plane
+  const x0 = r0[0]*e_x[0] + r0[2]*e_x[2];
+  const y0 = r0[1];
+  const vx0 = v0[0]*e_x[0] + v0[2]*e_x[2];
+  const vy0 = v0[1];
+  return {x0,y0,vx0,vy0,e_x,e_y};
+}
+
+// ---------- Cálculo de intercepción ----------
+function timeEnemyImpact(y0, vy0){
+  // Solve y0 + vy0 t - 0.5 g t^2 = 0 for positive t
+  const a = -0.5*g; const b = vy0; const c = y0;
+  const disc = b*b - 4*a*c;
+  if (disc < 0) return 0;
+  const t1 = (-b + Math.sqrt(disc))/(2*a);
+  const t2 = (-b - Math.sqrt(disc))/(2*a);
+  const t = Math.max(t1,t2);
+  return (t>0)?t:0;
+}
+
+function computeIntercept(){
+  // Read inputs and produce best ballistic or propelled solution
+  const r0 = [parseFloat($('x0').value), parseFloat($('y0').value), 0]; // we treat z=0 and use az to point velocity
+  const speed = parseFloat($('speed').value);
+  const elev = parseFloat($('elev').value);
+  const az = parseFloat($('az').value);
+  const v0 = to3DVelocity(speed,elev,az);
+  // Place r0 in 3D using az for horizontal direction: interpret x0 as distance along azimuth? Simpler: we put r0 at (x0, y0, 0) and let az orient vel vector.
+  // Defender launch point (ground at origin)
+  const rL3 = [0,0,0];
+
+  const reduced = reduceToPlane(r0, v0);
+  const x0p = reduced.x0, y0p = reduced.y0, vx0p = reduced.vx0, vy0p = reduced.vy0;
+  const xL = 0, yL = 0;
+
+  const tImpact = timeEnemyImpact(y0p, vy0p);
+  if (tImpact <= 0) return {error: 'El misil enemigo no aterriza (datos inválidos)'};
+
+  const vd_max = parseFloat($('vdmax').value);
+  const u0 = parseFloat($('u0').value);
+  const a_max = parseFloat($('amax').value);
+
+  let bestBall = null;
+  let bestProp = null;
+
+  // Barrido de t
+  const dt = Math.max(0.02, tImpact/500);
+  for (let t=0.1; t<=tImpact; t+=dt){
+    const xe = x0p + vx0p*t;
+    const ye = y0p + vy0p*t - 0.5*g*t*t;
+    if (ye < 0) continue;
+    const xdiff = xe - xL; const ydiff = ye - yL;
+
+    // Ballistic required speed
+    const Vx = xdiff/t + vx0p; // = V cosθ
+    const Vy = ydiff/t + vy0p; // = V sinθ
+    const Vreq = Math.sqrt(Vx*Vx + Vy*Vy);
+    if (Vreq <= vd_max){
+      const theta = Math.atan2(Vy, Vx);
+      if (!bestBall || Vreq < bestBall.V){ bestBall = {t, V: Vreq, theta, xe, ye}; }
+    }
+
+    // Propulsor: choose unit direction towards interception point
+    const dvec = [xdiff, ydiff];
+    const dist = Math.hypot(dvec[0], dvec[1]);
+    if (dist < 1e-6) continue;
+    const u_dir = [dvec[0]/dist, dvec[1]/dist];
+    // g_vector·u_dir = -g * u_dir_y
+    const g_proj = -g * u_dir[1];
+    const d_dot_ud = dvec[0]*u_dir[0] + dvec[1]*u_dir[1];
+    // formula a = 2*(d·u_dir - u0 t - 0.5*(g_vector·u_dir)*t^2)/t^2
+    const a_req = 2*(d_dot_ud - u0*t - 0.5*(g_proj)*t*t)/(t*t);
+    if (a_req > 0 && a_req <= a_max){
+      if (!bestProp || a_req < bestProp.a){ bestProp = {t, a: a_req, u_dir, dist, xe, ye}; }
+    }
+  }
+
+  return {reduced, tImpact, bestBall, bestProp};
+}
+
+// ---------- Dibujo y animación ----------
+function clearCanvas(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+function drawAxes(scale, origin){
+  ctx.save(); ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
+  // grid
+  for(let x=0;x<canvas.width;x+=scale*100){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+  for(let y=0;y<canvas.height;y+=scale*50){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+  ctx.restore();
+}
+
+function drawTrajectories(data){
+  // data contains reduced variables
+  const {reduced, tImpact, bestBall, bestProp} = data;
+  const x0p = reduced.x0, y0p = reduced.y0, vx0p = reduced.vx0, vy0p = reduced.vy0;
+  const xL=0,yL=0;
+  // determine bounding box
+  const xs = [x0p]; const ys=[y0p];
+  if (bestBall){ xs.push(bestBall.xe); ys.push(bestBall.ye); }
+  if (bestProp){ xs.push(bestProp.xe); ys.push(bestProp.ye); }
+  xs.push(0); ys.push(0);
+  const xmin = Math.min(...xs), xmax=Math.max(...xs);
+  const ymin = 0, ymax=Math.max(...ys, y0p)+50;
+
+  const pad = 40; const ww = canvas.width - pad*2, hh = canvas.height - pad*2;
+  const sx = ww / Math.max(1, (xmax - xmin));
+  const sy = hh / Math.max(1, (ymax - ymin));
+  const scale = Math.min(sx, sy);
+  const origin = {x: pad - xmin*scale, y: pad + hh + ymin*scale};
+
+  clearCanvas();
+  // axis
+  ctx.strokeStyle = '#374151'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(origin.x,0); ctx.lineTo(origin.x,canvas.height); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, origin.y); ctx.lineTo(canvas.width, origin.y); ctx.stroke();
+
+  // draw enemy trajectory
+  ctx.beginPath(); ctx.lineWidth=2; ctx.strokeStyle='#ef4444';
+  let first=true;
+  for(let t=0;t<=data.tImpact;t+=0.02){
+    const xe = x0p + vx0p*t; const ye = y0p + vy0p*t - 0.5*g*t*t;
+    if (ye<0) break;
+    const px = origin.x + xe*scale; const py = origin.y - ye*scale;
+    if(first){ ctx.moveTo(px,py); first=false; } else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+
+  // draw defender planned (ballistic) if exists
+  if (bestBall){
+    ctx.beginPath(); ctx.strokeStyle='#2563eb'; ctx.lineWidth=2;
+    const V = bestBall.V; const theta = bestBall.theta;
+    for(let t=0;t<=bestBall.t+0.01;t+=0.02){
+      const xd = xL + V*Math.cos(theta)*t; const yd = yL + V*Math.sin(theta)*t - 0.5*g*t*t;
+      if (yd < 0) break;
+      const px = origin.x + xd*scale; const py = origin.y - yd*scale;
+      if (t===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+  }
+
+  // draw defender propelled plan if exists
+  if (bestProp){
+    ctx.beginPath(); ctx.strokeStyle='#0ea5a4'; ctx.lineWidth=2;
+    const u_dir = bestProp.u_dir; const u0 = parseFloat($('u0').value);
+    // integrate motion with constant acceleration along u_dir (a scalar) and gravity
+    const a = bestProp.a;
+    for(let t=0;t<=bestProp.t+0.01;t+=0.02){
+      // acceleration vector = a*u_dir + gravity
+      const ax = a*u_dir[0]; const ay = a*u_dir[1] - g;
+      const xd = xL + u0*u_dir[0]*t + 0.5*ax*t*t;
+      const yd = yL + u0*u_dir[1]*t + 0.5*ay*t*t;
+      if (yd < -50) break;
+      const px = origin.x + xd*scale; const py = origin.y - yd*scale;
+      if (t===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+  }
+
+  // markers
+  // enemy initial
+  ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(origin.x + x0p*scale, origin.y - y0p*scale, 4,0,Math.PI*2); ctx.fill(); ctx.fillText('Enemigo (inicio)', origin.x + x0p*scale + 6, origin.y - y0p*scale - 6);
+  // launch
+  ctx.fillStyle='#111827'; ctx.beginPath(); ctx.arc(origin.x, origin.y, 5,0,Math.PI*2); ctx.fill(); ctx.fillText('Lanzador', origin.x + 6, origin.y - 6);
+}
+
+function computeAndDraw(){
+  const res = computeIntercept();
+  if (res.error){ $('result').innerText = res.error; return; }
+  let html = '';
+  if (res.bestBall){
+    html += `Solución balística encontrada: tiempo t*=${res.bestBall.t.toFixed(3)} s, V=${res.bestBall.V.toFixed(2)} m/s, θ=${(res.bestBall.theta*180/Math.PI).toFixed(2)}°.`;
+  } else html += 'No se encontró solución balística factible.';
+  html += '\n';
+  if (res.bestProp){
+    html += `Solución con propulsor: tiempo t*=${res.bestProp.t.toFixed(3)} s, aceleración requerida a=${res.bestProp.a.toFixed(2)} m/s².`;
+  } else html += 'No se encontró solución con propulsor dentro de los límites.';
+  $('result').innerText = html;
+  drawTrajectories(res);
+  window.latestSim = res;
+}
+
+// ---------- Animación (simulación dinámica) ----------
+function startAnim(){
+  if (!window.latestSim){ computeAndDraw(); }
+  const data = window.latestSim;
+  if (!data) return;
+  const dtSim = 0.02; let t=0;
+  stopAnim();
+  function step(){
+    clearCanvas();
+    drawTrajectories(data);
+    // draw moving markers
+    const reduced = data.reduced; const x0p = reduced.x0, y0p = reduced.y0, vx0p = reduced.vx0, vy0p = reduced.vy0;
+    // compute bounding & scale same as drawTrajectories, quick re-derivation
+    const xs = [x0p]; const ys=[y0p]; if (data.bestBall){ xs.push(data.bestBall.xe); ys.push(data.bestBall.ye); } if (data.bestProp){ xs.push(data.bestProp.xe); ys.push(data.bestProp.ye); } xs.push(0); ys.push(0);
+    const xmin = Math.min(...xs), xmax=Math.max(...xs); const ymin=0, ymax=Math.max(...ys, y0p)+50; const pad=40; const ww=canvas.width-pad*2, hh=canvas.height-pad*2; const scale=Math.min(ww/Math.max(1,(xmax-xmin)), hh/Math.max(1,(ymax-ymin)));
+    const origin = {x: pad - xmin*scale, y: pad + hh + ymin*scale};
+
+    // enemy
+    const xe = x0p + vx0p*t; const ye = y0p + vy0p*t - 0.5*g*t*t;
+    if (ye>=0){ ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(origin.x + xe*scale, origin.y - ye*scale, 6,0,Math.PI*2); ctx.fill(); }
+
+    // defender
+    if (data.bestBall && t<=data.bestBall.t){
+      const V = data.bestBall.V, theta = data.bestBall.theta; const xd = V*Math.cos(theta)*t; const yd = V*Math.sin(theta)*t - 0.5*g*t*t;
+      ctx.fillStyle='#2563eb'; ctx.beginPath(); ctx.arc(origin.x + xd*scale, origin.y - yd*scale, 6,0,Math.PI*2); ctx.fill();
+    }
+    if (data.bestProp && t<=data.bestProp.t){
+      const u_dir = data.bestProp.u_dir; const u0 = parseFloat($('u0').value); const a = data.bestProp.a; const ax = a*u_dir[0]; const ay = a*u_dir[1] - g;
+      const xd = u0*u_dir[0]*t + 0.5*ax*t*t; const yd = u0*u_dir[1]*t + 0.5*ay*t*t;
+      ctx.fillStyle='#0ea5a4'; ctx.beginPath(); ctx.arc(origin.x + xd*scale, origin.y - yd*scale, 6,0,Math.PI*2); ctx.fill();
+    }
+
+    t += dtSim;
+    animReq = requestAnimationFrame(step);
+  }
+  animReq = requestAnimationFrame(step);
+}
+function stopAnim(){ if (animReq) cancelAnimationFrame(animReq); animReq = null; }
+
+// Inicial
+randomScene(); computeAndDraw();
+</script>
+</body>
+</html>

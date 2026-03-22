@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Óptica Geométrica: Refracción y Reflexión de la Luz</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column; /* Apilado vertical */
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+        }
+        .intro-context, .control-panel, .simulation-container, .physics-explanation {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            width: 100%;
+        }
+        .control-panel {
+            flex: 1;
+            min-width: 300px;
+        }
+        .simulation-container {
+            flex: 2;
+            min-width: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+        h1, h2, h3 {
+            color: #0056b3;
+            border-bottom: 2px solid #eef;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .page-title {
+            text-align: center;
+            color: #003a8c;
+            font-size: 2.5em;
+            margin-bottom: 0; /* Reducido para acercar al contexto */
+            border: none;
+        }
+        .control-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+        .value-display {
+            font-weight: bold;
+            color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            background-color: #e6f7ff;
+            border: 1px solid #91d5ff;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .result h3 {
+            margin: 0;
+            color: #003a8c;
+        }
+        .result-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #003a8c;
+        }
+        .diagram-container {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            border: 1px solid #ccc;
+            overflow: hidden;
+            background-color: #f9f9f9;
+            margin-top: 20px;
+        }
+        .cylinder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border-radius: 50%;
+            border: 2px solid #333;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(to right, rgba(173, 216, 230, 0.6) 50%, rgba(192, 192, 192, 1) 50%);
+        }
+        .ray {
+            position: absolute;
+            background-color: red;
+            height: 2px;
+        }
+        .incident-ray {
+            width: 50%;
+            left: 0;
+        }
+        .emergent-ray {
+            width: 50%;
+            left: 0;
+        }
+        .d-line {
+            position: absolute;
+            left: 25%;
+            width: 2px;
+            background-color: green;
+        }
+        .d-label {
+            position: absolute;
+            left: calc(25% - 50px);
+            color: green;
+            font-weight: bold;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f0f0f0;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 0.95em;
+        }
+        ul, ol {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="page-title">Óptica Geométrica: Refracción y Reflexión de la Luz</h1>
+
+        <div class="intro-context">
+            <h2>Contexto del Ejercicio</h2>
+            <p>
+                Esta simulación explora un problema clásico de la óptica geométrica. Analizamos la trayectoria de un rayo de luz que incide sobre un cilindro transparente. La mitad posterior del cilindro está espejada, lo que provoca que el rayo se refleje internamente antes de salir.
+            </p>
+            <p>
+                El objetivo es determinar el <strong>índice de refracción (n)</strong>, una propiedad intrínseca del material del cilindro, a partir de mediciones geométricas: el radio del cilindro (R) y la distancia de separación (d) entre el rayo que entra y el que sale.
+            </p>
+        </div>
+
+        <div class="main-content">
+            <div class="control-panel">
+                <h2>Panel de Control</h2>
+
+                <div class="control-group">
+                    <label for="radius-slider">Radio del Cilindro (R): <span id="radius-value" class="value-display">2.00</span> m</label>
+                    <input type="range" id="radius-slider" min="0.5" max="5" value="2" step="0.01">
+                </div>
+
+                <div class="control-group">
+                    <label for="distance-slider">Distancia entre Rayos (d): <span id="distance-value" class="value-display">2.00</span> m</label>
+                    <input type="range" id="distance-slider" min="0.1" max="4" value="2" step="0.01">
+                </div>
+
+                <div class="result">
+                    <h3>Índice de Refracción (n)</h3>
+                    <p id="refraction-index" class="result-value">1.93</p>
+                </div>
+            </div>
+
+            <div class="simulation-container">
+                <h2>Simulación Visual</h2>
+                <div class="diagram-container">
+                    <div class="cylinder" id="cylinder"></div>
+                    <div class="ray incident-ray" id="incident-ray"></div>
+                    <div class="ray emergent-ray" id="emergent-ray"></div>
+                    <div class="d-line" id="d-line"></div>
+                    <span class="d-label" id="d-label">d = 2.00 m</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="physics-explanation">
+            <h2>Principios Físicos y Derivación</h2>
+            <p>La solución a este problema se encuentra aplicando las leyes fundamentales de la óptica geométrica y analizando la trayectoria del rayo de luz.</p>
+            
+            <h3>1. Ley de Refracción de Snell</h3>
+            <p>Cuando la luz pasa de un medio (aire, con índice <code>n₁ ≈ 1</code>) a otro (el cilindro, con índice <code>n₂ = n</code>), su trayectoria se curva. La ley de Snell describe esta relación: [3]</p>
+            <p style="text-align:center;"><code>n₁ sin(θ₁) = n₂ sin(θ₂)</code></p>
+            <p>Donde <code>θ₁</code> es el ángulo de incidencia y <code>θ₂</code> es el ángulo de refracción, ambos medidos con respecto a la línea normal (perpendicular) a la superficie.</p>
+
+            <h3>2. Ley de la Reflexión</h3>
+            <p>Cuando el rayo de luz golpea la superficie del espejo en la parte posterior del cilindro, se refleja. La ley de la reflexión establece que el ángulo en que incide el rayo en el espejo es igual al ángulo en que se refleja.</p>
+
+            <h3>3. Análisis Geométrico y Derivación</h3>
+            <p>La derivación de la fórmula para el índice de refracción (n) combina estas leyes con la geometría del sistema:</p>
+            <ol>
+                <li><strong>Ángulo de Incidencia:</strong> Por la geometría del problema, el rayo incidente entra a una altura <code>y = d/2</code> con respecto al eje central. Esto nos da una relación para el ángulo de incidencia <code>θ₁</code>:
+                <br><code>sin(θ₁) = y / R = d / (2R)</code></li>
+
+                <li><strong>Condición de Rayos Paralelos:</strong> Para que el rayo saliente sea paralelo al rayo entrante, la desviación angular total del rayo debe ser de 180° (π radianes). Sumando las desviaciones en la entrada, la reflexión y la salida, se llega a una relación clave entre los ángulos:
+                <br><code>θ₁ = 2θ₂</code></li>
+
+                <li><strong>Combinando las Ecuaciones:</strong> Usando la relación <code>θ₁ = 2θ₂</code> en la Ley de Snell (<code>sin(θ₁) = n sin(θ₂)</code>), podemos encontrar el valor de <code>n</code>.
+                <br><code>sin(2θ₂) = n sin(θ₂)</code>
+                <br>Usando la identidad trigonométrica <code>sin(2x) = 2sin(x)cos(x)</code>:
+                <br><code>2 sin(θ₂) cos(θ₂) = n sin(θ₂)</code>
+                <br>Esto se simplifica a: <code>n = 2 cos(θ₂)</code></li>
+
+                <li><strong>Fórmula Final:</strong> Combinando todas las relaciones, se obtiene una ecuación que relaciona <code>n</code>, <code>R</code> y <code>d</code>. Después de un desarrollo matemático, se llega a una ecuación de cuarto grado para <code>n</code>: <code>n⁴ - 4n² + (d/R)² = 0</code>. La solución física relevante de esta ecuación es:
+                <br><code style="font-size: 1.1em; text-align:center; display:block; margin-top:10px;">n = sqrt(2 + sqrt(4 - (d/R)²))</code>
+                <br>Esta es la fórmula que utiliza el panel de control para realizar un cálculo preciso.</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const radiusSlider = document.getElementById('radius-slider');
+        const distanceSlider = document.getElementById('distance-slider');
+        const radiusValue = document.getElementById('radius-value');
+        const distanceValue = document.getElementById('distance-value');
+        const refractionIndex = document.getElementById('refraction-index');
+
+        const cylinder = document.getElementById('cylinder');
+        const incidentRay = document.getElementById('incident-ray');
+        const emergentRay = document.getElementById('emergent-ray');
+        const dLine = document.getElementById('d-line');
+        const dLabel = document.getElementById('d-label');
+        const diagramContainer = document.querySelector('.diagram-container');
+
+        function updateSimulation() {
+            const R = parseFloat(radiusSlider.value);
+            const d = parseFloat(distanceSlider.value);
+
+            radiusValue.textContent = R.toFixed(2);
+            distanceValue.textContent = d.toFixed(2);
+            
+            // Asegurarse que d no sea mayor que 2*R (límite físico)
+            distanceSlider.max = (2 * R).toFixed(2);
+            if (d > 2 * R) {
+                // No recalcular si el valor es inválido para evitar errores de sqrt(negativo)
+                refractionIndex.textContent = "Inválido";
+            } else {
+                // Calcular el índice de refracción usando la fórmula exacta
+                const d_over_R_sq = (d / R) * (d / R);
+                const term_under_sqrt = 4 - d_over_R_sq;
+                const n_squared = 2 + Math.sqrt(term_under_sqrt);
+                const n = Math.sqrt(n_squared);
+                refractionIndex.textContent = n.toFixed(2);
+            }
+
+            // Actualizar la simulación visual
+            const containerHeight = diagramContainer.clientHeight;
+            const cylinderDiameter = (R / parseFloat(radiusSlider.max)) * (containerHeight * 0.8);
+            
+            cylinder.style.width = `${cylinderDiameter}px`;
+            cylinder.style.height = `${cylinderDiameter}px`;
+
+            const visualD = (d / (2*R)) * cylinderDiameter;
+            const centerY = containerHeight / 2;
+            
+            incidentRay.style.top = `${centerY - visualD / 2}px`;
+            emergentRay.style.top = `${centerY + visualD / 2}px`;
+
+            dLine.style.top = `${centerY - visualD / 2}px`;
+            dLine.style.height = `${visualD}px`;
+
+            dLabel.style.top = `${centerY - 10}px`;
+            dLabel.textContent = `d = ${d.toFixed(2)} m`;
+        }
+
+        radiusSlider.addEventListener('input', updateSimulation);
+        distanceSlider.addEventListener('input', updateSimulation);
+
+        window.addEventListener('load', updateSimulation);
+        window.addEventListener('resize', updateSimulation);
+    </script>
+
+</body>
+</html>

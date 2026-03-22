@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación Interactiva de Óptica</title>
+    <style>
+        /* Estilos Generales */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 20px;
+        }
+
+        /* Contenedor Principal */
+        .main-container {
+            background-color: #ffffff;
+            padding: 25px 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            max-width: 1100px;
+            width: 100%;
+        }
+
+        /* Estilos de Secciones de Texto */
+        .text-section {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 20px;
+        }
+        .text-section h2, .text-section h3 {
+            color: #0056b3;
+            margin-bottom: 15px;
+        }
+        .text-section h3 {
+            font-size: 1.3em;
+            margin-top: 25px;
+        }
+        .text-section p, .text-section li {
+            line-height: 1.6;
+            font-size: 1.05em;
+        }
+        .text-section ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .text-section li {
+            padding-left: 1.5em;
+            text-indent: -1.5em;
+            margin-bottom: 10px;
+        }
+        .text-section li::before {
+            content: '🔹';
+            color: #007bff;
+            margin-right: 10px;
+        }
+        .text-section strong {
+            color: #004a99;
+        }
+        .text-section .emphasis-box {
+            background-color: #e7f3fe;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .problem-image {
+            max-width: 400px;
+            width: 90%;
+            display: block;
+            margin: 25px auto 10px auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+        }
+
+        /* --- Estructura de la Simulación --- */
+        .simulation-block {
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            grid-area: title;
+            text-align: center;
+            color: #d32f2f;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .simulation-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            grid-template-rows: auto auto;
+            grid-template-areas:
+                "controls sim"
+                "results sim";
+            gap: 25px;
+        }
+        .controls {
+            grid-area: controls;
+            padding-right: 20px;
+            border-right: 1px solid #e0e0e0;
+        }
+        .simulation-area {
+            grid-area: sim;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+        canvas {
+            background-color: #ffffff;
+            border: 1px solid #b0bec5;
+        }
+        .results {
+            grid-area: results;
+            padding-right: 20px;
+            border-right: 1px solid #e0e0e0;
+        }
+        .control-group, .result-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+        .value-span {
+            font-weight: bold;
+            color: #d32f2f;
+            background-color: #fce4ec;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        #focal_point_result {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+
+        <!-- ============================================= -->
+        <!-- =========== ENUNCIADO Y SOLUCIÓN ============= -->
+        <!-- ============================================= -->
+        <div class="text-section">
+            <h2>Enunciado del Problema</h2>
+            <div class="emphasis-box" style="background-color: #fff9c4; border-left-color: #fbc02d;">
+                <p>
+                    Un rayo paralelo de luz entra en una semiesfera perpendicular a su cara plana, como se observa en la figura P36.59. La magnitud del radio es de 6.00 cm y tiene un índice de refracción de 1.560. Determine el punto en el cual está el haz enfocado (suponga que se trata de rayos paraxiales).
+                </p>
+                <img src="https://i.postimg.cc/0yKp2KwP/p36-59.png" alt="Diagrama del problema: rayo de luz entrando en una semiesfera" class="problem-image">
+            </div>
+
+            <h2>Solución Matemática</h2>
+            <div class="emphasis-box" style="background-color: #e8f5e9; border-left-color: #388e3c; font-family: 'Courier New', Courier, monospace;">
+                <p>Para resolverlo, se busca el <strong>Foco Objeto (s)</strong>, que es el punto donde se debe colocar una fuente para que los rayos salgan paralelos. Esto significa que la imagen se forma en el infinito (s' = ∞).</p>
+                <p>Se utiliza la ecuación de refracción en una superficie esférica:</p>
+                <p><strong>n₁/s + n₂/s' = (n₂ - n₁) / R</strong></p>
+                <p>Donde:</p>
+                <ul>
+                    <li>n₁ = 1.00 (índice de refracción del aire)</li>
+                    <li>n₂ = 1.560 (índice de refracción del vidrio)</li>
+                    <li>R = 6.00 cm (radio de la superficie)</li>
+                    <li>s' = ∞ (la imagen se forma en el infinito)</li>
+                </ul>
+                <p>Sustituyendo los valores:</p>
+                <p>1.00/s + 1.560/∞ = (1.560 - 1.00) / 6.00 cm</p>
+                <p>El término 1.560/∞ es igual a cero, simplificando la ecuación:</p>
+                <p>1.00/s = 0.560 / 6.00 cm</p>
+                <p>1.00/s = 0.09333 cm⁻¹</p>
+                <p>Despejando s:</p>
+                <p>s = 1 / 0.09333 cm⁻¹</p>
+                <p><strong>s ≈ 10.71 cm</strong></p>
+            </div>
+        </div>
+
+
+        <!-- ============================================= -->
+        <!-- ====== 1. EXPLICACIÓN INICIAL DEL FENÓMENO ====== -->
+        <!-- ============================================= -->
+        <div class="text-section">
+            <h2>El Corazón de la Luz: Cómo una Curva Crea Orden a partir del Caos</h2>
+            <p>
+                Imagina una fuente de luz diminuta emitiendo rayos en todas direcciones. Si la colocas dentro de una semiesfera de vidrio, su <strong>cara curva</strong> actúa como un director de orquesta para esos rayos. Debido a que el vidrio es ópticamente más "denso" que el aire, la luz se ve forzada a doblarse (refractarse) al salir.
+            </p>
+            
+            <h3>El Foco Objeto: La Coordenada del Orden</h3>
+            <div class="emphasis-box">
+                <p>En óptica, cada superficie curva tiene dos puntos focales importantes. Es clave no confundirlos:</p>
+                <ul>
+                    <li>El <strong>Foco Imagen (f')</strong> es el más conocido. Es el punto donde los rayos de luz <strong>paralelos</strong> que entran (como los del sol) se juntan o convergen después de atravesar la superficie.</li>
+                    <li>El <strong>Foco Objeto (f)</strong> es el concepto inverso y la solución a nuestro problema. Es el punto preciso donde debemos colocar una fuente de luz para que sus rayos, que originalmente salen divergiendo, se transformen en un haz perfectamente <strong>paralelo</strong> después de atravesar la superficie.</li>
+                </ul>
+                <p>La solución de nuestro ejercicio (10.71 cm) no es un número arbitrario, sino la coordenada exacta de este <strong>Foco Objeto</strong> para nuestra semiesfera.</p>
+            </div>
+            
+            <h3>¿A qué nos referimos con "Posición Mágica"? El Punto de Perfecta Sincronización</h3>
+            <p>
+                Ahora que sabemos que este punto se llama Foco Objeto, la pregunta es: <strong>¿por qué</strong> tiene esa propiedad tan especial? Aquí es donde una analogía nos ayuda a entenderlo intuitivamente. La "magia" de este punto se refiere a que es la <strong>única posición</strong> que logra una sincronización perfecta. Pensemos en la superficie curva como una rampa de salida y en los rayos de luz como personas corriendo:
+            </p>
+            <ul>
+                <li><strong>En un punto cualquiera:</strong> Las personas (rayos) corren en todas direcciones, chocan con la rampa (la superficie) en ángulos aleatorios y salen disparadas en direcciones aún más caóticas. El resultado es el desorden.</li>
+                <li><strong>En el Foco Objeto:</strong> Ocurre una "conspiración" perfecta entre la física y la geometría. Cada persona (rayo), sin importar su dirección inicial, golpea la rampa en un punto cuya inclinación es la <strong>exacta</strong> para redirigirla y hacer que salga corriendo perfectamente recta y paralela a todas las demás.</li>
+            </ul>
+            <p>
+                Por lo tanto, este punto especial es donde la física (Ley de Snell) y la geometría (la forma de la curva) colaboran para transformar el desorden en un orden impecable y útil, conocido como un haz de luz colimado.
+            </p>
+        </div>
+
+        <!-- ============================================= -->
+        <!-- ============ 2. SIMULACIÓN INTERACTIVA ============ -->
+        <!-- ============================================= -->
+        <div class="simulation-block">
+            <h1>Simulación Interactiva: Descubre el Foco Objeto</h1>
+            <div class="simulation-layout">
+                <div class="controls">
+                    <h4>Parámetros Físicos</h4>
+                    <div class="control-group">
+                        <label for="n_slider">Índice de Refracción (n): <span id="n_value" class="value-span">1.560</span></label>
+                        <input type="range" id="n_slider" min="1.3" max="2.0" step="0.01" value="1.56">
+                    </div>
+                    <div class="control-group">
+                        <label for="r_slider">Magnitud del Radio (R): <span id="r_value" class="value-span">6.00</span> cm</label>
+                        <input type="range" id="r_slider" min="3" max="10" step="0.1" value="6.0">
+                    </div>
+                    <hr>
+                    <h4>Control de la Simulación</h4>
+                    <div class="control-group">
+                        <label for="s_slider">Posición de la Fuente (s): <span id="s_value" class="value-span">10.71</span> cm</label>
+                        <input type="range" id="s_slider" min="4" max="25" step="0.1" value="10.71">
+                    </div>
+                </div>
+        
+                <div class="simulation-area">
+                    <canvas id="simulationCanvas" width="600" height="400"></canvas>
+                </div>
+        
+                <div class="results">
+                    <h3>Resultados Calculados</h3>
+                    <div class="result-group">
+                        <label>Solución del Problema (Foco Objeto):</label>
+                        <p id="focal_point_result">10.71 cm</p>
+                    </div>
+                     <div class="result-group">
+                        <label>Estado de los Rayos Salientes:</label>
+                        <p id="ray_status_value" class="value-span">Paralelos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================= -->
+        <!-- ====== 3. EXPLICACIÓN DE LA SIMULACIÓN ====== -->
+        <!-- ============================================= -->
+        <div class="text-section" style="margin-top: 30px;">
+            <h2>Explicación de la Simulación y la Solución</h2>
+            <p>
+                La simulación demuestra que el <strong>Foco Objeto</strong> no es un número fijo, sino que depende directamente de las propiedades del material y su forma.
+            </p>
+            <p>
+                Este punto se calcula dinámicamente con la fórmula: <strong>Foco Objeto (s) = (n₁ * R) / (n₂ - n₁)</strong>, donde n₁ es el aire (1.00), n₂ es el índice del vidrio y R es el radio.
+            </p>
+            <ul>
+                <li><strong>Mueve el slider del Índice de Refracción (n):</strong> Observa que si el material es más "denso" (mayor 'n'), la luz se dobla más. Por lo tanto, el punto de sincronización se acerca a la lente.</li>
+                <li><strong>Mueve el slider del Radio (R):</strong> Si la curva es más pronunciada (menor 'R'), el efecto de lente es más fuerte, y el punto focal también se acerca.</li>
+            </ul>
+            <p>
+                La solución de <strong>10.71 cm</strong> es correcta únicamente para los valores originales del problema (n=1.560, R=6.00 cm). ¡Ahora puedes encontrar la solución para cualquier combinación!
+            </p>
+        </div>
+        
+        <!-- ============================================= -->
+        <!-- ====== 4. APLICACIONES DERIVADAS ====== -->
+        <!-- ============================================= -->
+        <div class="text-section" style="border-bottom: none; padding-bottom: 0;">
+            <h2>Aplicaciones Derivadas del Principio</h2>
+             <ul>
+                <li>
+                    <strong>Industria (Presente): Colimadores para Láseres de Corte y Grabado.</strong> Se usan lentes para tomar la luz divergente de una fuente láser y convertirla en un haz perfectamente paralelo, esencial para lograr cortes y grabados precisos.
+                </li>
+                <li>
+                    <strong>Medicina (Presente/Futuro): Endoscopios y Suministro de Luz Terapéutica.</strong> Microlentes en la punta de los endoscopios convierten la luz de una fibra óptica en un haz ancho y uniforme para iluminar órganos internos o para aplicar terapias de luz de forma controlada sobre tejidos.
+                </li>
+                <li>
+                    <strong>Ciencia/Astronomía (Pasado/Presente): Diseño de Telescopios y Proyectores.</strong> El ocular de un telescopio toma la luz del punto focal y la convierte en rayos paralelos para una visión cómoda. Un proyector usa una lente condensadora para crear un haz de luz paralelo que ilumine uniformemente una diapositiva.
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // --- Elementos del DOM ---
+        const s_slider = document.getElementById('s_slider');
+        const n_slider = document.getElementById('n_slider');
+        const r_slider = document.getElementById('r_slider');
+        
+        const s_value_span = document.getElementById('s_value');
+        const n_value_span = document.getElementById('n_value');
+        const r_value_span = document.getElementById('r_value');
+        
+        const focal_point_result_p = document.getElementById('focal_point_result');
+        const ray_status_value_p = document.getElementById('ray_status_value');
+        
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function runSimulation() {
+            const s = parseFloat(s_slider.value);
+            const n2 = parseFloat(n_slider.value);
+            const R = parseFloat(r_slider.value);
+            const n1 = 1.00;
+
+            s_value_span.textContent = s.toFixed(2);
+            n_value_span.textContent = n2.toFixed(3);
+            r_value_span.textContent = R.toFixed(2);
+
+            const focalPointObject = (n1 * R) / (n2 - n1);
+            focal_point_result_p.textContent = focalPointObject.toFixed(2) + ' cm';
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const scale = 25; 
+            const vertexX = canvas.width - 50; 
+            const centerY = canvas.height / 2;
+            const semiSphereRadius = R * scale;
+            const centerX = vertexX - semiSphereRadius;
+
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(canvas.width, centerY);
+            ctx.strokeStyle = '#aaa';
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, semiSphereRadius, -Math.PI / 2, Math.PI / 2);
+            ctx.lineTo(centerX, centerY + semiSphereRadius);
+            ctx.closePath();
+            ctx.fillStyle = `rgba(173, 216, 230, ${0.4 + (n2 - 1.3)*0.8})`;
+            ctx.fill();
+            ctx.strokeStyle = '#0056b3';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            const sourceX = vertexX - s * scale;
+            ctx.beginPath();
+            ctx.arc(sourceX, centerY, 6, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ff9800';
+            ctx.fill();
+            
+            const numRays = 11;
+            for (let i = 0; i < numRays; i++) {
+                if(i === Math.floor(numRays/2)) continue;
+                const angle = (i - Math.floor(numRays/2)) * 0.1;
+                
+                const y_impact = centerY - (vertexX - sourceX) * Math.tan(angle);
+                if (Math.abs(y_impact - centerY) > semiSphereRadius) continue;
+                
+                const x_impact_on_arc = centerX + Math.sqrt(Math.max(0, semiSphereRadius**2 - (y_impact - centerY)**2));
+
+                ctx.beginPath();
+                ctx.moveTo(sourceX, centerY);
+                ctx.lineTo(x_impact_on_arc, y_impact);
+                ctx.strokeStyle = 'rgba(255, 165, 0, 0.7)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                const divergence_factor = (focalPointObject - s) * 0.03;
+                const refractedAngle = angle * divergence_factor;
+                
+                ctx.beginPath();
+                ctx.moveTo(x_impact_on_arc, y_impact);
+                ctx.lineTo(0, y_impact - x_impact_on_arc * Math.tan(refractedAngle));
+                ctx.strokeStyle = '#d32f2f';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+
+            if (Math.abs(s - focalPointObject) < 0.2) {
+                ray_status_value_p.textContent = "Paralelos (Sincronizado)";
+                ray_status_value_p.style.color = '#2e7d32';
+            } else if (s < focalPointObject) {
+                ray_status_value_p.textContent = "Divergentes";
+                ray_status_value_p.style.color = '#c62828';
+            } else {
+                ray_status_value_p.textContent = "Convergentes";
+                ray_status_value_p.style.color = '#1565c0';
+            }
+        }
+
+        s_slider.addEventListener('input', runSimulation);
+        n_slider.addEventListener('input', runSimulation);
+        r_slider.addEventListener('input', runSimulation);
+
+        runSimulation();
+    </script>
+
+</body>
+</html>

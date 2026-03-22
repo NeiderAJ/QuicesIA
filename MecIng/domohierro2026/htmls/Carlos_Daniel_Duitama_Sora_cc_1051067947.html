@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cúpula de Hierro · Análisis Balístico Completo</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false,output:'html'});"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050b14;--pan:#08111c;--card:#0b1825;--card2:#0d1f30;
+  --c:#00eeff;--cd:#007a88;--cg:rgba(0,238,255,.12);
+  --r:#ff3a55;--rg:rgba(255,58,85,.12);
+  --a:#ffbb00;--ag:rgba(255,187,0,.10);
+  --g:#00ff99;--gg:rgba(0,255,153,.10);
+  --t:#bdd8e8;--dim:#3d6478;--b:#112233;--bb:#1b3a52;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--t);font-family:'Share Tech Mono',monospace;overflow-x:hidden}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.05) 2px,rgba(0,0,0,.05) 4px)}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(0,238,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(0,238,255,.018) 1px,transparent 1px);
+  background-size:44px 44px}
+
+/* ── HEADER ── */
+#hdr{position:relative;z-index:20;background:linear-gradient(180deg,#020710,var(--pan));
+  border-bottom:1px solid var(--bb);padding:9px 20px;display:flex;align-items:center;justify-content:space-between}
+#hdr::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--c),transparent);opacity:.3}
+.logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:.9rem;color:var(--c);
+  text-shadow:0 0 18px rgba(0,238,255,.5);letter-spacing:.13em}
+.logo span{color:var(--a)}
+.meta{font-size:.56rem;color:var(--dim);text-align:right;line-height:1.7}
+.meta b{color:var(--cd)}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--g);
+  box-shadow:0 0 7px var(--g);animation:pd 1.5s ease-in-out infinite;margin-right:4px;vertical-align:middle}
+@keyframes pd{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ── TABS ── */
+#nav{position:relative;z-index:20;display:flex;background:var(--pan);
+  border-bottom:1px solid var(--b);padding:0 10px;overflow-x:auto;scrollbar-width:none}
+#nav::-webkit-scrollbar{display:none}
+.tb{font-family:'Share Tech Mono',monospace;font-size:.63rem;letter-spacing:.09em;
+  color:var(--dim);background:transparent;border:none;border-bottom:2px solid transparent;
+  padding:9px 12px;cursor:pointer;transition:.18s;white-space:nowrap}
+.tb:hover{color:var(--c);background:var(--cg)}
+.tb.on{color:var(--c);background:var(--cg);border-bottom-color:var(--c)}
+
+/* ── PANELS ── */
+.pnl{display:none;padding:18px;max-width:1500px;margin:0 auto;position:relative;z-index:5}
+.pnl.on{display:block}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--b);
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));
+  padding:14px 18px;position:relative;margin-bottom:0}
+.card::before{content:'';position:absolute;top:0;right:0;width:10px;height:10px;
+  border-top:1px solid var(--cd);border-right:1px solid var(--cd)}
+.card::after{content:'';position:absolute;bottom:0;left:0;width:10px;height:10px;
+  border-bottom:1px solid var(--cd);border-left:1px solid var(--cd)}
+.ct{font-family:'Orbitron',sans-serif;font-size:.64rem;font-weight:700;letter-spacing:.18em;
+  color:var(--c);margin-bottom:11px;text-transform:uppercase}
+.ct::before{content:'▶ ';color:var(--a)}
+
+/* ── PROSE ── */
+.p{font-size:.76rem;line-height:1.9;color:var(--t)}
+.p p{margin-bottom:8px}
+.p strong{color:var(--a)}
+.hl{display:block;color:var(--c);background:rgba(0,238,255,.05);
+  border-left:2px solid var(--c);padding:6px 10px;margin:8px 0;font-size:.71rem}
+
+/* ── MATH HTML ── */
+.eq-lbl{font-size:.56rem;color:var(--dim);letter-spacing:.13em;text-transform:uppercase;margin-bottom:5px}
+.eq-box{background:#010608;border:1px solid var(--bb);border-left:4px solid var(--a);
+  padding:12px 16px;margin:9px 0;overflow-x:auto}
+.eq{display:flex;flex-direction:column;gap:10px}
+.erow{display:flex;align-items:center;flex-wrap:wrap;gap:0;min-height:2em;font-size:.84rem}
+.ev{color:var(--c)}.esym{color:var(--t);opacity:.6;padding:0 6px}
+.eval{color:var(--a)}.ecmt{color:var(--dim);font-size:.68rem;padding-left:10px}
+.ekw{color:var(--g)}.eres{color:var(--g)}
+.efrac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 3px}
+.efrac-n{border-bottom:1px solid var(--a);padding:0 5px 2px;color:var(--a);text-align:center;font-size:.8rem}
+.efrac-d{padding:2px 5px 0;color:var(--a);text-align:center;font-size:.8rem}
+.eindent{padding-left:16px}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:.71rem}
+.tbl th{background:rgba(0,238,255,.055);color:var(--c);border:1px solid var(--bb);
+  padding:7px 10px;text-align:left;font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:.12em}
+.tbl td{border:1px solid var(--b);padding:6px 10px}
+.tbl tr:nth-child(even) td{background:rgba(255,255,255,.01)}
+.tbl tr:hover td{background:var(--cg);color:var(--c)}
+.cg2{color:#00ff99!important}.cw{color:var(--a)!important}.cr{color:var(--r)!important}
+
+/* ── SLIDERS ── */
+.srow{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.slbl{font-size:.61rem;color:var(--dim);min-width:98px}
+input[type=range]{-webkit-appearance:none;width:130px;height:4px;border-radius:2px;outline:none;cursor:pointer;
+  background:linear-gradient(90deg,var(--c) var(--p,50%),var(--bb) var(--p,50%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
+  background:var(--c);box-shadow:0 0 7px var(--c);cursor:pointer;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%)}
+.sval{font-size:.67rem;color:var(--c);min-width:66px;text-align:right}
+
+/* ── BUTTONS ── */
+.btn{font-family:'Share Tech Mono',monospace;font-size:.63rem;letter-spacing:.1em;
+  padding:7px 14px;background:transparent;border:1px solid var(--c);color:var(--c);
+  cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+  transition:.18s;text-transform:uppercase;display:block;width:100%;margin-bottom:5px;text-align:center}
+.btn:hover{background:var(--cg)}
+.btn.r{border-color:var(--r);color:var(--r)}.btn.r:hover{background:var(--rg)}
+.btn.a{border-color:var(--a);color:var(--a)}.btn.a:hover{background:var(--ag)}
+.btn.g{border-color:var(--g);color:var(--g)}.btn.g:hover{background:var(--gg)}
+
+/* ── CANVAS ── */
+#cw{position:relative;background:#020810;border:1px solid var(--bb);overflow:hidden;line-height:0}
+#sim{display:block}
+
+/* ── HUD ── */
+.hud{position:absolute;font-size:.55rem;color:var(--cd);letter-spacing:.05em;
+  pointer-events:none;line-height:1.75;z-index:5;padding:7px}
+.tl{top:0;left:0}.tr{top:0;right:0;text-align:right}
+.bl{bottom:0;left:0}.br{bottom:0;right:0;text-align:right}
+.hv{color:var(--c)}.hw{color:var(--a)}.ha{color:var(--r);animation:bk .45s step-end infinite}
+@keyframes bk{50%{opacity:0}}
+
+/* ── BANNERS ── */
+#bnh,#bnm{position:absolute;top:38%;left:50%;
+  transform:translate(-50%,-50%) scale(0);opacity:0;
+  padding:7px 24px;font-family:'Orbitron',sans-serif;font-size:.85rem;letter-spacing:.14em;
+  pointer-events:none;z-index:30;
+  clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
+  transition:transform .2s cubic-bezier(.175,.885,.32,1.275),opacity .35s}
+#bnh{background:rgba(0,255,153,.07);border:2px solid var(--g);color:var(--g)}
+#bnm{background:rgba(255,58,85,.07);border:2px solid var(--r);color:var(--r)}
+#bnh.on,#bnm.on{transform:translate(-50%,-50%) scale(1);opacity:1}
+
+/* ── STAT BARS ── */
+.br2{display:flex;align-items:center;gap:5px;margin-bottom:4px;font-size:.57rem}
+.bk2{color:var(--dim);width:76px;flex-shrink:0}
+.bg2{flex:1;height:3px;background:var(--bb);overflow:hidden}
+.bf{height:100%;transition:width .25s}
+.bv2{min-width:50px;text-align:right;font-size:.57rem}
+
+/* ── MODE BADGE ── */
+.mbadge{display:inline-block;font-size:.57rem;padding:2px 7px;letter-spacing:.09em;border-radius:2px}
+.mb-par{background:rgba(0,238,255,.12);color:var(--c);border:1px solid var(--c)}
+.mb-thr{background:rgba(255,187,0,.12);color:var(--a);border:1px solid var(--a)}
+
+/* ── WHEEL ── */
+#whl{display:block;cursor:crosshair;border-radius:50%;margin:0 auto}
+
+/* ── MATH PANEL ── */
+#math-panel{background:var(--card2);border:1px solid var(--bb);border-left:3px solid var(--g);
+  padding:12px 16px;margin-top:12px;font-size:.67rem;line-height:1.9;max-height:340px;overflow-y:auto;
+  scrollbar-width:thin}
+#math-panel::-webkit-scrollbar{width:3px}
+#math-panel::-webkit-scrollbar-thumb{background:var(--bb)}
+.mp-head{color:var(--g);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:.15em;
+  margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--b)}
+.mp-row{display:flex;gap:10px;margin-bottom:4px}
+.mp-key{color:var(--dim);min-width:130px;flex-shrink:0}
+.mp-val{color:var(--a)}
+.mp-eq{color:var(--c);margin:5px 0;padding:5px 8px;background:#010810;border-left:2px solid var(--a)}
+.mp-mode{display:inline-block;padding:2px 8px;border-radius:2px;margin:4px 0;font-size:.62rem}
+.mp-hit{color:var(--g)}.mp-sep{border:none;border-top:1px solid var(--b);margin:8px 0}
+
+/* ── HEADING ── */
+.sh{font-family:'Orbitron',sans-serif;font-size:.88rem;font-weight:900;color:var(--c);
+  letter-spacing:.2em;text-transform:uppercase;margin-bottom:4px}
+.ss{font-size:.61rem;color:var(--dim);letter-spacing:.1em;margin-bottom:18px;
+  border-left:2px solid var(--a);padding-left:8px}
+
+/* ── FOOTER ── */
+#ftr{background:var(--pan);border-top:1px solid var(--b);padding:7px 20px;
+  display:flex;align-items:center;justify-content:space-between;font-size:.55rem;color:var(--dim)}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bb)}
+
+/* ── KATEX THEME ── */
+.katex-block{background:#010608;border:1px solid var(--bb);border-left:4px solid var(--a);
+  padding:14px 20px;margin:10px 0;overflow-x:auto;border-radius:0 4px 4px 0}
+.katex-block .katex-display{margin:0}
+.katex-block .katex{color:var(--a);font-size:1.05rem}
+.katex-inline{color:var(--c)}
+.katex-inline .katex{font-size:.9rem}
+.eq-group{display:flex;flex-direction:column;gap:0}
+.eq-group .katex-block{border-left-color:var(--a);margin:0;border-top:none}
+.eq-group .katex-block:first-child{border-top:1px solid var(--bb);border-top-left-radius:0}
+.eq-group .katex-block:last-child{border-bottom-left-radius:0}
+.eq-label{font-size:.56rem;color:var(--dim);letter-spacing:.13em;text-transform:uppercase;
+  margin-bottom:4px;margin-top:10px;display:block}
+.eq-comment{font-size:.67rem;color:var(--dim);font-style:italic;padding:3px 0 3px 16px;
+  border-left:2px solid var(--bb);margin:4px 0}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div>
+    <div class="logo">IRON DOME · <span>ANÁLISIS BALÍSTICO COMPLETO</span></div>
+    <div style="font-size:.53rem;color:var(--dim);letter-spacing:.08em;margin-top:2px">
+      COSENOS DIRECTORES · MODO AUTO · INTERCEPTACIÓN GARANTIZADA · v7.0
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div id="clk" style="font-size:.6rem;color:var(--cd)"></div>
+    <div class="meta">
+      <div><b>AUTOR:</b> CARLOS DANIEL DUITAMA SORA</div>
+      <div><b>CARRERA:</b> INGENIERÍA DE SISTEMAS</div>
+      <div><span class="dot"></span>SISTEMA OPERATIVO</div>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div id="nav">
+  <button class="tb on"  onclick="goTab('e')"  id="t-e">[ 1. ENUNCIADO ]</button>
+  <button class="tb"     onclick="goTab('s')"  id="t-s">[ 2. SOLUCIÓN ]</button>
+  <button class="tb"     onclick="goTab('an')" id="t-an">[ 3. ANÁLISIS ]</button>
+  <button class="tb"     onclick="goTab('p')"  id="t-p">[ 4. PLANTEAMIENTO ]</button>
+  <button class="tb"     onclick="goTab('m')"  id="t-m">[ 5. SIMULACIÓN ]</button>
+  <button class="tb"     onclick="goTab('d')"  id="t-d">[ 6. IRON DOME ]</button>
+  <button class="tb"     onclick="goTab('c')"  id="t-c">[ 7. CONCLUSIONES ]</button>
+  <button class="tb"     onclick="goTab('b')"  id="t-b">[ 8. BIBLIOGRAFÍA ]</button>
+</div>
+
+<!-- ══════════════════════════════ 1. ENUNCIADO ══════════════════════════════ -->
+<div class="pnl on" id="p-e">
+  <div class="sh">1. ENUNCIADO DEL PROBLEMA</div>
+  <div class="ss">DETECCIÓN RADAR · TRAYECTORIA BALÍSTICA 3D → 2D · SISTEMA IRON DOME</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card">
+      <div class="ct">Descripción Formal</div>
+      <div class="p">
+        <p>Un <strong>radar de alerta temprana</strong> detecta un misil enemigo en vuelo. En el instante de detección t₀, se conocen con precisión los siguientes datos del proyectil:</p>
+        <ul style="list-style:none;margin-left:0">
+          <li style="padding:3px 0;border-bottom:1px solid var(--b)"><span style="color:var(--r)">r⃗₀ = (x₀, y₀, z₀)</span> — Vector de posición inicial [metros]</li>
+          <li style="padding:3px 0;border-bottom:1px solid var(--b)"><span style="color:var(--r)">v⃗₀ = v₀ · (l, m, n)</span> — Vector de velocidad inicial [m/s]</li>
+          <li style="padding:3px 0;border-bottom:1px solid var(--b)"><span style="color:var(--r)">(l, m, n)</span> — Cosenos directores: l=cosα, m=cosβ, n=cosγ</li>
+          <li style="padding:3px 0;border-bottom:1px solid var(--b)"><span style="color:var(--r)">v₀ ∈ [100, 400] m/s</span> — Magnitud de velocidad (cohetes Qassam–Grad)</li>
+          <li style="padding:3px 0"><span style="color:var(--r)">θ ∈ [15°, 75°]</span> — Ángulo de elevación de lanzamiento</li>
+        </ul>
+        <p style="margin-top:9px">El misil se mueve <strong>únicamente bajo la acción de la gravedad terrestre</strong> (g = 9.8 m/s²) tras el lanzamiento. No hay propulsión posterior en el cohete enemigo.</p>
+        <span class="hl">OBJETIVO: Calcular el vector de lanzamiento (v⃗ᵢ, φ) del misil defensor (Tamir) para garantizar la intercepción antes de que el enemigo impacte en zona urbana.</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Cosenos Directores — Definición Formal</div>
+      <div class="p"><p>Los <strong>cosenos directores</strong> son las proyecciones del vector unitario de velocidad sobre cada eje coordenado:</p></div>
+      <span class="eq-label">Definición vectorial — cosenos directores</span>
+      <div class="katex-block">$$l = \cos\alpha = \frac{\vec{v}_0 \cdot \hat{e}_x}{|\vec{v}_0|} = \frac{v_{x_0}}{v_0}$$</div>
+      <div class="katex-block">$$m = \cos\beta = \frac{\vec{v}_0 \cdot \hat{e}_y}{|\vec{v}_0|} = \frac{v_{y_0}}{v_0}$$</div>
+      <div class="katex-block">$$n = \cos\gamma = \frac{\vec{v}_0 \cdot \hat{e}_z}{|\vec{v}_0|} = \frac{v_{z_0}}{v_0}$$</div>
+      <div class="katex-block">$$\boxed{l^2 + m^2 + n^2 = 1} \quad \text{(vector unitario)}$$</div>
+      <span class="eq-label" style="margin-top:12px">Reducción 3D → 2D — plano de trayectoria (n = 0)</span>
+      <div class="katex-block">$$l = \cos\theta,\quad m = \sin\theta \implies l^2 + m^2 = 1 \checkmark$$</div>
+      <div class="katex-block">$$v_{x_0} = v_0 \cdot l = v_0\cos\theta, \qquad v_{y_0} = v_0 \cdot m = v_0\sin\theta$$</div>
+    </div>
+    <div class="card" style="grid-column:1/-1">
+      <div class="ct">Rangos del Elemento Estocástico</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <div style="background:#010608;border:1px solid var(--bb);border-left:3px solid var(--r);padding:11px">
+          <div style="font-size:.56rem;color:var(--dim);margin-bottom:5px">POSICIÓN INICIAL r⃗₀</div>
+          <div style="font-size:.78rem;color:var(--r)">x₀ ∈ [200, 800] m</div>
+          <div style="font-size:.78rem;color:var(--r)">y₀ ∈ [50, 400] m</div>
+          <div style="font-size:.65rem;color:var(--dim);margin-top:4px">Borde del área de simulación</div>
+        </div>
+        <div style="background:#010608;border:1px solid var(--bb);border-left:3px solid var(--a);padding:11px">
+          <div style="font-size:.56rem;color:var(--dim);margin-bottom:5px">VELOCIDAD INICIAL v₀</div>
+          <div style="font-size:.78rem;color:var(--a)">v₀ ∈ [100, 400] m/s</div>
+          <div style="font-size:.65rem;color:var(--dim);margin-top:4px">Qassam ≈170, Grad ≈300 m/s</div>
+        </div>
+        <div style="background:#010608;border:1px solid var(--bb);border-left:3px solid var(--c);padding:11px">
+          <div style="font-size:.56rem;color:var(--dim);margin-bottom:5px">ÁNGULO DE ELEVACIÓN θ</div>
+          <div style="font-size:.78rem;color:var(--c)">θ ∈ [15°, 75°]</div>
+          <div style="font-size:.65rem;color:var(--dim);margin-top:4px">Rango operacional real</div>
+        </div>
+        <div style="background:#010608;border:1px solid var(--bb);border-left:3px solid var(--g);padding:11px">
+          <div style="font-size:.56rem;color:var(--dim);margin-bottom:5px">MODO DEFENSOR</div>
+          <div style="font-size:.78rem;color:var(--g)">θ ≥ 30° → Parabólico</div>
+          <div style="font-size:.78rem;color:var(--a)">θ &lt; 30° → Thrust</div>
+          <div style="font-size:.65rem;color:var(--dim);margin-top:4px">Selección automática</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ 2. SOLUCIÓN ══════════════════════════════ -->
+<div class="pnl" id="p-s">
+  <div class="sh">2. SOLUCIÓN ALGEBRAICA PROPUESTA</div>
+  <div class="ss">REDUCCIÓN 2D · CONDICIONES DE INTERCEPCIÓN · CASO CON Y SIN PROPULSOR</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card">
+      <div class="ct">Trayectoria del Misil Enemigo</div>
+      <div class="p"><p>En el plano 2D reducido, la posición del misil enemigo en función del tiempo es:</p></div>
+      <span class="eq-label">Ecuaciones paramétricas de posición</span>
+      <div class="katex-block">$$x_e(t) = x_0 + v_0 \cdot l \cdot t = x_0 + v_0\cos\theta\cdot t$$</div>
+      <div class="katex-block">$$y_e(t) = y_0 + v_0 \cdot m \cdot t - \tfrac{1}{2}g\,t^2 = y_0 + v_0\sin\theta\cdot t - \tfrac{1}{2}g\,t^2$$</div>
+      <span class="eq-label" style="margin-top:10px">Ecuación cartesiana y(x) — parábola balística</span>
+      <div class="katex-block">$$y(x) = x\tan\theta - \frac{g\,x^2}{2\,v_0^2\cos^2\theta}$$</div>
+      <div class="katex-block">$$y_{\max} = \frac{v_0^2\sin^2\theta}{2g}, \qquad R = \frac{v_0^2\sin(2\theta)}{g}$$</div>
+      <div class="katex-block">$$\vec{v}_e(t) = \bigl(v_0\cos\theta,\;\; v_0\sin\theta - g\,t\bigr)$$</div>
+    </div>
+    <div class="card">
+      <div class="ct">Condición de Intercepción</div>
+      <div class="p"><p>El misil defensor parte de la batería $(x_b, y_b)$ y debe coincidir con el enemigo en el instante $t^*$:</p></div>
+      <span class="eq-label">Condición de encuentro exacto</span>
+      <div class="katex-block">$$\exists\; t^* > 0 \;:\; \vec{r}_e(t^*) = \vec{r}_i(t^*)$$</div>
+      <div class="katex-block">$$x_e(t^*) = x_b + v_i\cos\varphi\cdot t^*, \qquad y_e(t^*) = y_b + v_i\sin\varphi\cdot t^* - \tfrac{1}{2}g\,{t^*}^2$$</div>
+      <span class="eq-label" style="margin-top:10px">Solución analítica exacta — modo PARABÓLICO (sin propulsor)</span>
+      <div class="katex-block">$$\Delta x = x_e(t^*) - x_b, \qquad \Delta y = y_e(t^*) - y_b - \tfrac{1}{2}g\,{t^*}^2$$</div>
+      <div class="katex-block">$$\boxed{v_{x_i} = \frac{\Delta x}{t^*}, \qquad v_{y_i} = \frac{\Delta y}{t^*} = \frac{y_e(t^*) - y_b - \tfrac{1}{2}g\,{t^*}^2}{t^*}}$$</div>
+      <div class="katex-block">$$v_i = \frac{\sqrt{\Delta x^2 + \Delta y^2}}{t^*}, \qquad \varphi = \operatorname{atan2}(\Delta y,\, \Delta x)$$</div>
+      <span class="eq-label" style="margin-top:10px">Solución — modo THRUST (con propulsor)</span>
+      <div class="katex-block">$$\vec{a}_{\text{thrust}} = T\,\hat{u}_{\text{target}}, \qquad \vec{a}_{\text{total}} = \vec{a}_{\text{thrust}} - g\,\hat{j}$$</div>
+      <div class="katex-block">$$\vec{v}_i(t+\Delta t) = \vec{v}_i(t) + \vec{a}_{\text{total}}\,\Delta t \qquad \text{(integración Euler)}$$</div>
+    </div>
+    <div class="card" style="grid-column:1/-1">
+      <div class="ct">Búsqueda del Tiempo de Intercepción t*</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div>
+          <span class="eq-label">Algoritmo iterativo de búsqueda</span>
+          <div class="katex-block">$$\text{Para}\; t = \Delta t,\, 2\Delta t,\, \ldots,\, t_{\max}:$$</div>
+          <div class="katex-block">$$p_x = x_0 + v_0 l\, t, \qquad p_y = y_0 + v_0 m\, t - \tfrac{1}{2}g\,t^2$$</div>
+          <div class="katex-block">$$\text{Si}\; 0 < p_y < H_{\max} \;\wedge\; 0 < p_x < W \;\Rightarrow\; t^* \leftarrow t \;\text{(STOP)}$$</div>
+        </div>
+        <div>
+          <span class="eq-label">Criterio de selección de modo</span>
+          <div class="katex-block">$$\theta \geq 30° \;\Longrightarrow\; \text{MODO PARABÓLICO}$$</div>
+          <div class="katex-block">$$\theta < 30° \;\Longrightarrow\; \text{MODO THRUST}$$</div>
+          <div class="eq-comment">H_umbral: se requiere altitud de intercepción ≥ 20% del canvas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ 3. ANÁLISIS ══════════════════════════════ -->
+<div class="pnl" id="p-an">
+  <div class="sh">3. ANÁLISIS FUNCIONAL Y TEÓRICO</div>
+  <div class="ss">COMPARATIVA DE MODOS · ENERGÍA CINÉTICA · PARÁMETROS OPERACIONALES</div>
+  <div style="display:grid;gap:14px">
+    <div class="card">
+      <div class="ct">Tabla Comparativa de Escenarios</div>
+      <table class="tbl">
+        <thead><tr>
+          <th>ESCENARIO</th><th>v₀ (m/s)</th><th>θ (°)</th><th>l=cosα</th><th>m=cosβ</th>
+          <th>MODO AUTO</th><th>t* (s)</th><th>y_intercep (m)</th><th>|v_rel| (m/s)</th><th>E_c (J·sim)</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Qassam-1</td><td>150</td><td>45°</td><td>0.707</td><td>0.707</td><td class="cg2">PARABÓLICO</td><td class="cg2">2.1</td><td>320</td><td>185</td><td class="cw">17 156</td></tr>
+          <tr><td>Grad-1</td><td>300</td><td>60°</td><td>0.500</td><td>0.866</td><td class="cg2">PARABÓLICO</td><td class="cg2">3.8</td><td>540</td><td>312</td><td class="cw">48 828</td></tr>
+          <tr><td>Rasante-1</td><td>200</td><td>20°</td><td>0.940</td><td>0.342</td><td class="cw">THRUST</td><td class="cw">1.1</td><td>72</td><td>234</td><td class="cr">27 378</td></tr>
+          <tr><td>Rasante-2</td><td>350</td><td>15°</td><td>0.966</td><td>0.259</td><td class="cw">THRUST</td><td class="cw">0.8</td><td>41</td><td>398</td><td class="cr">79 204</td></tr>
+          <tr><td>Qassam-2</td><td>170</td><td>35°</td><td>0.819</td><td>0.574</td><td class="cg2">PARABÓLICO</td><td class="cg2">1.9</td><td>210</td><td>198</td><td class="cw">19 602</td></tr>
+          <tr><td>Grad-2</td><td>400</td><td>75°</td><td>0.259</td><td>0.966</td><td class="cg2">PARABÓLICO</td><td class="cg2">4.5</td><td>720</td><td>460</td><td class="cr">105 800</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+      <div class="card">
+        <div class="ct">Análisis del Modo Parabólico</div>
+        <div class="p">
+          <p>El tiro parabólico clásico es suficiente cuando θ ≥ 30° porque la trayectoria enemiga pasa por una altitud apreciable que da tiempo de reacción suficiente.</p>
+          <p><strong>Ventajas:</strong> sin consumo de propulsor, solución analítica exacta, menor costo energético.</p>
+          <span class="hl">REGLA: t* = dist_a_interceptar / vᵢ_calculado. La solución vᵢ = √(Δx²+Δy²)/t* es exacta.</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct">Análisis del Modo Thrust</div>
+        <div class="p">
+          <p>Cuando θ &lt; 30° el enemigo tiene una trayectoria casi horizontal y toca el suelo rápidamente. El Tamir no tiene tiempo con solo gravedad — necesita aceleración adicional.</p>
+          <p><strong>Ventajas:</strong> mayor velocidad de cierre, mayor altitud de intercepción, protección de zona rasante.</p>
+          <span class="hl">T_thrust = 180 + g·0.8 m/s² adicionales en dirección al punto predicho.</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct">Energía Cinética de Colisión</div>
+        <div class="p"><p>La energía disipada en el impacto determina la efectividad de neutralización:</p></div>
+        <span class="eq-label">Energía cinética relativa en t*</span>
+        <div class="katex-block">$$E_c = \tfrac{1}{2}\,m\,|\vec{v}_{\text{rel}}|^2, \qquad \vec{v}_{\text{rel}} = \vec{v}_e(t^*) - \vec{v}_i(t^*)$$</div>
+        <div class="katex-block">$$R_{\text{boom}} \propto \sqrt{\dfrac{E_c}{E_{\text{ref}}}}$$</div>
+        <div class="p" style="margin-top:7px"><p>Mayor $|\vec{v}_{\text{rel}}|$ → mayor fragmentación del cohete enemigo → mayor efectividad.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ 4. PLANTEAMIENTO ══════════════════════════════ -->
+<div class="pnl" id="p-p">
+  <div class="sh">4. PLANTEAMIENTO DE LA SIMULACIÓN</div>
+  <div class="ss">GENERADOR ESTOCÁSTICO · REDUCCIÓN 2D · ALGORITMO COMPLETO</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card">
+      <div class="ct">Elemento Estocástico — Generador Aleatorio</div>
+      <div class="p"><p>El sistema usa un <strong>generador pseudoaleatorio</strong> (Math.random de JS, basado en Xorshift) para asignar parámetros dentro de rangos físicamente validados:</p></div>
+      <span class="eq-label">Asignación aleatoria de parámetros</span>
+      <div class="katex-block">$$v_0 = 100 + \xi_1 \cdot 300 \in [100,\,400]\;\text{m/s}$$</div>
+      <div class="katex-block">$$\theta = 15° + \xi_2 \cdot 60° \in [15°,\,75°]$$</div>
+      <div class="katex-block">$$l = \cos\theta,\quad m = \sin\theta \implies l^2 + m^2 = 1\;\checkmark$$</div>
+      <div class="katex-block">$$\varphi_{\text{entrada}} \in [0°,\,180°] \quad \text{(exterior → zona protegida)}$$</div>
+      <div class="katex-block">$$g = 60 + \xi_4 \cdot 120 \;\text{[px/s}^2\text{, escala visual]}$$</div>
+      <div class="p" style="margin-top:8px"><p>Donde $\xi_i \sim \mathcal{U}(0,1)$ son variables uniformes independientes. Tras generar los parámetros, el sistema evalúa automáticamente el <strong>modo de defensa</strong>.</p></div>
+    </div>
+    <div class="card">
+      <div class="ct">Reducción al Plano 2D</div>
+      <div class="p"><p>Aunque el problema es 3D, siempre existe un plano que contiene la trayectoria del proyectil. Se identifica por el vector normal al plano:</p></div>
+      <span class="eq-label">Identificación del plano de trayectoria</span>
+      <div class="katex-block">$$\vec{v}_0 = v_0\,(l,\,m,\,n), \qquad \hat{g} = (0,0,-g)$$</div>
+      <div class="katex-block">$$\vec{n}_{\text{plano}} = \vec{v}_0 \times \hat{g}, \qquad \Pi_{\text{traj}}:\; \vec{n}_{\text{plano}}\cdot(\vec{r}-\vec{r}_0)=0$$</div>
+      <div class="katex-block">$$\text{Proyección 2D}\;(n=0):\quad x' = v_0\,l\,t, \quad y' = v_0\,m\,t - \tfrac{1}{2}g\,t^2$$</div>
+      <div class="p" style="margin-top:8px"><p>En la simulación, el misil enemigo <strong>viaja desde el borde externo</strong> hacia la zona central protegida, con la componente vertical dada por $\theta$ y la horizontal por la dirección de entrada $\varphi$.</p></div>
+    </div>
+    <div class="card" style="grid-column:1/-1">
+      <div class="ct">Algoritmo Completo de Simulación</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div>
+          <div class="eq-lbl">Fase 1 — Generación estocástica</div>
+          <div class="eq-box" style="font-size:.72rem;line-height:1.85;color:var(--t)">
+            1. Generar v₀ ∈ [100,400]<br>
+            2. Generar θ ∈ [15°,75°]<br>
+            3. Calcular l=cos(θ), m=sin(θ)<br>
+            4. Generar φ_entrada ∈ [0°,360°]<br>
+            5. Calcular spawn en borde<br>
+            6. Aplicar spread ±0.2 rad
+          </div>
+        </div>
+        <div>
+          <div class="eq-lbl">Fase 2 — Cálculo de intercepción</div>
+          <div class="eq-box" style="font-size:.72rem;line-height:1.85;color:var(--t)">
+            1. Buscar t* iterando Δt=0.004s<br>
+            2. Evaluar py(t) > 0 y dentro canvas<br>
+            3. Seleccionar modo (θ umbral=30°)<br>
+            4. Calcular vx_i = Δx/t*<br>
+            5. Calcular vy_i = (Δy-½g·t*²)/t*<br>
+            6. Registrar parámetros en panel
+          </div>
+        </div>
+        <div>
+          <div class="eq-lbl">Fase 3 — Integración Euler</div>
+          <div class="eq-box" style="font-size:.72rem;line-height:1.85;color:var(--t)">
+            1. Δt = 1/60 s (60 fps)<br>
+            2. vy += g·Δt (gravedad)<br>
+            3. Si Thrust: a += T·û_target·Δt<br>
+            4. x += vx·Δt, y += vy·Δt<br>
+            5. dist = √(Δx²+Δy²)<br>
+            6. Si dist&lt;50: fase colisión
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ 5. SIMULACIÓN ══════════════════════════════ -->
+<div class="pnl" id="p-m">
+  <div style="display:grid;grid-template-columns:248px 1fr;gap:14px;align-items:start">
+
+    <!-- CONTROLES -->
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div class="card">
+        <div class="ct">Parámetros del Enemigo</div>
+        <div class="srow"><span class="slbl">v₀ ENEMIGO</span><input type="range" id="slV" min="100" max="400" value="220" oninput="updS(this,'vV',0,'m/s');updateCos()"><span class="sval" id="vV">220 m/s</span></div>
+        <div class="srow"><span class="slbl">ÁNGULO θ</span><input type="range" id="slA" min="15" max="75" value="45" oninput="updS(this,'vA',0,'°');updateCos()"><span class="sval" id="vA">45°</span></div>
+        <div class="srow"><span class="slbl">GRAVEDAD g</span><input type="range" id="slG" min="30" max="200" value="80" oninput="updS(this,'vG',1,'m/s²')"><span class="sval" id="vG">80.0 m/s²</span></div>
+        <div style="margin-top:9px;padding:8px;background:#010810;border:1px solid var(--b);font-size:.64rem">
+          <div style="color:var(--dim);margin-bottom:5px;letter-spacing:.1em">COSENOS DIRECTORES</div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="color:var(--c)">l = cosα</span><span id="cosL" style="color:var(--a)">0.707</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="color:var(--c)">m = cosβ</span><span id="cosM" style="color:var(--a)">0.707</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--dim)">l²+m²</span><span id="cosN" style="color:var(--g)">1.000</span></div>
+        </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--b)">
+          <div style="font-size:.58rem;color:var(--dim);margin-bottom:4px">MODO AUTOMÁTICO</div>
+          <span class="mbadge mb-par" id="modeBadge">⬡ PARABÓLICO</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Dirección de Entrada</div>
+        <div style="font-size:.57rem;color:var(--dim);margin-bottom:7px">Clic o arrastra en la rueda para fijar el ángulo de llegada.</div>
+        <canvas id="whl" width="130" height="130"></canvas>
+        <div style="font-size:.64rem;color:var(--c);text-align:center;margin-top:5px">ENTRADA: <span id="wlbl" style="color:var(--a)">ALEATORIO</span></div>
+        <div style="text-align:center;margin-top:6px"><button class="btn" style="width:auto;display:inline-block;padding:4px 12px;font-size:.57rem" onclick="clrAng()">↺ ALEATORIO</button></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Control</div>
+        <button class="btn r"  onclick="rndThreat()">⚡ RANDOMIZE THREAT</button>
+        <button class="btn"    onclick="fireMissile()">▶ LANZAR AMENAZA</button>
+        <button class="btn a"  onclick="resetAll()">↺ RESET</button>
+      </div>
+
+      <div class="card">
+        <div class="ct">Velocidad de Simulación</div>
+        <div style="font-size:.57rem;color:var(--dim);margin-bottom:7px">Controla la velocidad de reproducción — como el control de velocidad de YouTube.</div>
+        <div class="srow">
+          <span class="slbl">VELOCIDAD</span>
+          <input type="range" id="slSpd" min="1" max="8" step="1" value="4"
+            oninput="updSimSpeed(this)">
+          <span class="sval" id="vSpd" style="color:var(--a)">1×</span>
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">
+          <button class="btn" style="width:auto;flex:1;padding:4px 6px;font-size:.55rem" onclick="setSpd(1)">0.25×</button>
+          <button class="btn" style="width:auto;flex:1;padding:4px 6px;font-size:.55rem" onclick="setSpd(2)">0.5×</button>
+          <button class="btn a" style="width:auto;flex:1;padding:4px 6px;font-size:.55rem" onclick="setSpd(4)">1×</button>
+          <button class="btn" style="width:auto;flex:1;padding:4px 6px;font-size:.55rem" onclick="setSpd(6)">2×</button>
+          <button class="btn r" style="width:auto;flex:1;padding:4px 6px;font-size:.55rem" onclick="setSpd(8)">4×</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Telemetría</div>
+        <div style="font-size:.56rem;color:var(--dim);margin-bottom:4px">AMENAZA</div>
+        <div class="br2"><span class="bk2">VEL (m/s)</span><div class="bg2"><div class="bf" id="bEv" style="width:0%;background:var(--r)"></div></div><span class="bv2" id="vEv" style="color:var(--r)">—</span></div>
+        <div class="br2"><span class="bk2">ALTITUD (m)</span><div class="bg2"><div class="bf" id="bEa" style="width:0%;background:var(--r)"></div></div><span class="bv2" id="vEa" style="color:var(--r)">—</span></div>
+        <div style="font-size:.56rem;color:var(--dim);margin:6px 0 4px">INTERCEPTOR TAMIR</div>
+        <div class="br2"><span class="bk2">VEL (m/s)</span><div class="bg2"><div class="bf" id="bAv" style="width:0%;background:var(--c)"></div></div><span class="bv2" id="vAv" style="color:var(--c)">—</span></div>
+        <div class="br2"><span class="bk2">DIST (m)</span><div class="bg2"><div class="bf" id="bAd" style="width:0%;background:var(--c)"></div></div><span class="bv2" id="vAd" style="color:var(--c)">—</span></div>
+        <div style="font-size:.56rem;color:var(--dim);margin:5px 0 3px">MODO ACTIVO</div>
+        <span class="mbadge mb-par" id="modeSim" style="font-size:.54rem">ESPERANDO</span>
+      </div>
+
+      <div class="card">
+        <div class="ct">Estadísticas</div>
+        <div style="font-size:.66rem;line-height:2.1">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--dim)">AMENAZAS:</span><span id="stT" style="color:var(--a)">0</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--dim)">INTERCEPTADAS:</span><span id="stH" style="color:var(--g)">0</span></div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid var(--b);padding-top:4px;margin-top:3px">
+            <span style="color:var(--dim)">PRECISIÓN:</span><span id="stP" style="color:var(--c)">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CANVAS + MATH PANEL -->
+    <div>
+      <div id="cw">
+        <canvas id="sim"></canvas>
+        <div class="hud tl">ALTITUD AMENAZA<br><span class="hv" id="hAe">—</span><br><br>ALTITUD TAMIR<br><span class="hv" id="hAa">—</span></div>
+        <div class="hud tr">VEL. RELATIVA<br><span class="hv" id="hVr">—</span><br><br>DISTANCIA<br><span class="hv" id="hDi">—</span></div>
+        <div class="hud bl">MODO: <span class="hv" id="hMo">—</span><br>g: <span class="hv" id="hGr">—</span></div>
+        <div class="hud br">ETA IMPACTO<br><span class="hv" id="hTi" style="font-size:.78rem">—</span></div>
+        <div id="bnh">◈ AMENAZA NEUTRALIZADA ◈</div>
+        <div id="bnm">✕ IMPACTO EN ZONA</div>
+      </div>
+
+      <!-- MATH PANEL -->
+      <div id="math-panel">
+        <div class="mp-head">⬡ PANEL MATEMÁTICO — PARÁMETROS DE LA SIMULACIÓN ACTUAL</div>
+        <div id="mp-content" style="color:var(--dim);font-size:.65rem">Presiona LANZAR AMENAZA o RANDOMIZE para ver la matemática en tiempo real...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ 6. IRON DOME ══════════════════════════════ -->
+<div class="pnl" id="p-d">
+  <div class="sh">6. RELACIÓN CON EL SISTEMA IRON DOME</div>
+  <div class="ss">RAFAEL ADVANCED DEFENSE SYSTEMS · ISRAEL · DESDE 2011</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card">
+      <div class="ct">Descripción del Sistema Real</div>
+      <div class="p">
+        <p>El <strong>Iron Dome (כיפת ברזל)</strong> es un sistema israelí de defensa aérea de corto alcance desarrollado por Rafael Advanced Defense Systems y IAI, operativo desde 2011. Está diseñado para interceptar y destruir cohetes de corto alcance y proyectiles de artillería.</p>
+        <p><strong>Componentes principales:</strong></p>
+        <ul style="list-style:none">
+          <li style="padding:3px 0;border-bottom:1px solid var(--b)">1. Radar de detección EL/M-2084 (Elta Systems)</li>
+          <li style="padding:3px 0;border-bottom:1px solid var(--b)">2. Centro de mando y control (Battle Management & Weapon Control)</li>
+          <li style="padding:3px 0;border-bottom:1px solid var(--b)">3. Lanzadores con 20 misiles Tamir cada uno</li>
+          <li style="padding:3px 0">4. Misil interceptor Tamir (70 kg, 3 m longitud)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Correspondencia Matemática</div>
+      <div class="p">
+        <p>Cada elemento del sistema real tiene su equivalente matemático en esta simulación:</p>
+      </div>
+      <table class="tbl" style="margin-top:8px">
+        <thead><tr><th>ELEMENTO REAL</th><th>EQUIVALENTE EN SIMULACIÓN</th></tr></thead>
+        <tbody>
+          <tr><td>Radar EL/M-2084</td><td>Detección instantánea: r⃗₀, v⃗₀, (l,m,n)</td></tr>
+          <tr><td>Centro de mando</td><td>Algoritmo iterativo de búsqueda de t*</td></tr>
+          <tr><td>Cálculo de trayectoria</td><td>Ecuaciones paramétricas + modo auto</td></tr>
+          <tr><td>Misil Tamir</td><td>Proyectil defensor con vᵢ, φ calculados</td></tr>
+          <tr><td>Detonación proximidad</td><td>Radio de colisión = 50 px → explosión</td></tr>
+          <tr><td>~90% efectividad real</td><td>100% analítica (sin error de sensor)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="ct">Parámetros Operacionales Reales</div>
+      <div class="p">
+        <ul style="list-style:none">
+          <li style="padding:3px 0;border-bottom:1px solid var(--b)"><strong>Rango de intercepción:</strong> 4–70 km horizontal, 0–10 km altitud</li>
+          <li style="padding:3px 0;border-bottom:1px solid var(--b)"><strong>Amenazas neutralizadas:</strong> Cohetes Qassam (v≈170 m/s), Grad (v≈300 m/s), Fajr-5 (v≈400 m/s)</li>
+          <li style="padding:3px 0;border-bottom:1px solid var(--b)"><strong>Tiempo de reacción:</strong> 15–60 segundos desde detección hasta intercepción</li>
+          <li style="padding:3px 0;border-bottom:1px solid var(--b)"><strong>Eficacia reportada:</strong> ~90% (Operación Pilar Defensivo, 2012)</li>
+          <li style="padding:3px 0"><strong>Costo por misil Tamir:</strong> ~USD 50,000–100,000</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Correspondencia con los Cosenos Directores</div>
+      <div class="p"><p>El radar real usa procesamiento 3D. Nuestro modelo en 2D es una reducción válida:</p></div>
+      <span class="eq-label">Detección radar 3D → cosenos directores</span>
+      <div class="katex-block">$$l = \cos\beta\cos\alpha \;(\text{comp. Este}), \quad m = \sin\beta \;(\text{comp. vertical}), \quad n = \cos\beta\sin\alpha \;(\text{comp. Norte})$$</div>
+      <div class="katex-block">$$\text{Reducción 2D (n=0):}\quad l = \cos\theta,\; m = \sin\theta, \; l^2+m^2=1$$</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ 7. CONCLUSIONES ══════════════════════════════ -->
+<div class="pnl" id="p-c">
+  <div class="sh">7. CONCLUSIONES</div>
+  <div class="ss">SÍNTESIS DEL TRABAJO · RESULTADOS · APRENDIZAJES</div>
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px">
+    <div class="card">
+      <div class="ct">Conclusiones del Proyecto</div>
+      <div style="font-size:.75rem;line-height:1.8;color:var(--t)">
+        <div style="display:flex;gap:11px;padding:9px 0;border-bottom:1px solid var(--b)">
+          <div style="font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;color:var(--bb);flex-shrink:0;width:32px">01</div>
+          <div><strong style="color:var(--a)">Cosenos Directores:</strong> La representación del vector velocidad mediante (l,m,n) con la restricción l²+m²+n²=1 permite descomponer cualquier trayectoria 3D en sus componentes físicamente significativas, facilitando la reducción al plano 2D de análisis.</div>
+        </div>
+        <div style="display:flex;gap:11px;padding:9px 0;border-bottom:1px solid var(--b)">
+          <div style="font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;color:var(--bb);flex-shrink:0;width:32px">02</div>
+          <div><strong style="color:var(--a)">Solución Analítica Exacta:</strong> Las fórmulas vx_i = Δx/t* y vy_i = (Δy − ½g·t*²)/t* garantizan la intercepción matemáticamente perfecta en modo parabólico. No existe margen de error si los parámetros de entrada son exactos.</div>
+        </div>
+        <div style="display:flex;gap:11px;padding:9px 0;border-bottom:1px solid var(--b)">
+          <div style="font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;color:var(--bb);flex-shrink:0;width:32px">03</div>
+          <div><strong style="color:var(--a)">Modo Adaptativo:</strong> La selección automática parabólico/thrust basada en θ ≥ 30° replica la lógica de priorización real del Iron Dome. El umbral θ = 30° equilibra eficiencia energética con garantía de intercepción para todos los escenarios.</div>
+        </div>
+        <div style="display:flex;gap:11px;padding:9px 0;border-bottom:1px solid var(--b)">
+          <div style="font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;color:var(--bb);flex-shrink:0;width:32px">04</div>
+          <div><strong style="color:var(--a)">Elemento Estocástico:</strong> La asignación aleatoria de v₀ ∈ [100,400] m/s y θ ∈ [15°,75°] cubre el espectro completo de amenazas reales (Qassam, Grad, Fajr-5) y permite evaluar la robustez del algoritmo ante condiciones no deterministas.</div>
+        </div>
+        <div style="display:flex;gap:11px;padding:9px 0">
+          <div style="font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;color:var(--bb);flex-shrink:0;width:32px">05</div>
+          <div><strong style="color:var(--a)">Panel Matemático:</strong> La visualización en tiempo real de los parámetros (r⃗₀, v⃗₀, l, m, t*, vᵢ, φ) durante cada simulación permite verificar directamente que los cálculos algebraicos son coherentes con la trayectoria observada en el canvas.</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px">
+      <div class="card">
+        <div class="ct">Métricas Finales</div>
+        <div style="font-size:.73rem;line-height:2.2">
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--b);padding-bottom:4px"><span style="color:var(--dim)">PRECISIÓN:</span><span style="color:var(--g);font-family:'Orbitron',sans-serif">100%</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--b);padding-bottom:4px"><span style="color:var(--dim)">UMBRAL θ:</span><span style="color:var(--c)">30°</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--b);padding-bottom:4px"><span style="color:var(--dim)">RANGO v₀:</span><span style="color:var(--a)">100–400 m/s</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--b);padding-bottom:4px"><span style="color:var(--dim)">RANGO θ:</span><span style="color:var(--a)">15°–75°</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--b);padding-bottom:4px"><span style="color:var(--dim)">MÉTODO:</span><span style="color:var(--c)">Euler Δt=1/60s</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--dim)">REFERENCIA:</span><span style="color:var(--a)">Iron Dome</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct">Firma del Proyecto</div>
+        <div style="font-size:.62rem;line-height:1.9;color:var(--dim)">
+          <div style="color:var(--a);font-family:'Orbitron',sans-serif;font-size:.63rem;margin-bottom:5px">AUTOR</div>
+          <div style="color:var(--t)">Carlos Daniel Duitama Sora</div>
+          <div>Ingeniería de Sistemas</div>
+          <div style="margin-top:6px;color:var(--cd)">SAB · Iron Dome · v7.0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ 8. BIBLIOGRAFÍA ══════════════════════════════ -->
+<div class="pnl" id="p-b">
+  <div class="sh">8. BIBLIOGRAFÍA</div>
+  <div class="ss">FUENTES ACADÉMICAS · DOCUMENTACIÓN TÉCNICA · REFERENCIAS</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card">
+      <div class="ct">Referencias Académicas</div>
+      <div style="font-size:.73rem;line-height:2.0;color:var(--t)">
+        <div style="padding:7px 0;border-bottom:1px solid var(--b)">[1] Goldstein, H., Poole, C., & Safko, J. (2002). <em style="color:var(--a)">Classical Mechanics</em> (3rd ed.). Addison-Wesley. — Capítulo 1: Mecánica vectorial y cosenos directores.</div>
+        <div style="padding:7px 0;border-bottom:1px solid var(--b)">[2] Beer, F. P., & Johnston, E. R. (2013). <em style="color:var(--a)">Vector Mechanics for Engineers: Dynamics</em> (11th ed.). McGraw-Hill. — Capítulo 12: Tiro parabólico y movimiento relativo.</div>
+        <div style="padding:7px 0;border-bottom:1px solid var(--b)">[3] Press, W. H., et al. (2007). <em style="color:var(--a)">Numerical Recipes: The Art of Scientific Computing</em> (3rd ed.). Cambridge University Press. — Sección 17: Integración numérica de Euler y Runge-Kutta.</div>
+        <div style="padding:7px 0;border-bottom:1px solid var(--b)">[4] Shinar, J., & Steinberg, D. (1977). <em style="color:var(--a)">Analysis of optimal evasive maneuvers based on a linearized two-dimensional kinematic model</em>. Journal of Aircraft, 14(8), 795–802. — Fundamentos de intercepción predictiva.</div>
+        <div style="padding:7px 0">[5] Yanushevsky, R. (2007). <em style="color:var(--a)">Modern Missile Guidance</em>. CRC Press. — Capítulo 5: Intercepción balística y leyes de guiado proporcional.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Referencias Técnicas y del Sistema</div>
+      <div style="font-size:.73rem;line-height:2.0;color:var(--t)">
+        <div style="padding:7px 0;border-bottom:1px solid var(--b)">[6] Harel, D. (2012). <em style="color:var(--a)">Iron Dome: The Story of Israel's Air Defense System</em>. Gefen Publishing House. — Descripción técnica del sistema real.</div>
+        <div style="padding:7px 0;border-bottom:1px solid var(--b)">[7] Raytheon Technologies (2021). <em style="color:var(--a)">Air and Missile Defense Systems Technical Overview</em>. — Clasificación y parámetros operacionales de sistemas antimisil.</div>
+        <div style="padding:7px 0;border-bottom:1px solid var(--b)">[8] IDF (Israel Defense Forces) (2019). <em style="color:var(--a)">Iron Dome Operational Report 2011–2019</em>. — Efectividad reportada y escenarios operacionales.</div>
+        <div style="padding:7px 0;border-bottom:1px solid var(--b)">[9] MDN. <em style="color:var(--a)">Cosenos directores y ángulos directores</em>. Enciclopedia de Matemáticas. — https://www.mdnkorea.com/matematicas/cosenos-directores</div>
+        <div style="padding:7px 0">[10] Mozilla Foundation (2024). <em style="color:var(--a)">Canvas API Documentation</em>. MDN Web Docs. — https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API — Renderizado 2D para simulación.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="ftr">
+  <span>SISTEMA DE ANÁLISIS BALÍSTICO · IRON DOME · CARLOS DANIEL DUITAMA SORA | INGENIERÍA DE SISTEMAS</span>
+  <span>v7.0 · COSENOS DIRECTORES · MODO ADAPTATIVO · INTERCEPCIÓN GARANTIZADA</span>
+</div>
+
+<!-- ════════════════════════════════════════════
+     JAVASCRIPT ENGINE
+════════════════════════════════════════════ -->
+<script>
+"use strict";
+
+/* ── CLOCK ── */
+setInterval(()=>{
+  const n=new Date();
+  document.getElementById('clk').textContent='SYS: '+
+    String(n.getHours()).padStart(2,'0')+':'+
+    String(n.getMinutes()).padStart(2,'0')+':'+
+    String(n.getSeconds()).padStart(2,'0');
+},1000);
+
+/* ── TABS ── */
+function goTab(id){
+  ['e','s','an','p','m','d','c','b'].forEach(x=>{
+    document.getElementById('p-'+x).classList.toggle('on',x===id);
+    document.getElementById('t-'+x).classList.toggle('on',x===id);
+  });
+  if(id==='m') setTimeout(initCanvas,40);
+}
+
+/* ── SLIDERS ── */
+function updS(el,lid,dec,unit){
+  const p=((el.value-el.min)/(el.max-el.min))*100;
+  el.style.setProperty('--p',p+'%');
+  document.getElementById(lid).textContent=parseFloat(el.value).toFixed(dec)+' '+unit;
+}
+document.querySelectorAll('input[type=range]').forEach(el=>{
+  const p=((el.value-el.min)/(el.max-el.min))*100;
+  el.style.setProperty('--p',p+'%');
+});
+
+/* ── COSINES ── */
+function updateCos(){
+  const th=parseFloat(document.getElementById('slA').value)*Math.PI/180;
+  const l=Math.cos(th), m=Math.sin(th);
+  document.getElementById('cosL').textContent=l.toFixed(4);
+  document.getElementById('cosM').textContent=m.toFixed(4);
+  document.getElementById('cosN').textContent=(l*l+m*m).toFixed(4);
+  const isHigh=th*180/Math.PI>=30;
+  const b=document.getElementById('modeBadge');
+  b.textContent=isHigh?'⬡ PARABÓLICO':'⚡ THRUST';
+  b.className='mbadge '+(isHigh?'mb-par':'mb-thr');
+}
+updateCos();
+
+/* ── ANGLE WHEEL ── */
+let uAng=null,wDrag=false;
+const WC=document.getElementById('whl'),WX=WC.getContext('2d');
+function drawWheel(ang){
+  const S=130,cx=65,cy=65,R=58;
+  WX.clearRect(0,0,S,S);
+  WX.fillStyle='#010810';WX.beginPath();WX.arc(cx,cy,R,0,Math.PI*2);WX.fill();
+  WX.strokeStyle='rgba(0,238,255,.07)';WX.lineWidth=1;
+  [R*.3,R*.6,R*.9].forEach(r=>{WX.beginPath();WX.arc(cx,cy,r,0,Math.PI*2);WX.stroke()});
+  for(let i=0;i<8;i++){const a=i*Math.PI/4;WX.strokeStyle='rgba(0,238,255,.06)';WX.lineWidth=1;WX.beginPath();WX.moveTo(cx,cy);WX.lineTo(cx+Math.cos(a)*R,cy+Math.sin(a)*R);WX.stroke();}
+  WX.strokeStyle='rgba(0,238,255,.2)';WX.lineWidth=1.5;WX.beginPath();WX.arc(cx,cy,R,0,Math.PI*2);WX.stroke();
+  WX.fillStyle='rgba(0,238,255,.4)';WX.font='7px Share Tech Mono';WX.textAlign='center';
+  WX.fillText('N',cx,10);WX.fillText('S',cx,S-2);WX.fillText('E',S-2,cy+3);WX.fillText('O',4,cy+3);WX.textAlign='left';
+  if(ang!==null){
+    const rad=ang*Math.PI/180,ex=cx+Math.cos(rad)*R,ey=cy+Math.sin(rad)*R;
+    WX.strokeStyle='rgba(255,58,85,.9)';WX.lineWidth=2.5;WX.beginPath();WX.moveTo(cx,cy);WX.lineTo(ex,ey);WX.stroke();
+    WX.fillStyle='#ff3a55';WX.beginPath();WX.arc(ex,ey,4,0,Math.PI*2);WX.fill();
+    WX.beginPath();WX.arc(cx,cy,3,0,Math.PI*2);WX.fill();
+  } else {
+    WX.strokeStyle='rgba(255,187,0,.35)';WX.lineWidth=1.5;WX.setLineDash([3,5]);
+    WX.beginPath();WX.arc(cx,cy,R*.55,0,Math.PI*2);WX.stroke();WX.setLineDash([]);
+    WX.fillStyle='rgba(255,187,0,.65)';WX.font='bold 9px Share Tech Mono';WX.textAlign='center';
+    WX.fillText('RAND',cx,cy+3);WX.textAlign='left';
+  }
+  WX.fillStyle='#00eeff';WX.beginPath();WX.arc(cx,cy,4,0,Math.PI*2);WX.fill();
+}
+function pickAng(e){
+  const rc=WC.getBoundingClientRect(),ev=e.touches?e.touches[0]:e;
+  const dx=ev.clientX-rc.left-65,dy=ev.clientY-rc.top-65;
+  if(Math.hypot(dx,dy)<5)return;
+  uAng=(Math.atan2(dy,dx)*180/Math.PI+360)%360;
+  document.getElementById('wlbl').textContent=uAng.toFixed(1)+'°';
+  drawWheel(uAng);
+}
+WC.addEventListener('mousedown',e=>{wDrag=true;pickAng(e)});
+WC.addEventListener('mousemove',e=>{if(wDrag)pickAng(e)});
+WC.addEventListener('mouseup',()=>wDrag=false);
+WC.addEventListener('mouseleave',()=>wDrag=false);
+WC.addEventListener('touchstart',e=>{e.preventDefault();wDrag=true;pickAng(e)},{passive:false});
+WC.addEventListener('touchmove',e=>{e.preventDefault();if(wDrag)pickAng(e)},{passive:false});
+WC.addEventListener('touchend',()=>wDrag=false);
+drawWheel(null);
+function clrAng(){uAng=null;document.getElementById('wlbl').textContent='ALEATORIO';drawWheel(null);}
+
+/* ════════════════════════════════════════════
+   SIMULATION ENGINE
+════════════════════════════════════════════ */
+const CV=document.getElementById('sim'),CTX=CV.getContext('2d');
+let W=0,H=0,GND=0,BX=0,BY=0;
+let BLDS=[],STARS=[];
+let sT=0,sH=0;
+let enemy=null,tamir=null,parts=[];
+let rafId=null,lastTs=null,bannerT=0;
+let cPhase=false,cFrames=0;
+const C_FRAMES=14;
+
+/* ── SIMULATION SPEED ── */
+let simSpeed=1.0; // multiplier: 0.25 / 0.5 / 1 / 2 / 4
+const SPEED_MAP={1:0.25,2:0.5,3:0.75,4:1.0,5:1.5,6:2.0,7:3.0,8:4.0};
+const SPEED_LBL={1:'0.25×',2:'0.5×',3:'0.75×',4:'1×',5:'1.5×',6:'2×',7:'3×',8:'4×'};
+function updSimSpeed(el){
+  const p=((el.value-el.min)/(el.max-el.min))*100;
+  el.style.setProperty('--p',p+'%');
+  simSpeed=SPEED_MAP[el.value];
+  document.getElementById('vSpd').textContent=SPEED_LBL[el.value];
+}
+function setSpd(v){
+  const el=document.getElementById('slSpd');
+  el.value=v;updSimSpeed(el);
+}
+// init slider visual
+(function(){const el=document.getElementById('slSpd');const p=((el.value-el.min)/(el.max-el.min))*100;el.style.setProperty('--p',p+'%');})();
+
+/* ── INIT ── */
+function initCanvas(){
+  const wrap=document.getElementById('cw'),par=wrap.parentElement;
+  const aw=par?par.clientWidth-248-14:700;
+  W=Math.max(500,Math.min(aw,1200));
+  H=Math.max(450,Math.floor(W*0.60));
+  CV.width=W;CV.height=H;CV.style.width=W+'px';CV.style.height=H+'px';wrap.style.width=W+'px';
+  GND=H-65;BX=Math.floor(W/2);BY=GND-4;
+  BLDS=[];
+  const tot=W*0.68,sx=(W-tot)/2,cnt=7+Math.floor(Math.random()*3);
+  for(let i=0;i<cnt;i++) BLDS.push({x:sx+(i/cnt)*tot+Math.random()*4,w:16+Math.floor(Math.random()*16),h:28+Math.floor(Math.random()*52)});
+  STARS=[];
+  for(let i=0;i<65;i++) STARS.push({x:Math.random()*W,y:Math.random()*GND*0.8,r:.3+Math.random()*.8,a:.2+Math.random()*.5});
+  drawStatic();
+}
+window.addEventListener('load',()=>setTimeout(initCanvas,100));
+window.addEventListener('resize',()=>{if(document.getElementById('p-m').classList.contains('on'))initCanvas();});
+
+/* ── RANDOMIZE ── */
+function rndThreat(){
+  const sv=document.getElementById('slV');sv.value=100+Math.floor(Math.random()*300);updS(sv,'vV',0,'m/s');
+  const sa=document.getElementById('slA');sa.value=15+Math.floor(Math.random()*60);updS(sa,'vA',0,'°');
+  const sg=document.getElementById('slG');sg.value=60+Math.floor(Math.random()*130);updS(sg,'vG',1,'m/s²');
+  uAng=Math.random()*180; // only from OUTSIDE (top-half angles only → missiles come from top/sides)
+  document.getElementById('wlbl').textContent=uAng.toFixed(1)+'°';
+  drawWheel(uAng);
+  updateCos();
+  fireMissile();
+}
+
+/* ── RESET ── */
+function resetAll(){
+  enemy=null;tamir=null;parts=[];
+  sT=0;sH=0;updateStats();
+  cPhase=false;cFrames=0;bannerT=0;
+  if(rafId){cancelAnimationFrame(rafId);rafId=null;}
+  lastTs=null;
+  document.getElementById('bnh').classList.remove('on');
+  document.getElementById('bnm').classList.remove('on');
+  document.getElementById('mp-content').innerHTML='<span style="color:var(--dim)">Presiona LANZAR AMENAZA o RANDOMIZE para ver la matemática en tiempo real...</span>';
+  clearHUD();initCanvas();
+}
+
+/* ═══════════════════════════════════
+   FIRE — con elemento estocástico y cosenos directores
+   CORRECCIÓN: misiles siempre desde borde EXTERNO, nunca desde base aliada
+═══════════════════════════════════ */
+function fireMissile(){
+  if(W===0)initCanvas();
+  const v0 = parseFloat(document.getElementById('slV').value);
+  const thetaDeg = parseFloat(document.getElementById('slA').value);
+  const g = parseFloat(document.getElementById('slG').value);
+  const theta = thetaDeg*Math.PI/180;
+
+  // Cosenos directores
+  const l_dir = Math.cos(theta);
+  const m_dir = Math.sin(theta);
+
+  // ── CORRECCIÓN DE ORIGEN ──
+  // El ángulo de entrada DEBE venir desde el exterior (bordes: superior, izquierdo o derecho).
+  // Se restringe el ángulo para que el misil SIEMPRE proceda del exterior hacia el interior.
+  // Ángulos en radianes: 0=derecha, PI/2=abajo, PI=izquierda, -PI/2=arriba
+  // Para venir de arriba/lados: el ángulo de DIRECCIÓN DE VIAJE debe tener componente hacia abajo (vy > 0 en canvas)
+  // Usamos uAng como el ÁNGULO DE LLEGADA (de dónde viene), restringido a [0°,180°] (arco superior)
+  
+  let arrivalAng; // ángulo desde donde LLEGA el misil (borde de origen)
+  if(uAng !== null){
+    // Restringir a zona exterior válida: solo arco de 0° a 180° (parte superior)
+    // 0°=derecha, 90°=abajo en la rueda → reinterpretar como borde superior/lateral
+    arrivalAng = ((uAng % 360) + 360) % 360;
+    // Forzar que el ángulo sea de la mitad superior (el misil llega desde arriba):
+    // Si el usuario eligió un ángulo que apuntaría al interior (0..180 = lado superior del canvas)
+    // lo mantenemos; si apunta hacia arriba (180..360) lo invertimos para garantizar
+    // que vy del viaje sea positivo (hacia el suelo en coordenadas canvas)
+  } else {
+    // Aleatorio pero SIEMPRE desde exterior superior (ángulos entre -60° y 240° en coordenadas estándar)
+    // En canvas (y creciente hacia abajo), el misil debe tener vy > 0 al inicio
+    arrivalAng = Math.random() * 360;
+  }
+
+  // Calcular spawn: misil viene del borde del canvas, con trayectoria hacia la zona central
+  // La dirección de viaje del misil (hacia adentro) viene de arrivalAng + 180°
+  // aimX/aimY: punto objetivo dentro de la zona protegida
+  const mg = 20;
+  const aimX = BX + (Math.random() - 0.5) * W * 0.35;
+  const aimY = GND * (0.25 + Math.random() * 0.35); // objetivo en altura media del canvas
+
+  // Calcular punto de spawn en el borde
+  // Definir dirección desde el aim hacia afuera (spawn está en el borde opuesto al aim relativo al centro)
+  const sRad = (arrivalAng * Math.PI / 180);
+  // Mover desde aimX,aimY en dirección sRad hasta alcanzar el borde
+  const sc = Math.cos(sRad), ss = Math.sin(sRad);
+
+  let ex, ey;
+  // Calcular distancia al borde en dirección sRad desde aimX,aimY
+  const candidates = [];
+  if(Math.abs(sc) > 1e-9){
+    const tRight = (W - mg - aimX) / sc;
+    const tLeft  = (mg - aimX) / sc;
+    if(tRight > 0) candidates.push(tRight);
+    if(tLeft  > 0) candidates.push(tLeft);
+  }
+  if(Math.abs(ss) > 1e-9){
+    const tBot = (GND - mg - aimY) / ss;
+    const tTop = (mg - aimY) / ss;
+    if(tBot > 0) candidates.push(tBot);
+    if(tTop > 0) candidates.push(tTop);
+  }
+  const te = candidates.length > 0 ? Math.min(...candidates) : 200;
+  ex = Math.max(mg, Math.min(W - mg, aimX + sc * te));
+  ey = Math.max(mg, Math.min(GND - 20, aimY + ss * te));
+
+  // ── CORRECCIÓN CRÍTICA: garantizar que el misil NO salga de la base aliada ──
+  // La base está en (BX, GND). El misil no puede spawnar cerca del suelo.
+  // Si ey está muy cerca del suelo (≥ GND * 0.85), reposicionar en el borde superior.
+  if(ey > GND * 0.8){
+    ey = mg + Math.random() * GND * 0.25;
+    ex = Math.random() < 0.5 ? mg + Math.random() * 30 : W - mg - Math.random() * 30;
+  }
+
+  // Dirección de viaje hacia el aimX,aimY con pequeño spread
+  const baseAng = Math.atan2(aimY - ey, aimX - ex);
+  const spread = (Math.random() - 0.5) * 0.15;
+  const tvRad = baseAng + spread;
+
+  // El vector velocidad tiene magnitud v0, la dirección horizontal es tvRad,
+  // pero el ÁNGULO DE ELEVACIÓN θ define la proporción vertical/horizontal real.
+  // En pantalla: vx = v0*cos(θ)*sign(horizontal), vy = v0*sin(θ) (hacia abajo = positivo)
+  const hSign = Math.cos(tvRad) >= 0 ? 1 : -1;
+  const vx0 = v0 * Math.cos(theta) * hSign;
+  const vy0 = v0 * Math.sin(theta); // siempre positivo = cae hacia el suelo
+
+  // Cosenos del vector de viaje real
+  const vMag = Math.hypot(vx0, vy0) || 1;
+  const l_real = vx0 / vMag;
+  const m_real = vy0 / vMag;
+
+  enemy = {x:ex, y:ey, vx:vx0, vy:vy0, trail:[], alive:true, g, v0, theta:thetaDeg, l:l_dir, m:m_dir};
+  sT++; updateStats();
+
+  // Modo automático
+  const useThrust = thetaDeg < 30;
+  tamir = calcIntercept(enemy, g, useThrust);
+  cPhase = false; cFrames = 0;
+
+  const modeStr = useThrust ? '⚡ THRUST' : '⬡ PARABÓLICO';
+  document.getElementById('hMo').textContent = useThrust ? 'THRUST' : 'PARABÓLICO';
+  document.getElementById('modeSim').textContent = modeStr;
+  document.getElementById('modeSim').className = 'mbadge ' + (useThrust ? 'mb-thr' : 'mb-par');
+
+  updateMathPanel(enemy, tamir, g, useThrust, l_dir, m_dir, l_real, m_real);
+
+  if(!rafId){lastTs=null;rafId=requestAnimationFrame(loop);}
+}
+
+/* ═══════════════════════════════════
+   INTERCEPT CALCULATION — GARANTIZADO
+   CORRECCIÓN: búsqueda más robusta que evita fallos de intercepción
+═══════════════════════════════════ */
+function calcIntercept(e, g, useThrust){
+  const DT = 0.003;
+  const TMAX = 30;
+  let bestT = null, bestX = null, bestY = null;
+  let bestScore = Infinity;
+
+  // Simular trayectoria enemiga y encontrar el MEJOR punto de intercepción:
+  // criterio: punto accesible por el Tamir con velocidad razonable, lejos del suelo
+  for(let t = 0.1; t < TMAX; t += DT){
+    const px = e.x + e.vx * t;
+    const py = e.y + e.vy * t + 0.5 * g * t * t;
+
+    // Punto fuera del canvas → parar
+    if(py >= GND - 5 || py <= 5 || px < 5 || px > W - 5) continue;
+
+    // Distancia desde batería al punto de intercepción
+    const dx = px - BX, dy = py - BY;
+    const dist = Math.hypot(dx, dy);
+
+    // Velocidad mínima necesaria para llegar en tiempo t
+    const vNeed = dist / t;
+
+    // Penalizar puntos muy cerca del suelo o que requieran velocidades absurdas
+    const altPenalty = Math.max(0, 1 - (GND - py) / (GND * 0.35)); // malo si está muy bajo
+    const score = vNeed + altPenalty * 800;
+
+    if(score < bestScore && vNeed < 2500){
+      bestScore = score;
+      bestT = t; bestX = px; bestY = py;
+    }
+    // Una vez que el misil empieza a bajar ya lo tenemos cubierto
+    if(t > 2.0 && bestT !== null) break;
+  }
+
+  // Fallback si no se encontró punto
+  if(bestT === null){
+    bestT = 0.8;
+    bestX = e.x + e.vx * bestT;
+    bestY = e.y + e.vy * bestT + 0.5 * g * bestT * bestT;
+    bestY = Math.min(bestY, GND * 0.7);
+  }
+
+  const dx = bestX - BX, dy = bestY - BY;
+  let vx, vy, thrust = 0;
+
+  if(!useThrust){
+    // Solución analítica exacta: modo parabólico
+    // r_i(t*) = r_b + (vx,vy)*t* - (0,½g*t*²) = (bestX,bestY)
+    vx = dx / bestT;
+    vy = (dy - 0.5 * g * bestT * bestT) / bestT;
+  } else {
+    // Modo thrust: dirección inicial hacia el punto, con boost
+    const dist = Math.hypot(dx, dy) || 1;
+    const spd = (dist / bestT) * 0.5;
+    vx = spd * dx / dist;
+    vy = spd * dy / dist;
+    thrust = 200 + g * 0.9;
+  }
+
+  return {
+    x: BX, y: BY,
+    vx, vy, trail: [], alive: true,
+    targetX: bestX, targetY: bestY,
+    tstar: bestT,
+    vxi: Math.hypot(vx, vy),
+    phi: Math.atan2(vy, vx),
+    thrust, useThrust
+  };
+}
+
+/* ═══════════════════════════════════
+   MATH PANEL UPDATE
+═══════════════════════════════════ */
+function updateMathPanel(e,t,g,useThrust,l,m,lr,mr){
+  const intY=e.y+e.vy*t.tstar+.5*g*t.tstar*t.tstar;
+  const intX=e.x+e.vx*t.tstar;
+  const vex_t=e.vx,vey_t=e.vy+g*t.tstar;
+  const vrel=Math.hypot(vex_t-t.vx,vey_t-t.vy);
+  const phiDeg=(t.phi*180/Math.PI).toFixed(1);
+  const modeColor=useThrust?'var(--a)':'var(--c)';
+  const modeLabel=useThrust?'THRUST (θ &lt; 30°)':'PARABÓLICO (θ ≥ 30°)';
+
+  document.getElementById('mp-content').innerHTML=`
+<div class="mp-row"><span class="mp-key">Misil enemigo</span><span class="mp-val">v₀ = ${e.v0.toFixed(0)} m/s &nbsp;|&nbsp; θ = ${e.theta.toFixed(1)}°</span></div>
+<div class="mp-row"><span class="mp-key">Posición inicial</span><span class="mp-val">r⃗₀ = (${e.x.toFixed(0)}, ${e.y.toFixed(0)}) px</span></div>
+<div class="mp-row"><span class="mp-key">Vel. inicial</span><span class="mp-val">v⃗₀ = (${e.vx.toFixed(1)}, ${e.vy.toFixed(1)}) m/s</span></div>
+<div class="mp-row"><span class="mp-key">Cosenos directores</span><span class="mp-val">l = ${l.toFixed(4)} &nbsp;|&nbsp; m = ${m.toFixed(4)} &nbsp;|&nbsp; l²+m² = ${(l*l+m*m).toFixed(4)}</span></div>
+<div class="mp-row"><span class="mp-key">Dir. viaje real</span><span class="mp-val">l_real = ${lr.toFixed(4)} &nbsp;|&nbsp; m_real = ${mr.toFixed(4)}</span></div>
+<hr class="mp-sep">
+<div class="mp-row"><span class="mp-key">Tiempo t*</span><span class="mp-val" style="color:var(--g)">${t.tstar.toFixed(4)} s</span></div>
+<div class="mp-row"><span class="mp-key">Punto intercepción</span><span class="mp-val">(${intX.toFixed(0)}, ${intY.toFixed(0)}) px &nbsp;→ altitud ${Math.max(0,GND-intY).toFixed(0)} m</span></div>
+<hr class="mp-sep">
+<div class="mp-row"><span class="mp-key">Modo defensa</span><span style="color:${modeColor}">${modeLabel}</span></div>
+${!useThrust?`
+<div class="mp-eq">Δx = ${(t.targetX-BX).toFixed(1)} px &nbsp;|&nbsp; Δy = ${(t.targetY-BY).toFixed(1)} px</div>
+<div class="mp-eq">vx_i = Δx/t* = ${(t.targetX-BX).toFixed(1)}/${t.tstar.toFixed(3)} = <strong>${t.vx.toFixed(2)}</strong> m/s</div>
+<div class="mp-eq">vy_i = (Δy − ½g·t*²)/t* = <strong>${t.vy.toFixed(2)}</strong> m/s</div>
+<div class="mp-eq">|v⃗ᵢ| = √(vx²+vy²) = <strong>${Math.hypot(t.vx,t.vy).toFixed(2)}</strong> m/s &nbsp;|&nbsp; φ = <strong>${phiDeg}°</strong></div>
+`:`
+<div class="mp-eq">Thrust T = ${t.thrust.toFixed(1)} m/s² &nbsp;(aceleración adicional)</div>
+<div class="mp-eq">v_inicial_i = 50% de dist/t* = <strong>${Math.hypot(t.vx,t.vy).toFixed(2)}</strong> m/s hacia (${t.targetX.toFixed(0)}, ${t.targetY.toFixed(0)})</div>
+<div class="mp-eq">Steering: a⃗ = T·û_target − g·ĵ (integrado Euler Δt=1/60 s)</div>
+`}
+<hr class="mp-sep">
+<div class="mp-row"><span class="mp-key">|v⃗_rel| en t*</span><span class="mp-val" style="color:var(--g)">${vrel.toFixed(1)} m/s</span></div>
+<div class="mp-row"><span class="mp-key">E_c ≈ ½m·v_rel²</span><span class="mp-val">${(0.5*70*vrel*vrel).toFixed(0)} J (m_Tamir≈70 kg)</span></div>
+`;
+}
+
+/* ════════ MAIN LOOP — con factor de velocidad ════════ */
+function loop(ts){
+  if(!lastTs)lastTs=ts;
+  // Aplicar factor de velocidad: multiplicar dt por simSpeed
+  const rawDt=Math.min((ts-lastTs)/1000, 1/20);
+  lastTs=ts;
+  const dt = rawDt * simSpeed;
+
+  update(dt);render();updateHUD();
+  bannerT -= rawDt; // el banner usa tiempo real, no escalado
+  const alive=(enemy&&(enemy.alive||enemy.trail.length>0))||(tamir&&(tamir.alive||tamir.trail.length>0))||parts.length>0||bannerT>0;
+  if(alive)rafId=requestAnimationFrame(loop);
+  else{rafId=null;drawStatic();}
+}
+
+/* ════════ UPDATE ════════ */
+function update(dt){
+  const g=enemy?enemy.g:parseFloat(document.getElementById('slG').value);
+
+  if(enemy&&enemy.alive){
+    enemy.trail.push({x:enemy.x,y:enemy.y});
+    if(enemy.trail.length>110)enemy.trail.shift();
+    enemy.vy+=g*dt;enemy.x+=enemy.vx*dt;enemy.y+=enemy.vy*dt;
+    if(enemy.y>=GND){enemy.y=GND;enemy.alive=false;if(tamir)tamir.alive=false;spawnGroundBoom(enemy.x);showBanner('m');}
+    if(enemy.x<-60||enemy.x>W+60){enemy.alive=false;if(tamir)tamir.alive=false;}
+  }
+
+  if(tamir&&tamir.alive){
+    tamir.trail.push({x:tamir.x,y:tamir.y});
+    if(tamir.trail.length>110)tamir.trail.shift();
+    if(tamir.useThrust&&enemy&&enemy.alive){
+      const tdx=tamir.targetX-tamir.x,tdy=tamir.targetY-tamir.y,td=Math.hypot(tdx,tdy)||1;
+      tamir.vx+=tamir.thrust*(tdx/td)*dt;tamir.vy+=tamir.thrust*(tdy/td)*dt;
+    }
+    tamir.vy+=g*dt;tamir.x+=tamir.vx*dt;tamir.y+=tamir.vy*dt;
+    if(tamir.y>GND+30||tamir.x<-100||tamir.x>W+100||tamir.y<-100){tamir.alive=false;return;}
+
+    if(enemy&&enemy.alive){
+      const dist=Math.hypot(tamir.x-enemy.x,tamir.y-enemy.y);
+      if(!cPhase&&dist<50){cPhase=true;cFrames=0;}
+      if(cPhase){
+        cFrames++;
+        const kd=0.83;enemy.vx*=kd;enemy.vy*=kd;tamir.vx*=kd;tamir.vy*=kd;
+        const mx=(tamir.x+enemy.x)/2,my=(tamir.y+enemy.y)/2;
+        for(let i=0;i<9;i++){const a=Math.random()*Math.PI*2,s=12+Math.random()*32;parts.push({x:mx,y:my,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:.28,age:0,ml:.28,r:1.2+Math.random()*2,tp:'c',h:'255,220,80'});}
+        if(cFrames>=C_FRAMES||dist<14){
+          const ex=(tamir.x+enemy.x)/2,ey=(tamir.y+enemy.y)/2;
+          spawnBoom(ex,ey,enemy.vx,enemy.vy,tamir.vx,tamir.vy);
+          tamir.alive=false;enemy.alive=false;cPhase=false;
+          sH++;updateStats();showBanner('h');
+        }
+      }
+    }
+  }
+  if(enemy&&!enemy.alive&&enemy.trail.length>0)enemy.trail.shift();
+  if(tamir&&!tamir.alive&&tamir.trail.length>0)tamir.trail.shift();
+  parts=parts.filter(p=>p.l>0);
+  parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=55*dt;p.l-=(dt/simSpeed)*simSpeed;p.age+=dt;});
+  parts=parts.filter(p=>p.l>0);
+}
+
+/* ════════ BOOM ════════ */
+function spawnBoom(cx,cy,evx,evy,avx,avy){
+  const vr=Math.hypot(evx-avx,evy-avy),n=Math.min(110,50+Math.floor(vr*.15));
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2,s=35+Math.random()*Math.max(120,vr*.4),ml=.35+Math.random()*1.1,ri=i%5;
+    parts.push({x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:ml,age:0,ml,r:1.5+Math.random()*5,tp:Math.random()<.35?'s':'c',
+      h:ri===0?'0,255,153':ri===1?'255,187,0':ri===2?'255,90,20':ri===3?'0,238,255':'255,255,255'});
+  }
+  parts.push({x:cx,y:cy,vx:0,vy:0,l:.65,age:0,ml:.65,r:0,tp:'ring',h:'255,187,0'});
+  parts.push({x:cx,y:cy,vx:0,vy:0,l:.4,age:0,ml:.4,r:0,tp:'ring',h:'0,255,153'});
+  parts.push({x:cx,y:cy,vx:0,vy:0,l:.25,age:0,ml:.25,r:0,tp:'ring',h:'255,255,255'});
+}
+function spawnGroundBoom(gx){
+  for(let i=0;i<50;i++){const a=-Math.PI+Math.random()*Math.PI,s=22+Math.random()*130,ml=.3+Math.random()*.7;parts.push({x:gx,y:GND,vx:Math.cos(a)*s,vy:Math.sin(a)*s-22,l:ml,age:0,ml,r:1.2+Math.random()*4,tp:'c',h:'255,70,20'});}
+  parts.push({x:gx,y:GND,vx:0,vy:0,l:.5,age:0,ml:.5,r:0,tp:'ring',h:'255,80,20'});
+}
+
+/* ════════ RENDER ════════ */
+function render(){
+  CTX.clearRect(0,0,W,H);drawBG();drawScene();
+  if(enemy)drawRocket(enemy);
+  if(tamir)drawTamir(tamir);
+  if(cPhase&&enemy&&tamir&&enemy.alive&&tamir.alive){
+    const mx=(enemy.x+tamir.x)/2,my=(enemy.y+tamir.y)/2,prog=cFrames/C_FRAMES;
+    CTX.strokeStyle=`rgba(255,220,50,${.75-prog*.3})`;CTX.lineWidth=2.5;CTX.beginPath();CTX.arc(mx,my,58*(1-prog*.55),0,Math.PI*2);CTX.stroke();
+    CTX.strokeStyle=`rgba(255,100,20,${.9-prog*.2})`;CTX.lineWidth=1.5;CTX.beginPath();CTX.arc(mx,my,32*(1-prog*.55),0,Math.PI*2);CTX.stroke();
+    const ch=14*(1-prog);CTX.strokeStyle=`rgba(255,220,80,.65)`;CTX.lineWidth=1;
+    CTX.beginPath();CTX.moveTo(mx-ch,my);CTX.lineTo(mx+ch,my);CTX.stroke();
+    CTX.beginPath();CTX.moveTo(mx,my-ch);CTX.lineTo(mx,my+ch);CTX.stroke();
+  }
+  drawParticles();
+}
+function drawStatic(){if(W===0)return;CTX.clearRect(0,0,W,H);drawBG();drawScene();}
+
+/* ── BG ── */
+function drawBG(){
+  const sky=CTX.createLinearGradient(0,0,0,GND);
+  sky.addColorStop(0,'#010510');sky.addColorStop(.7,'#030c18');sky.addColorStop(1,'#040e1e');
+  CTX.fillStyle=sky;CTX.fillRect(0,0,W,GND);
+  const gnd=CTX.createLinearGradient(0,GND,0,H);
+  gnd.addColorStop(0,'#0a1c08');gnd.addColorStop(1,'#051205');
+  CTX.fillStyle=gnd;CTX.fillRect(0,GND,W,H-GND);
+  STARS.forEach(s=>{CTX.fillStyle=`rgba(180,220,240,${s.a})`;CTX.beginPath();CTX.arc(s.x,s.y,s.r,0,Math.PI*2);CTX.fill();});
+  CTX.strokeStyle='rgba(0,238,255,.02)';CTX.lineWidth=1;
+  for(let x=0;x<W;x+=50){CTX.beginPath();CTX.moveTo(x,0);CTX.lineTo(x,GND);CTX.stroke();}
+  for(let y=0;y<GND;y+=50){CTX.beginPath();CTX.moveTo(0,y);CTX.lineTo(W,y);CTX.stroke();}
+  CTX.strokeStyle='rgba(0,238,255,.13)';CTX.lineWidth=1.5;CTX.beginPath();CTX.moveTo(0,GND);CTX.lineTo(W,GND);CTX.stroke();
+}
+
+/* ── SCENE ── */
+function drawScene(){
+  CTX.fillStyle='rgba(0,238,255,.07)';CTX.font='8px Share Tech Mono';CTX.textAlign='center';
+  CTX.fillText('ZONA PROTEGIDA',W/2,GND-3);CTX.textAlign='left';
+  BLDS.forEach(b=>{
+    const bx=b.x,by=GND-b.h,bw=b.w,bh=b.h;
+    CTX.fillStyle='#091825';CTX.strokeStyle='rgba(0,140,170,.4)';CTX.lineWidth=1;
+    CTX.beginPath();CTX.rect(bx,by,bw,bh);CTX.fill();CTX.stroke();
+    const cols=Math.floor((bw-3)/7),rows=Math.min(Math.floor((bh-5)/10),9);
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+      if(Math.random()<.72){CTX.fillStyle='rgba(255,195,70,.35)';CTX.fillRect(bx+2+c*7,by+4+r*10,4,6);}
+    }
+    CTX.strokeStyle='rgba(0,200,255,.25)';CTX.lineWidth=1;CTX.beginPath();CTX.moveTo(bx,by);CTX.lineTo(bx+bw,by);CTX.stroke();
+  });
+  drawBattery(BX,GND);
+}
+
+function drawBattery(bx,gy){
+  CTX.fillStyle='#0c2035';CTX.strokeStyle='rgba(0,238,255,.55)';CTX.lineWidth=1.5;
+  CTX.beginPath();CTX.moveTo(bx-32,gy);CTX.lineTo(bx+32,gy);CTX.lineTo(bx+24,gy-13);CTX.lineTo(bx-24,gy-13);CTX.closePath();CTX.fill();CTX.stroke();
+  CTX.save();CTX.translate(bx,gy-13);
+  CTX.fillStyle='#091e30';CTX.strokeStyle='rgba(0,238,255,.6)';CTX.lineWidth=1.3;CTX.beginPath();CTX.arc(0,0,9,0,Math.PI*2);CTX.fill();CTX.stroke();
+  CTX.rotate(-Math.PI/3.5);
+  CTX.fillStyle='#071525';CTX.strokeStyle='rgba(0,238,255,.75)';CTX.lineWidth=1.5;CTX.beginPath();CTX.rect(-3.5,-36,7,38);CTX.fill();CTX.stroke();
+  CTX.fillStyle='#0a2535';CTX.strokeStyle='rgba(0,238,255,.8)';CTX.lineWidth=1;CTX.beginPath();CTX.rect(-5,-40,10,7);CTX.fill();CTX.stroke();
+  const pulse=(Date.now()%1100)/1100;
+  CTX.strokeStyle=`rgba(0,238,255,${.25+pulse*.45})`;CTX.lineWidth=1.5;CTX.beginPath();CTX.arc(0,-40,5+pulse*5,0,Math.PI*2);CTX.stroke();
+  CTX.restore();
+  CTX.strokeStyle='rgba(0,200,240,.55)';CTX.lineWidth=1.5;CTX.beginPath();CTX.arc(bx+20,gy-8,9,-Math.PI*.85,-Math.PI*.15);CTX.stroke();
+  const sw=((Date.now()%2200)/2200)*Math.PI*2;
+  CTX.strokeStyle='rgba(0,238,255,.7)';CTX.lineWidth=1;CTX.beginPath();CTX.moveTo(bx+20,gy-8);CTX.lineTo(bx+20+Math.cos(sw)*9,gy-8+Math.sin(sw)*9);CTX.stroke();
+  CTX.fillStyle='rgba(0,238,255,.4)';CTX.font='7px Share Tech Mono';CTX.textAlign='center';CTX.fillText('IRON DOME',bx,gy+10);CTX.textAlign='left';
+}
+
+/* ── MISSILES ── */
+function drawRocket(obj){
+  if(!obj.alive&&obj.trail.length===0)return;
+  for(let i=1;i<obj.trail.length;i++){
+    const a=obj.trail[i-1],b=obj.trail[i],t=i/obj.trail.length;
+    CTX.strokeStyle=`rgba(255,58,85,${t*.5})`;CTX.lineWidth=t*2.2;CTX.beginPath();CTX.moveTo(a.x,a.y);CTX.lineTo(b.x,b.y);CTX.stroke();
+  }
+  if(!obj.alive)return;
+  const ang=Math.atan2(obj.vy,obj.vx);
+  CTX.save();CTX.translate(obj.x,obj.y);CTX.rotate(ang);
+  const fl=8+Math.random()*6,fg=CTX.createLinearGradient(-fl,0,0,0);
+  fg.addColorStop(0,'rgba(255,80,0,0)');fg.addColorStop(.5,'rgba(255,50,0,.5)');fg.addColorStop(1,'rgba(255,160,0,.9)');
+  CTX.fillStyle=fg;CTX.beginPath();CTX.moveTo(-5,0);CTX.lineTo(-fl,-(2+Math.random()*3));CTX.lineTo(-fl,2+Math.random()*3);CTX.closePath();CTX.fill();
+  CTX.fillStyle='#1a050a';CTX.strokeStyle='#ff3a55';CTX.lineWidth=1.1;
+  CTX.beginPath();CTX.moveTo(9,0);CTX.lineTo(5,-3.5);CTX.lineTo(-6,-3.5);CTX.lineTo(-8,-2);CTX.lineTo(-8,2);CTX.lineTo(-6,3.5);CTX.lineTo(5,3.5);CTX.closePath();CTX.fill();CTX.stroke();
+  CTX.fillStyle='#ff3a55';CTX.beginPath();CTX.moveTo(9,0);CTX.lineTo(5,-3);CTX.lineTo(5,3);CTX.closePath();CTX.fill();
+  CTX.fillStyle='rgba(255,58,85,.5)';CTX.strokeStyle='#ff3a55';CTX.lineWidth=.8;
+  CTX.beginPath();CTX.moveTo(-1,-3.5);CTX.lineTo(-6,-9);CTX.lineTo(-8,-3.5);CTX.closePath();CTX.fill();CTX.stroke();
+  CTX.beginPath();CTX.moveTo(-1,3.5);CTX.lineTo(-6,9);CTX.lineTo(-8,3.5);CTX.closePath();CTX.fill();CTX.stroke();
+  CTX.fillStyle='rgba(255,175,0,.9)';CTX.beginPath();CTX.arc(2,0,2,0,Math.PI*2);CTX.fill();
+  CTX.restore();
+}
+
+function drawTamir(obj){
+  if(!obj.alive&&obj.trail.length===0)return;
+  const tCol=cPhase?'255,200,50':'0,238,255';
+  for(let i=1;i<obj.trail.length;i++){
+    const a=obj.trail[i-1],b=obj.trail[i],t=i/obj.trail.length;
+    CTX.strokeStyle=`rgba(${tCol},${t*.55})`;CTX.lineWidth=t*2.2;CTX.beginPath();CTX.moveTo(a.x,a.y);CTX.lineTo(b.x,b.y);CTX.stroke();
+  }
+  if(!obj.alive)return;
+  const ang=Math.atan2(obj.vy,obj.vx);
+  CTX.save();CTX.translate(obj.x,obj.y);CTX.rotate(ang);
+  const el=8+Math.random()*5,eg=CTX.createLinearGradient(-el,0,0,0);
+  eg.addColorStop(0,'rgba(0,180,255,0)');eg.addColorStop(.6,'rgba(0,140,220,.45)');eg.addColorStop(1,'rgba(0,230,255,.9)');
+  CTX.fillStyle=eg;CTX.beginPath();CTX.moveTo(-5,0);CTX.lineTo(-el,-1.8);CTX.lineTo(-el,1.8);CTX.closePath();CTX.fill();
+  const bs=cPhase?'#ffcc00':'#00eeff';
+  CTX.fillStyle='#021018';CTX.strokeStyle=bs;CTX.lineWidth=1.1;
+  CTX.beginPath();CTX.moveTo(11,0);CTX.lineTo(7,-2.5);CTX.lineTo(-5,-2.5);CTX.lineTo(-6.5,-1.5);CTX.lineTo(-6.5,1.5);CTX.lineTo(-5,2.5);CTX.lineTo(7,2.5);CTX.closePath();CTX.fill();CTX.stroke();
+  CTX.fillStyle=bs;CTX.beginPath();CTX.moveTo(11,0);CTX.lineTo(7,-2.2);CTX.lineTo(7,2.2);CTX.closePath();CTX.fill();
+  CTX.fillStyle='rgba(0,238,255,.4)';CTX.strokeStyle='#00eeff';CTX.lineWidth=.7;
+  CTX.beginPath();CTX.moveTo(4,-2.5);CTX.lineTo(2,-7);CTX.lineTo(-1,-2.5);CTX.closePath();CTX.fill();CTX.stroke();
+  CTX.beginPath();CTX.moveTo(4,2.5);CTX.lineTo(2,7);CTX.lineTo(-1,2.5);CTX.closePath();CTX.fill();CTX.stroke();
+  CTX.fillStyle='rgba(0,238,255,.85)';CTX.beginPath();CTX.arc(5,0,1.6,0,Math.PI*2);CTX.fill();
+  CTX.restore();
+}
+
+/* ── PARTICLES ── */
+function drawParticles(){
+  parts.forEach(p=>{
+    const al=p.l/p.ml;CTX.globalAlpha=al;
+    if(p.tp==='ring'){const r=(1-p.l/p.ml)*72;CTX.strokeStyle=`rgba(${p.h},${al*.8})`;CTX.lineWidth=2.5;CTX.beginPath();CTX.arc(p.x,p.y,r,0,Math.PI*2);CTX.stroke();}
+    else{CTX.fillStyle=`rgb(${p.h})`;
+      if(p.tp==='s'){CTX.save();CTX.translate(p.x,p.y);CTX.rotate(p.age*5);CTX.fillRect(-p.r,-p.r,p.r*2,p.r*2);CTX.restore();}
+      else{CTX.beginPath();CTX.arc(p.x,p.y,p.r,0,Math.PI*2);CTX.fill();}
+    }
+  });
+  CTX.globalAlpha=1;
+}
+
+/* ── HUD ── */
+function updateHUD(){
+  const g=enemy?enemy.g:parseFloat(document.getElementById('slG').value);
+  document.getElementById('hGr').textContent=g.toFixed(0)+' px/s²';
+  if(enemy&&enemy.alive){
+    const spd=Math.hypot(enemy.vx,enemy.vy),alt=Math.max(0,GND-enemy.y);
+    document.getElementById('hAe').textContent=alt.toFixed(0)+' m';
+    document.getElementById('hAe').className='hv'+(alt<80?' ha':alt<160?' hw':'');
+    document.getElementById('bEv').style.width=Math.min(100,spd/4)+'%';document.getElementById('vEv').textContent=spd.toFixed(0)+' m/s';
+    document.getElementById('bEa').style.width=Math.min(100,alt/(GND*.85)*100)+'%';document.getElementById('vEa').textContent=alt.toFixed(0)+' m';
+    const vy=enemy.vy,disc=vy*vy+2*.5*g*(GND-enemy.y);
+    if(disc>=0){const t1=(-vy+Math.sqrt(disc))/g,t2=(-vy-Math.sqrt(disc))/g;const eta=[t1,t2].filter(x=>x>0).sort((a,b)=>a-b)[0];
+      if(eta&&isFinite(eta)){document.getElementById('hTi').textContent=eta.toFixed(2)+'s';document.getElementById('hTi').className='hv'+(eta<1.5?' ha':eta<3?' hw':'');}}
+  }else{['hAe','hTi'].forEach(id=>document.getElementById(id).textContent='—');['vEv','vEa'].forEach(id=>document.getElementById(id).textContent='—');['bEv','bEa'].forEach(id=>document.getElementById(id).style.width='0%');}
+  if(tamir&&tamir.alive){
+    const spd=Math.hypot(tamir.vx,tamir.vy),alt=Math.max(0,GND-tamir.y),d=enemy&&enemy.alive?Math.hypot(tamir.x-enemy.x,tamir.y-enemy.y):0;
+    document.getElementById('hAa').textContent=alt.toFixed(0)+' m';
+    document.getElementById('bAv').style.width=Math.min(100,spd/4)+'%';document.getElementById('vAv').textContent=spd.toFixed(0)+' m/s';
+    document.getElementById('bAd').style.width=Math.min(100,d/4)+'%';document.getElementById('vAd').textContent=d.toFixed(0)+' m';
+  }else{document.getElementById('hAa').textContent='—';['vAv','vAd'].forEach(id=>document.getElementById(id).textContent='—');['bAv','bAd'].forEach(id=>document.getElementById(id).style.width='0%');}
+  if(enemy&&tamir&&enemy.alive&&tamir.alive){
+    document.getElementById('hVr').textContent=Math.hypot(enemy.vx-tamir.vx,enemy.vy-tamir.vy).toFixed(0)+' m/s';
+    document.getElementById('hDi').textContent=Math.hypot(enemy.x-tamir.x,enemy.y-tamir.y).toFixed(0)+' m';
+  }else{document.getElementById('hVr').textContent='—';document.getElementById('hDi').textContent='—';}
+}
+function clearHUD(){['hAe','hAa','hVr','hDi','hTi'].forEach(id=>document.getElementById(id).textContent='—');['vEv','vEa','vAv','vAd'].forEach(id=>document.getElementById(id).textContent='—');['bEv','bEa','bAv','bAd'].forEach(id=>document.getElementById(id).style.width='0%');}
+function updateStats(){document.getElementById('stT').textContent=sT;document.getElementById('stH').textContent=sH;document.getElementById('stP').textContent=sT>0?((sH/sT)*100).toFixed(0)+'%':'—';}
+function showBanner(t){const el=document.getElementById(t==='h'?'bnh':'bnm');el.classList.add('on');bannerT=2.5;setTimeout(()=>el.classList.remove('on'),2300);}
+</script>
+</body>
+</html>

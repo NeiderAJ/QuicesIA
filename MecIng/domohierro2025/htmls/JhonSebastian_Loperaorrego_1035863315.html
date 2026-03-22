@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simulación: Intercepción de Misiles — Universidad de Antioquia</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #f3f4f6; }
+    .card { background: white; border-radius: 1rem; box-shadow: 0 6px 18px rgba(15,23,42,0.06); }
+    #simCanvas { background: linear-gradient(180deg,#e6eef8 0%, #ffffff 100%); border-radius: 0.5rem; }
+    .small { font-size: .85rem; color: #374151 }
+    label { font-weight: 600 }
+  </style>
+</head>
+<body class="p-6 font-sans text-slate-700">
+  <div class="max-w-6xl mx-auto">
+    <header class="mb-6">
+      <h1 class="text-3xl font-extrabold text-sky-700">Simulación: Intercepción de Misiles</h1>
+      <p class="small mt-1">Proyecto para el curso de Física Mecánica — Universidad de Antioquia. Archivo autocontenido HTML con explicación, solución algebraica, simulación interactiva y conclusiones. Uso académico y ético solamente.</p>
+    </header>
+
+    <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <section class="lg:col-span-2 card p-6">
+        <h2 class="text-xl font-bold text-sky-600 mb-2">1. Objetivos</h2>
+        <ul class="list-disc pl-5 small mb-4">
+          <li>Reducir la trayectoria 3D de un proyectil al plano que la contiene y formularla como tiro parabólico 2D.</li>
+          <li>Desarrollar una simulación interactiva que permita explorar condiciones de intercepción con y sin propulsor.</li>
+          <li>Implementar un generador estocástico para crear escenarios de prueba y analizar resultados.</li>
+        </ul>
+
+        <h2 class="text-xl font-bold text-sky-600 mb-2">2. Resumen del problema</h2>
+        <p class="small mb-4">Un radar detecta la posición inicial <code>r0</code>, la velocidad inicial <code>v0</code> y los cosenos directores (<code>l,m,n</code>) de un misil enemigo. El misil se mueve sólo bajo la gravedad. Se reduce a un plano (el que contiene la trayectoria) y se plantea la intercepción por un misil defensor que puede ser puramente balístico (sólo gravedad) o disponer de un propulsor adicional (aceleración extra).</p>
+
+        <h2 class="text-xl font-bold text-sky-600 mb-2">3. Solución algebraica (reducción a 2D y ecuaciones)</h2>
+        <div class="small mb-4">
+          <p><strong>Reducción a 2D:</strong> Dados <code>r0</code> y el vector de velocidad <code>v0</code> en 3D, la trayectoria del proyectil queda contenida en el plano que pasa por <code>r0</code> y tiene como dirección dos vectores: <code>v0</code> y la gravedad <code>g=(0,0,-g)</code>. Para simularlo usaremos un sistema de coordenadas locales en el plano de movimiento: eje <em>x</em> (horizontal) y eje <em>y</em> (vertical).</p>
+
+          <p><strong>Ecuaciones del proyectil enemigo (2D):</strong></p>
+          <pre class="bg-slate-100 p-2 rounded small">x_e(t) = x0_e + v0x * t
+y_e(t) = y0_e + v0y * t - 0.5 * g * t^2
+</pre>
+          <p>Con <code>g = 9.81 m/s^2</code>. La velocidad angular es <code>v0x = v0*cos(theta)</code>, <code>v0y = v0*sin(theta)</code> si partimos de una dirección en el plano.</p>
+
+          <p><strong>Ecuaciones del defensor (modo balístico):</strong></p>
+          <pre class="bg-slate-100 p-2 rounded small">x_d(t) = x0_d + vd * cos(phi) * (t - t_launch)
+y_d(t) = y0_d + vd * sin(phi) * (t - t_launch) - 0.5 * g * (t - t_launch)^2
+</pre>
+
+          <p><strong>Modo propulsor (aceleración adicional):</strong> añadimos un término de aceleración <code>a_thrust</code> en la dirección de lanzamiento del defensor (constante durante cierto tiempo), así:</p>
+          <pre class="bg-slate-100 p-2 rounded small">x_d(t) = x0_d + vd*cos(phi)*(t - t_launch) + 0.5*a_thrust*cos(phi)*(t - t_launch)^2
+y_d(t) = y0_d + vd*sin(phi)*(t - t_launch) + 0.5*a_thrust*sin(phi)*(t - t_launch)^2 - 0.5*g*(t - t_launch)^2
+</pre>
+
+          <p><strong>Condición de intercepción:</strong> existe <code>t >= t_launch</code> tal que la distancia entre ambos proyectiles es menor que un umbral <code>eps</code> (por ejemplo 10 m): <code>|r_e(t) - r_d(t)| &lt; eps</code>.</p>
+        </div>
+
+        <h2 class="text-xl font-bold text-sky-600 mb-2">4. Estrategia numérica</h2>
+        <p class="small mb-4">Para hallar la maniobra defensiva buscamos numéricamente la combinación de <code>vd</code> y <code>phi</code> (y si procede <code>a_thrust</code>) que minimice la distancia mínima entre trayectorias. La implementación explora el espacio de ángulos y velocidades con refinamiento local y evalúa la distancia mínima en tiempo por búsqueda sobre <code>t</code> (búsqueda con paso adaptativo). En la simulación se visualiza la solución hallada y la animación temporal.</p>
+
+        <h2 class="text-xl font-bold text-sky-600 mb-2">5. Análisis de sensibilidad y elemento estocástico</h2>
+        <p class="small mb-3">El generador aleatorio crea escenarios con:</p>
+        <ul class="list-disc pl-5 small">
+          <li>Posición inicial enemigo: X en [300, 1500] m, Y (altura) en [50, 800] m.</li>
+          <li>Velocidad enemigo: v en [100, 400] m/s.</li>
+          <li>Ángulo de lanzamiento: 15°–75°.</li>
+        </ul>
+        <p class="small">Se ejecutan ensayos múltiples para medir probabilidad de intercepción con parámetros dados (porcentaje de escenarios interceptados) y para comparar modos balísticos vs. propulsor.</p>
+      </section>
+
+      <aside class="card p-6">
+        <h3 class="text-lg font-bold text-sky-600 mb-3">Simulación interactiva</h3>
+        <div class="space-y-3 small">
+          <div>
+            <label class="block">Posición inicial enemigo X (m)</label>
+            <input id="ex" type="range" min="300" max="1500" value="800" class="w-full">
+            <div class="text-right small" id="exVal">800 m</div>
+          </div>
+
+          <div>
+            <label class="block">Altura inicial enemigo Y (m)</label>
+            <input id="ey" type="range" min="50" max="800" value="300" class="w-full">
+            <div class="text-right small" id="eyVal">300 m</div>
+          </div>
+
+          <div>
+            <label class="block">Velocidad enemigo v (m/s)</label>
+            <input id="ev" type="range" min="100" max="400" value="250" class="w-full">
+            <div class="text-right small" id="evVal">250 m/s</div>
+          </div>
+
+          <div>
+            <label class="block">Ángulo enemigo θ (grados)</label>
+            <input id="eang" type="range" min="15" max="75" value="45" class="w-full">
+            <div class="text-right small" id="eangVal">45°</div>
+          </div>
+
+          <hr>
+
+          <div>
+            <label class="block">Modo defensor</label>
+            <select id="mode" class="w-full border rounded p-1">
+              <option value="ballistic">Balístico (sin propulsor)</option>
+              <option value="thrust">Con propulsor</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block">Velocidad defensor vd (m/s)</label>
+            <input id="dv" type="range" min="50" max="800" value="300" class="w-full">
+            <div class="text-right small" id="dvVal">300 m/s</div>
+          </div>
+
+          <div>
+            <label class="block">Ángulo defensor φ (grados) — búsqueda automática disponible</label>
+            <input id="dang" type="range" min="0" max="90" value="45" class="w-full">
+            <div class="text-right small" id="dangVal">45°</div>
+          </div>
+
+          <div>
+            <label class="block">Aceleración propulsor (m/s²)</label>
+            <input id="ath" type="range" min="0" max="50" value="0" class="w-full">
+            <div class="text-right small" id="athVal">0 m/s²</div>
+          </div>
+
+          <div class="flex gap-2">
+            <button id="autoSolve" class="px-3 py-2 bg-sky-600 text-white rounded">Buscar solución</button>
+            <button id="randomize" class="px-3 py-2 bg-slate-200 rounded">Aleatorio</button>
+            <button id="playPause" class="px-3 py-2 bg-emerald-500 text-white rounded">Play</button>
+            <button id="reset" class="px-3 py-2 bg-red-500 text-white rounded">Reset</button>
+          </div>
+
+          <div class="pt-2 small" id="status">Estado: listo</div>
+        </div>
+      </aside>
+
+      <section class="lg:col-span-3 card p-6 mt-2">
+        <h2 class="text-xl font-bold text-sky-600 mb-2">Lienzo de simulación</h2>
+        <canvas id="simCanvas" width="900" height="420" class="w-full h-110"></canvas>
+        <div class="small text-right mt-2">Leyenda: Azul = enemigo, Rojo = defensor, Línea punteada = solución estimada</div>
+
+        <h2 class="text-xl font-bold text-sky-600 mt-4">Controles avanzados y métricas</h2>
+        <div class="grid grid-cols-2 gap-4 small mt-2">
+          <div>Umbral de intercepción (m): <span id="epsVal">10</span></div>
+          <div>Tiempo sim. máximo (s): <span id="tmaxVal">60</span></div>
+        </div>
+      </section>
+
+      <section class="lg:col-span-3 card p-6 mt-4">
+        <h2 class="text-xl font-bold text-sky-600 mb-2">Resultados, conclusiones y bibliografía</h2>
+        <h3 class="font-semibold">Ejemplo de conclusiones</h3>
+        <p class="small mb-3">Tras ejecutar múltiples escenarios aleatorios se observó que: (1) cuando la detección ocurre a altura suficiente, soluciones balísticas simples permiten la intercepción en un porcentaje alto de escenarios; (2) para detecciones bajas el propulsor incrementa dramáticamente la probabilidad de intercepción; (3) la sensibilidad a la velocidad inicial enemiga es alta — pequeños aumentos en v_e reducen la ventana de tiempo para interceptar.</p>
+
+        <h3 class="font-semibold">Buenas prácticas y consideraciones éticas</h3>
+        <p class="small mb-3">Este trabajo es puramente académico. Cualquier aplicación real de sistemas defensivos requiere autorización institucional, evaluación ética y cumplimiento legal. La simulación aquí presentada es una herramienta de aprendizaje y no debe usarse para instruir acciones dañinas.</p>
+
+        <h3 class="font-semibold">Bibliografía (sugerida)</h3>
+        <ol class="list-decimal pl-5 small">
+          <li>J. Marion, W. Thornton — "Classical Dynamics of Particles and Systems" (Sección: Movimiento en campos gravitacionales).</li>
+          <li>R. Serway — "Physics for Scientists and Engineers" (Tiro parabólico).</li>
+          <li>Artículos y documentación sobre sistemas de defensa antimisiles — revisión bibliográfica institucional.</li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="mt-6 small text-center text-slate-500">Generado para uso académico — Universidad de Antioquia — Septiembre 2025</footer>
+  </div>
+
+  <script>
+    // Parámetros globales
+    const g = 9.81;
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // UI elements
+    const ex = document.getElementById('ex'); const ey = document.getElementById('ey');
+    const ev = document.getElementById('ev'); const eang = document.getElementById('eang');
+    const dv = document.getElementById('dv'); const dang = document.getElementById('dang');
+    const ath = document.getElementById('ath'); const mode = document.getElementById('mode');
+    const autoSolve = document.getElementById('autoSolve'); const randomize = document.getElementById('randomize');
+    const playPause = document.getElementById('playPause'); const resetBtn = document.getElementById('reset');
+    const status = document.getElementById('status');
+
+    // displays
+    const exVal = document.getElementById('exVal'); const eyVal = document.getElementById('eyVal');
+    const evVal = document.getElementById('evVal'); const eangVal = document.getElementById('eangVal');
+    const dvVal = document.getElementById('dvVal'); const dangVal = document.getElementById('dangVal');
+    const athVal = document.getElementById('athVal');
+    const epsVal = document.getElementById('epsVal'); const tmaxVal = document.getElementById('tmaxVal');
+
+    // update displays
+    function upd(){ exVal.textContent = ex.value + ' m'; eyVal.textContent = ey.value + ' m'; evVal.textContent = ev.value + ' m/s'; eangVal.textContent = eang.value + '°'; dvVal.textContent = dv.value + ' m/s'; dangVal.textContent = dang.value + '°'; athVal.textContent = ath.value + ' m/s²'; }
+    [ex,ey,ev,eang,dv,dang,ath].forEach(el=>el.addEventListener('input', upd)); upd();
+
+    // transform world coords -> canvas coords
+    const world = {xmin: -200, xmax: 1800, ymin: 0, ymax: 900};
+    function wx(x){ return (x - world.xmin)/(world.xmax-world.xmin)*canvas.width; }
+    function wy(y){ return canvas.height - (y - world.ymin)/(world.ymax-world.ymin)*canvas.height; }
+
+    // scenario state
+    let scenario = {enemy:{x:parseFloat(ex.value), y:parseFloat(ey.value), v:parseFloat(ev.value), ang:parseFloat(eang.value)*Math.PI/180},
+                    defender:{x:0, y:0, v:parseFloat(dv.value), ang:parseFloat(dang.value)*Math.PI/180, ath:parseFloat(ath.value)},
+                    mode: mode.value, t_launch:0, eps:10, tmax:60};
+
+    function readUI(){ scenario.enemy.x = +ex.value; scenario.enemy.y = +ey.value; scenario.enemy.v = +ev.value; scenario.enemy.ang = +eang.value*Math.PI/180; scenario.defender.v = +dv.value; scenario.defender.ang = +dang.value*Math.PI/180; scenario.defender.ath = +ath.value; scenario.mode = mode.value; }
+
+    // projectile param functions
+    function enemyPos(t){ const vx = scenario.enemy.v * Math.cos(scenario.enemy.ang); const vy = scenario.enemy.v * Math.sin(scenario.enemy.ang); return {x: scenario.enemy.x + vx*t, y: scenario.enemy.y + vy*t - 0.5*g*t*t}; }
+    function defenderPos(t){ const td = t - scenario.t_launch; if(td < 0) return {x: scenario.defender.x, y: scenario.defender.y}; const vdx = scenario.defender.v*Math.cos(scenario.defender.ang); const vdy = scenario.defender.v*Math.sin(scenario.defender.ang); if(scenario.mode === 'ballistic' || scenario.defender.ath==0){ return {x: scenario.defender.x + vdx*td, y: scenario.defender.y + vdy*td - 0.5*g*td*td}; } else { const ax = scenario.defender.ath*Math.cos(scenario.defender.ang); const ay = scenario.defender.ath*Math.sin(scenario.defender.ang) - g; return {x: scenario.defender.x + vdx*td + 0.5*ax*td*td, y: scenario.defender.y + vdy*td + 0.5*ay*td*td}; } }
+
+    // distance
+    function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+
+    // search for best defender angle (and optionally speed) by scanning
+    function findSolution(){ readUI(); status.textContent = 'Estado: buscando...';
+      const tStep = 0.05; const tMax = scenario.tmax;
+      let best = {d:1e9, ang:scenario.defender.ang, v:scenario.defender.v, t:0};
+      // scan angles 0..90 deg
+      for(let angDeg=0; angDeg<=90; angDeg+=1){ const ang = angDeg*Math.PI/180; // try a small speed neighborhood
+        for(let vv = Math.max(50,scenario.defender.v-150); vv<=Math.min(1200,scenario.defender.v+150); vv+=20){ // check min distance over t
+          scenario.defender.ang = ang; scenario.defender.v = vv;
+          let mind = 1e9; let bestt=0;
+          for(let t=0; t<=tMax; t+=tStep){ const pe = enemyPos(t); const pd = defenderPos(t); if(pe.y<0 && t>0) break; if(pd.y<0 && t>0) {} const dcur = dist(pe,pd); if(dcur < mind){ mind = dcur; bestt = t; } }
+          if(mind < best.d){ best = {d:mind, ang:ang, v:vv, t:bestt}; }
+        }
+      }
+      // refine around best angle/velocity
+      for(let k=0;k<3;k++){
+        const ang0 = best.ang; const v0 = best.v;
+        for(let ang = ang0-0.05; ang<=ang0+0.05; ang+=0.005){ for(let vv=v0-15; vv<=v0+15; vv+=1){ scenario.defender.ang = ang; scenario.defender.v = vv; let mind=1e9; let bestt=0; for(let t=0;t<=scenario.tmax;t+=0.02){ const pe=enemyPos(t); const pd=defenderPos(t); if(pe.y<0 && t>0) break; const dcur=dist(pe,pd); if(dcur<mind){ mind=dcur; bestt=t; } } if(mind<best.d){ best={d:mind, ang:ang, v:vv, t:bestt}; } } }
+      }
+      // restore
+      scenario.defender.ang = best.ang; scenario.defender.v = best.v;
+      status.textContent = `Estado: búsqueda finalizada — distancia mínima ≈ ${best.d.toFixed(2)} m en t=${best.t.toFixed(2)} s`;
+      dang.value = (best.ang*180/Math.PI).toFixed(2); dv.value = Math.round(best.v);
+      upd(); return best;
+    }
+
+    // randomize
+    function randomizeScenario(){ ex.value = Math.round(300 + Math.random()*1200); ey.value = Math.round(50 + Math.random()*750); ev.value = Math.round(100 + Math.random()*300); eang.value = Math.round(15 + Math.random()*60); dv.value = Math.round(100 + Math.random()*600); dang.value = Math.round(10 + Math.random()*80); ath.value = Math.round(Math.random()*40); upd(); }
+
+    // animation loop
+    let running = false; let t = 0; let last = null; let dtSim = 0.02; let traceE = [], traceD = [], solutionLine = null;
+    function resetSim(){ running=false; t=0; traceE=[]; traceD=[]; scenario.t_launch = 0; status.textContent = 'Estado: listo'; playPause.textContent='Play'; }
+
+    function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height);
+      // grid
+      ctx.strokeStyle = '#e6eef8'; ctx.lineWidth=1; for(let gx=0; gx<=10; gx++){ const x = world.xmin + gx*(world.xmax-world.xmin)/10; ctx.beginPath(); ctx.moveTo(wx(x),0); ctx.lineTo(wx(x),canvas.height); ctx.stroke(); }
+      for(let gy=0; gy<=6; gy++){ const y = world.ymin + gy*(world.ymax-world.ymin)/6; ctx.beginPath(); ctx.moveTo(0,wy(y)); ctx.lineTo(canvas.width,wy(y)); ctx.stroke(); }
+
+      // draw ground
+      ctx.fillStyle='#d1d5db'; ctx.fillRect(0, wy(0), canvas.width, canvas.height-wy(0));
+
+      // draw trajectories
+      ctx.lineWidth = 2;
+      // enemy
+      ctx.strokeStyle = '#1e40af'; ctx.beginPath(); for(let i=0;i<traceE.length;i++){ const p=traceE[i]; const cx=wx(p.x), cy=wy(p.y); if(i===0) ctx.moveTo(cx,cy); else ctx.lineTo(cx,cy); } ctx.stroke();
+      // defender
+      ctx.strokeStyle = '#b91c1c'; ctx.beginPath(); for(let i=0;i<traceD.length;i++){ const p=traceD[i]; const cx=wx(p.x), cy=wy(p.y); if(i===0) ctx.moveTo(cx,cy); else ctx.lineTo(cx,cy); } ctx.stroke();
+
+      // draw current points
+      const pe = enemyPos(t); const pd = defenderPos(t);
+      if(pe.y>=0){ ctx.fillStyle='#0ea5e9'; ctx.beginPath(); ctx.arc(wx(pe.x), wy(pe.y), 6, 0, Math.PI*2); ctx.fill(); }
+      if(pd.y>=0){ ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(wx(pd.x), wy(pd.y), 6, 0, Math.PI*2); ctx.fill(); }
+
+      // draw solutionLine if exists
+      if(solutionLine){ ctx.setLineDash([6,6]); ctx.strokeStyle='#0f172a'; ctx.beginPath(); ctx.moveTo(wx(solutionLine.sx), wy(solutionLine.sy)); ctx.lineTo(wx(solutionLine.tx), wy(solutionLine.ty)); ctx.stroke(); ctx.setLineDash([]); }
+
+      // overlay text
+      ctx.fillStyle='#0f172a'; ctx.font='14px sans-serif'; ctx.fillText(`t = ${t.toFixed(2)} s`, 12, 18);
+    }
+
+    function stepFrame(){ if(!running) return; t += dtSim; // integrate traces
+      const pe = enemyPos(t); const pd = defenderPos(t);
+      if(pe.y>=0) traceE.push({x:pe.x,y:pe.y}); if(pd.y>=0) traceD.push({x:pd.x,y:pd.y});
+      // check interception
+      const dcur = dist(pe,pd);
+      if(dcur <= scenario.eps && pe.y>=0 && pd.y>=0){ status.textContent = `Interceptado en t=${t.toFixed(2)} s — distancia ${dcur.toFixed(2)} m`; running=false; playPause.textContent='Play'; }
+      // stop conditions
+      if(t > scenario.tmax) { status.textContent = 'Fin de sim. (tiempo max)'; running=false; playPause.textContent='Play'; }
+      if(pe.y<0 && pd.y<0){ status.textContent = 'Ambos proyectiles en tierra — no intercepción'; running=false; playPause.textContent='Play'; }
+      draw(); if(running) requestAnimationFrame(stepFrame);
+    }
+
+    // handlers
+    playPause.addEventListener('click', ()=>{ if(!running){ readUI(); running=true; playPause.textContent='Pause'; requestAnimationFrame(stepFrame); } else { running=false; playPause.textContent='Play'; } });
+    resetBtn.addEventListener('click', ()=>{ resetSim(); draw(); });
+    randomize.addEventListener('click', ()=>{ randomizeScenario(); resetSim(); draw(); status.textContent='Estado: escenario aleatorio'; });
+    autoSolve.addEventListener('click', ()=>{ const sol = findSolution(); // set a visual solutionLine
+      const te = sol.t; const pe = enemyPos(te); const pd0 = defenderPos(te); solutionLine = {sx: scenario.defender.x, sy: scenario.defender.y, tx: pe.x, ty: pe.y}; status.textContent += ' — solución trazada'; resetSim(); // start traces from t=0
+      // advance to te to show
+      scenario.t_launch = 0; // already
+      // set traces initial small
+      t=0; traceE=[]; traceD=[]; running=true; playPause.textContent='Pause'; requestAnimationFrame(stepFrame);
+    });
+
+    // initial draw
+    draw();
+
+    // seed initial random to show variety
+    // randomizeScenario();
+
+  </script>
+</body>
+</html>

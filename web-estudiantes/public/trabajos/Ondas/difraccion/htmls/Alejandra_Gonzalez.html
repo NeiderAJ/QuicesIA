@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Estudio Definitivo: Anillos de Newton</title>
+    
+    <style>
+        :root {
+            --panel-background: #ffffff;
+            --page-background: #f0f2f5;
+            --text-color: #212529;
+            --header-color: #2c3e50;
+            --accent-color: #007bff;
+            --border-color: #dee2e6;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--page-background);
+            color: var(--text-color);
+            overflow: hidden;
+        }
+        h1 {
+            text-align: center;
+            color: var(--header-color);
+            padding: 1rem;
+            margin: 0;
+            background-color: var(--panel-background);
+            border-bottom: 2px solid var(--border-color);
+            font-size: 1.8rem;
+        }
+        .main-container {
+            display: flex;
+            height: calc(100vh - 68px);
+            width: 100%;
+        }
+        .theory-panel {
+            flex: 1;
+            padding: 1.5rem 2rem;
+            overflow-y: auto;
+            border-right: 2px solid var(--border-color);
+            box-sizing: border-box;
+            background-color: var(--panel-background);
+        }
+        .simulation-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            box-sizing: border-box;
+        }
+        h2 {
+            color: var(--header-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 0.5rem;
+        }
+        h3 {
+            color: #495057;
+            margin-top: 1.5rem;
+        }
+        p, li {
+            text-align: justify;
+            line-height: 1.7;
+            color: #343a40;
+        }
+
+        /* --- Estilos para Fórmulas con HTML/CSS --- */
+        .formula-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-left: 4px solid var(--accent-color);
+            border-radius: 4px;
+            font-size: 1.1rem;
+            font-family: 'Times New Roman', serif;
+            overflow-x: auto;
+        }
+        .term {
+            display: inline-flex;
+            flex-direction: column;
+            text-align: center;
+            vertical-align: middle;
+            margin: 0 0.2em;
+        }
+        .numerator {
+            padding: 0 0.4em;
+            border-bottom: 1.5px solid #333;
+        }
+        .denominator {
+            padding: 0 0.4em;
+        }
+        .sqrt {
+            font-size: 2.2em;
+            vertical-align: middle;
+        }
+        .radicand {
+            display: inline-block;
+            border-top: 1.5px solid #333;
+            padding: 0.2em 0.4em 0 0.4em;
+            margin-left: -0.2em;
+            vertical-align: middle;
+        }
+        i { /* Para variables matemáticas */
+            font-style: italic;
+        }
+        
+        /* --- Estilos para la Simulación --- */
+        #simulation-area { display: flex; gap: 1.5rem; justify-content: center; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+        .canvas-container { text-align: center; }
+        .canvas-container h3 { margin-bottom: 1rem; }
+        canvas { border: 1px solid #ccc; border-radius: 8px; }
+        #controls { width: 90%; max-width: 500px; margin-top: 1rem; }
+        .control-group { margin-bottom: 1rem; }
+        .control-group label { display: flex; justify-content: space-between; font-weight: 500; }
+        .control-group label span { font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #d63384; }
+        input[type="range"] { width: 100%; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Fenómeno de los Anillos de Newton</h1>
+    <div class="main-container">
+        <!-- =========== PANEL IZQUIERDO: TEORÍA Y SOLUCIÓN =========== -->
+        <div class="theory-panel">
+            <h2>Problema Propuesto</h2>
+            <p>
+                Una lente plano-convexa con un radio de curvatura <i>R</i> se apoya sobre una placa de vidrio plana. Entre ambas superficies se encuentra una película delgada de índice <i>n</i><sub>película</sub>. Al iluminar el sistema perpendicularmente con luz de longitud de onda &lambda;, demuestre que el radio <i>r</i> de los anillos oscuros (<i>m</i> = 0, 1, 2, ...) viene dado por:
+            </p>
+            <div class="formula-display">
+                <i>r</i><sub>m</sub> &nbsp;&approx;&nbsp; <span class="sqrt">&radic;</span><span class="radicand">
+                    <div class="term">
+                        <span class="numerator"><i>m &lambda; R</i></span>
+                        <span class="denominator"><i>n</i><sub>película</sub></span>
+                    </div>
+                </span>
+            </div>
+
+            <h2>Análisis Detallado</h2>
+
+            <h3>1. Condición para Interferencia Destructiva</h3>
+            <p>
+                Para que ocurra un anillo oscuro, la diferencia de camino total entre el rayo reflejado en la cara inferior de la lente y el rayo reflejado en la placa de vidrio debe resultar en interferencia destructiva. La diferencia de camino óptico es 2<i>t</i>&middot;<i>n</i><sub>película</sub>. Además, hay un desfase de 180&deg; (&lambda;/2) en la segunda reflexión (película &rarr; vidrio). La condición para un mínimo (anillo oscuro) es que la diferencia de camino óptico sea un múltiplo entero de la longitud de onda:
+            </p>
+            <div class="formula-display">
+                2<i>t</i> <i>n</i><sub>película</sub> = <i>m&lambda;</i>
+            </div>
+            
+            <h3>2. Relación Geométrica</h3>
+            <p>Por el Teorema de Pitágoras aplicado a la geometría de la lente, se establece la siguiente relación exacta entre el radio de curvatura <i>R</i>, el radio del anillo <i>r</i>, y el espesor de la película <i>t</i>:</p>
+            <div class="formula-display">
+                 <i>R</i><sup>2</sup> = <i>r</i><sup>2</sup> + (<i>R</i> - t)<sup>2</sup> &nbsp;&nbsp;&rArr;&nbsp;&nbsp; <i>r</i><sup>2</sup> = 2<i>Rt</i> - <i>t</i><sup>2</sup>
+            </div>
+            
+            <h3>3. Aproximación por Espesor Pequeño</h3>
+            <p>En la práctica, el radio de curvatura <i>R</i> es mucho mayor que el espesor <i>t</i> (metros vs. micrómetros). Esto nos permite despreciar el término <i>t</i><sup>2</sup> por ser insignificantemente pequeño.</p>
+            <div class="formula-display">
+                <i>t</i><sup>2</sup> &lt;&lt; 2<i>Rt</i> &nbsp;&nbsp;&rArr;&nbsp;&nbsp; <i>r</i><sup>2</sup> &approx; 2<i>Rt</i>
+            </div>
+            
+            <h3>4. Demostración Final</h3>
+            <p>
+                Aislamos <i>t</i> de la condición de interferencia del paso 1 y lo sustituimos en la aproximación geométrica del paso 3.
+            </p>
+            <p>De la condición de interferencia: </p>
+            <div class="formula-display">
+                <i>t</i> = &nbsp;
+                <div class="term">
+                    <span class="numerator"><i>m &lambda;</i></span>
+                    <span class="denominator">2<i>n</i><sub>película</sub></span>
+                </div>
+            </div>
+             <p>Sustituyendo <i>t</i> en <i>r</i><sup>2</sup> &approx; 2<i>Rt</i>:</p>
+            <div class="formula-display">
+                <i>r</i><sub>m</sub><sup>2</sup> &nbsp;&approx;&nbsp; 2<i>R</i> 
+                (
+                <div class="term">
+                    <span class="numerator"><i>m &lambda;</i></span>
+                    <span class="denominator">2<i>n</i><sub>película</sub></span>
+                </div>
+                ) = 
+                <div class="term">
+                    <span class="numerator"><i>m &lambda; R</i></span>
+                    <span class="denominator"><i>n</i><sub>película</sub></span>
+                </div>
+            </div>
+            <p>Tomando la raíz cuadrada, llegamos a la expresión final que se pedía demostrar:</p>
+            <div class="formula-display">
+                <i>r</i><sub>m</sub> &nbsp;&approx;&nbsp; <span class="sqrt">&radic;</span><span class="radicand">
+                    <div class="term">
+                        <span class="numerator"><i>m &lambda; R</i></span>
+                        <span class="denominator"><i>n</i><sub>película</sub></span>
+                    </div>
+                </span>
+            </div>
+
+        </div>
+
+        <!-- =========== PANEL DERECHO: SIMULACIÓN =========== -->
+        <div class="simulation-panel">
+            <h2>Simulación Interactiva</h2>
+            <div id="simulation-area">
+                <div class="canvas-container">
+                    <h3>Sección Transversal</h3>
+                    <canvas id="crossSectionCanvas" width="300" height="150"></canvas>
+                </div>
+                <div class="canvas-container">
+                    <h3>Anillos Resultantes</h3>
+                    <canvas id="topViewCanvas" width="300" height="300"></canvas>
+                </div>
+            </div>
+            
+            <div id="controls">
+                <div class="control-group">
+                    <label for="lambdaSlider">Longitud de Onda (&lambda;)<span><span id="lambdaValue">550</span> nm</span></label>
+                    <input type="range" id="lambdaSlider" min="380" max="750" value="550">
+                </div>
+                <div class="control-group">
+                    <label for="radiusSlider">Radio de Curvatura (R)<span><span id="radiusValue">2.0</span> m</span></label>
+                    <input type="range" id="radiusSlider" min="0.5" max="10" value="2" step="0.1">
+                </div>
+                <div class="control-group">
+                    <label for="nSlider">Índice Refracción Película (n)<span><span id="nValue">1.00</span></span></label>
+                    <input type="range" id="nSlider" min="1.00" max="2.00" value="1.00" step="0.01">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const lambdaSlider = document.getElementById('lambdaSlider');
+        const radiusSlider = document.getElementById('radiusSlider');
+        const nSlider = document.getElementById('nSlider');
+        const lambdaValueSpan = document.getElementById('lambdaValue');
+        const radiusValueSpan = document.getElementById('radiusValue');
+        const nValueSpan = document.getElementById('nValue');
+        const topCanvas = document.getElementById('topViewCanvas');
+        const topCtx = topCanvas.getContext('2d');
+        const crossCanvas = document.getElementById('crossSectionCanvas');
+        const crossCtx = crossCanvas.getContext('2d');
+        
+        function wavelengthToRgb(lambda) {
+            let r=0, g=0, b=0;
+            if (lambda >= 380 && lambda < 440) { r = -(lambda - 440) / (440 - 380); b = 1.0; } 
+            else if (lambda >= 440 && lambda < 490) { g = (lambda - 440) / (490 - 440); b = 1.0; } 
+            else if (lambda >= 490 && lambda < 510) { g = 1.0; b = -(lambda - 510) / (510 - 490); } 
+            else if (lambda >= 510 && lambda < 580) { r = (lambda - 510) / (580 - 510); g = 1.0; } 
+            else if (lambda >= 580 && lambda < 645) { r = 1.0; g = -(lambda - 645) / (645 - 580); } 
+            else if (lambda >= 645 && lambda < 751) { r = 1.0; }
+            const factor = 255; return [Math.round(r * factor), Math.round(g * factor), Math.round(b * factor)];
+        }
+
+        function drawTopDownView(lambda, R, n_film) {
+            const width = topCanvas.width, height = topCanvas.height, centerX = width / 2, centerY = height / 2;
+            topCtx.fillStyle = 'black'; topCtx.fillRect(0,0,width,height);
+            const [rC, gC, bC] = wavelengthToRgb(parseFloat(lambdaSlider.value));
+            const pixelScale = 8000;
+            for (let r_px = 0; r_px < centerX; r_px += 0.5) {
+                const r_m = r_px / pixelScale, t = (r_m * r_m) / (2 * R);
+                // La diferencia de fase total incluye el desfase de 180° (pi radianes) por la reflexión
+                const phaseDifference = (2 * Math.PI / lambda) * (2 * n_film * t) + Math.PI;
+                // La intensidad es proporcional al coseno al cuadrado de la mitad de la diferencia de fase
+                const intensity = Math.pow(Math.cos(phaseDifference / 2), 2);
+                topCtx.strokeStyle = `rgba(${rC}, ${gC}, ${bC}, ${intensity})`;
+                topCtx.lineWidth = 1; topCtx.beginPath(); topCtx.arc(centerX, centerY, r_px, 0, 2 * Math.PI); topCtx.stroke();
+            }
+        }
+        
+        function drawCrossSection(R) {
+            const width = crossCanvas.width, height = crossCanvas.height;
+            crossCtx.clearRect(0, 0, width, height);
+            const scaleY = 3.5, groundLevel = height - 20, lensCenterY = groundLevel - R * scaleY;
+            // Dibuja la placa de vidrio inferior
+            crossCtx.fillStyle = 'rgba(189, 195, 199, 0.5)';
+            crossCtx.fillRect(0, groundLevel, width, 20);
+            // Dibuja la lente plano-convexa
+            crossCtx.beginPath();
+            crossCtx.arc(width / 2, lensCenterY, R * scaleY, 0.45*Math.PI, 0.55*Math.PI, false);
+            crossCtx.lineTo(width, 20); crossCtx.lineTo(0, 20); crossCtx.closePath();
+            crossCtx.fillStyle = 'rgba(236, 240, 241, 0.6)'; crossCtx.fill();
+            crossCtx.strokeStyle = '#95a5a6'; crossCtx.stroke();
+        }
+
+        function updateSimulation() {
+            // Se convierten las unidades a SI (metros) para los cálculos
+            const lambda_meters = parseFloat(lambdaSlider.value) * 1e-9;
+            const R = parseFloat(radiusSlider.value);
+            const n_film = parseFloat(nSlider.value);
+            
+            // Se actualizan las etiquetas de texto
+            lambdaValueSpan.textContent = `${lambdaSlider.value}`;
+            radiusValueSpan.textContent = `${parseFloat(R).toFixed(1)}`;
+            nValueSpan.textContent = `${parseFloat(n_film).toFixed(2)}`;
+            
+            drawTopDownView(lambda_meters, R, n_film);
+            drawCrossSection(R);
+        }
+        
+        lambdaSlider.addEventListener('input', updateSimulation);
+        radiusSlider.addEventListener('input', updateSimulation);
+        nSlider.addEventListener('input', updateSimulation);
+        window.addEventListener('load', updateSimulation);
+    </script>
+</body>
+</html>

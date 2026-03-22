@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Simulador Interactivo de Intercepción</title>
+<!-- KaTeX para renderizar ecuaciones matemáticas -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMmg9zuCMZgHft9ypec+NDcIxaqvcRA/bgGmeKDvDuvLBgdrs" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+
+<style>
+  :root{
+    --bg: #fdfdff;
+    --card-bg: #ffffff;
+    --text-color: #343a40;
+    --text-muted: #6c757d;
+    --border-color: #e9ecef;
+    --accent-color: #6f42c1; /* Púrpura */
+    --accent-color-light: #e9dff9;
+    --good: #198754;
+    --warn: #ffc107;
+    --bad: #dc3545;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0; 
+    font-family: var(--font-sans);
+    color: var(--text-color); 
+    background-color: var(--bg);
+    overflow-x:hidden; 
+    scroll-behavior:smooth;
+  }
+  body.focus-view-active {
+    overflow: hidden;
+  }
+
+  /* Fondo animado con más iconos */
+  .floating-icons {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    overflow: hidden; z-index: -1;
+  }
+  .floating-icons span {
+    position: absolute; display: block;
+    width: 40px; height: 40px;
+    bottom: -60px;
+    animation: float 30s linear infinite;
+    opacity: 0.1;
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+  .floating-icons span:nth-child(1) { left: 25%; animation-delay: 0s; background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%236f42c1" stroke-width="1"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.32 0L12 2.69zM12 12.04V22"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-45 12 12)"/></svg>'); }
+  .floating-icons span:nth-child(2) { left: 10%; animation-delay: 2s; animation-duration: 22s; width:30px; height:30px; background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="5" y="70" font-size="60" fill="%236f42c1" font-family="serif">E=mc²</text></svg>');}
+  .floating-icons span:nth-child(3) { left: 70%; animation-delay: 4s; background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%236f42c1" stroke-width="1"><path d="M2 15.5 A10 5.5 0 0 1 22 15.5"/></svg>'); }
+  .floating-icons span:nth-child(4) { left: 40%; animation-delay: 0s; animation-duration: 28s; background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%236f42c1" stroke-width="1"><path d="M12 2L8 8.5h8L12 2zM12 22l4-6.5H8L12 22zM2 12l6.5-4v8L2 12zM22 12l-6.5 4v-8L22 12z"/></svg>'); }
+  .floating-icons span:nth-child(5) { left: 85%; animation-delay: 3s; animation-duration: 18s; width: 35px; height: 35px; background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="10" y="70" font-size="60" fill="%236f42c1" font-family="serif">F=ma</text></svg>');}
+  .floating-icons span:nth-child(6) { left: 5%; animation-delay: 8s; animation-duration: 25s; background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%236f42c1" stroke-width="1.5"><path d="M2 12h2.5l3-9 4.5 16 3-7 1.5 3H22"/></svg>');}
+  .floating-icons span:nth-child(7) { left: 50%; animation-delay: 5s; animation-duration: 35s; background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%236f42c1" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>'); }
+  .floating-icons span:nth-child(8) { left: 75%; animation-delay: 1s; animation-duration: 20s; width:50px; height:50px; background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="0" y="70" font-size="40" fill="%236f42c1" font-family="serif">a²+b²=c²</text></svg>');}
+  
+  @keyframes float {
+    0% { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(-110vh) rotate(360deg); }
+  }
+
+  /* Layout de dos columnas */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 1fr; /* Una columna por defecto */
+    gap: 32px;
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 16px 20px;
+    transition: grid-template-columns 0.4s ease;
+  }
+  @media(min-width:1200px){
+    .main-layout { grid-template-columns: 1fr 1fr; }
+  }
+    
+  .content-panel { 
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  
+  .simulation-panel {
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px); /* Altura máxima para permitir scroll */
+    overflow-y: auto; /* Habilitar scroll vertical si el contenido excede la altura */
+  }
+  
+  #simulacion {
+      display: flex;
+      flex-direction: column;
+  }
+  #sim-details-wrapper {
+      /* overflow-y: auto; ya no es necesario */
+  }
+
+  /* Estilos generales */
+  header{
+    position:sticky; top:0; z-index:5; background: rgba(255,255,255,.8);
+    backdrop-filter: blur(10px); border-bottom:1px solid var(--border-color);
+    transition: padding 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  header.scrolled {
+    background: rgba(255,255,255,.95);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  header.scrolled .wrap {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  header.scrolled h1 {
+    font-size: 24px;
+    margin-bottom: 0;
+  }
+  header.scrolled .badge, header.scrolled .student-info {
+    display: none;
+  }
+
+  .wrap{
+    max-width:1800px; 
+    margin:0 auto; 
+    padding:16px 20px;
+    transition: padding 0.3s ease;
+  }
+  .title{display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center;}
+  .badge{padding:4px 10px; border-radius:999px; background: var(--accent-color-light); border:1px solid var(--accent-color); color: var(--accent-color); font-size:12px; font-weight: 500;}
+  .student-info { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+  nav{display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:10px}
+  nav a{padding:8px 12px; border-radius:8px; text-decoration:none; color: var(--text-muted); background: #f8f9fa; border:1px solid var(--border-color); transition: all 0.2s ease;}
+  nav a:hover, nav a.active {background: var(--accent-color); color: white;}
+
+  h1,h2,h3{font-weight:700;}
+  h1{
+    font-size:clamp(26px, 4vw, 42px); 
+    color:#212529;
+    transition: font-size 0.3s ease, margin 0.3s ease;
+  }
+  h2{font-size:clamp(22px, 3vw, 30px); color:var(--text-color); margin:20px 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--border-color);}
+  h3{font-size:20px; color:var(--text-color);}
+  .controls h4 {
+      font-size: 16px;
+      color: var(--accent-color);
+      margin-top: 20px;
+      margin-bottom: 15px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--border-color);
+  }
+
+  .card{
+    background: var(--card-bg);
+    border:1px solid var(--border-color); border-radius:16px; padding:24px; margin:24px 0; 
+    box-shadow: 0 6px 20px rgba(0,0,0,.07);
+  }
+  
+  p,li{color:#495057; line-height:1.8; font-size: 1.1rem;}
+  ul { padding-left: 20px; }
+  code{background:#f8f9fa; padding:3px 7px; border-radius:6px; color: #d63384; font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+  
+  .katex-display {
+      background: #f8f9fa; padding: 1rem; border-radius: 8px;
+      border: 1px solid var(--border-color); overflow-x: auto;
+  }
+  
+  /* Controles de la simulación */
+  .controls label{display:block; font-size:14px; color:var(--text-muted); margin-bottom:6px}
+  .controls input[type="range"]{ width:100%; accent-color:var(--accent-color); cursor:pointer; }
+  .controls input[type="number"] { width: 100%; padding: 6px; border-radius: 6px; border: 1px solid var(--border-color); }
+  .row{display:grid; grid-template-columns:1fr 90px; gap:10px; align-items:end; margin-bottom: 16px;}
+  .btns{display:grid; grid-template-columns: 1fr 1fr; gap:10px; flex-wrap:wrap; margin-top:16px}
+  .btn{background: #fff; color:var(--text-color); border:1px solid var(--border-color); padding:10px 16px; border-radius:8px; cursor:pointer; font-weight: 500; transition: all 0.2s ease;}
+  .btn.primary{background: var(--accent-color); border-color:var(--accent-color); color:white;}
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+  
+  .scenario-btns { margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px; }
+
+  .status{display:flex; gap:8px; align-items:center; font-size:14px; padding: 12px; border-radius: 8px;}
+  .status.good { background-color: #d1e7dd; color: #0f5132; }
+  .status.warn { background-color: #fff3cd; color: #664d03; }
+  .status.bad { background-color: #f8d7da; color: #842029; }
+  .dot{width:12px; height:12px; border-radius:999px; flex-shrink: 0;}
+  .dot.good{background: var(--good)}
+  .dot.warn{background: var(--warn)}
+  .dot.bad{background: var(--bad)}
+  
+  .sim-container { position: relative; }
+
+  canvas{
+    width:100%; height:auto; aspect-ratio: 1 / 0.75;
+    background: #ffffff;
+    border-radius:12px; border:1px solid var(--border-color);
+    cursor: grab;
+  }
+  canvas:active {
+    cursor: grabbing;
+  }
+  .legend{display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:var(--text-muted)}
+  .legend span{display:flex; align-items:center; gap:6px}
+  .chip{width:16px; height:6px; border-radius:3px}
+  .chip.enemy{background: #d9534f}
+  .chip.def{background: #0275d8}
+  .chip.radar{background:#5cb85c}
+
+  /* --- INICIO: NUEVOS BOTONES DE MEDIA --- */
+  .media-controls {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 12px 0 4px;
+  }
+  .media-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .media-btn:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.1);
+  }
+  .media-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--text-color);
+  }
+  /* --- FIN: NUEVOS BOTONES DE MEDIA --- */
+
+  #speed-control {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 12px auto 4px;
+    max-width: 280px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  #speed-control label {
+    margin-bottom: 0 !important;
+    white-space: nowrap;
+  }
+  #speed-control input[type="range"] {
+    flex-grow: 1;
+    width: auto !important;
+  }
+  #speed-control span {
+    font-weight: 500;
+    min-width: 25px;
+  }
+
+  /* Panel de acciones rápidas (solo en vista normal) */
+  .sim-top-buttons { position: absolute; top: 10px; right: 10px; z-index: 12; display: flex; gap: 8px; }
+  .actions-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
+  .icon-btn {
+    background: rgba(255,255,255,0.7); backdrop-filter: blur(4px);
+    border: 1px solid var(--border-color); border-radius: 8px;
+    width: 36px; height: 36px; cursor: pointer; display:flex; justify-content:center; align-items:center;
+  }
+  .icon-btn svg { width: 20px; height: 20px; stroke: #343a40; transition: transform 0.3s ease; }
+  #toggle-actions-btn.open svg { transform: rotate(135deg); }
+
+  #quick-actions-panel {
+    position: absolute; top: 70px; right: 10px; z-index: 11;
+    background: rgba(255,255,255,0.85); backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color); border-radius: 12px;
+    padding: 16px;
+    width: 220px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  #quick-actions-panel.open {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* --- INICIO: VISTA DE ENFOQUE (MODAL) --- */
+  #focus-view-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    display: none; /* Oculto por defecto */
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  #focus-view-overlay.visible {
+    display: flex;
+    opacity: 1;
+  }
+  #focus-view-content {
+    background: var(--bg);
+    border-radius: 16px;
+    width: 90vw; /* Ligeramente más grande para mejor proporción */
+    height: 90vh; /* Ligeramente más grande para mejor proporción */
+    max-width: 1800px;
+    max-height: 1050px;
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    display: flex;
+    gap: 24px;
+    position: relative;
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+  }
+  #focus-view-overlay.visible #focus-view-content {
+    transform: scale(1);
+  }
+  #focus-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    background: var(--border-color);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 101;
+  }
+  #focus-close-btn svg { width: 16px; height: 16px; }
+  #focus-controls {
+    flex: 0 0 380px; /* Un poco más estrecho para dar más espacio al canvas */
+    height: 100%;
+    overflow-y: auto;
+    padding-right: 16px;
+  }
+  #focus-canvas-container {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centra el contenido verticalmente */
+  }
+  #focus-canvas-container .canvas-wrapper {
+    flex-grow: 0; /* No crecerá más de lo necesario */
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: white;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+  }
+  #focus-canvas-container canvas {
+    aspect-ratio: auto;
+    height: 100%;
+    width: 100%;
+    border: none;
+    max-height: calc(90vh - 120px); /* Limitar la altura máxima del canvas */
+    object-fit: contain; /* Asegura que el canvas mantenga su aspect ratio */
+  }
+  /* --- FIN: VISTA DE ENFOQUE --- */
+
+  
+  footer{padding:40px 20px; color:var(--text-muted); text-align: center; margin-top: 40px;}
+</style>
+</head>
+<body>
+  <div class="floating-icons">
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <header>
+    <div class="wrap">
+      <div class="title">
+        <h1>Simulador Interactivo de Intercepción Balística</h1>
+        <span class="badge">Curso de Física Mecánica – UdeA</span>
+        <div class="student-info">Juan José González Zapata - 1000559373 - Grupo 3 - Quiz 1</div>
+      </div>
+      <nav>
+        <a href="#enunciado">Enunciado</a>
+        <a href="#solucion">Solución</a>
+        <a href="#analisis">Análisis</a>
+        <a href="#planteamiento">Planteamiento</a>
+        <a href="#domo">Relación</a>
+        <a href="#conclusiones">Conclusiones</a>
+        <a href="#bibliografia">Bibliografía</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="main-layout" id="main-layout">
+    <main class="content-panel">
+      <section id="enunciado" class="card">
+        <h2>1. Enunciado del problema</h2>
+        <p>Un radar detecta un misil enemigo en vuelo. En el instante de detección ($t=0$), se conocen:</p>
+        <ul>
+          <li>La posición inicial $\vec{r}_0$ del misil enemigo.</li>
+          <li>Su velocidad inicial $\vec{v}_0$.</li>
+          <li>Sus cosenos directores $(l, m, n)$, que determinan su dirección en 3D.</li>
+        </ul>
+        <p>El misil enemigo se mueve únicamente bajo la acción de la gravedad terrestre. Aunque el problema se plantea en 3D, siempre existe un plano que contiene la trayectoria del proyectil. Se debe identificar ese plano y reducir el problema a un tiro parabólico en 2D, lo que simplifica el análisis y la simulación.</p>
+        <h4>Estrategia de defensa</h4>
+        <p>El sistema de defensa, a partir de la información detectada, debe calcular la dirección y velocidad inicial con la que debe lanzarse el misil defensor. Existen dos escenarios:</p>
+        <ul>
+            <li>Si el enemigo está aún alto en el aire, bastará con que el misil defensor siga una trayectoria parabólica sin propulsores.</li>
+            <li>Si la detección ocurre demasiado cerca al suelo, el misil defensor debe activar propulsores adicionales que le proporcionen una aceleración extra para lograr interceptar al enemigo a tiempo.</li>
+        </ul>
+      </section>
+
+      <section id="solucion" class="card">
+        <h2>2. Solución algebraica propuesta</h2>
+        <h3>Reducción al plano 2D</h3>
+        <p>La trayectoria parabólica ocurre en el plano vertical definido por el vector de velocidad inicial $\vec{v}_0$ y el vector de gravedad $\vec{g}$. En este plano, las ecuaciones de movimiento para el misil enemigo son:</p>
+        $$x_e(t) = x_0 + (v_0 \cos\theta) t$$
+        $$y_e(t) = y_0 + (v_0 \sin\theta) t - \frac{1}{2}gt^2$$
+        <h3>Condición de intercepción</h3>
+        <p>Para que la intercepción ocurra en un tiempo $t_{enc}$, la posición del misil enemigo y el defensor debe ser la misma. Asumiendo que el defensor es lanzado desde el origen $(0,0)$, su posición es:</p>
+        $$x_d(t) = (v_d \cos\phi) t$$
+        $$y_d(t) = (v_d \sin\phi) t - \frac{1}{2}gt^2$$
+        <p>Al igualar las componentes $x$ e $y$ en $t = t_{enc}$ y despejar las componentes de la velocidad del defensor ($v_{d,x}$ y $v_{d,y}$), obtenemos la velocidad requerida:</p>
+        $$v_{d,x} = \frac{x_e(t_{enc})}{t_{enc}} \quad , \quad v_{d,y} = \frac{y_e(t_{enc}) + \frac{1}{2}gt_{enc}^2}{t_{enc}}$$
+        <p>El módulo de la velocidad requerida es $| \vec{v}_d | = \sqrt{v_{d,x}^2 + v_{d,y}^2}$.</p>
+        <h3>Caso con y sin propulsor</h3>
+        <ul>
+          <li><b>Sin propulsor (Tiro parabólico clásico):</b> La intercepción es viable si existe un tiempo $t_{enc}$ para el cual la velocidad requerida $| \vec{v}_d |$ es menor o igual a la velocidad máxima ($v_{max}$) del defensor.</li>
+          <li><b>Con propulsor:</b> Si $| \vec{v}_d | > v_{max}$, se requiere un impulso extra. Modelamos esto como una aceleración constante $a_{boost}$ en la dirección de lanzamiento, que proporciona una "ganancia" de velocidad. La condición de viabilidad se aproxima como: $| \vec{v}_d | \leq v_{max} + a_{boost} \cdot t_{enc}$.</li>
+        </ul>
+      </section>
+
+      <section id="analisis" class="card">
+          <h2>3. Análisis funcional o teórico</h2>
+          <p>El éxito de la intercepción depende críticamente del tiempo disponible. Esto define dos regímenes de operación:</p>
+          <ul>
+              <li><em>Detección alta:</em> Si el misil enemigo se detecta a gran altitud, los tiempos de encuentro disponibles son mayores. Esto permite trayectorias más largas y eficientes, por lo que la velocidad inicial requerida para el defensor es menor. En estos casos, un tiro parabólico suele ser suficiente.</li>
+              <li><em>Detección baja:</em> Si la detección es tardía o a baja altitud, el tiempo disponible para la intercepción es muy corto. Esto exige una velocidad de respuesta muy alta por parte del defensor, que a menudo supera su capacidad máxima. En este escenario, es indispensable el uso de propulsores para alcanzar el objetivo.</li>
+          </ul>
+          <p>Este modelo simplificado ignora factores como la resistencia del aire, el viento o posibles maniobras evasivas del misil enemigo. Sin embargo, es una excelente aproximación para entender los principios fundamentales de la balística de intercepción.</p>
+      </section>
+
+      <section id="planteamiento" class="card">
+          <h2>4. Planteamiento de la simulación</h2>
+          <p>Para crear escenarios realistas y variados, se implementa un generador de números aleatorios que asigna los parámetros iniciales del misil enemigo en cada nueva simulación. Los valores se eligen dentro de rangos predefinidos y físicamente coherentes:</p>
+          <ul>
+              <li><b>Posición inicial ($x_0, y_0$):</b> Se genera en un rango de cientos de metros, simulando una detección a distancia.</li>
+              <li><b>Velocidad inicial ($v_0$):</b> Valores típicos entre 100 m/s y 400 m/s.</li>
+              <li><b>Ángulo de lanzamiento ($\theta$):</b> Ángulos comunes para trayectorias balísticas, por ejemplo, entre 15° y 75°.</li>
+          </ul>
+          <p>El sistema analiza estos valores generados aleatoriamente y determina la estrategia óptima: si el misil enemigo es detectado alto, el defensor se lanza con tiro parabólico clásico; si es detectado muy bajo, la simulación mostrará la necesidad de usar propulsores.</p>
+      </section>
+
+      <section id="domo" class="card">
+          <h2>5. Relación con el sistema Domo de Hierro</h2>
+          <p>El sistema real "Domo de Hierro" (Iron Dome) es una versión mucho más sofisticada de este problema. Opera en 3D y debe gestionar múltiples amenazas simultáneamente. Sus algoritmos consideran la resistencia del aire, predicen el punto de impacto para priorizar amenazas (por ejemplo, ignorando proyectiles que caerán en zonas despobladas) y utilizan sistemas de guiado y control de empuje avanzados para maximizar la probabilidad de intercepción. Nuestra simulación captura la esencia física del problema: la necesidad de calcular una trayectoria de encuentro y la compensación entre tiempo de vuelo y velocidad requerida, decidiendo entre una solución puramente balística o una asistida por propulsor.</p>
+      </section>
+
+      <section id="conclusiones" class="card">
+          <h2>6. Conclusiones Generales</h2>
+          <ul>
+              <li>La reducción de un problema 3D a un plano 2D es una herramienta poderosa en física que simplifica enormemente el análisis matemático sin perder la esencia del fenómeno.</li>
+              <li>El parámetro fundamental que determina la estrategia de defensa es el <b>tiempo de encuentro</b>. A mayor tiempo disponible, menor es la velocidad inicial requerida para el misil defensor.</li>
+              <li>La necesidad de un propulsor surge directamente de la falta de tiempo. El impulso adicional "compra" la capacidad de alcanzar la velocidad requerida en un intervalo de tiempo muy corto, algo inviable con un lanzamiento balístico convencional.</li>
+              <li>Las simulaciones interactivas son una herramienta pedagógica excelente para visualizar conceptos abstractos como la balística y desarrollar una intuición sobre cómo la variación de parámetros afecta el resultado de un sistema físico.</li>
+          </ul>
+      </section>
+
+      <section id="bibliografia" class="card">
+        <h2>7. Bibliografía</h2>
+        <ul>
+          <li>Serway, R. A., & Jewett, J. W. (2018). <em>Physics for Scientists and Engineers with Modern Physics</em>. Cengage Learning. (Capítulos sobre cinemática en 2D y movimiento de proyectiles).</li>
+          <li>Tipler, P. A., & Mosca, G. (2007). <em>Physics for Scientists and Engineers</em>. W. H. Freeman.</li>
+          <li>Notas de curso de Física Mecánica – Universidad de Antioquia.</li>
+        </ul>
+      </section>
+      <footer>© 2024 – Simulador Físico Educativo. Desarrollado como herramienta pedagógica.</footer>
+    </main>
+
+    <aside class="simulation-panel">
+        <section id="simulacion" class="card">
+            <div id="quick-actions-panel">
+                <!-- Los botones se moverán aquí desde abajo -->
+            </div>
+            <div id="sim-container-wrapper">
+              <div id="sim-container" class="sim-container">
+                <div id="canvas-wrapper" style="background:#ffffff; border:1px solid var(--border-color); border-radius:12px; padding:16px;">
+                  <h3>Plano de Intercepción</h3>
+                  <div class="legend" style="margin-bottom:8px">
+                    <span><span class="chip radar" style="background:#5cb85c;"></span> Radar</span>
+                    <span><span class="chip enemy"></span> Enemigo</span>
+                    <span><span class="chip def"></span> Defensor</span>
+                  </div>
+                  <div class="media-controls">
+                     <button class="media-btn" id="media-pause" title="Pausa">
+                       <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>
+                     </button>
+                     <button class="media-btn" id="media-play" title="Ejecutar">
+                       <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+                     </button>
+                     <button class="media-btn" id="media-reset" title="Reiniciar">
+                       <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path></svg>
+                     </button>
+                  </div>
+                  <canvas id="radar" width="700" height="480" aria-label="Radar de intercepción" role="img"></canvas>
+                  <div id="speed-control">
+                    <label for="speed-slider">Velocidad Sim:</label>
+                    <input type="range" id="speed-slider" min="1" max="5" step="1" value="1">
+                    <span id="speed-val">x1</span>
+                  </div>
+                  <div id="status" class="status good" style="margin-top: 8px;"></div>
+                </div>
+                
+                <div class="sim-top-buttons">
+                  <button id="center-view-btn" class="icon-btn" title="Centrar Vista">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+                  </button>
+                   <button id="toggle-layout-btn" class="icon-btn" title="Expandir Vista">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                  </button>
+                  <div id="actions-toggle-wrapper">
+                    <div class="actions-label">Acciones</div>
+                    <button id="toggle-actions-btn" class="icon-btn" title="Acciones Rápidas">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div id="sim-details-wrapper">
+              <section id="simulation-results-card">
+                <h3>Análisis de la Solución</h3>
+                <div id="simulation-results">
+                    <p>Ajusta los parámetros y ejecuta una simulación para ver el análisis de los resultados aquí.</p>
+                </div>
+              </section>
+
+              <div class="controls">
+                <h3>Controles de Simulación</h3>
+
+                <h4>Parámetros del Enemigo</h4>
+                <div class="row">
+                  <div>
+                    <label>Velocidad $v_0$ (m/s): <span id="v0v">250</span></label>
+                    <input type="range" id="v0" min="100" max="400" step="1" value="250">
+                  </div>
+                  <input id="v0n" type="number" min="100" max="400" step="1" value="250">
+                </div>
+                <div class="row">
+                  <div>
+                    <label>Ángulo $\theta$ (°): <span id="thv">45</span></label>
+                    <input type="range" id="theta" min="15" max="75" step="1" value="45">
+                  </div>
+                  <input id="than" type="number" min="15" max="75" step="1" value="45">
+                </div>
+                <div class="row">
+                  <div>
+                    <label>Posición $x_0$ (m): <span id="x0v">500</span></label>
+                    <input type="range" id="x0" min="200" max="800" step="10" value="500">
+                  </div>
+                  <input id="x0n" type="number" min="200" max="800" step="10" value="500">
+                </div>
+                <div class="row">
+                  <div>
+                    <label>Posición $y_0$ (m): <span id="y0v">300</span></label>
+                    <input type="range" id="y0" min="100" max="600" step="10" value="300">
+                  </div>
+                  <input id="y0n" type="number" min="100" max="600" step="10" value="300">
+                </div>
+
+                <h4>Parámetros del Defensor</h4>
+                <div class="row">
+                  <div>
+                    <label>Velocidad Máxima $v_{max}$ (m/s): <span id="vmaxv">250</span></label>
+                    <input type="range" id="vmax" min="80" max="450" step="1" value="250">
+                  </div>
+                  <input id="vmaxn" type="number" min="80" max="450" step="1" value="250">
+                </div>
+                <div class="row">
+                  <div>
+                    <label>Impulso extra $a_{boost}$ (m/s²): <span id="abv">20</span></label>
+                    <input type="range"id="aboost" min="0" max="60" step="1" value="20">
+                  </div>
+                  <input id="abn" type="number" min="0" max="60" step="1" value="20">
+                </div>
+                <div id="launch-mode-control" style="margin-bottom: 16px;">
+                  <label style="font-size:14px; color:var(--text-muted); margin-bottom:8px; display:block;">Modo de Lanzamiento</label>
+                  <div style="display:flex; gap:10px; justify-content: space-around;">
+                    <label style="font-size:13px; cursor:pointer;"><input type="radio" name="launchMode" value="auto" checked> 🤖 Automático</label>
+                    <label style="font-size:13px; cursor:pointer;"><input type="radio" name="launchMode" value="no_boost"> 🍃 Sin Propulsor</label>
+                    <label style="font-size:13px; cursor:pointer;"><input type="radio" name="launchMode" value="force_boost"> 🚀 Con Propulsor</label>
+                  </div>
+                </div>
+
+                <div id="main-actions">
+                  <div class="btns">
+                    <button class="btn" id="play" style="background-color: #d1e7dd; border-color: #198754;">▶ Ejecutar</button>
+                    <button class="btn" id="pause" style="background-color: #fff3cd; border-color: #ffc107;">⏸ Pausa</button>
+                    <button class="btn primary" id="random">Aleatorio</button>
+                    <button class="btn" id="reset">Reset</button>
+                  </div>
+                  <div class="scenario-btns btns">
+                    <button class="btn" id="success-case" style="border-color: var(--good); color: var(--good);">Intercepción Exitosa</button>
+                    <button class="btn" id="fail-case" style="border-color: var(--bad); color: var(--bad);">Fallo Inevitable</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </section>
+    </aside>
+  </div>
+  
+  <div id="focus-view-overlay">
+    <div id="focus-view-content">
+      <button id="focus-close-btn" title="Cerrar Vista de Enfoque">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+      </button>
+      <div id="focus-controls"></div>
+      <div id="focus-canvas-container"></div>
+    </div>
+  </div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  renderMathInElement(document.body, {
+      delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false},
+          {left: '\\(', right: '\\)', display: false},
+          {left: '\\[', right: '\\]', display: true}
+      ],
+      throwOnError : false
+  });
+  
+  // --- Lógica de la simulación ---
+  const g = 9.81;
+  const canvas = document.getElementById('radar');
+  const ctx = canvas.getContext('2d');
+  const statusEl = document.getElementById('status');
+  const resultsEl = document.getElementById('simulation-results');
+
+  // --- Mover botones al panel de acciones rápidas ---
+  const quickActionsPanel = document.getElementById('quick-actions-panel');
+  const mainActions = document.getElementById('main-actions');
+  quickActionsPanel.appendChild(mainActions);
+
+  const toggleBtn = document.getElementById('toggle-actions-btn');
+  toggleBtn.addEventListener('click', () => {
+    quickActionsPanel.classList.toggle('open');
+    toggleBtn.classList.toggle('open');
+  });
+
+  // --- Lógica para VISTA DE ENFOQUE (MODAL) ---
+  const layoutToggleBtn = document.getElementById('toggle-layout-btn');
+  const focusOverlay = document.getElementById('focus-view-overlay');
+  const focusCloseBtn = document.getElementById('focus-close-btn');
+  const focusControlsContainer = document.getElementById('focus-controls');
+  const focusCanvasContainer = document.getElementById('focus-canvas-container');
+
+  const simDetailsWrapper = document.getElementById('sim-details-wrapper');
+  const canvasWrapper = document.getElementById('canvas-wrapper');
+  
+  const originalDetailsParent = simDetailsWrapper.parentNode;
+  const originalCanvasParent = canvasWrapper.parentNode;
+  const originalActionsParent = mainActions.parentNode;
+
+  function openFocusView() {
+    focusControlsContainer.appendChild(simDetailsWrapper);
+    focusCanvasContainer.appendChild(canvasWrapper);
+    focusControlsContainer.appendChild(mainActions);
+    focusOverlay.classList.add('visible');
+    document.body.classList.add('focus-view-active');
+  }
+
+  function closeFocusView() {
+    originalDetailsParent.appendChild(simDetailsWrapper);
+    originalCanvasParent.appendChild(canvasWrapper);
+    originalActionsParent.appendChild(mainActions);
+    focusOverlay.classList.remove('visible');
+    document.body.classList.remove('focus-view-active');
+  }
+
+  layoutToggleBtn.addEventListener('click', openFocusView);
+  focusCloseBtn.addEventListener('click', closeFocusView);
+  
+  // --- Lógica para navegación interactiva ---
+  const sections = document.querySelectorAll('main section');
+  const navLinks = document.querySelectorAll('nav a');
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href').substring(1) === entry.target.id);
+        });
+      }
+    });
+  }, { rootMargin: "-50% 0px -50% 0px" });
+
+  sections.forEach(section => observer.observe(section));
+
+
+  // --- ASSETS GRÁFICOS REALISTAS ---
+  const assets = {
+      radar: new Image(),
+      launcher: new Image(),
+      enemyMissile: new Image(),
+      defenderMissile: new Image(),
+      loaded: 0,
+      total: 4,
+      onLoad: () => {}
+  };
+  assets.radar.onload = assets.launcher.onload = assets.enemyMissile.onload = assets.defenderMissile.onload = () => {
+      assets.loaded++;
+      if (assets.loaded === assets.total) assets.onLoad();
+  };
+  assets.radar.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg transform='translate(50,85)'%3E%3Cpath d='M-45,0 A45,45 0 0,1 45,0' fill='none' stroke='%23343a40' stroke-width='4'/%3E%3Cpath d='M0,0 L0,-75' stroke='%23343a40' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E`;
+  assets.launcher.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cg fill='%235F6368'%3E%3Crect x='10' y='80' width='100' height='20' rx='5'/%3E%3Crect x='25' y='60' width='70' height='20' rx='3'/%3E%3Cpath d='M20 100 L100 100 110 110 10 110 Z'/%3E%3C/g%3E%3Cg fill='%2370757A'%3E%3Crect x='40' y='50' width='40' height='10'/%3E%3C/g%3E%3Cg transform='translate(60, 55) rotate(-30)'%3E%3Crect x='-15' y='-50' width='30' height='80' rx='8' fill='%235F6368'/%3E%3Crect x='-12' y='-47' width='24' height='74' rx='5' fill='%2370757A'/%3E%3C/g%3E%3C/svg%3E`;
+  assets.enemyMissile.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 30'%3E%3Cdefs%3E%3ClinearGradient id='grad-enemy' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236c757d;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23343a40;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M78 15 C 78 15, 60 15, 50 10 L 10 10 L 0 15 L 10 20 L 50 20 C 60 15, 78 15, 78 15 Z' fill='url(%23grad-enemy)' /%3E%3Cpath d='M10 10 L 20 2 L 30 10 Z' fill='%23d9534f' /%3E%3Cpath d='M10 20 L 20 28 L 30 20 Z' fill='%23d9534f' /%3E%3C/svg%3E`;
+  assets.defenderMissile.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 30'%3E%3Cdefs%3E%3ClinearGradient id='grad-def' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23f8f9fa;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23adb5bd;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M78 15 C 78 15, 60 15, 50 10 L 10 10 L 0 15 L 10 20 L 50 20 C 60 15, 78 15, 78 15 Z' fill='url(%23grad-def)' stroke='%236c757d' stroke-width='0.5' /%3E%3Cpath d='M10 10 L 20 2 L 30 10 Z' fill='%230275d8' /%3E%3Cpath d='M10 20 L 20 28 L 30 20 Z' fill='%230275d8' /%3E%3C/svg%3E`;
+  
+  // --- Motor de Audio ---
+  let audioCtx;
+  let explosionSources = [];
+
+  function initAudio() {
+      if (!audioCtx) {
+          try {
+              audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          } catch (e) {
+              console.error("Web Audio API is not supported in this browser");
+          }
+      }
+  }
+  
+  function stopExplosionSound() {
+      explosionSources.forEach(source => {
+          try {
+              source.stop();
+          } catch (e) {
+              // Ignore errors if the source has already stopped
+          }
+      });
+      explosionSources = [];
+  }
+
+  function playLaunchSound() {
+      if (!audioCtx) return;
+      stopExplosionSound(); // Parar cualquier explosión anterior
+      const now = audioCtx.currentTime;
+      const noise = audioCtx.createBufferSource();
+      const bufferSize = audioCtx.sampleRate * 1.5;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+      noise.buffer = buffer;
+      const bandpass = audioCtx.createBiquadFilter();
+      bandpass.type = 'bandpass';
+      bandpass.frequency.setValueAtTime(100, now);
+      bandpass.Q.setValueAtTime(1, now);
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0, now);
+      noise.connect(bandpass).connect(gain).connect(audioCtx.destination);
+      gain.gain.linearRampToValueAtTime(0.3, now + 0.1);
+      bandpass.frequency.linearRampToValueAtTime(1500, now + 0.8);
+      gain.gain.linearRampToValueAtTime(0, now + 1.5);
+      noise.start(now);
+      noise.stop(now + 1.5);
+  }
+
+  function playExplosionSound() {
+      if (!audioCtx) return;
+      stopExplosionSound();
+      const now = audioCtx.currentTime;
+      
+      const osc = audioCtx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(120, now);
+      osc.frequency.exponentialRampToValueAtTime(30, now + 0.5);
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.8, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.5);
+      
+      const noise = audioCtx.createBufferSource();
+      const bufferSize = audioCtx.sampleRate * 1;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+      noise.buffer = buffer;
+      const noiseFilter = audioCtx.createBiquadFilter();
+      noiseFilter.type = 'highpass';
+      noiseFilter.frequency.setValueAtTime(500, now);
+      const noiseGain = audioCtx.createGain();
+      noiseGain.gain.setValueAtTime(0.4, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+      noise.connect(noiseFilter).connect(noiseGain).connect(audioCtx.destination);
+      noise.start(now);
+      noise.stop(now + 1);
+      
+      explosionSources.push(osc, noise);
+  }
+
+  const missileTrails = {
+      enemy: [],
+      defender: [],
+      maxLength: 50,
+      add(type, pos) {
+          this[type].push({ ...pos, life: 1 });
+          if (this[type].length > this.maxLength) this[type].shift();
+      },
+      updateAndDraw() {
+          ['enemy', 'defender'].forEach(type => {
+              const color = type === 'enemy' ? '217, 83, 79' : '2, 117, 216';
+              this[type].forEach(p => {
+                  p.life -= 0.02;
+                  if (p.life > 0) {
+                      ctx.beginPath();
+                      ctx.arc(p.x, p.y, p.life * 2.5, 0, Math.PI * 2);
+                      ctx.fillStyle = `rgba(${color}, ${p.life * 0.5})`;
+                      ctx.fill();
+                  }
+              });
+              this[type] = this[type].filter(p => p.life > 0);
+          });
+      },
+      reset() { this.enemy = []; this.defender = []; }
+  };
+  
+  const explosion = {
+      active: false,
+      x: 0, y: 0,
+      radius: 0, maxRadius: 60, // Aumentado
+      life: 0, duration: 2.0,   // Aumentado
+      coordText: "", showCoords: false,
+      trigger(x, y, text) {
+          this.active = true; this.x = x; this.y = y;
+          this.radius = 0; this.life = 0;
+          this.coordText = text;
+          this.showCoords = false;
+          setTimeout(() => this.showCoords = true, 500);
+          playExplosionSound();
+      },
+      updateAndDraw(dt) {
+          if (!this.active) return;
+          this.life += dt;
+          const progress = this.life / this.duration;
+          this.radius = progress * this.maxRadius;
+          const opacity = 1 - progress;
+          
+          if (progress >= 1) { this.active = false; return; }
+
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 193, 7, ${opacity * 0.8})`;
+          ctx.fill();
+          
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius * 0.6, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+          ctx.fill();
+
+          if (this.showCoords) {
+              ctx.font = '14px var(--font-sans)';
+              ctx.fillStyle = 'rgba(0,0,0,0.8)';
+              ctx.textAlign = 'center';
+              ctx.fillText(this.coordText, this.x, this.y - 30);
+          }
+      }
+  };
+
+  // --- Sistema de Cámara Dinámica e Interactivo ---
+  const camera = { x: 400, y: 300, zoom: 1 };
+  
+  function resetCamera() {
+      camera.x = 400;
+      camera.y = 300;
+      camera.zoom = 1;
+  }
+  
+  function autoFrameCamera(P, S) {
+      if (!S) {
+          const worldWidth = P.x0 * 1.5;
+          const worldHeight = P.y0 * 1.5;
+          const zoomX = canvas.width / worldWidth;
+          const zoomY = canvas.height / worldHeight;
+          camera.zoom = Math.min(zoomX, zoomY) * 0.9;
+          camera.x = P.x0 / 2;
+          camera.y = P.y0 / 2;
+          return;
+      }
+
+      let minX = 0, maxX = 0, minY = 0, maxY = 0;
+      const updateBounds = (x, y) => {
+          minX = Math.min(minX, x);
+          maxX = Math.max(maxX, x);
+          minY = Math.min(minY, y);
+          maxY = Math.max(maxY, y);
+      };
+
+      updateBounds(0, 0); 
+      updateBounds(P.x0, P.y0); 
+      updateBounds(S.meet.x, S.meet.y);
+
+      for (let t_sample = 0; t_sample <= S.t; t_sample += S.t / 20) {
+          updateBounds(enemy(t_sample, P).x, enemy(t_sample, P).y);
+          updateBounds(defender(t_sample, S).x, defender(t_sample, S).y);
+      }
+      
+      const paddingX = (maxX - minX) * 0.1;
+      const paddingY = (maxY - minY) * 0.1;
+      minX -= paddingX;
+      maxX += paddingX;
+      minY -= paddingY;
+      maxY += paddingY;
+
+      minY = Math.max(minY, -50); 
+      minX = Math.min(minX, -paddingX); 
+
+      const worldWidth = maxX - minX;
+      const worldHeight = maxY - minY;
+      
+      if (worldWidth < 1 || worldHeight < 1) {
+        resetCamera(); return;
+      }
+
+      const zoomX = canvas.width / worldWidth;
+      const zoomY = canvas.height / worldHeight;
+      camera.zoom = Math.min(zoomX, zoomY);
+
+      camera.x = minX + worldWidth / 2;
+      camera.y = minY + worldHeight / 2;
+  }
+
+  let isPanning = false;
+  let panStart = { x: 0, y: 0 };
+  let cameraStart = { x: 0, y: 0 };
+
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const worldCoordsBeforeZoom = StoW(mouseX, mouseY);
+    
+    const zoomFactor = e.deltaY < 0 ? 1.1 : 1/1.1;
+    camera.zoom = Math.max(0.1, Math.min(5, camera.zoom * zoomFactor));
+
+    const worldCoordsAfterZoom = StoW(mouseX, mouseY);
+
+    camera.x += (worldCoordsBeforeZoom.x - worldCoordsAfterZoom.x);
+    camera.y += (worldCoordsBeforeZoom.y - worldCoordsAfterZoom.y);
+  });
+
+  canvas.addEventListener('mousedown', (e) => {
+    isPanning = true;
+    panStart.x = e.clientX;
+    panStart.y = e.clientY;
+    cameraStart.x = camera.x;
+    cameraStart.y = camera.y;
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isPanning) return;
+    const dx = e.clientX - panStart.x;
+    const dy = e.clientY - panStart.y;
+    camera.x = cameraStart.x - dx / camera.zoom;
+    camera.y = cameraStart.y + dy / camera.zoom;
+  });
+
+  window.addEventListener('mouseup', () => {
+    isPanning = false;
+  });
+
+  document.getElementById('center-view-btn').addEventListener('click', () => autoFrameCamera(params(), solution));
+
+
+  // --- UI elements ---
+  const el = id => document.getElementById(id);
+  const link = (range, number, view) => {
+    const r = el(range), n = el(number), v = el(view);
+    const sync = val => { r.value = val; n.value = val; v && (v.textContent = val); };
+    r.addEventListener('input', e => { n.value = e.target.value; v && (v.textContent = e.target.value); onParams(); });
+    n.addEventListener('input', e => { r.value = e.target.value; v && (v.textContent = e.target.value); onParams(); });
+    return sync;
+  };
+
+  const syncV0 = link('v0','v0n','v0v');
+  const syncTh = link('theta','than','thv');
+  const syncX0 = link('x0','x0n','x0v');
+  const syncY0 = link('y0','y0n','y0v');
+  const syncVm = link('vmax','vmaxn','vmaxv');
+  const syncAb = link('aboost','abn','abv');
+  
+  document.querySelectorAll('input[name="launchMode"]').forEach(radio => {
+    radio.addEventListener('change', onParams);
+  });
+  
+  const updateAllControls = () => {
+      syncV0(el('v0').value); syncTh(el('theta').value);
+      syncX0(el('x0').value); syncY0(el('y0').value);
+      syncVm(el('vmax').value); syncAb(el('aboost').value);
+      onParams();
+  };
+
+  el('reset').addEventListener('click', resetSim);
+  el('media-reset').addEventListener('click', resetSim);
+  
+  const rnd = (a,b) => Math.round(a + Math.random()*(b-a));
+  
+  el('random').addEventListener('click', ()=>{
+    el('v0').value=rnd(100,400); el('theta').value=rnd(15,75);
+    el('x0').value=rnd(200,800); el('y0').value=rnd(100,600);
+    el('vmax').value=rnd(120,420); el('aboost').value=rnd(0,60);
+    updateAllControls();
+  });
+  
+  el('success-case').addEventListener('click', () => {
+      el('v0').value=rnd(150, 250); // Velocidad enemiga moderada
+      el('theta').value=rnd(50, 70); // Ángulo alto
+      el('x0').value=rnd(500, 700); // Detección a distancia
+      el('y0').value=rnd(450, 600); // Detección a GRAN ALTITUD
+      el('vmax').value=rnd(350, 450); // Defensor capaz
+      el('aboost').value=rnd(20, 40);
+      updateAllControls();
+  });
+
+  el('fail-case').addEventListener('click', () => {
+      el('v0').value=rnd(350, 400); // Enemigo rápido
+      el('theta').value=rnd(20, 40); // Trayectoria tensa
+      el('x0').value=rnd(250, 400); // Detección cercana
+      el('y0').value=rnd(100, 200); // Detección a baja altitud
+      el('vmax').value=rnd(80, 150); // Defensor poco capaz
+      el('aboost').value=0;
+      updateAllControls();
+  });
+  
+  // Speed Control
+  let simulationSpeed = 1;
+  const speedSlider = el('speed-slider');
+  const speedVal = el('speed-val');
+  speedSlider.addEventListener('input', e => {
+      simulationSpeed = parseInt(e.target.value, 10);
+      speedVal.textContent = 'x' + simulationSpeed;
+  });
+
+
+  let playing = false; let t=0; 
+  
+  function playAnimation() {
+    if (!playing) { 
+      initAudio();
+      if(audioCtx && audioCtx.state === 'suspended') { audioCtx.resume(); }
+      playLaunchSound();
+      resetSim(false); 
+      playing=true; 
+    }
+  }
+  
+  function pauseAnimation() {
+    playing = false;
+  }
+
+  el('play').addEventListener('click', playAnimation);
+  el('media-play').addEventListener('click', playAnimation);
+  el('pause').addEventListener('click', pauseAnimation);
+  el('media-pause').addEventListener('click', pauseAnimation);
+
+
+  function params(){
+    const v0 = +el('v0').value;
+    const th = (+el('theta').value) * Math.PI/180;
+    const x0 = +el('x0').value;
+    const y0 = +el('y0').value;
+    const vmax = +el('vmax').value;
+    const aboost = +el('aboost').value;
+    const launchMode = document.querySelector('input[name="launchMode"]:checked').value;
+    return {v0, th, x0, y0, vmax, aboost, launchMode};
+  }
+
+  function enemy(t, P){
+    const vx = P.v0*Math.cos(P.th);
+    const vy = P.v0*Math.sin(P.th);
+    const x = P.x0 + vx*t;
+    const y = P.y0 + vy*t - 0.5*g*t*t;
+    const angle = Math.atan2(vy - g*t, vx);
+    return {x, y, angle};
+  }
+  
+  function defender(t, sol){
+      const { ang, vmag, useBoost, P } = sol;
+      const vx0 = vmag * Math.cos(ang);
+      const vy0 = vmag * Math.sin(ang);
+
+      // Aceleración total (propulsor + gravedad)
+      const ax_total = useBoost ? (P.aboost * Math.cos(ang)) : 0;
+      const ay_total = (useBoost ? (P.aboost * Math.sin(ang)) : 0) - g;
+      
+      // Posición basada en la aceleración constante
+      const x = vx0 * t + 0.5 * ax_total * t * t;
+      const y = vy0 * t + 0.5 * ay_total * t * t;
+      
+      // Ángulo basado en la velocidad instantánea
+      const vx = vx0 + ax_total * t;
+      const vy = vy0 + ay_total * t;
+      const angle = Math.atan2(vy, vx);
+      return {x,y,angle};
+  }
+
+  function solveIntercept(P){
+    let best = {t: null, cost: Infinity, vreq: Infinity, useBoost:false, launchAngle: 0};
+
+    for(let T=0.3; T<=60; T+=0.05){
+        const E = enemy(T,P);
+        if(E.y < 0) break; 
+        
+        // --- Tiro Parabólico (Sin propulsor) ---
+        const launchAngle = Math.atan2(E.y + 0.5 * g * T * T, E.x);
+        const v_para_req = (E.x / T) / Math.cos(launchAngle);
+
+        if (P.launchMode !== 'force_boost' && v_para_req <= P.vmax && v_para_req >= 0) {
+            if (v_para_req < best.cost) {
+                best = { t: T, cost: v_para_req, vreq: v_para_req, useBoost: false, launchAngle: launchAngle };
+            }
+        }
+
+        // --- Tiro con Propulsor ---
+        if (P.launchMode !== 'no_boost' && P.aboost > 0) {
+            let v_boost_req;
+            if(Math.abs(Math.cos(launchAngle)) > 1e-9) { 
+                v_boost_req = (E.x / (T * Math.cos(launchAngle))) - 0.5 * P.aboost * T;
+            } else { 
+                v_boost_req = ((E.y + 0.5 * g * T * T) / T) - 0.5 * P.aboost * T;
+            }
+
+            if (v_boost_req <= P.vmax && v_boost_req >= 0) {
+                const cost = v_boost_req + 1000; 
+                if (cost < best.cost) {
+                    best = { t: T, cost: cost, vreq: v_boost_req, useBoost: true, launchAngle: launchAngle };
+                }
+            }
+        }
+    }
+
+    if(best.t===null) return null;
+
+    return {
+        t: best.t, vmag: best.vreq, ang: best.launchAngle, useBoost: best.useBoost, meet: enemy(best.t,P), P: P
+    };
+  }
+
+  let solution = null;
+  function onParams(){
+    const P = params();
+    solution = solveIntercept(P);
+    t = 0; 
+    playing=false;
+    missileTrails.reset();
+    autoFrameCamera(P, solution); // Centra y encuadra la vista automáticamente
+    draw(0,0);
+    renderStatusAndConclusions(P, solution);
+  }
+
+  function renderStatusAndConclusions(P, S){
+    const options = {
+        delimiters: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false} ], throwOnError: false
+    };
+
+    if(!S){
+      statusEl.className = "status bad";
+      statusEl.innerHTML = `<span class="dot bad"></span> <strong>Intercepción Imposible</strong>`;
+      resultsEl.innerHTML = `
+          <h4 style="margin-top:0;">Resultado: <span style="color:var(--bad);">Fallo de Intercepción</span></h4>
+          <p>Con los parámetros y modo de lanzamiento seleccionados, no se encontró una solución viable.</p>
+          <ul>
+              <li>Velocidad enemigo ($v_{0,e}$): <b>${P.v0.toFixed(1)} m/s</b></li>
+              <li>Posición inicial ($x_0, y_0$): <b>(${P.x0}, ${P.y0}) m</b></li>
+              <li>Modo de lanzamiento: <b>${P.launchMode.replace('_',' ')}</b></li>
+          </ul>
+      `;
+    } else {
+      const tag = S.useBoost ? 'warn' : 'good';
+      let note = S.useBoost ? 'Propulsor Activado' : 'Tiro Parabólico';
+      if(P.launchMode !== 'auto') note += ' (Forzado)';
+      
+      statusEl.className = `status ${tag}`;
+      statusEl.innerHTML = `<span class="dot ${tag}"></span> <div><b>${note}</b> · $t_{enc}$ = ${S.t.toFixed(2)} s</div>`;
+      
+      resultsEl.innerHTML = `
+          <h4 style="margin-top:0;">Resultado: <span style="color:var(--good);">Intercepción Exitosa</span></h4>
+          <p>La solución óptima se encontró para un tiempo de encuentro de <b>${S.t.toFixed(2)} segundos</b>.</p>
+          <ul>
+              <li>Velocidad requerida ($v_{d,req}$): <b>${S.vmag.toFixed(1)} m/s</b></li>
+              <li>Ángulo de lanzamiento ($\\phi_d$): <b>${(S.ang*180/Math.PI).toFixed(1)}°</b></li>
+          </ul>
+      `;
+      if (S.useBoost) {
+          resultsEl.innerHTML += `<p>Debido a que un tiro parabólico no era viable o suficiente, <b>se activó el propulsor</b> para lograr la intercepción con una velocidad inicial de <b>${S.vmag.toFixed(1)} m/s</b> (dentro del límite de ${P.vmax} m/s).</p>`;
+      } else {
+          resultsEl.innerHTML += `<p>La velocidad requerida ($${S.vmag.toFixed(1)}\\text{ m/s}$) está dentro de la capacidad máxima del defensor ($${P.vmax}\\text{ m/s}$), por lo que la intercepción se logró con un <b>lanzamiento balístico convencional</b>.</p>`;
+      }
+    }
+    
+    renderMathInElement(resultsEl, options);
+    renderMathInElement(statusEl, options);
+  }
+
+  function resetSim(callOnParams = true){ 
+    t=0; 
+    playing=false; 
+    missileTrails.reset();
+    explosion.active = false;
+    stopExplosionSound();
+    if(callOnParams) {
+        el('v0').value=250; el('theta').value=45; el('x0').value=500; el('y0').value=300;
+        el('vmax').value=250; el('aboost').value=20;
+        el('launch-mode-control').querySelector('input[value="auto"]').checked = true;
+        updateAllControls();
+    }
+  }
+
+  function WtoS(x,y){
+    const u = (x - camera.x) * camera.zoom + canvas.width / 2;
+    const v = -(y - camera.y) * camera.zoom + canvas.height / 2;
+    return {x: u, y: v};
+  }
+
+  function StoW(u, v) {
+    const x = (u - canvas.width / 2) / camera.zoom + camera.x;
+    const y = -(v - canvas.height / 2) / camera.zoom + camera.y;
+    return {x: x, y: y};
+  }
+  
+  function drawScenery(){
+      const groundLevel = WtoS(0,0).y;
+      if (groundLevel < canvas.height) {
+          ctx.fillStyle = '#e9ecef';
+          ctx.fillRect(0, groundLevel, canvas.width, canvas.height - groundLevel);
+          ctx.strokeStyle = '#ced4da';
+          ctx.beginPath();
+          ctx.moveTo(0, groundLevel);
+          ctx.lineTo(canvas.width, groundLevel);
+          ctx.stroke();
+      }
+  }
+
+  function drawGrid() {
+      const worldCoordsTopLeft = StoW(0, 0);
+      const worldCoordsBottomRight = StoW(canvas.width, canvas.height);
+      const viewWidth = worldCoordsBottomRight.x - worldCoordsTopLeft.x;
+
+      const step = Math.pow(10, Math.floor(Math.log10(viewWidth / 5)));
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.lineWidth = 0.5;
+      ctx.font = '10px var(--font-sans)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+
+      for (let x = Math.floor(worldCoordsTopLeft.x / step) * step; x < worldCoordsBottomRight.x; x += step) {
+          if (x < 0) continue;
+          const s = WtoS(x, 0);
+          ctx.beginPath(); ctx.moveTo(s.x, 0); ctx.lineTo(s.x, canvas.height); ctx.stroke();
+          if (x > 0) ctx.fillText(`${x.toFixed(0)}m`, s.x + 4, 4);
+      }
+      for (let y = Math.floor(worldCoordsBottomRight.y / step) * step; y < worldCoordsTopLeft.y; y += step) {
+          if (y <= 0) continue;
+          const s = WtoS(0, y);
+          ctx.beginPath(); ctx.moveTo(0, s.y); ctx.lineTo(canvas.width, s.y); ctx.stroke();
+          ctx.fillText(`${y.toFixed(0)}m`, 4, s.y + 4);
+      }
+  }
+
+  function drawImageRotated(img, x, y, angle, w, h){
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.drawImage(img, -w/2, -h/2, w, h);
+      ctx.restore();
+  }
+  
+  let radarSweepAngle = 0;
+  
+  function draw(tloc, dt){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    
+    drawGrid();
+    drawScenery();
+
+    const launcherPos = WtoS(0,10);
+    const launcherAngle = solution ? (solution.ang - Math.PI/2) : -Math.PI/4;
+    drawImageRotated(assets.launcher, launcherPos.x, launcherPos.y, launcherAngle, 80, 80);
+    
+    // Label for Defender's launcher
+    ctx.font = '12px var(--font-sans)';
+    ctx.fillStyle = '#0275d8';
+    ctx.textAlign = 'center';
+    ctx.fillText('Defensor', launcherPos.x, launcherPos.y + 50);
+
+    const radarPos = WtoS(80,15);
+    drawImageRotated(assets.radar, radarPos.x, radarPos.y, 0, 60, 60);
+
+    ctx.save();
+    ctx.translate(radarPos.x, radarPos.y);
+    ctx.rotate(radarSweepAngle);
+    const grad = ctx.createLinearGradient(0,0,0,-200);
+    grad.addColorStop(0, 'rgba(139, 233, 253, 0)');
+    grad.addColorStop(1, 'rgba(139, 233, 253, 0.2)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0, 200, -Math.PI * 0.9, -Math.PI * 0.1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    const P = params();
+
+    const initialEnemyPos = enemy(0, P);
+    const eS_static = WtoS(initialEnemyPos.x, initialEnemyPos.y);
+    drawImageRotated(assets.enemyMissile, eS_static.x, eS_static.y, 0, 40, 15);
+    
+    // Label for initial Enemy position
+    ctx.font = '12px var(--font-sans)';
+    ctx.fillStyle = '#d9534f';
+    ctx.textAlign = 'center';
+    ctx.fillText('Enemigo', eS_static.x, eS_static.y - 15);
+
+
+    if(solution){
+      const {t:meetT} = solution;
+      ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = 'rgba(217, 83, 79, 0.7)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for(let s=0; s<=meetT; s+=0.1){
+          const E = enemy(s,P); if(E.y < -50/camera.zoom) break;
+          const S = WtoS(E.x,E.y);
+          if(s===0) ctx.moveTo(S.x,S.y); else ctx.lineTo(S.x,S.y);
+      }
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(2, 117, 216, 0.7)';
+      ctx.beginPath();
+      for(let s=0; s<=meetT; s+=0.1){
+          const D = defender(s, solution); if(D.y < -50/camera.zoom) break;
+          const Q = WtoS(D.x,D.y);
+          if(s===0) ctx.moveTo(Q.x,Q.y); else ctx.lineTo(Q.x,Q.y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+      const meet = WtoS(solution.meet.x, solution.meet.y);
+      ctx.strokeStyle = '#6f42c1';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(meet.x-8, meet.y); ctx.lineTo(meet.x+8, meet.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(meet.x, meet.y-8); ctx.lineTo(meet.x, meet.y+8); ctx.stroke();
+      
+      missileTrails.updateAndDraw();
+
+      if(playing) {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        drawGrid();
+        drawScenery();
+        drawImageRotated(assets.launcher, launcherPos.x, launcherPos.y, launcherAngle, 80, 80);
+        ctx.fillText('Defensor', launcherPos.x, launcherPos.y + 50);
+        drawImageRotated(assets.radar, radarPos.x, radarPos.y, 0, 60, 60);
+        ctx.save();
+        ctx.translate(radarPos.x, radarPos.y);
+        ctx.rotate(radarSweepAngle);
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0, 200, -Math.PI * 0.9, -Math.PI * 0.1); ctx.closePath(); ctx.fill();
+        ctx.restore();
+        
+        const currentEnemy = enemy(tloc, P);
+        if (tloc <= meetT) {
+          const eS = WtoS(currentEnemy.x, currentEnemy.y);
+          drawImageRotated(assets.enemyMissile, eS.x, eS.y, 0, 40, 15);
+          missileTrails.add('enemy', eS);
+          ctx.fillStyle = '#d9534f';
+          ctx.fillText('Enemigo', eS.x, eS.y - 15);
+        }
+        if (tloc <= meetT) {
+          const currentDefender = defender(tloc, solution);
+          if(currentDefender.y > -10) {
+            const dS = WtoS(currentDefender.x, currentDefender.y);
+            drawImageRotated(assets.defenderMissile, dS.x, dS.y, 0, 40, 15);
+            missileTrails.add('defender', dS);
+            ctx.fillStyle = '#0275d8';
+            ctx.fillText('Defensor', dS.x, dS.y + 20);
+          }
+        }
+        if (tloc >= meetT && !explosion.active) {
+            const coordText = `(${(solution.meet.x).toFixed(0)}, ${(solution.meet.y).toFixed(0)})`;
+            explosion.trigger(meet.x, meet.y, coordText);
+        }
+      }
+    }
+    explosion.updateAndDraw(dt);
+  }
+
+  let lastTime = 0;
+  function step(timestamp){
+    const deltaTime = (timestamp - lastTime) / 1000 || 0;
+    lastTime = timestamp;
+
+    if(playing){ 
+        t += deltaTime * simulationSpeed;
+        if(solution && t > solution.t) {
+            t = solution.t;
+        }
+    }
+    
+    radarSweepAngle -= 1.5 * deltaTime;
+    
+    draw(t, deltaTime);
+    requestAnimationFrame(step);
+  }
+
+  // Inicializar
+  assets.onLoad = () => {
+      onParams();
+      requestAnimationFrame(step);
+  };
+
+  // Hacer el header más compacto al hacer scroll
+  window.addEventListener('scroll', () => {
+    const header = document.querySelector('header');
+    if (window.scrollY > 50) {
+        header.classList.add('scrolled');
+    } else {
+        header.classList.remove('scrolled');
+    }
+  });
+});
+</script>
+</body>
+</html>
+

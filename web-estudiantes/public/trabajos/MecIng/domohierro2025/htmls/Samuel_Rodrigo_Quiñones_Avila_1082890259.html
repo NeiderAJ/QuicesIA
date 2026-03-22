@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Intercepción misil — Quiz 1 - Fisica Mecanica</title>
+
+  <!-- Tailwind CDN (autocontenido vía CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    /* Estilos extra (complementan Tailwind): fondo gris suave, títulos azules y secciones redondeadas) */
+    :root{--card-bg:#ffffff;--page-bg:#f3f4f6;--title:#1e40af;--muted:#6b7280}
+    body{background:var(--page-bg);}
+    .card { background: white; border-radius:12px; box-shadow:0 6px 20px rgba(15,23,42,0.07); }
+    .section-title{ color:var(--title); }
+    /* Canvas fixed height helper for responsiveness */
+    #simCanvas{ width:100%; height:520px; border-radius:10px; background:#0b1724; display:block }
+    /* keep original dark canvas drawing contrast */
+  </style>
+</head>
+<body class="antialiased text-slate-800">
+  <div class="max-w-7xl mx-auto p-6">
+    <header class="mb-6 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-lg bg-gradient-to-r from-sky-400 to-indigo-600"></div>
+      <div>
+        <h1 class="text-2xl font-semibold section-title">Intercepción de Misil — Simulación y Análisis</h1>
+        <p class="text-sm text-slate-600">Quiz entregable con ayuda de IA</p>
+      </div>
+    </header>
+
+    <div class="grid md:grid-cols-4 gap-6">
+      <!-- Left column: controls -->
+      <aside class="md:col-span-1 card p-4">
+        <h2 class="text-lg font-semibold section-title">Controles de la simulación</h2>
+        <p class="text-sm text-slate-600">Ajusta parámetros o genera un caso aleatorio.</p>
+
+        <label class="block text-sm mt-3 text-slate-700">Posición inicial enemigo X (m)</label>
+        <input id="e_x0" type="range" min="50" max="1200" value="400" class="w-full">
+        <div class="text-xs text-slate-500">x0 = <span id="e_x0_v">400</span> m</div>
+
+        <label class="block text-sm mt-3 text-slate-700">Altura inicial enemigo Y (m)</label>
+        <input id="e_y0" type="range" min="10" max="800" value="200" class="w-full">
+        <div class="text-xs text-slate-500">y0 = <span id="e_y0_v">200</span> m</div>
+
+        <label class="block text-sm mt-3 text-slate-700">Velocidad inicial enemigo v₀ (m/s)</label>
+        <input id="e_v0" type="range" min="100" max="400" value="220" class="w-full">
+        <div class="text-xs text-slate-500">v0 = <span id="e_v0_v">220</span> m/s</div>
+
+        <label class="block text-sm mt-3 text-slate-700">Ángulo elevación enemigo θ (°)</label>
+        <input id="e_theta" type="range" min="15" max="75" value="35" class="w-full">
+        <div class="text-xs text-slate-500">θ = <span id="e_theta_v">35</span>°</div>
+
+        <hr class="my-3">
+
+        <label class="block text-sm mt-1 text-slate-700">Posición lanzador defensor X (m)</label>
+        <input id="d_x0" type="number" value="0" class="w-full rounded-md p-2 border">
+        <div class="text-xs text-slate-500">(por defecto suelo, X = 0 m)</div>
+
+        <label class="block text-sm mt-3 text-slate-700">Velocidad inicial defensor v (m/s)</label>
+        <input id="d_v" type="range" min="50" max="1000" value="300" class="w-full">
+        <div class="text-xs text-slate-500">v = <span id="d_v_v">300</span> m/s</div>
+
+        <label class="block text-sm mt-3 text-slate-700">Ángulo defensor θᵈ (°)</label>
+        <input id="d_theta" type="range" min="0" max="85" value="45" class="w-full">
+        <div class="text-xs text-slate-500">θᵈ = <span id="d_theta_v">45</span>°</div>
+
+        <label class="block text-sm mt-3 text-slate-700">Modo</label>
+        <select id="mode" class="w-full p-2 rounded-md border"><option value="ballistic">Tiro parabólico (sin propulsor)</option><option value="powered">Con propulsor</option></select>
+
+        <label class="block text-sm mt-3 text-slate-700">Propulsor — aceleración extra (m/s²)</label>
+        <input id="a_extra" type="range" min="0" max="80" value="25" class="w-full">
+        <div class="text-xs text-slate-500">a_extra = <span id="a_extra_v">25</span> m/s²</div>
+
+        <div class="flex gap-2 mt-4">
+          <button id="random" class="px-3 py-2 bg-sky-500 text-white rounded-md">Aleatorio</button>
+          <button id="compute" class="px-3 py-2 bg-indigo-600 text-white rounded-md">Calcular</button>
+        </div>
+
+        <div class="flex gap-2 mt-2">
+          <button id="animate" class="px-3 py-2 bg-green-600 text-white rounded-md">Iniciar animación</button>
+          <button id="stop" class="px-3 py-2 bg-rose-500 text-white rounded-md">Pausar</button>
+        </div>
+
+        <div id="result" class="mt-3 p-3 bg-slate-50 rounded-md text-sm text-slate-700">Sin cálculo.</div>
+
+        <p class="text-xs text-slate-500 mt-2">Consejo: prueba detecciones altas vs bajas. Si no hay intercepción, aumenta v o activa propulsor.</p>
+      </aside>
+
+      <!-- Right column: sections + canvas -->
+      <main class="md:col-span-3 space-y-6">
+
+        <!-- Enunciado -->
+        <section class="card p-5">
+          <h2 class="text-xl font-semibold section-title">1. Enunciado del problema</h2>
+          <p class="text-sm text-slate-600 mt-2">Un radar detecta un misil enemigo en vuelo. En el instante de detección se conocen: la posición inicial \(\mathbf{r}_0\), la velocidad inicial \(\mathbf{v}_0\) y los cosenos directores \((l,m,n)\) que indican la dirección en 3D. El misil se mueve únicamente bajo la acción de la gravedad.</p>
+        </section>
+
+        <!-- Solución algebraica y reducción -->
+        <section class="card p-5">
+          <h2 class="text-xl font-semibold section-title">2. Solución algebraica (reducción a 2D)</h2>
+          <p class="text-sm text-slate-600 mt-2">Aunque el problema está en 3D, la trayectoria está contenida en un plano. Elegimos un sistema de coordenadas tal que el movimiento del enemigo quede en el plano \((x',z')\). Las ecuaciones en ese plano son las del tiro parabólico:</p>
+          <div class="mt-3 text-sm text-slate-700">
+            \[ x'(t) = x'_0 + v_{0x}' t \]
+            \[ z'(t) = z'_0 + v_{0z}' t - \tfrac{1}{2} g t^2 \]
+            <p class="mt-2">Donde \(v_{0x}'\) y \(v_{0z}'\) son las componentes en el plano elegido. Para pasar de 3D a 2D podemos proyectar sobre la base formada por la proyección horizontal de \(\mathbf{v}_0\) y el eje vertical:</p>
+            <pre class="bg-slate-50 p-2 rounded text-xs">e_1 = (v_x, v_y, 0)/\| (v_x, v_y, 0) \| 
+e_2 = (0,0,1)
+x' = \mathbf{r}_0 \cdot e_1, \quad z' = \mathbf{r}_0 \cdot e_2</pre>
+            <p class="mt-2">Condición de intercepción (t común):</p>
+            \[ x'_E(t) = x'_D(t), \qquad z'_E(t) = z'_D(t) \]
+            <p class="mt-2">Caso defensor sin propulsor:</p>
+            \[ x'_D(t) = x_{D0}' + v_D \cos\theta_D\, t, \quad z'_D(t) = z_{D0}' + v_D \sin\theta_D\, t - \tfrac12 g t^2 \]
+            <p class="mt-2">Caso con propulsor (aceleración extra \(a_p\) en la dirección de lanzamiento):</p>
+            \[ \mathbf{r}_D(t)=\mathbf{r}_{D0}+\mathbf{v}_{D0}t+\tfrac12(\mathbf{g}+\mathbf{a}_p)t^2. \]
+          </div>
+        </section>
+
+        <!-- Analisis -->
+        <section class="card p-5">
+          <h2 class="text-xl font-semibold section-title">3. Análisis funcional y límites</h2>
+          <ul class="text-sm text-slate-600 mt-2 list-disc ml-5">
+            <li>Se desprecia la resistencia del aire y la propulsión del enemigo (modelo simplificado).</li>
+            <li>La intercepción existe si hay una solución \(t>0\) que cumpla igualdad de posiciones (o error menor a tolerancia numérica).</li>
+            <li>Si la detección es muy baja, el defensor suele requerir propulsor o mayor energía inicial.</li>
+          </ul>
+        </section>
+
+        <!-- Simulacion -->
+        <section class="card p-5">
+          <h2 class="text-xl font-semibold section-title">4. Simulación interactiva</h2>
+          <p class="text-sm text-slate-600">Usa los sliders a la izquierda. La simulación dibuja en el canvas la trayectoria del misil enemigo (rojo) y la del interceptor (azul). Se realiza una búsqueda por barrido de ángulos para encontrar la intercepción.</p>
+          <div class="mt-4">
+            <canvas id="simCanvas" class="rounded-md"></canvas>
+          </div>
+        </section>
+
+        <!-- Conclusiones -->
+        <section class="card p-5">
+          <h2 class="text-xl font-semibold section-title">5. Conclusiones</h2>
+          <ul class="text-sm text-slate-600 mt-2 list-disc ml-5">
+            <li>La reducción a 2D permite usar las fórmulas clásicas del tiro parabólico para análisis y simulación.</li>
+            <li>El empleo de propulsores amplía la ventana de intercepción en escenarios cercanos al suelo.</li>
+            <li>La simulación numérica (búsqueda por barrido y animación) es una herramienta didáctica poderosa.</li>
+          </ul>
+        </section>
+
+        <!-- Bibliografía -->
+        <section class="card p-5">
+          <h2 class="text-xl font-semibold section-title">6. Bibliografía</h2>
+          <ul class="text-sm text-slate-600 mt-2 list-disc ml-5">
+            <li>Resnick, R., Halliday, D., & Krane, K. (2014). <em>Física</em> (Vol. 1). Wiley.</li>
+            <li>Serway, R. A., & Jewett, J. W. (2018). <em>Física para ciencias e ingeniería</em> (9ª ed.). Cengage Learning.</li>
+            <li>OpenAI. (2025). Asistencia en generación de código para simulación y visualización en JavaScript y HTML.</li>
+          </ul>
+        </section>
+
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Mantengo la misma lógica de simulación (sin cambios funcionales) -->
+  <script>
+    // --- Código de simulación (igual al original): ---
+    const g = 9.81;
+    const controls = ['e_x0','e_y0','e_v0','e_theta','d_x0','d_v','d_theta','mode','a_extra'];
+    controls.forEach(id=>{ const el=document.getElementById(id); const out=document.getElementById(id+'_v'); if(out){ el.addEventListener('input', ()=> out.textContent = el.value); } });
+    const pairs = [['e_x0','e_x0_v'],['e_y0','e_y0_v'],['e_v0','e_v0_v'],['e_theta','e_theta_v'],['d_v','d_v_v'],['d_theta','d_theta_v'],['a_extra','a_extra_v']];
+    pairs.forEach(p=>{ document.getElementById(p[1]).textContent = document.getElementById(p[0]).value; document.getElementById(p[0]).addEventListener('input', ()=>{ document.getElementById(p[1]).textContent = document.getElementById(p[0]).value; }); });
+
+    const canvas = document.getElementById('simCanvas'); const ctx = canvas.getContext('2d');
+    function resize(){ canvas.width = canvas.clientWidth * devicePixelRatio; canvas.height = canvas.clientHeight * devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
+    window.addEventListener('resize', resize);
+    canvas.style.width = '100%'; canvas.style.height = '520px'; resize();
+
+    function enemyPos(t, x0, y0, v0, theta){ const vx = v0*Math.cos(theta); const vy = v0*Math.sin(theta); return [x0 + vx*t, y0 + vy*t - 0.5*g*t*t]; }
+    function defenderPos(t, x0, v, theta, powered=false, a_extra=0){ const vx = v*Math.cos(theta); const vy = v*Math.sin(theta); if(!powered){ return [x0 + vx*t, 0 + vy*t - 0.5*g*t*t]; } else { const ax = a_extra*Math.cos(theta); const ay = a_extra*Math.sin(theta) - g; return [x0 + vx*t + 0.5*ax*t*t, 0 + vy*t + 0.5*ay*t*t]; } }
+
+    function findBestIntercept(params){
+      const {ex0,ey0,ev0,etheta, dx0, dv, mode, a_extra} = params;
+      const Tmax = 60; const Nt = 1200;
+      let best = {ok:false,error:1e9,t:null,angle:null,point:null};
+      for(let angDeg=0; angDeg<=85; angDeg+=1){
+        const thetaD = angDeg*Math.PI/180;
+        for(let i=1;i<=Nt;i++){
+          const t = Tmax*i/Nt;
+          const pe = enemyPos(t, ex0, ey0, ev0, etheta);
+          const pd = defenderPos(t, dx0, dv, thetaD, mode==='powered', a_extra);
+          if(pd[1] < -5) continue;
+          if(pe[1] < -5) break;
+          const err = Math.hypot(pe[0]-pd[0], pe[1]-pd[1]);
+          if(err < best.error){ best = {ok: err<2.0, error:err, t:t, angle:thetaD, point: [(pe[0]+pd[0])/2, (pe[1]+pd[1])/2], pe, pd}; }
+        }
+      }
+      return best;
+    }
+
+    function drawScene(state){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const padding = 40;
+      const ptsE = []; const ptsD = [];
+      const Tmax = 60;
+      for(let t=0;t<=Tmax;t+=0.1){ ptsE.push(enemyPos(t,state.ex0,state.ey0,state.ev0,state.etheta)); ptsD.push(defenderPos(t,state.dx0,state.dv,state.bestAngle||state.dtheta, state.mode==='powered', state.a_extra)); }
+      const allX = ptsE.concat(ptsD).map(p=>p[0]); const allY = ptsE.concat(ptsD).map(p=>p[1]);
+      const xmin = Math.min(0, ...allX); const xmax = Math.max(...allX); const ymin = Math.min(0, ...allY); const ymax = Math.max(...allY);
+      const W = canvas.clientWidth - 2*padding; const H = canvas.clientHeight - 2*padding;
+      const sx = W / Math.max(1, (xmax - xmin) || 1); const sy = H / Math.max(1, (ymax - ymin) || 1); const s = Math.min(sx, sy);
+      const ox = padding - xmin*s; const oy = padding + ymax*s;
+      ctx.strokeStyle = '#083146'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ox + xmin*s, oy); ctx.lineTo(ox + (xmax)*s, oy); ctx.stroke();
+
+      ctx.beginPath(); ctx.lineWidth = 2; ctx.strokeStyle = '#ff6b6b'; let started=false;
+      for(let i=0;i<ptsE.length;i++){ const [x,y]=ptsE[i]; if(y < -10) break; const cx = ox + x*s; const cy = oy - y*s; if(!started){ ctx.moveTo(cx,cy); started=true; } else ctx.lineTo(cx,cy); }
+      ctx.stroke();
+
+      ctx.beginPath(); ctx.lineWidth = 2; ctx.strokeStyle = '#60a5fa'; started=false;
+      for(let i=0;i<ptsD.length;i++){ const [x,y]=ptsD[i]; if(y < -10) break; const cx = ox + x*s; const cy = oy - y*s; if(!started){ ctx.moveTo(cx,cy); started=true; } else ctx.lineTo(cx,cy); }
+      ctx.stroke();
+
+      ctx.fillStyle = '#ff6b6b'; ctx.beginPath(); const ex = ox + state.ex0*s; const ey = oy - state.ey0*s; ctx.arc(ex,ey,6,0,2*Math.PI); ctx.fill();
+      ctx.fillStyle = '#60a5fa'; ctx.beginPath(); const dx = ox + state.dx0*s; const dy = oy - 0*s; ctx.arc(dx,dy,6,0,2*Math.PI); ctx.fill();
+
+      if(state.best && state.best.ok){ ctx.fillStyle='#9ae6b4'; ctx.beginPath(); const cx = ox + state.best.point[0]*s; const cy = oy - state.best.point[1]*s; ctx.arc(cx,cy,8,0,2*Math.PI); ctx.fill(); ctx.strokeStyle='#065f46'; ctx.lineWidth=2; ctx.stroke(); }
+
+      ctx.fillStyle='#94a3b8'; ctx.font='13px Arial'; ctx.fillText('Enemigo', ex+8, ey-8); ctx.fillText('Defensor', dx+8, dy-8);
+      ctx.fillStyle='#94a3b8'; ctx.font='12px Arial'; ctx.fillText(`x: ${Math.round(xmin)} → ${Math.round(xmax)} m`, 12,12); ctx.fillText(`y: ${Math.round(ymin)} → ${Math.round(ymax)} m`, 12,28);
+    }
+
+    function readState(){
+      const ex0 = Number(document.getElementById('e_x0').value);
+      const ey0 = Number(document.getElementById('e_y0').value);
+      const ev0 = Number(document.getElementById('e_v0').value);
+      const etheta = Number(document.getElementById('e_theta').value)*Math.PI/180;
+      const dx0 = Number(document.getElementById('d_x0').value);
+      const dv = Number(document.getElementById('d_v').value);
+      const dtheta = Number(document.getElementById('d_theta').value)*Math.PI/180;
+      const mode = document.getElementById('mode').value;
+      const a_extra = Number(document.getElementById('a_extra').value);
+      return {ex0,ey0,ev0,etheta,dx0,dv,dtheta,mode,a_extra};
+    }
+
+    let lastState = null;
+    document.getElementById('compute').addEventListener('click', ()=>{
+      const st = readState();
+      const best = findBestIntercept({ex0:st.ex0,ey0:st.ey0,ev0:st.ev0,etheta:st.etheta,dx0:st.dx0,dv:st.dv,mode:st.mode,a_extra:st.a_extra});
+      st.best = best; st.bestAngle = best.angle; st.dtheta = st.dtheta;
+      lastState = st;
+      drawScene(st);
+      const resBox = document.getElementById('result');
+      if(best.ok){ resBox.innerHTML = `<div class="text-sm text-emerald-700">Intercepción posible en t=${best.t.toFixed(2)} s — error ${best.error.toFixed(2)} m — ángulo defensor ${(best.angle*180/Math.PI).toFixed(1)}°</div>`; }
+      else{ resBox.innerHTML = `<div class="text-sm text-rose-600">No se encontró intercepción (mejor error ${best.error.toFixed(2)} m). Prueba aumentar v o activar propulsor.</div>`; }
+    });
+
+    document.getElementById('random').addEventListener('click', ()=>{
+      document.getElementById('e_x0').value = Math.round(100 + Math.random()*900);
+      document.getElementById('e_y0').value = Math.round(30 + Math.random()*500);
+      document.getElementById('e_v0').value = Math.round(100 + Math.random()*300);
+      document.getElementById('e_theta').value = Math.round(15 + Math.random()*60);
+      document.getElementById('d_v').value = Math.round(150 + Math.random()*600);
+      document.getElementById('a_extra').value = Math.round(Math.random()*60);
+      pairs.forEach(p=>{ document.getElementById(p[1]).textContent = document.getElementById(p[0]).value; });
+      document.getElementById('compute').click();
+    });
+
+    let animId = null; let currentT = 0; let playing = false;
+    function animate(){
+      if(!lastState) return;
+      currentT += 0.033;
+      const st = lastState;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const padding = 40;
+      const ptsE = []; const ptsD = [];
+      for(let t=0;t<=Math.min(60,currentT);t+=0.05){ ptsE.push(enemyPos(t,st.ex0,st.ey0,st.ev0,st.etheta)); ptsD.push(defenderPos(t,st.dx0,st.dv,st.bestAngle||st.dtheta, st.mode==='powered', st.a_extra)); }
+      for(let t=currentT;t<=60;t+=0.5){ ptsE.push(enemyPos(t,st.ex0,st.ey0,st.ev0,st.etheta)); ptsD.push(defenderPos(t,st.dx0,st.dv,st.bestAngle||st.dtheta, st.mode==='powered', st.a_extra)); break; }
+      const allX = ptsE.concat(ptsD).map(p=>p[0]); const allY = ptsE.concat(ptsD).map(p=>p[1]);
+      const xmin = Math.min(0, ...allX); const xmax = Math.max(...allX); const ymin = Math.min(0, ...allY); const ymax = Math.max(...allY);
+      const W = canvas.clientWidth - 2*padding; const H = canvas.clientHeight - 2*padding;
+      const sx = W / Math.max(1, (xmax - xmin) || 1); const sy = H / Math.max(1, (ymax - ymin) || 1); const s = Math.min(sx, sy);
+      const ox = padding - xmin*s; const oy = padding + ymax*s;
+      ctx.beginPath(); ctx.lineWidth = 2; ctx.strokeStyle = '#ff6b6b'; let started=false;
+      for(let i=0;i<ptsE.length;i++){ const [x,y]=ptsE[i]; if(y < -10) break; const cx=ox+x*s; const cy=oy-y*s; if(!started){ ctx.moveTo(cx,cy); started=true; } else ctx.lineTo(cx,cy); }
+      ctx.stroke();
+      ctx.beginPath(); ctx.lineWidth = 2; ctx.strokeStyle = '#60a5fa'; started=false;
+      for(let i=0;i<ptsD.length;i++){ const [x,y]=ptsD[i]; if(y < -10) break; const cx=ox+x*s; const cy=oy-y*s; if(!started){ ctx.moveTo(cx,cy); started=true; } else ctx.lineTo(cx,cy); }
+      ctx.stroke();
+      const pe = enemyPos(currentT,st.ex0,st.ey0,st.ev0,st.etheta); const pd = defenderPos(currentT,st.dx0,st.dv,st.bestAngle||st.dtheta, st.mode==='powered', st.a_extra);
+      if(pe[1] > -10){ ctx.fillStyle='#ff6b6b'; ctx.beginPath(); ctx.arc(ox+pe[0]*s, oy-pe[1]*s,6,0,2*Math.PI); ctx.fill(); }
+      if(pd[1] > -10){ ctx.fillStyle='#60a5fa'; ctx.beginPath(); ctx.arc(ox+pd[0]*s, oy-pd[1]*s,6,0,2*Math.PI); ctx.fill(); }
+      if(st.best && Math.abs(currentT - st.best.t) < 0.05){ ctx.fillStyle='#9ae6b4'; ctx.beginPath(); const cx=ox+st.best.point[0]*s; const cy=oy-st.best.point[1]*s; ctx.arc(cx,cy,8,0,2*Math.PI); ctx.fill(); }
+      if(currentT > 60){ playing=false; cancelAnimationFrame(animId); }
+      if(playing) animId = requestAnimationFrame(animate);
+    }
+
+    document.getElementById('animate').addEventListener('click', ()=>{ if(!lastState) document.getElementById('compute').click(); if(!lastState) return; playing=true; currentT=0; cancelAnimationFrame(animId); animate(); });
+    document.getElementById('stop').addEventListener('click', ()=>{ playing=false; cancelAnimationFrame(animId); });
+
+    // initial example
+    document.getElementById('random').click();
+  </script>
+</body>
+</html>

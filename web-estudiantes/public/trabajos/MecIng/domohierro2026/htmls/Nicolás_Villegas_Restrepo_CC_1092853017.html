@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defensa Antimisiles - Proyecto Física UdeA</title>
+    
+    <!-- Fuentes y Tailwind CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Configuración de MathJax para Ecuaciones -->
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+            chtml: { scale: 1.15 }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+    <style>
+        :root {
+            var(--neon-green): #84cc16;
+            var(--military-green): #15803d;
+            var(--dark-bg): #0f110c;
+            var(--panel-bg): rgba(20, 24, 18, 0.7);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f110c;
+            color: #d4d4d8;
+            background-image: 
+                linear-gradient(rgba(101, 163, 13, 0.15) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(101, 163, 13, 0.15) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .font-tech { font-family: 'JetBrains Mono', monospace; }
+
+        .tech-panel {
+            background: rgba(20, 24, 18, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(132, 204, 22, 0.15);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+            transition: all 0.3s ease;
+        }
+        .tech-panel:hover {
+            border-color: rgba(132, 204, 22, 0.4);
+            box-shadow: 0 4px 30px rgba(132, 204, 22, 0.08), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        .math-box {
+            background: rgba(15, 17, 12, 0.8);
+            border-left: 4px solid #84cc16;
+            padding: 1.5rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+            overflow-x: auto;
+            color: #f4f4f5;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        canvas {
+            background: radial-gradient(circle at 50% 100%, #1e293b 0%, #020617 100%);
+            border-radius: 0.5rem;
+            cursor: crosshair;
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f110c; }
+        ::-webkit-scrollbar-thumb { background: #3f6212; border-radius: 4px; border: 1px solid #1a2e05; }
+        ::-webkit-scrollbar-thumb:hover { background: #84cc16; }
+        
+        .nav-scroll::-webkit-scrollbar { height: 4px; }
+        .text-glow { text-shadow: 0 0 10px rgba(132, 204, 22, 0.5); }
+        .text-glow-rose { text-shadow: 0 0 10px rgba(244, 63, 94, 0.5); }
+        mjx-container { color: #d4d4d8 !important; }
+        section { scroll-margin-top: 6rem; }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen selection:bg-lime-500/30 selection:text-lime-50">
+
+    <!-- BARRA DE NAVEGACIÓN -->
+    <nav class="fixed top-0 w-full z-50 bg-[#0f110c]/90 backdrop-blur-md border-b border-lime-500/30 shadow-[0_0_15px_rgba(132,204,22,0.1)]">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-14">
+                <div class="flex-shrink-0 font-tech font-bold text-lg flex items-center gap-3 text-lime-400">
+                    <i class="fa-solid fa-crosshairs fa-spin-pulse"></i> 
+                    <span class="tracking-widest text-glow">SISTEMA A.M.D.</span>
+                    <span class="text-xs border border-lime-500/50 px-2 py-0.5 rounded text-lime-200 bg-lime-500/10">V.2.1</span>
+                </div>
+            </div>
+        </div>
+        <div class="bg-black/40 border-t border-lime-900/50 overflow-x-auto nav-scroll">
+            <div class="max-w-7xl mx-auto px-4 py-2 flex items-center gap-2 text-xs font-tech font-medium whitespace-nowrap">
+                <a href="#pto1" class="text-stone-400 hover:text-lime-400 hover:bg-lime-900/20 px-3 py-1.5 rounded transition">01. ENUNCIADO</a>
+                <a href="#pto2" class="text-stone-400 hover:text-lime-400 hover:bg-lime-900/20 px-3 py-1.5 rounded transition">02. ÁLGEBRA</a>
+                <a href="#pto3" class="text-stone-400 hover:text-lime-400 hover:bg-lime-900/20 px-3 py-1.5 rounded transition">03. TÁCTICA</a>
+                <a href="#pto4" class="text-stone-400 hover:text-lime-400 hover:bg-lime-900/20 px-3 py-1.5 rounded transition">04. ALGORITMO</a>
+                <a href="#pto5" class="bg-lime-600/20 text-lime-400 border border-lime-500/50 hover:bg-lime-600 hover:text-black px-3 py-1.5 rounded transition flex items-center gap-2 shadow-[0_0_10px_rgba(132,204,22,0.2)]">
+                    <i class="fa-solid fa-play text-[10px]"></i> 05. SIMULADOR
+                </a>
+                <a href="#pto6" class="text-stone-400 hover:text-lime-400 hover:bg-lime-900/20 px-3 py-1.5 rounded transition">06. APLICACIÓN</a>
+                <a href="#pto7" class="text-stone-400 hover:text-lime-400 hover:bg-lime-900/20 px-3 py-1.5 rounded transition">07. CONCLUSIÓN</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CABECERA -->
+    <header class="max-w-6xl mx-auto px-4 pt-32 pb-24 text-center relative">
+        <div class="absolute inset-0 flex justify-center items-center pointer-events-none opacity-20">
+            <div class="w-64 h-64 bg-lime-500 rounded-full blur-[100px]"></div>
+            <div class="w-64 h-64 bg-green-700 rounded-full blur-[100px] -ml-20"></div>
+        </div>
+        <div class="relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-stone-900/80 border border-stone-700 mb-6 font-tech text-xs text-stone-300">
+                <span class="w-2 h-2 rounded-full bg-lime-400 animate-pulse"></span> Sistema Operativo En Línea
+            </div>
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-lime-400 via-green-400 to-emerald-500 mb-6 tracking-tight drop-shadow-lg">
+                Física Cinemática Aplicada a Defensa Antimisiles
+            </h1>
+            <p class="text-lg md:text-xl text-stone-400 font-light max-w-4xl mx-auto leading-relaxed">
+                Análisis físico-matemático detallado para la interceptación de proyectiles balísticos mediante reducción dimensional espacial y métodos predictivos deterministas.
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 pb-24 flex-grow w-full">
+
+        <div class="flex flex-col gap-12 mb-16">
+
+            <!-- PUNTO 1 -->
+            <section id="pto1" class="tech-panel p-8 md:p-10 rounded-2xl relative overflow-hidden group">
+                <div class="absolute top-0 left-0 w-1 h-full bg-lime-500 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <h2 class="text-2xl font-tech font-bold text-white mb-8 flex items-center gap-4">
+                    <span class="bg-lime-500/20 text-lime-400 border border-lime-500/30 px-3 py-1 rounded text-lg">01</span> 
+                    Enunciado y Suposiciones del Modelo
+                </h2>
+                
+                <div class="grid md:grid-cols-12 gap-10 items-start">
+                    <div class="md:col-span-7 space-y-6 text-base text-stone-300 leading-relaxed">
+                        <p>
+                            Un radar de un sistema de defensa terrestre detecta un misil enemigo en pleno vuelo. En el instante exacto de la detección, al cual llamaremos <span class="text-lime-400 font-tech">$t=0$</span>, los sensores de largo alcance nos proporcionan una lectura espacial tridimensional de la amenaza.
+                        </p>
+                        <p>
+                            A partir de este instante crítico, el computador central asume que el misil enemigo es un <strong>proyectil balístico puro</strong>. Esto significa que sus motores se han apagado (burnout) y ahora su trayectoria está dictada exclusivamente por las leyes de la mecánica clásica de Newton.
+                        </p>
+                        
+                        <!-- NUEVA INFORMACIÓN TEÓRICA -->
+                        <div class="bg-stone-900/80 p-5 rounded-lg border-l-2 border-lime-600 mt-6">
+                            <h4 class="text-lime-400 font-tech text-sm font-bold mb-3 uppercase">Condiciones Ideales del Sistema Físico</h4>
+                            <p class="text-sm mb-3">Para modelar matemáticamente esta trayectoria mediante ecuaciones analíticas (cerradas) sin recurrir a integración numérica, asumimos tres axiomas mecánicos fundamentales:</p>
+                            <ul class="list-disc pl-5 space-y-2 text-sm text-stone-400">
+                                <li><strong>Modelo de Partícula Puntual:</strong> Ignoramos la geometría, rotación (efecto Magnus) y distribución de masa del misil. Toda su masa se concentra en su centro de gravedad.</li>
+                                <li><strong>Gravedad Constante:</strong> Asumimos un campo gravitatorio uniforme $\vec{g} = 9.81 \hat{-j} \text{ m/s}^2$. En la realidad, varía ligeramente con la altitud ($g = GM/(R+h)^2$).</li>
+                                <li><strong>Resistencia Aerodinámica Nula:</strong> Omitimos la fuerza de arrastre del aire ($F_D = \frac{1}{2}\rho v^2 C_d A$). Incluirla transformaría nuestras parábolas perfectas en curvas asimétricas (curvas de Tartaglia), requiriendo resolución por métodos de Runge-Kutta.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="md:col-span-5 bg-stone-900/60 p-6 rounded-xl border border-stone-800 shadow-inner">
+                        <h3 class="text-lime-400 font-tech text-sm font-bold mb-4 tracking-widest border-b border-stone-700 pb-2">TELEMETRÍA CAPTURADA EN $t=0$</h3>
+                        <ul class="space-y-4 font-tech text-sm">
+                            <li class="flex gap-4 items-center bg-black/40 p-3 rounded">
+                                <i class="fa-solid fa-location-crosshairs text-lime-400 text-xl w-6"></i> 
+                                <div>
+                                    <span class="block text-stone-500 text-xs">Vector de Posición</span>
+                                    <span class="text-stone-200">$\vec{r}_0 = X_0\hat{i} + Y_0\hat{j} + Z_0\hat{k}$</span>
+                                </div>
+                            </li>
+                            <li class="flex gap-4 items-center bg-black/40 p-3 rounded">
+                                <i class="fa-solid fa-tachometer-fast text-lime-400 text-xl w-6"></i> 
+                                <div>
+                                    <span class="block text-stone-500 text-xs">Vector de Velocidad</span>
+                                    <span class="text-stone-200">$\vec{v}_0 = v_{x0}\hat{i} + v_{y0}\hat{j} + v_{z0}\hat{k}$</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PUNTO 2 -->
+            <section id="pto2" class="tech-panel p-8 md:p-10 rounded-2xl relative overflow-hidden group">
+                <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <h2 class="text-2xl font-tech font-bold text-white mb-8 flex items-center gap-4">
+                    <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded text-lg">02</span> 
+                    Desarrollo Algebraico y Resolución de $T_{vuelo}$
+                </h2>
+                
+                <div class="space-y-10">
+                    <div class="grid md:grid-cols-2 gap-10">
+                        <div>
+                            <h3 class="text-base font-bold text-emerald-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-compress text-emerald-500"></i> Paso A: Reducción Isomórfica 3D a 2D
+                            </h3>
+                            <p class="text-stone-300 leading-relaxed mb-4">
+                                Computar trayectorias en $\mathbb{R}^3$ es redundante. Dado que la fuerza rectriz neta (la gravedad) actúa en un solo eje ($\hat{-j}$), y no hay fuerzas laterales, el vector velocidad inicial $\vec{v}_0$ y el vector $\vec{g}$ definen un <strong>plano osculador inmutable</strong>.
+                            </p>
+                            <p class="text-stone-300 leading-relaxed">
+                                Matemáticamente, realizamos una transformación de coordenadas colapsando los ejes X y Z en un eje horizontal unificado $X'$, y manteniendo el eje Y para la altitud.
+                            </p>
+                        </div>
+                        <div class="math-box text-base flex flex-col justify-center border-emerald-500 bg-emerald-950/10">
+                            $$V_{horizontal} = \sqrt{v_{x0}^2 + v_{z0}^2}$$
+                            $$X'_{plano}(t) = \int V_{horizontal} \,dt$$
+                        </div>
+                    </div>
+
+                    <hr class="border-stone-800">
+
+                    <!-- Sección B Expandida: Ecuaciones Paramétricas -->
+                    <div>
+                        <h3 class="text-base font-bold text-emerald-400 mb-6 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-emerald-500"></i> Paso B: Parametrización del Sistema Dinámico
+                        </h3>
+                        
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div class="bg-stone-900/40 p-6 rounded-xl border border-rose-600/30">
+                                <h4 class="font-tech text-rose-500 font-bold mb-2 tracking-widest flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-rose-600"></span> 1. LA AMENAZA (Balística)
+                                </h4>
+                                <p class="text-sm text-stone-400 mb-4 leading-relaxed">
+                                    Aceleración horizontal nula ($a_x = 0$) (Movimiento Rectilíneo Uniforme). Aceleración vertical gravitacional ($a_y = -g$) (Movimiento Uniformemente Acelerado).
+                                </p>
+                                <div class="bg-black/50 p-4 rounded text-center text-rose-100 overflow-x-auto text-sm">
+                                    $$X_e(t) = X_0 + v_{0x} t$$
+                                    $$Y_e(t) = Y_0 + v_{0y} t - \frac{1}{2} g t^2$$
+                                </div>
+                            </div>
+
+                            <div class="bg-stone-900/40 p-6 rounded-xl border border-lime-600/30">
+                                <h4 class="font-tech text-lime-500 font-bold mb-2 tracking-widest flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-lime-600"></span> 2. EL INTERCEPTOR (Defensa)
+                                </h4>
+                                <p class="text-sm text-stone-400 mb-4 leading-relaxed">
+                                    Incluye un retraso algorítmico y mecánico $t_L$ (Latencia de lanzamiento). Considera propulsión opcional ($a_x, a_y$).
+                                </p>
+                                <div class="bg-black/50 p-4 rounded text-center text-lime-100 overflow-x-auto text-sm">
+                                    $$X_i(t) = X_b + v_{ix} (t - t_L) + \frac{1}{2} a_x (t - t_L)^2$$
+                                    $$Y_i(t) = Y_b + v_{iy} (t - t_L) + \frac{1}{2} (a_y - g) (t - t_L)^2$$
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="border-stone-800">
+
+                    <!-- NUEVO: Paso C Expandido -->
+                    <div class="grid md:grid-cols-12 gap-10 items-center">
+                        <div class="md:col-span-7">
+                            <h3 class="text-base font-bold text-amber-500 mb-3 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-calculator text-amber-500"></i> Paso C: Resolución del Tiempo de Vuelo ($T_{vuelo}$)
+                            </h3>
+                            <p class="text-stone-300 leading-relaxed text-sm">
+                                Antes de lanzar, la computadora debe saber cuánto tiempo le queda a la amenaza antes de impactar el suelo ($Y_e = 0$). Igualando la ecuación de $Y_e(t)$ a cero obtenemos una ecuación cuadrática de la forma $At^2 + Bt + C = 0$:
+                            </p>
+                            <p class="text-stone-300 leading-relaxed text-sm mt-3">
+                                $$-\frac{1}{2}g t^2 + v_{0y} t + Y_0 = 0$$
+                            </p>
+                            <p class="text-stone-300 leading-relaxed text-sm mt-3">
+                                Resolviendo mediante la fórmula general y tomando la raíz positiva (tiempo futuro), hallamos $T_{vuelo}$. Luego, el algoritmo táctico decide que la intercepción ocurrirá en una fracción arbitraria de ese tiempo, por ejemplo, a la mitad del trayecto ($t_{int} = 0.5 \cdot T_{vuelo}$).
+                            </p>
+                        </div>
+                        <div class="md:col-span-5 math-box text-sm flex flex-col justify-center border-amber-500 bg-amber-950/20">
+                            $$T_{vuelo} = \frac{v_{0y} + \sqrt{v_{0y}^2 + 2gY_0}}{g}$$
+                            <br>
+                            \text{Condición de Impacto:}
+                            $$X_e(t_{int}) = X_i(t_{int})$$
+                            $$Y_e(t_{int}) = Y_i(t_{int})$$
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PUNTO 3 -->
+            <section id="pto3" class="tech-panel p-8 md:p-10 rounded-2xl relative overflow-hidden group">
+                <div class="absolute top-0 left-0 w-1 h-full bg-green-500 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <h2 class="text-2xl font-tech font-bold text-white mb-8 flex items-center gap-4">
+                    <span class="bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1 rounded text-lg">03</span> 
+                    Análisis Táctico y Gestión de Energía
+                </h2>
+                
+                <p class="text-base text-stone-300 mb-8 leading-relaxed max-w-4xl">
+                    Forzar geométricamente $X_e = X_i$ y $Y_e = Y_i$ siempre arrojará un resultado algebraico para la velocidad inicial del interceptor $(v_{ix}, v_{iy})$. Sin embargo, la física impone <strong>límites estructurales y de energía cinética</strong>. El sistema evalúa la Energía Mecánica requerida basándose en la altitud inicial ($Y_0$):
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-stone-900/60 border border-green-500/30 p-6 rounded-xl flex flex-col gap-4 relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 opacity-10"><i class="fa-solid fa-leaf text-9xl text-green-500"></i></div>
+                        <div class="flex items-center gap-4 border-b border-stone-800 pb-4 relative z-10">
+                            <div class="bg-black/50 p-4 rounded-full border border-stone-700">
+                                <i class="fa-solid fa-satellite-dish text-green-400 text-2xl"></i>
+                            </div>
+                            <h3 class="text-white text-lg font-bold">Detección Alta ($Y_0 \gg 0$)<br><span class="text-xs text-green-400 font-tech font-normal">INTERCEPCIÓN PASIVA</span></h3>
+                        </div>
+                        <p class="text-stone-300 leading-relaxed text-sm relative z-10">
+                            Un blanco alto implica un gran $T_{vuelo}$ remanente (mucha energía potencial inicial). Esto le da tiempo al interceptor para operar balísticamente.<br><br>
+                            Se dispara como un proyectil de artillería. La energía cinética inicial $K = \frac{1}{2}m v_i^2$ se transforma lentamente en energía potencial $U = mgy$. Es el método más eficiente ya que no requiere masa extra de combustible continuo.
+                        </p>
+                    </div>
+
+                    <div class="bg-stone-900/60 border border-amber-600/30 p-6 rounded-xl flex flex-col gap-4 relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 opacity-10"><i class="fa-solid fa-fire text-9xl text-amber-500"></i></div>
+                        <div class="flex items-center gap-4 border-b border-stone-800 pb-4 relative z-10">
+                            <div class="bg-black/50 p-4 rounded-full border border-stone-700">
+                                <i class="fa-solid fa-jet-fighter text-amber-500 text-2xl"></i>
+                            </div>
+                            <h3 class="text-white text-lg font-bold">Detección Baja ($Y_0 \to 0$)<br><span class="text-xs text-amber-400 font-tech font-normal">INTERCEPCIÓN ACTIVA</span></h3>
+                        </div>
+                        <p class="text-stone-300 leading-relaxed text-sm relative z-10">
+                            Un blanco bajo significa inminencia de impacto (tiempo críticamente corto). Si usáramos una ruta balística, la velocidad inicial requerida superaría el límite de estrés térmico/estructural del interceptor (fuerzas G extremas en el tubo de lanzamiento).<br><br>
+                            Por tanto, se activa un cohete sustentador. El trabajo realizado por fuerzas no conservativas (el empuje del motor $W = \int F_{motor} \cdot dr$) contrarresta la gravedad, permitiendo una trayectoria tensa, lineal y de altísima velocidad sostenida.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PUNTO 4 -->
+            <section id="pto4" class="tech-panel p-8 md:p-10 rounded-2xl relative overflow-hidden group">
+                <div class="absolute top-0 left-0 w-1 h-full bg-teal-600 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <h2 class="text-2xl font-tech font-bold text-white mb-6 flex items-center gap-4">
+                    <span class="bg-teal-600/20 text-teal-400 border border-teal-600/30 px-3 py-1 rounded text-lg">04</span> 
+                    Arquitectura del Algoritmo Computacional
+                </h2>
+                
+                <p class="text-base text-stone-300 mb-6 leading-relaxed">
+                    La belleza de un modelo mecanicista clásico reside en su **complejidad computacional**. Al tener ecuaciones cerradas (funciones explícitas del tiempo $f(t)$), el costo algorítmico de calcular la intersección es $\mathcal{O}(1)$ —tiempo constante—. Esto es vital en defensa aérea donde procesadores militares deben calcular rutas en milisegundos.
+                </p>
+                
+                <div class="grid md:grid-cols-2 gap-8 font-tech text-sm mt-8">
+                    <!-- Caja Variables -->
+                    <div class="p-6 rounded-xl border-l-4 border-stone-500 bg-gradient-to-r from-stone-500/10 to-transparent hover:bg-stone-800/50 transition">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fa-solid fa-dice text-stone-400 text-xl"></i>
+                            <div class="text-stone-300 font-bold tracking-widest text-base">RUTINA ESTOCÁSTICA (PRUEBA)</div>
+                        </div>
+                        <p class="text-stone-400 mb-4 font-sans leading-relaxed text-sm">
+                            Genera variables aleatorias para evaluar la adaptabilidad matemática de la defensa:
+                        </p>
+                        <ul class="list-none space-y-3 text-stone-300">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-code-commit text-stone-500"></i> `Random.range(-4000, 4000)` para coordenada $X$.</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-code-commit text-stone-500"></i> `Random.range(500, 2500)` para altitud $Y$.</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-code-commit text-stone-500"></i> El motor calcula $v_0$ automáticamente para forzar un impacto en la base si no existiera defensa.</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Caja Cálculo -->
+                    <div class="p-6 rounded-xl border-l-4 border-lime-500 bg-gradient-to-r from-lime-500/10 to-transparent hover:bg-lime-900/20 transition">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fa-solid fa-microchip text-lime-400 text-xl"></i>
+                            <div class="text-lime-300 font-bold tracking-widest text-base">NÚCLEO DETERMINISTA</div>
+                        </div>
+                        <p class="text-stone-400 mb-4 font-sans leading-relaxed text-sm">
+                            Pasos ejecutados secuencialmente sin bucles `while` (eficiencia extrema):
+                        </p>
+                        <ul class="list-decimal pl-5 space-y-2 text-stone-300 font-sans text-sm leading-relaxed marker:text-lime-500">
+                            <li>Extracción de raíces cuadráticas para hallar $T_{vuelo}$.</li>
+                            <li>Definición de constante $t_{int} = T_{vuelo} \times 0.5$.</li>
+                            <li>Resolución directa de velocidades de disparo mediante despeje algebraico simple: $v_{ix} = \Delta X / \Delta t$.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+        </div> 
+
+        <!-- ========================================================================= -->
+        <!-- PUNTO 5: SIMULACIÓN INTERACTIVA -->
+        <!-- ========================================================================= -->
+        <section id="pto5" class="bg-slate-900 border-2 border-cyan-500/50 rounded-2xl shadow-[0_0_30px_rgba(6,182,212,0.15)] relative overflow-hidden mb-16">
+            <div class="bg-slate-950 border-b border-cyan-500/30 px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <h2 class="font-tech font-bold text-white tracking-widest text-xl">
+                        05. ENTORNO DE SIMULACIÓN EN TIEMPO REAL
+                    </h2>
+                </div>
+                <div class="font-tech text-xs text-cyan-500 border border-cyan-500/30 px-3 py-1.5 rounded bg-cyan-950/50 hidden md:block">
+                    ESTADO: <span class="text-emerald-400 text-glow">EN LÍNEA</span>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-12 p-1 gap-1">
+                <!-- PANEL IZQUIERDO -->
+                <div class="lg:col-span-3 bg-slate-950 p-6 border-r border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-tech text-sm font-bold text-cyan-500 mb-6 tracking-widest border-b border-slate-800 pb-3">
+                            <i class="fa-solid fa-sliders mr-2"></i>PARÁMETROS AMENAZA
+                        </h3>
+                        
+                        <div class="space-y-6 mb-8">
+                            <div class="group">
+                                <div class="flex justify-between font-tech text-[11px] text-slate-400 mb-2">
+                                    <span>COORDENADA X_0</span> 
+                                    <span id="val-x" class="text-cyan-400 group-hover:text-glow">3500 m</span>
+                                </div>
+                                <input type="range" id="slider-x" min="-5000" max="5000" step="100" value="3500" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+                            </div>
+                            <div class="group">
+                                <div class="flex justify-between font-tech text-[11px] text-slate-400 mb-2">
+                                    <span>ALTITUD Y_0</span> 
+                                    <span id="val-y" class="text-cyan-400 group-hover:text-glow">1000 m</span>
+                                </div>
+                                <input type="range" id="slider-y" min="500" max="2500" step="50" value="1000" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+                            </div>
+                            <div class="group">
+                                <div class="flex justify-between font-tech text-[11px] text-slate-400 mb-2">
+                                    <span>ÁNGULO TIRO ($\theta$)</span> 
+                                    <span id="val-a" class="text-cyan-400 group-hover:text-glow">55°</span>
+                                </div>
+                                <input type="range" id="slider-a" min="15" max="75" value="55" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+                            </div>
+                            
+                            <div class="bg-slate-900 border border-rose-500/30 p-4 rounded-lg mt-6 relative overflow-hidden">
+                                <div class="absolute left-0 top-0 w-1 h-full bg-rose-500"></div>
+                                <div class="flex justify-between font-tech text-xs text-slate-400 mb-1 pl-2">
+                                    <span>VELOCIDAD $v_0$</span> 
+                                </div>
+                                <div id="val-v" class="font-tech text-rose-400 font-bold text-xl pl-2 text-glow-rose">...</div>
+                                <div class="text-[10px] text-slate-500 font-tech mt-2 pl-2 uppercase">Autocalculada para alcance máximo</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 mt-6">
+                        <button id="btn-manual" class="w-full bg-cyan-600/10 hover:bg-cyan-600/30 border border-cyan-500/50 text-cyan-300 font-tech text-sm py-4 rounded-lg transition-all hover:shadow-[0_0_15px_rgba(6,182,212,0.4)] flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-satellite-dish"></i> EJECUTAR SIMULACIÓN
+                        </button>
+                        <button id="btn-random" class="w-full bg-amber-500/10 hover:bg-amber-500/30 border border-amber-500/50 text-amber-300 font-tech text-sm py-4 rounded-lg transition-all hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-shuffle"></i> GENERAR AMENAZA ALEATORIA
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CANVAS DERECHO -->
+                <div class="lg:col-span-9 flex flex-col relative bg-slate-900 min-h-[500px] overflow-hidden">
+                    <div class="bg-black/50 text-emerald-400 font-tech text-xs p-3 border-b border-slate-800 flex flex-wrap justify-between items-center z-10 px-5 gap-2">
+                        <span id="terminal-status" class="flex items-center gap-2">
+                            <i class="fa-solid fa-terminal text-slate-500"></i> Esperando datos de telemetría...
+                        </span>
+                        <div class="flex gap-4">
+                            <span id="terminal-strat" class="text-amber-400"></span>
+                            <span id="terminal-zoom" class="text-cyan-500 border border-cyan-800/50 bg-cyan-900/20 px-2 py-0.5 rounded">ZOOM: 1.0x</span>
+                        </div>
+                    </div>
+                    
+                    <div class="relative w-full h-full flex-grow">
+                        <div id="hud-ecuaciones" class="absolute top-4 right-4 bg-slate-950/80 border border-slate-700 text-cyan-300 p-5 rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.8)] font-tech text-xs w-72 hidden backdrop-blur-md z-20 pointer-events-none transition-all duration-500">
+                            <div class="font-bold text-white mb-3 border-b border-slate-700 pb-2 flex justify-between items-center">
+                                <span class="tracking-widest"><i class="fa-solid fa-microchip text-slate-400 mr-2"></i>CINEMÁTICA</span>
+                                <span id="hud-time" class="text-emerald-400 bg-emerald-900/30 px-2 py-0.5 rounded text-glow">t=0.00s</span>
+                            </div>
+                            <div class="mt-4">
+                                <div class="text-rose-400 font-bold mb-2 tracking-wider flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full bg-rose-500"></div> AMENAZA INCOMING
+                                </div>
+                                <div class="pl-4 text-slate-300 opacity-80 leading-relaxed text-[11px]">
+                                    X(t) = <span id="eq-xe" class="text-rose-200"></span><br>
+                                    Y(t) = <span id="eq-ye" class="text-rose-200"></span>
+                                </div>
+                            </div>
+                            <div class="mt-5">
+                                <div class="text-blue-400 font-bold mb-2 tracking-wider flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full bg-blue-500"></div> INTERCEPTOR
+                                </div>
+                                <div class="pl-4 text-slate-300 opacity-80 leading-relaxed text-[11px]">
+                                    X(t) = <span id="eq-xd" class="text-blue-200"></span><br>
+                                    Y(t) = <span id="eq-yd" class="text-blue-200"></span>
+                                </div>
+                            </div>
+                            <div class="mt-5 bg-slate-900 border border-amber-500/30 p-3 rounded relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500 to-transparent"></div>
+                                <div class="text-amber-400 font-bold mb-2">INTERSECCIÓN PROYECTADA</div>
+                                <div class="text-white text-glow text-[11px] leading-relaxed">
+                                    T_Impacto: <span id="eq-t-int" class="text-amber-300"></span> s<br>
+                                    Vector_P: [<span id="eq-x-int"></span>, <span id="eq-y-int"></span>]
+                                </div>
+                            </div>
+                        </div>
+
+                        <canvas id="mainCanvas" width="800" height="450" class="absolute top-0 left-0 w-full h-full object-cover"></canvas>
+                        
+                        <div class="absolute inset-0 pointer-events-none border-4 border-slate-800/50 mix-blend-screen">
+                            <div class="absolute top-3 left-3 w-10 h-10 border-t-2 border-l-2 border-slate-500"></div>
+                            <div class="absolute top-3 right-3 w-10 h-10 border-t-2 border-r-2 border-slate-500"></div>
+                            <div class="absolute bottom-3 left-3 w-10 h-10 border-b-2 border-l-2 border-slate-500"></div>
+                            <div class="absolute bottom-3 right-3 w-10 h-10 border-b-2 border-r-2 border-slate-500"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-black/80 flex justify-between px-5 py-3 text-[10px] font-tech text-slate-500 border-t border-slate-800 tracking-widest z-10">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-shield text-blue-500"></i> BASE DEF [X=0]</span>
+                        <span class="text-slate-400 opacity-50 text-center hidden sm:block">GRID SPACING: 500m</span>
+                        <span class="flex items-center gap-2">ZONA AMENAZA [AIRE] <i class="fa-solid fa-skull text-rose-500"></i></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTENEDOR FLEX PARA LOS ÚLTIMOS PUNTOS -->
+        <div class="flex flex-col gap-12 mb-16">
+            
+            <!-- PUNTO 6 EXPANDIDO -->
+            <section id="pto6" class="tech-panel p-8 md:p-10 rounded-2xl relative overflow-hidden group">
+                <div class="absolute top-0 left-0 w-1 h-full bg-blue-500 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <h2 class="text-2xl font-tech font-bold text-white mb-8 flex items-center gap-4">
+                    <span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded text-lg">06</span> 
+                    Aplicación Real: Limitaciones y Sistemas en Lazo Cerrado (Iron Dome)
+                </h2>
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div class="text-stone-300 space-y-4 leading-relaxed text-sm">
+                        <p>
+                            Nuestro modelo es de <strong>Lazo Abierto (Open-Loop)</strong>: calcula la intercepción una sola vez en $t=0$ y "reza" para que la física sea perfecta. En la realidad (atmósfera densa, viento, misiles que no son esferas perfectas), el proyectil enemigo sufrirá perturbaciones no contempladas en nuestras ecuaciones.
+                        </p>
+                        <p>
+                            El sistema defensivo israelí <strong>Iron Dome</strong> compensa esto usando un modelo de <strong>Lazo Cerrado (Closed-Loop)</strong>. Su radar multifunción actualiza la lectura del misil enemigo decenas de veces por segundo. La computadora re-calcula constantemente el vector de intercepción mediante filtros de Kalman, enviando actualizaciones de rumbo por enlace de datos al interceptor <em>Tamir</em> en pleno vuelo.
+                        </p>
+                        <p>
+                            Además, en lugar de intentar una colisión matemática perfecta ($X_e = X_i$ al milímetro) que físicamente es casi imposible a velocidades hipersónicas, el interceptor detona una <strong>ojiva de fragmentación direccional</strong> controlada por una espoleta de proximidad láser al acercarse a unos pocos metros del objetivo.
+                        </p>
+                    </div>
+                    <div class="bg-black/40 border border-blue-900/50 p-6 rounded-xl flex flex-col items-center justify-center text-center">
+                        <i class="fa-solid fa-satellite text-5xl text-blue-500/70 mb-4 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]"></i>
+                        <h3 class="font-tech text-blue-400 font-bold tracking-widest mb-2">CONTROL EN LAZO CERRADO</h3>
+                        <p class="text-xs text-stone-400 font-tech mt-2">La teoría balística (nuestra simulación) provee el punto de lanzamiento inicial. Los ajustes finos posteriores requieren corrección aerodinámica en tiempo real.</p>
+                    </div>
+                </div>
+            </section>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- PUNTO 7 EXPANDIDO -->
+                <section id="pto7" class="tech-panel p-8 rounded-2xl border-l-4 border-purple-500 relative group">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-purple-500 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                    <h2 class="text-xl font-tech font-bold text-white mb-6">07. Conclusiones y Trabajo Futuro</h2>
+                    <p class="text-stone-300 text-sm leading-relaxed mb-4">
+                        La física mecánica clásica, fundamentada en las leyes de Newton y la cinemática vectorial, proporciona un núcleo de cálculo asombrosamente eficiente $\mathcal{O}(1)$ para sistemas defensivos primarios.
+                    </p>
+                    <p class="text-stone-300 text-sm leading-relaxed mb-4">
+                        Se demostró que forzar una intercepción geométrica proyectada en el tiempo permite neutralizar amenazas estocásticas. El modelo propuesto valida la viabilidad de la defensa antimisiles en entornos ideales.
+                    </p>
+                    <p class="text-stone-400 text-xs italic">
+                        <strong>Extensión del proyecto:</strong> Un análisis futuro debería incorporar el arrastre atmosférico modelado matemáticamente como $\vec{F}_{drag} = -k|\vec{v}|\vec{v}$, requiriendo métodos iterativos computacionales para predecir la zona de impacto real.
+                    </p>
+                </section>
+                
+                <!-- PUNTO 8 -->
+                <section id="pto8" class="tech-panel p-8 rounded-2xl border-l-4 border-stone-500 relative group">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-stone-500 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                    <h2 class="text-xl font-tech font-bold text-white mb-6">08. Bibliografía de Referencia</h2>
+                    <ul class="text-stone-400 text-sm space-y-3 list-disc pl-5 font-light">
+                        <li>Sears, F., Zemansky, M., Young, H., & Freedman, R. (2013). <em>Física Universitaria con Física Moderna</em>. Pearson Educación.</li>
+                        <li>Serway, R. A., & Jewett, J. W. (2018). <em>Física para ciencias e ingeniería (Vol. 1)</em>. Cengage Learning.</li>
+                        <li>Shinar, J. (1981). <em>Optimal Pointing Control of a Rotating Missile</em>. Technion - Israel Institute of Technology.</li>
+                        <li>Rafael Advanced Defense Systems. (n.d.). <em>Iron Dome System Architecture Overview</em>.</li>
+                    </ul>
+                </section>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- SCRIPT INTACTO -->
+    <script>
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            if(!simRunning) dibujarEscenaEstatica();
+        });
+
+        let getCW = () => canvas.width;
+        let getCH = () => canvas.height;
+        
+        let WORLD_W = 4000; 
+        let WORLD_H = 2250; 
+        let SCALE = 1; 
+        
+        const slX = document.getElementById('slider-x');
+        const slY = document.getElementById('slider-y');
+        const slA = document.getElementById('slider-a');
+        const valX = document.getElementById('val-x');
+        const valY = document.getElementById('val-y');
+        const valV = document.getElementById('val-v');
+        const valA = document.getElementById('val-a');
+        
+        const termStatus = document.getElementById('terminal-status');
+        const termStrat = document.getElementById('terminal-strat');
+        const termZoom = document.getElementById('terminal-zoom');
+        
+        const hudEcuaciones = document.getElementById('hud-ecuaciones');
+        const hudTime = document.getElementById('hud-time');
+
+        const G = 9.81;
+        const DT = 0.02; 
+        const PHYSICS_STEPS_PER_FRAME = 5; 
+        
+        const BASE_X = 0; 
+        const BASE_Y = 0;
+
+        let proyectiles = []; let explosiones = []; let estelas = [];
+        let simRunning = false; let animFrame; let globalT = 0; 
+        let enemigoActivo = null; let interceptPoint = null; 
+
+        function ajustarCamara(alturaMaxEsperada, distanciaMaxX) {
+            let CW = getCW();
+            let CH = getCH();
+            let ratioPantalla = CW / CH;
+
+            let altoNecesario = Math.max(1200, alturaMaxEsperada * 1.25); 
+            let anchoNecesario = Math.max(altoNecesario * ratioPantalla, (distanciaMaxX * 2) + 400);
+
+            if(anchoNecesario / ratioPantalla > altoNecesario) {
+                altoNecesario = anchoNecesario / ratioPantalla; 
+            }
+
+            WORLD_W = anchoNecesario;
+            WORLD_H = altoNecesario;
+            SCALE = CW / WORLD_W;
+            
+            let zoomNivel = (3000 / (WORLD_W / 2)).toFixed(2);
+            termZoom.innerText = `ZOOM: ${zoomNivel}x`;
+            
+            dibujarEscenaEstatica();
+        }
+
+        function calcularVelocidadEnemigo(x0, y0, thetaDeg) {
+            let theta = thetaDeg * Math.PI / 180;
+            let D = Math.abs(x0 - BASE_X); 
+            
+            let denom = 2 * Math.pow(Math.cos(theta), 2) * (D * Math.tan(theta) + y0);
+            if (denom <= 0) return null; 
+            
+            return Math.sqrt((G * Math.pow(D, 2)) / denom);
+        }
+
+        function updateUIParams() {
+            let x0 = parseFloat(slX.value);
+            let y0 = parseFloat(slY.value);
+            let a = parseFloat(slA.value);
+            
+            valX.innerText = x0 + " m";
+            valY.innerText = y0 + " m";
+            valA.innerText = a + "°";
+
+            let v0 = calcularVelocidadEnemigo(x0, y0, a);
+            
+            if(v0 !== null) {
+                valV.innerText = v0.toFixed(2) + " m/s";
+                if(!simRunning) {
+                    let v0y = v0 * Math.sin(a * Math.PI / 180);
+                    let y_apex = y0 + (v0y * v0y) / (2 * G); 
+                    ajustarCamara(y_apex, Math.abs(x0));
+                }
+            } else {
+                valV.innerText = "IMP.";
+            }
+        }
+
+        slX.addEventListener('input', updateUIParams);
+        slY.addEventListener('input', updateUIParams);
+        slA.addEventListener('input', updateUIParams);
+
+        function dibujarCuadricula(ctx) {
+            let CW = getCW(); let CH = getCH();
+            let offsetX = CW / 2; 
+            
+            let grad = ctx.createRadialGradient(CW/2, CH, 0, CW/2, CH, Math.max(CW, CH));
+            grad.addColorStop(0, '#1e293b'); grad.addColorStop(1, '#020617');
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, CW, CH);
+
+            ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)'; 
+            ctx.lineWidth = 1; ctx.font = '10px JetBrains Mono'; ctx.fillStyle = '#475569';
+
+            let maxDist = Math.max(WORLD_W, 6000);
+            for(let x = -maxDist; x <= maxDist; x += 500) {
+                let px = offsetX + (x * SCALE);
+                if(px >= 0 && px <= CW) {
+                    ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, CH); ctx.stroke();
+                    if(px < CW - 30 && x !== 0) ctx.fillText(x + 'm', px + 4, CH - 15);
+                    if(x === 0) ctx.fillText('BASE 0m', px + 4, CH - 15);
+                }
+            }
+            for(let y = 0; y <= WORLD_H; y += 500) {
+                let py = CH - (y * SCALE);
+                if (py >= 0 && py <= CH) {
+                    ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(CW, py); ctx.stroke();
+                    if(y > 0 && py > 20) ctx.fillText(y + 'm', 4, py - 4);
+                }
+            }
+        }
+
+        function dibujarBaseDefensora(ctx, x, y) {
+            ctx.save(); ctx.translate(x, y);
+            ctx.shadowBlur = 10; ctx.shadowColor = '#3b82f6';
+            ctx.fillStyle = '#1e3a8a'; ctx.beginPath(); ctx.arc(0, 0, 20, Math.PI, 0); ctx.fill();
+            ctx.fillStyle = '#3b82f6'; ctx.fillRect(-4, -30, 8, 20);
+            ctx.fillStyle = '#93c5fd'; ctx.beginPath(); ctx.arc(0, -5, 6, 0, Math.PI*2); ctx.fill();
+            ctx.restore();
+        }
+
+        function dibujarMisil(ctx, x, y, angulo, colorCuerpo, propulsado) {
+            ctx.save(); ctx.translate(x, y); ctx.rotate(angulo); 
+            if(propulsado && Math.random() > 0.3) {
+                ctx.shadowBlur = 15; ctx.shadowColor = '#f59e0b';
+                ctx.fillStyle = Math.random() > 0.5 ? '#f97316' : '#fbbf24'; 
+                ctx.beginPath(); ctx.moveTo(-8, -2); ctx.lineTo(-20 - Math.random()*15, 0); ctx.lineTo(-8, 2); ctx.fill();
+            }
+            ctx.shadowBlur = 5; ctx.shadowColor = colorCuerpo;
+            ctx.fillStyle = colorCuerpo; ctx.fillRect(-8, -2, 16, 4);
+            ctx.beginPath(); ctx.moveTo(8, -2); ctx.lineTo(14, 0); ctx.lineTo(8, 2); ctx.fill();
+            ctx.restore();
+        }
+
+        class Proyectil {
+            constructor(x0, y0, vx0, vy0, ax, ay, t_launch, tipo) {
+                this.x0 = x0; this.y0 = y0; this.vx0 = vx0; this.vy0 = vy0;
+                this.ax = ax; this.ay = ay; this.t_launch = t_launch; 
+                this.tipo = tipo; this.activo = true;
+                this.color = (tipo === 'enemigo') ? '#fb7185' : '#38bdf8'; 
+                this.x = x0; this.y = y0; this.vx = vx0; this.vy = vy0;
+            }
+
+            actualizar(t, dt) {
+                if (!this.activo || t < this.t_launch) return;
+                let tf = t - this.t_launch;
+
+                this.x = this.x0 + this.vx0 * tf + 0.5 * this.ax * tf * tf;
+                this.y = this.y0 + this.vy0 * tf + 0.5 * this.ay * tf * tf;
+                this.vx = this.vx0 + this.ax * tf;
+                this.vy = this.vy0 + this.ay * tf;
+
+                if (Math.random() < 0.4) { 
+                    estelas.push({ x: this.x, y: this.y, color: this.tipo === 'enemigo' ? '#fda4af' : '#7dd3fc', vida: 1.0 });
+                }
+
+                if (this.y <= 0 && this.vy < 0 && tf > 0.2) { 
+                    this.y = 0; this.activo = false;
+                    crearExplosion(this.x, 0, this.color);
+                    if(this.tipo === 'enemigo') {
+                        termStatus.innerHTML = "<i class='fa-solid fa-triangle-exclamation text-rose-500'></i> IMPACTO ENEMIGO. BASE DESTRUIDA.";
+                        termStatus.className = "flex items-center gap-2 text-rose-500 font-bold tracking-wider text-sm";
+                    }
+                }
+            }
+
+            dibujar(ctx, offsetX) {
+                if (!this.activo || globalT < this.t_launch) return;
+                let CH = getCH();
+                let angulo = Math.atan2(-this.vy, this.vx);
+                let propulsado = (this.tipo === 'enemigo' && this.vy > 0) || (this.tipo === 'defensa_propulsada');
+                dibujarMisil(ctx, offsetX + this.x * SCALE, CH - (this.y * SCALE), angulo, this.color, propulsado);
+            }
+        }
+
+        function crearExplosion(x, y, color) {
+            for(let i=0; i<80; i++) { 
+                explosiones.push({
+                    x: x, y: y, vx: (Math.random()-0.5)*500, vy: (Math.random()-0.5)*500,
+                    vida: 1.0, color: Math.random()>0.5 ? color : (Math.random()>0.5 ? '#facc15' : '#f43f5e')
+                });
+            }
+        }
+
+        function dibujarEscenaEstatica() {
+            let CW = getCW(); let CH = getCH();
+            let offsetX = CW / 2;
+            dibujarCuadricula(ctx);
+            ctx.fillStyle = '#020617'; ctx.fillRect(0, CH - 5, CW, 5);
+            ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, CH-5); ctx.lineTo(CW, CH-5); ctx.stroke();
+            
+            dibujarBaseDefensora(ctx, offsetX + BASE_X * SCALE, CH - 5);
+        }
+
+        function loop() {
+            if(!simRunning) return;
+            let CW = getCW(); let CH = getCH();
+            let offsetX = CW / 2;
+            
+            for(let step = 0; step < PHYSICS_STEPS_PER_FRAME; step++) {
+                globalT += DT; 
+
+                proyectiles.forEach(p => p.actualizar(globalT, DT));
+                
+                explosiones.forEach(p => { p.x += p.vx * DT; p.y += p.vy * DT; p.vy -= G * DT * 2; p.vida -= DT * 1.5; });
+                explosiones = explosiones.filter(p => p.vida > 0);
+
+                let enems = proyectiles.filter(p => p.tipo === 'enemigo' && p.activo);
+                let defs = proyectiles.filter(p => p.tipo !== 'enemigo' && p.activo && globalT >= p.t_launch);
+
+                enems.forEach(e => {
+                    defs.forEach(d => {
+                        let dist = Math.sqrt((e.x - d.x)**2 + (e.y - d.y)**2);
+                        if(dist < 60) { 
+                            e.activo = false; d.activo = false;
+                            crearExplosion(e.x, e.y, '#facc15');
+                            termStatus.innerHTML = "<i class='fa-solid fa-check-double'></i> INTERCEPCIÓN EXACTA. AMENAZA NEUTRALIZADA.";
+                            termStatus.className = "flex items-center gap-2 text-emerald-400 font-bold tracking-wider text-sm";
+                            interceptPoint = null; 
+                        }
+                    });
+                });
+            }
+
+            hudTime.innerText = `t=${globalT.toFixed(2)}s`;
+            
+            estelas.forEach(e => e.vida -= (DT * PHYSICS_STEPS_PER_FRAME) * 0.8);
+            estelas = estelas.filter(e => e.vida > 0);
+
+            dibujarCuadricula(ctx);
+
+            if(interceptPoint && globalT < interceptPoint.t) {
+                ctx.save();
+                ctx.strokeStyle = 'rgba(245, 158, 11, 0.8)';
+                ctx.lineWidth = 1.5; 
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                
+                let cx = offsetX + interceptPoint.x * SCALE;
+                let cy = CH - (interceptPoint.y * SCALE);
+                
+                ctx.arc(cx, cy, 15 + Math.sin(globalT*10)*5, 0, Math.PI*2);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(cx - 25, cy);
+                ctx.lineTo(cx + 25, cy);
+                ctx.moveTo(cx, cy - 25);
+                ctx.lineTo(cx, cy + 25);
+                ctx.stroke();
+
+                ctx.fillStyle = 'rgba(245, 158, 11, 0.9)'; ctx.font = '10px JetBrains Mono';
+                ctx.fillText('TARGET LOCK', cx + 20, cy - 10);
+                ctx.restore();
+            }
+
+            ctx.shadowBlur = 8;
+            estelas.forEach(e => {
+                ctx.shadowColor = e.color;
+                ctx.globalAlpha = e.vida; ctx.fillStyle = e.color;
+                ctx.beginPath(); ctx.arc(offsetX + e.x * SCALE, CH - (e.y * SCALE), 1.5, 0, Math.PI*2); ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+
+            ctx.shadowBlur = 10;
+            explosiones.forEach(p => {
+                ctx.shadowColor = p.color;
+                ctx.globalAlpha = p.vida; ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(offsetX + p.x * SCALE, CH - (p.y * SCALE), 3, 0, Math.PI*2); ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+            ctx.shadowBlur = 0; 
+
+            ctx.fillStyle = '#020617'; ctx.fillRect(0, CH - 5, CW, 5);
+            ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, CH-5); ctx.lineTo(CW, CH-5); ctx.stroke();
+            dibujarBaseDefensora(ctx, offsetX + BASE_X * SCALE, CH - 5);
+            
+            proyectiles.forEach(p => p.dibujar(ctx, offsetX));
+
+            if(proyectiles.some(p => p.activo) || explosiones.length > 0) {
+                animFrame = requestAnimationFrame(loop);
+            } else {
+                simRunning = false;
+            }
+        }
+
+        function iniciarEscenario(x0, y0, v0, thetaDeg) {
+            cancelAnimationFrame(animFrame);
+            proyectiles = []; explosiones = []; estelas = [];
+            globalT = 0; interceptPoint = null;
+            
+            termStatus.innerHTML = "<i class='fa-solid fa-spinner fa-spin text-cyan-400'></i> CALCULANDO TRAYECTORIA DETERMINISTA...";
+            termStatus.className = "flex items-center gap-2 text-cyan-400 font-bold tracking-wider text-sm";
+
+            let rad = thetaDeg * Math.PI / 180;
+            
+            let direction = (x0 >= BASE_X) ? -1 : 1; 
+            let v0x = direction * v0 * Math.cos(rad); 
+            let v0y = v0 * Math.sin(rad);
+
+            let t_vuelo_enemigo = (-v0y - Math.sqrt((v0y*v0y) - (4 * -0.5*G * y0))) / (-G); 
+
+            let t_int = t_vuelo_enemigo * 0.5; 
+            
+            let x_int = x0 + v0x * t_int;
+            let y_int = y0 + v0y * t_int - 0.5 * G * t_int * t_int;
+
+            let t_launch = t_int * 0.2; 
+            let t_def = t_int - t_launch; 
+
+            let v_dx = (x_int - BASE_X) / t_def;
+            let a_dy = -G;
+            let tipoDefensa = y0 <= 300 ? 'defensa_propulsada' : 'defensa_balistica';
+            let v_dy = (y_int - BASE_Y + 0.5 * G * t_def * t_def) / t_def;
+
+            let y_apex_enemigo = y0 + (v0y > 0 ? (v0y * v0y) / (2 * G) : 0);
+            let y_apex_defensor = BASE_Y + (v_dy > 0 ? (v_dy * v_dy) / (2 * G) : 0);
+
+            let max_altura_escenario = Math.max(y_apex_enemigo, y_apex_defensor, y_int);
+            ajustarCamara(max_altura_escenario, Math.abs(x0));
+
+            if(tipoDefensa === 'defensa_propulsada') termStrat.innerText = "[PROTOCOLO: PROPULSORES ACTIVOS]";
+            else termStrat.innerText = "[PROTOCOLO: INTERCEPCIÓN BALÍSTICA]";
+
+            interceptPoint = {x: x_int, y: y_int, t: t_int};
+
+            if (x_int > 0) {
+                hudEcuaciones.classList.remove('right-4');
+                hudEcuaciones.classList.add('left-4');
+            } else {
+                hudEcuaciones.classList.remove('left-4');
+                hudEcuaciones.classList.add('right-4');
+            }
+            hudEcuaciones.classList.remove('hidden');
+            
+            document.getElementById('eq-xe').innerText = `${x0.toFixed(1)} ${v0x < 0 ? '-' : '+'} ${Math.abs(v0x).toFixed(1)}t`;
+            document.getElementById('eq-ye').innerText = `${y0.toFixed(1)} + ${v0y.toFixed(1)}t - 4.9t²`;
+            
+            let tDelayStr = `(t-${t_launch.toFixed(2)})`;
+            document.getElementById('eq-xd').innerText = `${BASE_X.toFixed(1)} ${v_dx < 0 ? '-' : '+'} ${Math.abs(v_dx).toFixed(1)}${tDelayStr}`;
+            document.getElementById('eq-yd').innerText = `${BASE_Y.toFixed(1)} ${v_dy < 0 ? '-' : '+'} ${Math.abs(v_dy).toFixed(1)}${tDelayStr} - 4.9${tDelayStr}²`;
+            
+            document.getElementById('eq-t-int').innerText = t_int.toFixed(2);
+            document.getElementById('eq-x-int').innerText = x_int.toFixed(1);
+            document.getElementById('eq-y-int').innerText = y_int.toFixed(1);
+
+            enemigoActivo = new Proyectil(x0, y0, v0x, v0y, 0, -G, 0, 'enemigo');
+            let defensaActiva = new Proyectil(BASE_X, BASE_Y, v_dx, v_dy, 0, a_dy, t_launch, tipoDefensa);
+            
+            proyectiles.push(enemigoActivo);
+            proyectiles.push(defensaActiva);
+
+            simRunning = true;
+            loop();
+        }
+
+        document.getElementById('btn-manual').addEventListener('click', () => {
+            let x0 = parseFloat(slX.value);
+            let y0 = parseFloat(slY.value);
+            let angulo = parseFloat(slA.value);
+            let v0_calculada = calcularVelocidadEnemigo(x0, y0, angulo); 
+            if(v0_calculada !== null) iniciarEscenario(x0, y0, v0_calculada, angulo);
+            else alert("Ese ángulo es físicamente imposible para llegar a la base desde ese punto.");
+        });
+
+        document.getElementById('btn-random').addEventListener('click', () => {
+            let signo = Math.random() < 0.5 ? -1 : 1;
+            let rX = signo * (Math.floor(Math.random() * (4000 - 2000 + 1)) + 2000); 
+            let rY = Math.floor(Math.random() * (2500 - 500 + 1)) + 500;   
+            let rA = Math.floor(Math.random() * (75 - 15 + 1)) + 15;    
+
+            slX.value = rX;
+            slY.value = rY;
+            slA.value = rA;
+            updateUIParams();
+            
+            let rV = calcularVelocidadEnemigo(rX, rY, rA); 
+            iniciarEscenario(rX, rY, rV, rA);
+        });
+
+        updateUIParams();
+    </script>
+</body>
+</html>

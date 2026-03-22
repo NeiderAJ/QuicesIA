@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+/* Estilos globales básicos y limpios */
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #f8fafc;
+}

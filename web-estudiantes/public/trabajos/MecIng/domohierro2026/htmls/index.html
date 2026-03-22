@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Intercepción - UdeA</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        /* =========================================
+           ESTILOS CSS
+           ========================================= */
+        :root {
+            --bg-app: #eef1f5;
+            --card-bg: #ffffff;
+            --text-main: #1a1a1a;
+            --text-muted: #666666;
+            --primary-blue: #0056b3;
+            --primary-blue-hover: #004494;
+            --udea-green: #006633;
+            --canvas-bg: #07101d; /* Un poco más oscuro para resaltar el neón */
+            --canvas-grid: #1e3a5f;
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #d9e0e8;
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+            color: var(--text-main);
+        }
+
+        .app-container {
+            background-color: var(--bg-app);
+            width: 100%;
+            max-width: 1200px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .top-bar {
+            background: var(--card-bg);
+            display: flex;
+            align-items: center;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #e0e0e0;
+            position: relative; 
+        }
+
+        .logo-area { display: flex; align-items: center; }
+        .logo { height: 45px; width: auto; }
+
+        .main-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-main);
+            text-align: center;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            grid-template-rows: auto auto auto;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--primary-blue);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+
+        .planteamiento-card { grid-column: 1 / -1; }
+
+        .equations-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .eq-col { text-align: center; }
+        .eq-col p { color: var(--text-main); margin-bottom: 5px; }
+
+        .controls-card {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .slider-group { display: flex; flex-direction: column; gap: 5px; }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 5px rgba(0,86,179,0.5);
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #d1d5db;
+            border-radius: 2px;
+        }
+
+        .button-group { display: flex; gap: 10px; margin-top: 5px; }
+
+        .btn-primary, .btn-secondary {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .btn-primary { background: var(--primary-blue); color: white; border: none; }
+        .btn-primary:hover { background: var(--primary-blue-hover); transform: translateY(-1px); }
+
+        .btn-secondary { background: transparent; color: var(--primary-blue); border: 2px solid var(--primary-blue); }
+        .btn-secondary:hover { background: #e6f0fa; transform: translateY(-1px); }
+
+        .status-text {
+            font-size: 0.85rem;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 5px;
+            padding: 8px;
+            border-radius: 6px;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        /* Historial Log */
+        .log-container {
+            margin-top: 10px;
+            max-height: 120px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            font-size: 0.75rem;
+        }
+
+        .log-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .log-table th, .log-table td { padding: 6px 8px; border-bottom: 1px solid #eee; }
+        .log-table th { background: #f8f9fa; position: sticky; top: 0; color: var(--primary-blue); }
+        .log-table tr:hover { background: #f1f5f9; }
+        .log-prop { color: #ff4d4d; font-weight: bold; }
+        .log-grav { color: #00e676; font-weight: bold; }
+
+        .canvas-card {
+            position: relative;
+            padding: 0;
+            overflow: hidden;
+            background: var(--canvas-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 450px;
+        }
+
+        /* TELEMETRÍA (HUD) */
+        .telemetry-hud {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            background: rgba(7, 16, 29, 0.8);
+            border: 1px solid #1e3a5f;
+            padding: 10px 15px;
+            border-radius: 8px;
+            color: #00e676;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.8rem;
+            z-index: 10;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .telemetry-hud p { color: #a0aec0; margin-bottom: 3px; font-size: 0.75rem; }
+        .telemetry-hud span { color: #fff; font-weight: bold; }
+
+        .canvas-legend {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: rgba(7, 16, 29, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #1e3a5f;
+            color: white;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 10;
+        }
+
+        .color-box {
+            display: inline-block;
+            width: 12px;
+            height: 3px;
+            vertical-align: middle;
+            margin-right: 5px;
+            box-shadow: 0 0 5px currentColor; /* Glow en la leyenda */
+        }
+
+        .color-box.red { background: #ff4d4d; color: #ff4d4d; }
+        .color-box.green { background: #00e676; color: #00e676; }
+
+        canvas { width: 100%; height: 100%; display: block; }
+
+        .text-card { font-size: 0.85rem; }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: var(--card-bg);
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .equations-container { flex-direction: column; gap: 20px; }
+            .main-title { position: static; transform: none; margin-top: 10px; }
+            .top-bar { flex-direction: column; align-items: center; }
+            .button-group { flex-direction: column; }
+            .telemetry-hud { bottom: 15px; top: auto; } /* Mover HUD en móviles */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="top-bar">
+            <div class="logo-area">
+                <img src="udea.png" alt="Universidad de Antioquia" class="logo">
+            </div>
+            <h1 class="main-title">Simulación de Intercepción de Misiles</h1>
+        </header>
+
+        <main class="dashboard-grid">
+            <section class="card planteamiento-card">
+                <h2>Planteamiento del Problema</h2>
+                <p>El sistema calcula la trayectoria para interceptar un misil enemigo. Reduciendo el problema a 2D, se igualan las posiciones espaciales en un tiempo de intercepción \(t_{int}\):</p>
+                <div class="equations-container">
+                    <div class="eq-col">
+                        <p><strong>Enemigo (Tiro Parabólico):</strong></p>
+                        $$y_e(t) = h_0 + v_{0e}\sin(\theta)t - \frac{1}{2}gt^2$$
+                        $$x_e(t) = v_{0e}\cos(\theta)t$$
+                    </div>
+                    <div class="eq-col">
+                        <p><strong>Interceptor (Con Propulsor):</strong></p>
+                        $$y_d(t) = v_{0dy}t + \frac{1}{2}(a_p - g)t^2$$
+                        $$x_d(t) = x_{d0} - v_{0dx}t$$
+                    </div>
+                </div>
+            </section>
+
+            <section class="card controls-card">
+                <h2>Parámetros y Control</h2>
+                
+                <div class="slider-group">
+                    <div class="slider-header"><label>Vel. inicial enemigo</label><span id="v0-val">250 m/s</span></div>
+                    <input type="range" id="v0-slider" min="100" max="400" value="250">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header"><label>Ángulo de lanzamiento</label><span id="angle-val">45°</span></div>
+                    <input type="range" id="angle-slider" min="15" max="75" value="45">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header"><label>Altura de detección</label><span id="h-val">500 m</span></div>
+                    <input type="range" id="h-slider" min="0" max="1000" value="500">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header"><label>Distancia defensora</label><span id="dist-val">2500 m</span></div>
+                    <input type="range" id="dist-slider" min="1500" max="4000" value="2500">
+                </div>
+
+                <div class="button-group">
+                    <button id="btn-manual" class="btn-primary">Lanzar Manual</button>
+                    <button id="btn-random" class="btn-secondary">Lanzar Aleatorio</button>
+                </div>
+                
+                <div id="status-msg" class="status-text">Sistema calibrado. En espera.</div>
+
+                <div class="log-container">
+                    <table class="log-table" id="log-table">
+                        <thead>
+                            <tr>
+                                <th>Intento</th>
+                                <th>Alt. Detectada</th>
+                                <th>T. Intercepción</th>
+                                <th>Modo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="log-body">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="card canvas-card">
+                <div class="telemetry-hud">
+                    <p>TIEMPO (T): <span id="hud-time">0.00</span> s</p>
+                    <p>ALT. ENEMIGO (Ye): <span id="hud-ye">0.0</span> m</p>
+                    <p>ALT. DEFENSOR (Yd): <span id="hud-yd">0.0</span> m</p>
+                    <p>DIST. RELATIVA: <span id="hud-dist">0.0</span> m</p>
+                </div>
+
+                <div class="canvas-legend">
+                    <div><span class="color-box red"></span> Misil Enemigo</div>
+                    <div><span class="color-box green"></span> Interceptor</div>
+                </div>
+                <canvas id="simCanvas" width="800" height="500"></canvas>
+            </section>
+
+            <section class="card text-card">
+                <h2>Análisis Funcional</h2>
+                <p>La simulación evalúa la altura proyectada de intercepción. Si la intercepción analítica resulta a baja altura (menos de 300m), el interceptor activa propulsores adicionales. En este escenario, la aceleración extra \(a_p\) del interceptor contrarresta la gravedad para forzar la colisión geométrica en \((x_{int}, y_{int})\).</p>
+            </section>
+
+            <section class="card text-card">
+                <h2>Conclusiones</h2>
+                <p>1. La reducción al plano 2D simplifica drásticamente el coste computacional, siendo vital para sistemas de respuesta en tiempo real como el Iron Dome.<br>
+                2. La implementación estocástica demuestra que la ventana de intercepción requiere propulsión activa cuando la detección ocurre demasiado cerca al suelo, compensando el déficit de tiempo de caída libre.</p>
+            </section>
+        </main>
+
+        <footer>
+            Universidad de Antioquia - Curso de Física Mecánica 2026
+        </footer>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const statusMsg = document.getElementById('status-msg');
+        const logBody = document.getElementById('log-body');
+
+        // Referencias HUD
+        const hudTime = document.getElementById('hud-time');
+        const hudYe = document.getElementById('hud-ye');
+        const hudYd = document.getElementById('hud-yd');
+        const hudDist = document.getElementById('hud-dist');
+
+        const sliders = {
+            v0: document.getElementById('v0-slider'),
+            angle: document.getElementById('angle-slider'),
+            h: document.getElementById('h-slider'),
+            dist: document.getElementById('dist-slider')
+        };
+
+        const vals = {
+            v0: document.getElementById('v0-val'),
+            angle: document.getElementById('angle-val'),
+            h: document.getElementById('h-val'),
+            dist: document.getElementById('dist-val')
+        };
+
+        const btnManual = document.getElementById('btn-manual');
+        const btnRandom = document.getElementById('btn-random');
+        let animationId;
+        let attemptCount = 0;
+
+        function updateUI() {
+            vals.v0.innerText = sliders.v0.value + ' m/s';
+            vals.angle.innerText = sliders.angle.value + '°';
+            vals.h.innerText = sliders.h.value + ' m';
+            vals.dist.innerText = sliders.dist.value + ' m';
+        }
+
+        Object.values(sliders).forEach(slider => slider.addEventListener('input', updateUI));
+
+        function drawRadarBackground() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.shadowBlur = 0; // Quitar glow para el fondo
+            
+            ctx.strokeStyle = '#1e3a5f';
+            ctx.lineWidth = 1;
+            
+            const centerX = canvas.width / 2;
+            const bottomY = canvas.height;
+
+            for(let r = 100; r < canvas.width; r += 100) {
+                ctx.beginPath();
+                ctx.arc(centerX, bottomY, r, Math.PI, 0);
+                ctx.stroke();
+            }
+
+            for(let a = 0; a <= 180; a += 30) {
+                let rad = a * Math.PI / 180;
+                ctx.beginPath();
+                ctx.moveTo(centerX, bottomY);
+                ctx.lineTo(centerX + Math.cos(rad) * canvas.width, bottomY - Math.sin(rad) * canvas.width);
+                ctx.stroke();
+            }
+
+            ctx.strokeStyle = '#2a4b7c';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, bottomY - 1);
+            ctx.lineTo(canvas.width, bottomY - 1);
+            ctx.stroke();
+        }
+
+        function runSimulation() {
+            if (animationId) cancelAnimationFrame(animationId);
+            attemptCount++;
+
+            const g = 9.81;
+            const v0e = parseFloat(sliders.v0.value);
+            const thetaE = parseFloat(sliders.angle.value) * (Math.PI / 180);
+            const he_0 = parseFloat(sliders.h.value);
+            const baseDist = parseFloat(sliders.dist.value);
+
+            // Cinemática del enemigo
+            const v0e_x = v0e * Math.cos(thetaE);
+            const v0e_y = v0e * Math.sin(thetaE);
+            
+            const t_flight = (v0e_y + Math.sqrt(v0e_y * v0e_y + 2 * g * he_0)) / g;
+            const y_max = he_0 + (v0e_y * v0e_y) / (2 * g);
+            
+            // Auto-escalado
+            const scaleX = canvas.width / (baseDist * 1.15); 
+            const scaleY = canvas.height / (y_max * 1.20);   
+            const scale = Math.min(scaleX, scaleY);          
+            
+            const groundY = canvas.height;
+            const marginX = 30; 
+
+            // Punto de intercepción (60% del vuelo)
+            const t_int = t_flight * 0.6;
+            const x_int = v0e_x * t_int;
+            const y_int = he_0 + (v0e_y * t_int) - (0.5 * g * t_int * t_int);
+
+            let isPropelled = y_int < 300; 
+            let a_p = isPropelled ? -5.0 : g; 
+
+            // Velocidades del defensor
+            const v0d_x = (baseDist - x_int) / t_int; 
+            const v0d_y = (y_int - 0 + 0.5 * a_p * t_int * t_int) / t_int;
+
+            // Actualizar Status y Log
+            let modeText, modeClass;
+            if(isPropelled) {
+                statusMsg.style.color = "#ff4d4d";
+                statusMsg.style.backgroundColor = "#ffe6e6";
+                statusMsg.innerText = `¡Alerta! Detección baja (${Math.round(y_int)}m). Propulsores Activados.`;
+                modeText = "Propulsado";
+                modeClass = "log-prop";
+            } else {
+                statusMsg.style.color = "#006633";
+                statusMsg.style.backgroundColor = "#e6ffe6";
+                statusMsg.innerText = `Misil alto (${Math.round(y_int)}m). Tiro Parabólico Clásico.`;
+                modeText = "Gravedad";
+                modeClass = "log-grav";
+            }
+
+            // Agregar a la tabla de log
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>#${attemptCount}</td>
+                <td>${he_0} m</td>
+                <td>${t_int.toFixed(2)} s</td>
+                <td class="${modeClass}">${modeText}</td>
+            `;
+            logBody.prepend(row); // Insertar al principio
+
+            let trailE = [];
+            let trailD = [];
+            let t = 0;
+            const dt = t_flight / 300; 
+
+            function animate() {
+                drawRadarBackground();
+
+                let curr_xe = v0e_x * t;
+                let curr_ye = he_0 + (v0e_y * t) - (0.5 * g * t * t);
+
+                let curr_xd = baseDist - (v0d_x * t);
+                let curr_yd = (v0d_y * t) - (0.5 * a_p * t * t);
+
+                // Actualizar HUD Telemetría
+                hudTime.innerText = t.toFixed(2);
+                hudYe.innerText = Math.max(0, curr_ye).toFixed(1);
+                hudYd.innerText = Math.max(0, curr_yd).toFixed(1);
+                
+                let distRel = Math.sqrt(Math.pow(curr_xe - curr_xd, 2) + Math.pow(curr_ye - curr_yd, 2));
+                hudDist.innerText = distRel.toFixed(1);
+
+                // Pixeles
+                let px_xe = curr_xe * scale + marginX; 
+                let px_ye = groundY - (curr_ye * scale);
+                
+                let px_xd = curr_xd * scale + marginX;
+                let px_yd = groundY - (curr_yd * scale);
+
+                trailE.push({x: px_xe, y: px_ye});
+                trailD.push({x: px_xd, y: px_yd});
+
+                // Efecto NEÓN (Glow) Enemigo
+                ctx.beginPath();
+                ctx.strokeStyle = '#ff4d4d';
+                ctx.lineWidth = 3;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#ff4d4d';
+                for(let i=0; i<trailE.length; i++) {
+                    if(i===0) ctx.moveTo(trailE[i].x, trailE[i].y);
+                    else ctx.lineTo(trailE[i].x, trailE[i].y);
+                }
+                ctx.stroke();
+
+                // Efecto NEÓN (Glow) Defensor
+                ctx.beginPath();
+                ctx.strokeStyle = '#00e676';
+                ctx.lineWidth = 3;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#00e676';
+                for(let i=0; i<trailD.length; i++) {
+                    if(i===0) ctx.moveTo(trailD[i].x, trailD[i].y);
+                    else ctx.lineTo(trailD[i].x, trailD[i].y);
+                }
+                ctx.stroke();
+
+                t += dt;
+
+                if (t <= t_int) {
+                    animationId = requestAnimationFrame(animate);
+                } else {
+                    // HUD final a 0
+                    hudDist.innerText = "0.0";
+                    
+                    // Explosión de intercepción (Glow extremo)
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = '#ff9900';
+                    ctx.beginPath();
+                    ctx.arc(px_xe, px_ye, 18, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(255, 150, 0, 0.9)";
+                    ctx.fill();
+                    
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#ffff00';
+                    ctx.beginPath();
+                    ctx.arc(px_xe, px_ye, 10, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(255, 255, 0, 1)";
+                    ctx.fill();
+
+                    // Restablecer sombras para evitar bugs visuales
+                    ctx.shadowBlur = 0;
+                }
+            }
+            animate();
+        }
+
+        btnManual.addEventListener('click', runSimulation);
+
+        btnRandom.addEventListener('click', () => {
+            sliders.v0.value = Math.floor(Math.random() * (400 - 100 + 1)) + 100;
+            sliders.angle.value = Math.floor(Math.random() * (75 - 15 + 1)) + 15;
+            sliders.h.value = Math.floor(Math.random() * 1000);
+            sliders.dist.value = Math.floor(Math.random() * 1500) + 2000; 
+            updateUI();
+            runSimulation();
+        });
+
+        updateUI();
+        drawRadarBackground();
+    </script>
+</body>
+</html>

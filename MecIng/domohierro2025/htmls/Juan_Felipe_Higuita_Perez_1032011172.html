@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz - Simulación Intercepción de Misiles</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #f3f4f6; }
+    .panel { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 6px 18px rgba(0,0,0,0.06);} 
+    canvas { background: linear-gradient(180deg,#e6eef8,#ffffff); border-radius:8px; }
+    .small { font-size: 0.85rem; color:#374151 }
+  </style>
+</head>
+<body class="p-6 font-sans text-gray-800">
+  <div class="max-w-6xl mx-auto space-y-6">
+    <header class="flex items-center justify-between">
+      <h1 class="text-2xl font-semibold text-blue-700">Quiz — Simulación computacional de intercepción</h1>
+      <div class="text-sm small">Universidad de Antioquia — Física Mecánica — Septiembre 2025</div>
+    </header>
+
+    <!-- Enunciado -->
+    <section class="panel">
+      <h2 class="text-lg font-medium text-blue-600">1. Enunciado (resumen)</h2>
+      <p class="small mt-2">Un radar detecta un misil enemigo con posición inicial <code>r⃗0</code>, velocidad inicial <code>v⃗0</code> y cosenos directores <code>(l,m,n)</code>. El enemigo se mueve solo bajo la gravedad. Hay que reducir la trayectoria a 2D (plano que contiene la trayectoria), calcular la dirección y velocidad inicial del misil defensor para interceptar (caso sin propulsor y caso con propulsor), implementar un generador aleatorio, y presentar una simulación interactiva.</p>
+    </section>
+
+    <!-- Solución algebraica -->
+    <section class="panel">
+      <h2 class="text-lg font-medium text-blue-600">2. Solución algebraica (reducción a 2D y condiciones de intercepción)</h2>
+      <div class="small mt-2">
+        <p><strong>Reducción a 2D:</strong> Dado que la gravedad es vertical (eje Z), la trayectoria del proyectil descrito por <code>r_e(t)=r0 + v0 * d * t + (0,0,-0.5 g t^2)</code> (d = dirección unitaria (l,m,n)). La posición inicial r0 y el vector dirección definen, junto con la vertical, el plano que contiene la trayectoria. Para la simulación elegimos un sistema de coordenadas en el que proyectamos ese plano en 2D (eje X: dirección horizontal dentro del plano, eje Z: vertical), quedando un tiro parabólico clásico.</p>
+
+        <p><strong>Ecuaciones en 2D (plano):</strong><br>
+        En coordenadas 2D (x horizontal dentro del plano, z vertical):
+        <br><code>x_e(t) = x0 + v0 * l_x * t</code>
+        <br><code>z_e(t) = z0 + v0 * l_z * t - 0.5 * g * t^2</code>
+        </p>
+
+        <p><strong>Condición de intercepción (sin propulsor):</strong><br>
+        El defensor se lanza desde posición conocida (por defecto se usa el origen en el suelo: x=0, z=0). Sea su velocidad inicial components <code>v_x</code>, <code>v_z</code>. Sus ecuaciones:
+        <br><code>x_d(t) = v_x * t</code>
+        <br><code>z_d(t) = v_z * t - 0.5 * g * t^2</code>
+        Igualando posiciones en tiempo de impacto <code>t</code>:
+        <br><code>v_x = x_e(t)/t = x0/t + v0*l_x</code>
+        <br><code>v_z = z_e(t)/t + 0.5*g*t = z0/t + v0*l_z</code>
+        </p>
+
+        <p>Estas expresiones muestran que para cualquier tiempo candidato t>0 existe una velocidad inicial (v_x,v_z) que logra la intercepción en ese tiempo. La norma del vector velocidad es
+        <br><code>v_def(t) = sqrt( v_x(t)^2 + v_z(t)^2 )</code>
+        </p>
+
+        <p><strong>Optimización:</strong> Para obtener la solución sin propulsor con menor velocidad inicial requerida, se minimiza <code>v_def(t)</code> respecto a <code>t&gt;0</code>. El mínimo se obtiene numéricamente. Si el mínimo está bajo un umbral (capacidad del misil), el defensor puede lanzarse con tiro parabólico clásico.</p>
+
+        <p><strong>Caso con propulsor:</strong> Si la velocidad requerida es demasiado alta (o la detección ocurre cercano al suelo), el defensor puede disponer de una aceleración adicional <code>a_p</code> (constante durante la fase inicial) que modifica la componente vertical: 
+        <br><code>z_d(t) = v_z * t + 0.5 * a_p * t^2 - 0.5 * g * t^2</code>
+        </p>
+
+        <p>De forma análoga se puede resolver para obtener la aceleración mínima necesaria para lograr la intercepción con una velocidad inicial limitada.</p>
+      </div>
+    </section>
+
+    <!-- Análisis teórico -->
+    <section class="panel">
+      <h2 class="text-lg font-medium text-blue-600">3. Análisis funcional / teórico</h2>
+      <p class="small mt-2">La clave del problema es identificar el plano de la trayectoria y transformar el problema tridimensional en un problema de tiro parabólico en 2D. La ventaja algebraica es que se reduce a dos ecuaciones en t que permiten obtener las componentes de la velocidad del defensor en función de t, y buscar la solución óptima (mínima energía/velocidad). La posibilidad de propulsores añade grados de libertad (aceleración controlada) y permite cumplir con restricciones físicas del interceptor.</p>
+    </section>
+
+    <!-- Simulación -->
+    <section class="panel">
+      <h2 class="text-lg font-medium text-blue-600">4. Simulación interactiva (implementación)</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="col-span-1">
+          <div class="mb-3">
+            <label class="block small">Velocidad enemiga v₀ (m/s)</label>
+            <input id="v0" type="range" min="100" max="400" value="220" class="w-full">
+            <div class="small flex justify-between"><span id="v0val">220</span> m/s</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="block small">Ángulo enemigo (deg) — respecto a horizontal dentro del plano</label>
+            <input id="ang" type="range" min="15" max="75" value="40" class="w-full">
+            <div class="small"><span id="angval">40</span>°</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="block small">Posición inicial z₀ (m)</label>
+            <input id="z0" type="range" min="0" max="800" value="200" class="w-full">
+            <div class="small"><span id="z0val">200</span> m</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="block small">Gravedad (m/s²)</label>
+            <input id="g" type="number" value="9.81" step="0.01" class="w-full border rounded p-1">
+          </div>
+
+          <div class="flex gap-2">
+            <button id="randomBtn" class="px-3 py-1 bg-blue-600 text-white rounded">Generar Aleatorio</button>
+            <button id="computeBtn" class="px-3 py-1 bg-green-600 text-white rounded">Calcular Intercepción</button>
+          </div>
+
+          <div class="mt-3 small">
+            <p>Posición enemiga (x₀ asumido = 0): <span id="x0disp">0</span> m</p>
+            <p>Velocidad defensora mínima calculada: <strong id="vdef">-</strong> m/s</p>
+            <p>Tiempo de impacto estimado: <strong id="timpact">-</strong> s</p>
+            <p>¿Requiere propulsor? <strong id="propNeeded">-</strong></p>
+          </div>
+        </div>
+
+        <div class="col-span-2 md:col-span-2">
+          <canvas id="scene" width="900" height="420"></canvas>
+        </div>
+      </div>
+
+      <div class="mt-3 small">Nota: el código usa la fórmula derivada en la sección algebraica: para cada candidato <code>t</code> se obtienen <code>v_x = x_e(t)/t</code> y <code>v_z = z_e(t)/t + 0.5 g t</code>, y se busca el <code>t</code> que minimiza la magnitud de la velocidad requerida. Si la velocidad mínima supera un umbral configurable, se propone activar propulsor y se calcula la aceleración vertical mínima necesaria por búsqueda.</div>
+    </section>
+
+    <!-- Conclusiones y bibliografía -->
+    <section class="panel">
+      <h2 class="text-lg font-medium text-blue-600">5. Conclusiones y relación con Domo de Hierro</h2>
+      <p class="small mt-2">La metodología implementada refleja el procedimiento básico de sistemas como el Domo de Hierro: detección temprana, reducción dimensional para el cálculo rápido de la trayectoria, y selección entre interceptores pasivos (tiro parabólico) o activos (con propulsión/maniobra adicional). La simulación numérica permite evaluar rápidamente la factibilidad de intercepción y el recurso requerido (velocidad o propulsión).</p>
+      <h3 class="text-sm font-medium mt-2">Bibliografía</h3>
+      <ul class="small list-disc pl-6">
+        <li>Serway & Jewett. Physics for Scientists & Engineers — Projectile motion chapter.</li>
+        <li>Artículos y notas del curso de Física Mecánica (UdeA).</li>
+      </ul>
+    </section>
+
+    <footer class="text-center small text-gray-500">Generado como plantilla para el quiz. Puedes descargar este archivo y renombrarlo según lo pide el enunciado.</footer>
+  </div>
+
+  <script>
+    // --------------------------------------------------
+    // Implementación JS: generación aleatoria, cálculo y animación
+    // --------------------------------------------------
+    const v0Slider = document.getElementById('v0');
+    const angSlider = document.getElementById('ang');
+    const z0Slider = document.getElementById('z0');
+    const gInput = document.getElementById('g');
+    const v0val = document.getElementById('v0val');
+    const angval = document.getElementById('angval');
+    const z0val = document.getElementById('z0val');
+    const randomBtn = document.getElementById('randomBtn');
+    const computeBtn = document.getElementById('computeBtn');
+    const vdefDisp = document.getElementById('vdef');
+    const timpactDisp = document.getElementById('timpact');
+    const propNeededDisp = document.getElementById('propNeeded');
+
+    v0val.textContent = v0Slider.value;
+    angval.textContent = angSlider.value;
+    z0val.textContent = z0Slider.value;
+
+    v0Slider.oninput = () => v0val.textContent = v0Slider.value;
+    angSlider.oninput = () => angval.textContent = angSlider.value;
+    z0Slider.oninput = () => z0val.textContent = z0Slider.value;
+
+    // Canvas & draw
+    const canvas = document.getElementById('scene');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+
+    // World scale
+    let scale = 0.6; // pixels per meter (adjustable)
+    let originX = 80, originY = H - 40;
+
+    function worldToCanvas(x,z){
+      return {cx: originX + x*scale, cy: originY - z*scale};
+    }
+
+    function clear(){ ctx.clearRect(0,0,W,H); }
+
+    function drawGrid(){
+      ctx.save();
+      ctx.strokeStyle = '#e6eef8';
+      for(let x=0;x<1200;x+=50){
+        const cx = originX + x*scale;
+        ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawScene(params, sol){
+      clear();
+      // ground line
+      ctx.fillStyle = '#9ca3af';
+      ctx.fillRect(0, originY+1, W, H-originY);
+
+      // draw enemy trajectory
+      ctx.beginPath(); ctx.lineWidth=2; ctx.strokeStyle='#ef4444';
+      for(let t=0;t<= (sol?sol.t*1.2:10); t+=0.02){
+        const ex = params.x0 + params.v0*Math.cos(params.ang)*t;
+        const ez = params.z0 + params.v0*Math.sin(params.ang)*t - 0.5*params.g*t*t;
+        const p = worldToCanvas(ex, ez);
+        if(t===0) ctx.moveTo(p.cx,p.cy); else ctx.lineTo(p.cx,p.cy);
+      }
+      ctx.stroke();
+
+      // draw defender trajectory (using computed vx,vz)
+      if(sol){
+        ctx.beginPath(); ctx.lineWidth=2; ctx.strokeStyle='#0ea5a4';
+        for(let t=0;t<=sol.t*1.2; t+=0.02){
+          const dx = sol.vx * t;
+          const dz = sol.vz * t - 0.5*params.g*t*t + (sol.a_extra?0.5*sol.a_extra*t*t:0);
+          const p = worldToCanvas(dx,dz);
+          if(t===0) ctx.moveTo(p.cx,p.cy); else ctx.lineTo(p.cx,p.cy);
+        }
+        ctx.stroke();
+
+        // draw impact point
+        const imp = worldToCanvas(params.x0 + params.v0*Math.cos(params.ang)*sol.t, params.z0 + params.v0*Math.sin(params.ang)*sol.t - 0.5*params.g*sol.t*sol.t);
+        ctx.fillStyle='#111827'; ctx.beginPath(); ctx.arc(imp.cx,imp.cy,6,0,Math.PI*2); ctx.fill();
+      }
+
+      // labels
+      ctx.fillStyle='#374151'; ctx.font='12px sans-serif'; ctx.fillText('Origen defensor (suelo)', originX-60, originY+16);
+    }
+
+    // Core solver: given enemy parameters (x0 assumed 0 for simplicity) find t>0 minimizing v_def(t)
+    function computeOptimalDefender(params){
+      // params: {x0, z0, v0, ang (rad), g}
+      // enemy: x_e(t) = x0 + v0*cos(ang)*t ; z_e(t) = z0 + v0*sin(ang)*t - 0.5*g*t^2
+      // defender required: vx = x_e(t)/t ; vz = z_e(t)/t + 0.5*g*t
+      // v_def(t) = sqrt(vx^2 + vz^2)
+
+      const v0 = params.v0; const ang = params.ang; const x0 = params.x0; const z0 = params.z0; const g = params.g;
+
+      // search t in (0.05 .. 60) seconds
+      const tmin = 0.05; const tmax = 120; const N = 6000;
+      let best = {t: null, v: Infinity, vx:0, vz:0};
+      for(let i=1;i<=N;i++){
+        const t = tmin + (tmax-tmin)*(i/N);
+        const xe = x0 + v0*Math.cos(ang)*t;
+        const ze = z0 + v0*Math.sin(ang)*t - 0.5*g*t*t;
+        if(ze < -5) continue; // target under ground
+        const vx = xe / t;
+        const vz = ze / t + 0.5*g*t;
+        const v = Math.hypot(vx, vz);
+        if(v < best.v){ best = {t, v, vx, vz}; }
+      }
+      return best;
+    }
+
+    function calculateAndRender(){
+      const params = {
+        x0: 0,
+        z0: parseFloat(z0Slider.value),
+        v0: parseFloat(v0Slider.value),
+        ang: parseFloat(angSlider.value)*Math.PI/180,
+        g: parseFloat(gInput.value)
+      };
+      const sol = computeOptimalDefender(params);
+      // choose a realistic interceptor max speed (configurable). If required speed > max, mark propulsor needed.
+      const v_max = 600; // m/s (example)
+      vdefDisp.textContent = sol.v.toFixed(2);
+      timpactDisp.textContent = sol.t.toFixed(2);
+      propNeededDisp.textContent = sol.v > v_max ? 'Sí' : 'No';
+      sol.a_extra = 0;
+
+      // If required speed > v_max, compute minimal constant vertical extra acceleration (a_extra) required
+      if(sol.v > v_max){
+        // we will search for minimal a_extra >=0 such that resulting v_def <= v_max
+        let lo = 0, hi = 2000; // m/s^2
+        for(let iter=0; iter<40; iter++){
+          const mid = 0.5*(lo+hi);
+          // with a_extra, the defender z equation becomes: z_d(t) = vz*t + 0.5*a_extra*t^2 - 0.5*g*t^2
+          // rearrange to solve for vz: vz = z_e(t)/t + 0.5*g*t - 0.5*a_extra*t
+          const t = sol.t;
+          const xe = params.x0 + params.v0*Math.cos(params.ang)*t;
+          const ze = params.z0 + params.v0*Math.sin(params.ang)*t - 0.5*params.g*t*t;
+          const vx = xe / t;
+          const vz = ze / t + 0.5*params.g*t - 0.5*mid*t;
+          const v = Math.hypot(vx, vz);
+          if(v > v_max) lo = mid; else hi = mid;
+        }
+        sol.a_extra = hi;
+      }
+
+      drawScene(params, sol);
+      // return values for reference
+      return {params, sol};
+    }
+
+    randomBtn.onclick = () => {
+      // generate random in reasonable ranges from enunciado
+      const v0 = Math.round(100 + Math.random()*(400-100));
+      const ang = Math.round(15 + Math.random()*(75-15));
+      const z0 = Math.round(Math.random()*600);
+      v0Slider.value = v0; angSlider.value = ang; z0Slider.value = z0;
+      v0val.textContent = v0; angval.textContent = ang; z0val.textContent = z0;
+      calculateAndRender();
+    }
+
+    computeBtn.onclick = () => {
+      calculateAndRender();
+    }
+
+    // initial draw
+    calculateAndRender();
+
+    // small animation loop to redraw on resize / param changes
+    setInterval(()=>{},1000);
+  </script>
+</body>
+</html>

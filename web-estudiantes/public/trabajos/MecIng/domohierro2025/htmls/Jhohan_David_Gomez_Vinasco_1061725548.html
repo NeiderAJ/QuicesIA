@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Quiz – Simulación computacional de intercepción de misiles</title>
+<style>
+  body{font-family:Inter, system-ui, Arial, sans-serif;background:#f3f4f6;margin:0;padding:20px;color:#111827}
+  .wrap{max-width:1150px;margin:0 auto}
+  h1{color:#0ea5e9;margin:0 0 6px 0;text-align:left}
+  .subtitle{color:#6b7280;margin-bottom:16px}
+  .card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(15,23,42,0.06);margin-top:18px}
+  h3{color:#111827;margin:0 0 6px 0}
+  p{color:#374151;font-size:15px;line-height:1.5;margin:6px 0 0 0}
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+  canvas{width:100%;height:460px;border-radius:10px;border:1px solid #e6e7e8;background:#fff;display:block}
+  .btn{background:#0ea5e9;color:#fff;border:0;padding:8px 12px;border-radius:8px;cursor:pointer;margin-right:8px}
+  .hud{font-weight:700;margin-top:8px}
+  .small{font-size:13px;color:#6b7280}
+  .controls{display:flex;flex-direction:column;gap:8px}
+  label{font-weight:600;font-size:14px;margin-bottom:6px;display:block}
+  input[type=range]{width:100%}
+  .val{float:right;font-weight:700}
+  .blackboard{background:#111827;color:#f3f4f6;padding:12px;border-radius:8px;font-family:monospace;font-size:15px;white-space:pre-line}
+  .ref-list{margin-top:8px;padding-left:18px}
+  .ref-list li{margin-bottom:4px}
+  @media (max-width:960px){ .grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Quiz – Simulación computacional de intercepción de misiles</h1>
+  <div class="subtitle">David Gómez — Universidad de Antioquia — Física Mecánica</div>
+
+  <!-- 1 Enunciado resumido -->
+  <section class="card">
+    <h3>1. Enunciado (resumen)</h3>
+    <p>Un radar detecta un misil atacante en vuelo. Se pide reducir el problema a 2D, modelar las trayectorias del atacante y del interceptor, y diseñar una estrategia que permita la intercepción del objetivo.</p>
+  </section>
+
+  <!-- 2 Solución algebraica -->
+  <section class="card">
+    <h3>2. Solución algebraica</h3>
+    <div class="blackboard">
+<strong>Misil enemigo:</strong>
+xₑ(t) = x₀ + vₓ·t
+yₑ(t) = y₀ + vᵧ·t − ½·g·t²
+
+<strong>Misil defensor:</strong>
+x_d(t) = u·cosφ·t
+y_d(t) = u·sinφ·t + ½·(−g + a_extra)·t²
+
+<strong>Condición de intercepción:</strong>
+xₑ(t) = x_d(t)  y  yₑ(t) = y_d(t)   para algún t > 0
+    </div>
+  </section>
+
+  <!-- 3 Análisis funcional / teórico -->
+  <section class="card">
+    <h3>3. Análisis funcional / teórico</h3>
+    <p>Factores críticos: altura y distancia de detección, velocidad y ángulo del atacante, capacidad del interceptor (u y propulsión extra). Detectar temprano permite tiempos mayores de respuesta y reduce a_extra necesario.</p>
+  </section>
+
+  <!-- 4 Planteamiento de la simulación -->
+  <section class="card">
+    <h3>4. Planteamiento de la simulación</h3>
+    <p>Se trabajará en 2D (x horizontal, y altitud), con integración por pasos (dt). Interfaz con sliders para y0, vx, vy, u, φ, a_extra, g y umbral. Botón Aleatorio genera escenarios válidos con intercepción dentro del área visible; botón Sugerir propulsor calcula a_extra mínimo si fuera necesario.</p>
+  </section>
+
+  <!-- 5 Simulación interactiva -->
+  <section class="card">
+    <h3>5. Condiciones iniciales y simulación interactiva</h3>
+    <p>Los parámetros iniciales se controlan con los sliders. La simulación muestra ambas trayectorias, los misiles (forma tipo balín) y una explosión verde en la intercepción; al colisionar la simulación se pausa y muestra "¡Intercepción exitosa!".</p>
+
+    <div class="grid">
+      <div>
+        <h3>Simulación</h3>
+        <div style="margin-bottom:10px">
+          <button id="btnRandom" class="btn">Aleatorio</button>
+          <button id="btnSuggest" class="btn">Sugerir propulsor</button>
+          <button id="btnPause" class="btn">Pausar</button>
+          <button id="btnReset" class="btn">Reset</button>
+        </div>
+        <canvas id="simCanvas"></canvas>
+        <div class="hud" id="hud">Tiempo: 0.00 s</div>
+        <div id="message" class="small"></div>
+        <div class="hud">Intercepciones exitosas: <span id="counter">0</span></div>
+      </div>
+
+      <aside>
+        <div class="card" style="padding:12px;">
+          <h3>Controles</h3>
+          <div class="controls">
+            <div><label>Altura inicial del misil enemigo (y0) <span class="val" id="ylbl">300</span></label><input id="y0" type="range" min="50" max="600" value="300"></div>
+            <div><label>Velocidad horizontal del enemigo (|vx| en m/s) <span class="val" id="vxlbl">140</span></label><input id="vx" type="range" min="80" max="300" value="140"></div>
+            <div><label>Velocidad vertical del enemigo (vy en m/s, negativa = bajando, positiva = subiendo) <span class="val" id="vylbl">-30</span></label><input id="vy" type="range" min="-120" max="120" value="-30"></div>
+            <div><label>Velocidad inicial del defensor (u en m/s) <span class="val" id="ulbl">320</span></label><input id="u" type="range" min="180" max="700" value="320"></div>
+            <div><label>Ángulo de lanzamiento del defensor (φ en grados) <span class="val" id="philbl">55</span></label><input id="phi" type="range" min="10" max="80" value="55"></div>
+            <div><label>Aceleración adicional del propulsor (a_extra en m/s²) <span class="val" id="aelbl">0</span></label><input id="a_extra" type="range" min="0" max="800" value="0"></div>
+            <div><label>Gravedad (g en m/s²) <span class="val" id="glbl">9.81</span></label><input id="g" type="range" min="5" max="15" step="0.01" value="9.81"></div>
+            <div><label>Distancia de tolerancia para interceptar (umbral en m) <span class="val" id="thlbl">10</span></label><input id="th" type="range" min="2" max="40" value="10"></div>
+            <div><label>Escala del tiempo (velocidad de la animación) <span class="val" id="tslbl">1.0</span></label><input id="timeScale" type="range" min="0.2" max="2" step="0.1" value="1.0"></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 6 Relacion Domo -->
+  <section class="card">
+    <h3>6. Relación con Domo de Hierro</h3>
+    <p>La simulación reproduce, a escala didáctica, los pasos esenciales de Domo de Hierro: detección, predicción de trayectoria y cálculo del lanzamiento del interceptor. El sistema real opera en 3D y con guiado activo; aquí se simplifica para fines educativos.</p>
+  </section>
+
+  <!-- 7 Conclusiones -->
+  <section class="card">
+    <h3>7. Conclusiones</h3>
+    <p>La reducción a 2D y el análisis por simulación facilitan entender condiciones de intercepción. Detectar temprano y contar con suficiente velocidad/propulsión es clave. Las simulaciones aleatorias permiten probar robustez del sistema.</p>
+  </section>
+
+<!-- 8 Bibliografia -->
+<section class="card">
+  <h3>8. Bibliografía</h3>
+  <ul class="ref-list">
+    <li>Tipler, P. & Mosca, G. (2008). <i>Physics for Scientists and Engineers</i>. Freeman.</li>
+    <li>Material del curso – Universidad de Antioquia.</li>
+    <li>Referencias en línea sobre el sistema Domo de Hierro (Iron Dome).</li>
+    <li>OpenAI. (2025). ChatGPT. https://chat.openai.com/</li>
+  </ul>
+</section>
+
+</div>
+
+<!-- SCRIPT -->
+<script>
+const el=id=>document.getElementById(id);
+const canvas=el('simCanvas'),ctx=canvas.getContext('2d');
+function resize(){canvas.width=Math.max(800,canvas.getBoundingClientRect().width);canvas.height=Math.round(canvas.width*0.48);}resize();window.onresize=resize;
+
+let enemy={},defender={},g=9.81,simT=0,last=performance.now(),paused=false,explosion=null,counter=0;
+let trajEnemy=[],trajDef=[];
+
+function updateLabels(){el('ylbl').innerText=el('y0').value;el('vxlbl').innerText=el('vx').value;el('vylbl').innerText=el('vy').value;el('ulbl').innerText=el('u').value;el('philbl').innerText=el('phi').value;el('aelbl').innerText=el('a_extra').value;el('glbl').innerText=Number(el('g').value).toFixed(2);el('thlbl').innerText=el('th').value;el('tslbl').innerText=Number(el('timeScale').value).toFixed(1);}updateLabels();
+
+function applySliders(){enemy={x0:canvas.width,y0:+el('y0').value,vx:-Math.abs(+el('vx').value),vy:+el('vy').value};defender={u:+el('u').value,phi:+el('phi').value*Math.PI/180,a_extra:+el('a_extra').value};g=+el('g').value;simT=0;explosion=null;paused=false;trajEnemy=[];trajDef=[];el('btnPause').innerText='Pausar';}
+applySliders();
+['y0','vx','vy','u','phi','a_extra','g','th','timeScale'].forEach(id=>el(id).oninput=()=>{updateLabels();applySliders();});
+
+function drawMissile(x,y,c,o){const px=x,py=canvas.height-y,s=14;ctx.save();ctx.translate(px,py);ctx.fillStyle=c;if(o==='left'){ctx.fillRect(-s*1.2,-s*0.5,s,s);ctx.beginPath();ctx.arc(-s*1.35,0,s*0.45,0,Math.PI*2);ctx.fill();}else{ctx.fillRect(-s*0.1,-s*0.5,s,s);ctx.beginPath();ctx.arc(s*1.05,0,s*0.45,0,Math.PI*2);ctx.fill();}ctx.restore();}
+function drawExplosion(cx,cy){ctx.beginPath();ctx.fillStyle="rgba(34,197,94,0.8)";ctx.arc(cx,cy,40,0,Math.PI*2);ctx.fill();}
+function drawTrajectory(traj,color){ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();traj.forEach(([x,y],i)=>{if(i===0)ctx.moveTo(x,canvas.height-y);else ctx.lineTo(x,canvas.height-y);});ctx.stroke();}
+
+function collisionAt(t,p){const xe=p.enemy.x0+p.enemy.vx*t,ye=p.enemy.y0+p.enemy.vy*t-0.5*p.g*t*t;const ux=p.defender.u*Math.cos(p.defender.phi),uy=p.defender.u*Math.sin(p.defender.phi);const xd=ux*t,yd=uy*t+0.5*(-p.g+p.defender.a_extra)*t*t;return {xe,ye,xd,yd,dist:Math.hypot(xe-xd,ye-yd)};}
+function hasCollision(p){const th=+el('th').value;for(let t=0;t<25;t+=0.05){const c=collisionAt(t,p);if(c.ye<0||c.yd<0)continue;if(c.xe<0||c.xe>canvas.width)continue;if(c.ye<0||c.ye>canvas.height)continue;if(c.dist<=th)return true;}return false;}
+
+async function randomScenario(){el('btnRandom').disabled=true;el('message').innerText='Buscando escenario...';explosion=null;paused=false;el('btnPause').innerText='Pausar';let tries=0;while(tries<400){tries++;const y0=50+Math.random()*(canvas.height-100);const vx=-(100+Math.random()*150);const vy=-120+Math.random()*240;const u=220+Math.random()*380;const phi=(20+Math.random()*55)*Math.PI/180;const cand={enemy:{x0:canvas.width,y0, vx,vy},defender:{u,phi,a_extra:0},g:+el('g').value};if(hasCollision(cand)){el('y0').value=Math.round(cand.enemy.y0);el('vx').value=Math.abs(Math.round(cand.enemy.vx));el('vy').value=Math.round(cand.enemy.vy);el('u').value=Math.round(cand.defender.u);el('phi').value=Math.round(cand.defender.phi*180/Math.PI);el('a_extra').value=0;updateLabels();applySliders();el('message').innerText=`Escenario generado (${tries} intentos).`;el('btnRandom').disabled=false;return;}if(tries%50===0)await new Promise(r=>setTimeout(r,0));}el('message').innerText='Respaldo usado.';el('y0').value=300;el('vx').value=140;el('vy').value=-30;el('u').value=320;el('phi').value=55;el('a_extra').value=0;updateLabels();applySliders();el('btnRandom').disabled=false;}
+
+function suggestPropulsor(){const p={enemy:{...enemy},defender:{...defender},g};let best={a:1e9};for(let t=0.5;t<20;t+=0.05){const xe=p.enemy.x0+p.enemy.vx*t,ye=p.enemy.y0+p.enemy.vy*t-0.5*p.g*t*t;if(ye<0)continue;const ux=p.defender.u*Math.cos(p.defender.phi),uy=p.defender.u*Math.sin(p.defender.phi);const xd=ux*t;const dx=Math.abs(xe-xd);if(dx>+el('th').value)continue;const a_req=p.g+2*(ye-uy*t)/(t*t);if(a_req>=0&&a_req<best.a)best={a:a_req};}if(best.a<1e9){el('a_extra').value=Math.round(best.a);updateLabels();applySliders();el('message').innerText=`Sugerido a_extra=${Math.round(best.a)} m/s²`;}else el('message').innerText='No se encontró a_extra razonable.';}
+
+el('btnRandom').onclick=randomScenario;el('btnSuggest').onclick=suggestPropulsor;el('btnPause').onclick=()=>{paused=!paused;el('btnPause').innerText=paused?'Reanudar':'Pausar';};el('btnReset').onclick=()=>{el('y0').value=300;el('vx').value=140;el('vy').value=-30;el('u').value=320;el('phi').value=55;el('a_extra').value=0;el('g').value=9.81;el('th').value=10;el('timeScale').value=1;updateLabels();applySliders();el('message').innerText='';};
+
+function animate(now){requestAnimationFrame(animate);if(paused){last=now;return;}const dt=(now-last)/1000;last=now;simT+=dt*+el('timeScale').value;ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);const xe=enemy.x0+enemy.vx*simT,ye=enemy.y0+enemy.vy*simT-0.5*g*simT*simT;const ux=defender.u*Math.cos(defender.phi),uy=defender.u*Math.sin(defender.phi);const xd=ux*simT,yd=uy*simT+0.5*(-g+defender.a_extra)*simT*simT;if(ye>-200)trajEnemy.push([xe,Math.max(0,ye)]);if(yd>-200)trajDef.push([xd,Math.max(0,yd)]);drawTrajectory(trajEnemy,'rgba(255,60,60,0.95)');drawTrajectory(trajDef,'rgba(60,120,255,0.95)');if(ye>-200)drawMissile(xe,Math.max(0,ye),'red','left');if(yd>-200)drawMissile(xd,Math.max(0,yd),'blue','right');if(ye>0&&yd>0&&!explosion){const d=Math.hypot(xe-xd,ye-yd);if(d<=+el('th').value){explosion={cx:xe,cy:canvas.height-ye,t:0};el('message').innerText=`¡Impacto en t=${simT.toFixed(2)} s!`;counter++;el('counter').innerText=counter;paused=true;el('btnPause').innerText='Reanudar';drawExplosion(explosion.cx,explosion.cy);ctx.fillStyle='black';ctx.font='26px Arial';ctx.textAlign='center';ctx.fillText('¡Intercepción exitosa!',canvas.width/2,48);return;}}if(explosion){drawExplosion(explosion.cx,explosion.cy);ctx.fillStyle='black';ctx.font='26px Arial';ctx.textAlign='center';ctx.fillText('¡Intercepción exitosa!',canvas.width/2,48);}el('hud').innerText=`Tiempo: ${simT.toFixed(2)} s`;}
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>

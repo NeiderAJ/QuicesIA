@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simulación de Intercepción de Proyectiles</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #0b1220;
+      color: #e6eef8;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+  </style>
+</head>
+<body class="p-4 md:p-8">
+
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold text-center mb-8 text-[#3ddc97]">Análisis y Simulación de Intercepción de Proyectiles</h1>
+
+    <div class="bg-[#0f1724] p-6 rounded-lg shadow-lg mb-8">
+      <h2 class="text-2xl font-semibold mb-4 text-[#6cb0ff]">1. Enunciado del Problema</h2>
+      <p class="text-lg leading-relaxed">
+        El desafío consiste en desarrollar un sistema de defensa capaz de interceptar un proyectil enemigo en pleno vuelo. Ambos proyectiles, el enemigo y el defensor, describen trayectorias parabólicas debido a la influencia constante de la gravedad. El objetivo principal es que el proyectil aliado (defensor) logre impactar al proyectil enemigo <b class="text-[#ff6b6b]">antes de que este último toque el suelo</b>. Para ello, el sistema defensor debe calcular la trayectoria óptima y la velocidad inicial mínima requerida para garantizar una intercepción exitosa.
+      </p>
+    </div>
+
+    <div class="bg-[#0f1724] p-6 rounded-lg shadow-lg mb-8">
+        <h2 class="text-2xl font-semibold mb-4 text-[#6cb0ff]">2. Solución Algebraica: El Arte de Predecir</h2>
+        <p class="text-lg mb-6">
+            Para interceptar un proyectil, primero debemos predecir su trayectoria. Pensemos en esto como un juego: para atrapar una pelota, tu cerebro calcula instintivamente a dónde irá. Aquí hacemos lo mismo con matemáticas, descomponiendo el movimiento en dos partes más sencillas: un viaje horizontal (a velocidad constante) y un viaje vertical (afectado por la gravedad que lo jala hacia abajo).
+        </p>
+  
+        <div class="bg-[#0b1220] border border-sky-900/50 p-6 rounded-xl mb-8">
+            <h3 class="text-xl font-semibold mb-4 text-[#ff6b6b]">Paso 1: Predecir la posición del enemigo 🎯</h3>
+            <p class="mb-6">Usamos dos ecuaciones para saber la posición del enemigo $(x_e, y_e)$ en cualquier instante de tiempo $t$.</p>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="font-semibold text-lg text-white mb-2">Viaje Horizontal (Eje X)</h4>
+                    <div class="bg-gray-900/50 p-4 rounded-lg text-center">
+                        <p class="text-xl">$$ x_e(t) = x_{e0} + v_{e0x} \cdot t $$</p>
+                    </div>
+                    <ul class="mt-4 space-y-2 text-sm text-gray-300">
+                        <li><span class="font-semibold text-white">Posición futura</span> = Posición inicial + (Velocidad horizontal × Tiempo)</li>
+                        <li class="text-gray-400">La velocidad horizontal <span class="font-mono text-amber-300">$v_{e0x}$</span> nunca cambia en este modelo ideal.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg text-white mb-2">Viaje Vertical (Eje Y)</h4>
+                    <div class="bg-gray-900/50 p-4 rounded-lg text-center">
+                        <p class="text-xl">$$ y_e(t) = y_{e0} + v_{e0y} \cdot t - \frac{1}{2} g t^2 $$</p>
+                    </div>
+                    <ul class="mt-4 space-y-2 text-sm text-gray-300">
+                        <li><span class="font-semibold text-white">Altura futura</span> = Altura inicial + (Impulso inicial hacia arriba) - (Caída por gravedad).</li>
+                        <li class="text-gray-400">El término <span class="font-mono text-amber-300">$\frac{1}{2} g t^2$</span> representa cómo la gravedad ($g$) frena el ascenso y acelera la caída del proyectil.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+  
+        <div class="bg-[#0b1220] border border-sky-900/50 p-6 rounded-xl">
+            <h3 class="text-xl font-semibold mb-4 text-[#3ddc97]">Paso 2: Calcular el lanzamiento del defensor 🚀</h3>
+            <p class="mb-6">Ahora que podemos predecir dónde estará el enemigo en un futuro instante $t_{int}$ (tiempo de intercepción), la pregunta es: ¿con qué velocidad inicial debemos lanzar nuestro defensor para que llegue a ese mismo punto en ese mismo instante?</p>
+            <p class="mb-4">Despejamos las ecuaciones para encontrar las "instrucciones de lanzamiento" $(v_{d0x}, v_{d0y})$ que nuestro sistema debe seguir:</p>
+            
+            <div class="space-y-4">
+                <div class="bg-gray-900/50 p-4 rounded-lg">
+                   <h4 class="font-semibold text-white mb-1">Velocidad Horizontal Requerida:</h4>
+                   <p class="text-lg text-center my-2">$$ v_{d0x} = \frac{\text{distancia horizontal a recorrer}}{\text{tiempo de intercepción}} = \frac{x_e(t_{int}) - x_{d0}}{t_{int}} $$</p>
+                </div>
+                <div class="bg-gray-900/50 p-4 rounded-lg">
+                   <h4 class="font-semibold text-white mb-1">Velocidad Vertical Requerida:</h4>
+                   <p class="text-lg text-center my-2">$$ v_{d0y} = \frac{(\text{altura del objetivo}) + (\text{compensación por gravedad})}{\text{tiempo de intercepción}} = \frac{y_e(t_{int}) + \frac{1}{2} g t_{int}^2}{t_{int}} $$</p>
+                   <p class="text-xs text-gray-400 mt-2 text-center">Nótese que debemos "apuntar más alto" ($+ \frac{1}{2} g t_{int}^2$) para compensar la caída que sufrirá nuestro propio proyectil durante su vuelo.</p>
+                </div>
+            </div>
+            <p class="mt-6 text-center text-gray-300">
+              El simulador es inteligente: prueba muchos posibles tiempos de intercepción ($t_{int}$) y elige aquel que requiere la <b class="text-white">menor velocidad de lanzamiento posible</b>, optimizando así la energía.
+            </p>
+        </div>
+    </div>
+    
+    <div class="bg-[#0f1724] p-6 rounded-lg shadow-lg mb-8">
+        <h2 class="text-2xl font-semibold mb-4 text-[#6cb0ff]">3. Análisis Funcional</h2>
+        <p class="mb-4">La interfaz de la simulación permite un control detallado sobre los parámetros iniciales del escenario y la visualización de los resultados:</p>
+        <ul class="list-disc list-inside space-y-2">
+            <li><b>Velocidad inicial enemigo:</b> Un control deslizante (slider) para ajustar la magnitud de la velocidad de lanzamiento del proyectil enemigo (en m/s).</li>
+            <li><b>Ángulo enemigo:</b> Slider para modificar el ángulo de disparo del enemigo (en grados). Afecta directamente el alcance y la altura máxima de su trayectoria.</li>
+            <li><b>Posición horizontal enemigo:</b> Permite desplazar el punto de lanzamiento del proyectil enemigo a lo largo del eje horizontal (en metros).</li>
+            <li><b>Posición horizontal defensor:</b> Ajusta la ubicación de la base de lanzamiento del proyectil defensor.</li>
+            <li><b>Botones de Control:</b>
+                <ul class="list-disc list-inside ml-6 mt-2 space-y-1">
+                    <li><b>Aleatorio:</b> Genera un escenario con valores aleatorios para todos los parámetros.</li>
+                    <li><b>Pausar/Reanudar:</b> Detiene o continúa la simulación en tiempo real.</li>
+                    <li><b>Reiniciar:</b> Vuelve la simulación a su estado inicial (tiempo = 0) con los parámetros actuales.</li>
+                    <li><b>Un paso:</b> Avanza la simulación un pequeño incremento de tiempo, útil para análisis detallado.</li>
+                    <li><b>Velocidad ×2:</b> Acelera el paso del tiempo en la simulación.</li>
+                </ul>
+            </li>
+            <li><b>Panel de Estadísticas:</b> Muestra en tiempo real datos clave como el tiempo total de vuelo del enemigo, el tiempo estimado para la intercepción y la velocidad inicial calculada para el proyectil defensor.</li>
+        </ul>
+    </div>
+
+    <div class="bg-[#0f1724] p-2 md:p-6 rounded-lg shadow-lg mb-8">
+      <h2 class="text-2xl font-semibold mb-4 text-center md:text-left text-[#6cb0ff]">4. Simulación Interactiva</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-gray-900/50 p-4 rounded-lg">
+          <div class="flex justify-between items-center mb-2 flex-wrap">
+            <h3 class="text-lg font-semibold">Simulación: proyectil enemigo <span class="text-[#ff6b6b]">↗</span> y defensor <span class="text-[#3ddc97]">↖</span></h3>
+            <div class="flex gap-4 items-center flex-wrap">
+              <div class="flex gap-2 items-center"><div class="w-4 h-2 rounded" style="background:#ff6b6b"></div><span>Enemigo</span></div>
+              <div class="flex gap-2 items-center"><div class="w-4 h-2 rounded" style="background:#3ddc97"></div><span>Defensor</span></div>
+              <div class="flex gap-2 items-center"><div class="w-4 h-2 rounded" style="background:#6cb0ff"></div><span>Intercepción</span></div>
+            </div>
+          </div>
+          <canvas id="world" class="w-full h-auto aspect-[2/1] bg-gradient-to-b from-[#0e2040] to-transparent rounded-lg"></canvas>
+          <div class="flex gap-3 mt-4 items-center flex-wrap">
+            <button id="btn-random" class="bg-[#132433] hover:bg-[#1a2e42] text-white py-2 px-4 rounded-lg">Aleatorio</button>
+            <button id="btn-play" class="bg-[#132433] hover:bg-[#1a2e42] text-white py-2 px-4 rounded-lg">Pausar</button>
+            <button id="btn-reset" class="bg-[#132433] hover:bg-[#1a2e42] text-white py-2 px-4 rounded-lg">Reiniciar</button>
+            <div class="text-sm text-gray-400 ml-4">Escala automática y tiempo real</div>
+          </div>
+        </div>
+
+        <div class="bg-[#0f1724] p-4 rounded-lg">
+          <div>
+            <label class="block text-sm text-gray-400 mt-4">Velocidad inicial enemigo (m/s) <span id="vval" class="font-bold text-white">250</span></label>
+            <input id="vslider" type="range" min="100" max="400" step="1" value="250" class="w-full">
+
+            <label class="block text-sm text-gray-400 mt-4">Ángulo enemigo (°) <span id="angval" class="font-bold text-white">45</span></label>
+            <input id="aslider" type="range" min="5" max="75" step="0.5" value="45" class="w-full">
+
+            <label class="block text-sm text-gray-400 mt-4">Posición horizontal enemigo (m) <span id="xenemy" class="font-bold text-white">0</span></label>
+            <input id="xslider" type="range" min="0" max="5000" step="1" value="0" class="w-full">
+
+            <label class="block text-sm text-gray-400 mt-4">Posición horizontal defensor (m) <span id="xdef" class="font-bold text-white">1000</span></label>
+            <input id="xdefslider" type="range" min="-500" max="15000" step="1" value="1000" class="w-full">
+
+            <div class="flex gap-2 mt-4">
+              <button id="btn-step" class="flex-1 bg-[#132433] hover:bg-[#1a2e42] text-white py-2 px-3 rounded-lg">Un paso</button>
+              <button id="btn-fast" class="flex-1 bg-[#132433] hover:bg-[#1a2e42] text-white py-2 px-3 rounded-lg">Velocidad ×1</button>
+            </div>
+
+            <div class="mt-6 text-sm space-y-2 bg-[#0b1220] p-3 rounded-lg">
+              <div>Tiempo de vuelo enemigo: <span id="tflight" class="font-mono text-white">—</span> s</div>
+              <div>Tiempo de intercepción: <span id="tinter" class="font-mono text-white">—</span> s</div>
+              <div>Velocidad requerida defensor: <span id="vdefreq" class="font-mono text-white">—</span> m/s</div>
+              <div class="text-xs text-gray-500 mt-2">Nota: se calcula la solución de mínima velocidad para interceptar antes del impacto.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-[#0f1724] p-6 rounded-lg shadow-lg mb-8">
+      <h2 class="text-2xl font-semibold mb-4 text-[#6cb0ff]">5. Relación con el Sistema Domo de Hierro</h2>
+      <p class="mb-4">
+        Esta simulación, aunque simplificada, comparte principios fundamentales con sistemas de defensa aérea reales como el <b>Domo de Hierro</b> (Iron Dome) de Israel.
+      </p>
+      
+      <ul class="list-disc list-inside space-y-2">
+        <li><b>Detección y Seguimiento:</b> En el mundo real, un sistema de radar detecta el proyectil enemigo y rastrea su trayectoria. En nuestra simulación, los parámetros iniciales del enemigo (posición, velocidad, ángulo) son conocidos desde el principio.</li>
+        <li><b>Cálculo del Punto de Impacto:</b> El Domo de Hierro calcula rápidamente la trayectoria del cohete enemigo para determinar si caerá en un área poblada. Si no es una amenaza, no se lanza un interceptor. Nuestra simulación siempre asume que la intercepción es necesaria.</li>
+        <li><b>Lanzamiento del Interceptor:</b> Una vez que se identifica una amenaza, se lanza un misil interceptor (Tamir). De manera similar, nuestro simulador calcula el vector de velocidad óptimo para el proyectil defensor y lo "lanza" en el tiempo $t=0$.</li>
+        <li><b>Maniobrabilidad y Guiado:</b> Los misiles interceptores reales son autoguiados y pueden corregir su rumbo en pleno vuelo para asegurar el impacto. Nuestro proyectil defensor sigue una trayectoria balística fija, calculada en el momento del lanzamiento, lo cual es una simplificación importante.</li>
+        <li><b>Proximidad y Detonación:</b> Los interceptores del Domo de Hierro no necesitan un impacto directo; detonan por proximidad para destruir la amenaza en el aire. Nuestra simulación modela una intercepción exitosa como una colisión directa.</li>
+      </ul>
+      <p class="mt-4">
+        En resumen, la simulación captura la esencia del cálculo de trayectorias balísticas para la intercepción, pero omite la complejidad de los sistemas de radar, el comando y control en tiempo real, y las capacidades de guiado avanzado de los misiles modernos.
+      </p>
+    </div>
+
+    <div class="bg-[#0f1724] p-6 rounded-lg shadow-lg mb-8">
+      <h2 class="text-2xl font-semibold mb-4 text-[#6cb0ff]">6. Conclusiones</h2>
+      <p class="mb-4">
+        Esta simulación demuestra la viabilidad de interceptar un proyectil con una trayectoria parabólica mediante un análisis predictivo de su movimiento. A través de la aplicación de las ecuaciones de la cinemática, es posible determinar con precisión los parámetros de lanzamiento necesarios para un proyectil defensor.
+      </p>
+      <ul class="list-disc list-inside space-y-2">
+        <li>La intercepción exitosa depende críticamente de la precisión en la medición de los parámetros iniciales del proyectil enemigo.</li>
+        <li>Existe un "cono de solución" para el proyectil defensor; no hay una única trayectoria de intercepción, pero el sistema puede optimizar para ciertos criterios, como la mínima energía (velocidad inicial).</li>
+        <li>La simulación resalta cómo un problema aparentemente complejo puede ser descompuesto y resuelto con principios fundamentales de la física, sentando las bases para entender sistemas de defensa mucho más avanzados.</li>
+      </ul>
+    </div>
+    
+    <div class="bg-[#0f1724] p-6 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-semibold mb-4 text-[#6cb0ff]">7. Bibliografía y Recursos</h2>
+      <ul class="list-disc list-inside space-y-2 text-sm">
+        <li>Tipler, P. A., & Mosca, G. (2008). <i>Physics for Scientists and Engineers</i>. W. H. Freeman. (Principios de movimiento parabólico).</li>
+        <li>How Iron Dome Works. (2021). Raytheon Technologies. Consultado en sitios web de defensa y tecnología. (Información sobre el sistema Domo de Hierro).</li>
+        <li>Halliday, D., Resnick, R., & Walker, J. (2013). <i>Fundamentals of Physics</i>. Wiley. (Ecuaciones de cinemática en 2D).</li>
+      </ul>
+    </div>
+
+  </div>
+  
+<script>
+(() => {
+  const canvas = document.getElementById('world');
+  const ctx = canvas.getContext('2d');
+  let W = canvas.offsetWidth;
+  let H = canvas.offsetHeight;
+  canvas.width = W;
+  canvas.height = H;
+
+  window.addEventListener('resize', () => {
+    W = canvas.offsetWidth;
+    H = canvas.offsetHeight;
+    canvas.width = W;
+    canvas.height = H;
+    if(enemy.r0){
+     computeScale(enemy, defender);
+    }
+  });
+
+  const g = 9.81;
+
+  const vslider = document.getElementById('vslider');
+  const aslider = document.getElementById('aslider');
+  const xslider = document.getElementById('xslider');
+  const xdefslider = document.getElementById('xdefslider');
+  const vval = document.getElementById('vval');
+  const angval = document.getElementById('angval');
+  const xenemySpan = document.getElementById('xenemy');
+  const xdefSpan = document.getElementById('xdef');
+  const btnRandom = document.getElementById('btn-random');
+  const btnPlay = document.getElementById('btn-play');
+  const btnReset = document.getElementById('btn-reset');
+  const btnStep = document.getElementById('btn-step');
+  const btnFast = document.getElementById('btn-fast');
+  const tflightSpan = document.getElementById('tflight');
+  const tinterSpan = document.getElementById('tinter');
+  const vdefSpan = document.getElementById('vdefreq');
+
+  let enemy = {}, defender = {};
+  let scale = 1;
+  let simTime = 0;
+  let playing = true;
+  let timeScale = 1.0;
+  let view = {xmin:0, ymin:0, widthMeters:100, heightMeters:50};
+
+  function rand(min,max){ return Math.random()*(max-min)+min; }
+
+  function setupFromUI(){
+    const v = parseFloat(vslider.value);
+    const ang = parseFloat(aslider.value) * Math.PI/180;
+    const x0 = parseFloat(xslider.value);
+    const xdef0 = parseFloat(xdefslider.value);
+
+    vval.textContent = v.toFixed(0);
+    angval.textContent = aslider.value;
+    xenemySpan.textContent = x0;
+    xdefSpan.textContent = xdef0;
+
+    enemy = {
+      r0: {x: x0, y:0},
+      v0: {x: v*Math.cos(ang), y: v*Math.sin(ang)},
+      path: []
+    };
+
+    const vy = enemy.v0.y;
+    enemy.tFlight = 2*vy/g;
+
+    simTime = 0;
+
+    const intercept = computeBestIntercept(enemy, xdef0);
+    defender = {
+      r0: {x: xdef0, y:0},
+      v0: intercept.v0 || {x:0,y:0},
+      interceptTime: intercept.t,
+      interceptPos: intercept.pos || null,
+      path: []
+    };
+
+    tflightSpan.textContent = enemy.tFlight > 0 ? enemy.tFlight.toFixed(2) : '—';
+    if(defender.interceptPos){
+      tinterSpan.textContent = defender.interceptTime.toFixed(2);
+      vdefSpan.textContent = Math.hypot(defender.v0.x, defender.v0.y).toFixed(2);
+    } else {
+      tinterSpan.textContent = 'Inalcanzable';
+      vdefSpan.textContent = '—';
+    }
+
+    computeScale(enemy, defender);
+  }
+
+  function posEnemy(t){
+    return {
+      x: enemy.r0.x + enemy.v0.x*t,
+      y: enemy.r0.y + enemy.v0.y*t - 0.5*g*t*t
+    };
+  }
+
+  function posDef(v0, r0, t){
+    return {
+      x: r0.x + v0.x*t,
+      y: r0.y + v0.y*t - 0.5*g*t*t
+    };
+  }
+
+  function computeBestIntercept(enemyObj, xDef){
+    const tMax = enemyObj.tFlight;
+    if(!tMax || !isFinite(tMax) || tMax <= 0) return {t:null,v0:null,pos:null};
+    
+    let best = {t:null,v0:null,pos:null,speed:Infinity};
+    const samples = 1200;
+    for(let i=1;i<samples;i++){
+      const t = (i/samples) * (tMax * 0.999);
+      if (t <= 0.01) continue;
+      
+      const posE = posEnemy(t);
+      if(posE.y < 0) continue;
+
+      const vx = (posE.x - xDef)/t;
+      const vy = (posE.y + 0.5*g*t*t)/t;
+      const speed = Math.hypot(vx, vy);
+
+      if(speed < best.speed){
+        best = {t, v0:{x:vx,y:vy}, pos: posE, speed};
+      }
+    }
+    
+    if(best.t && best.t < tMax + 1e-6) return best;
+    return {t:null,v0:null,pos:null};
+  }
+
+  function computeScale(enemyObj, defenderObj){
+    const tmax = Math.max(enemyObj.tFlight||0, (defenderObj.interceptTime||0));
+    let xmax = Math.max(enemyObj.r0.x, defenderObj.r0 ? defenderObj.r0.x : -Infinity);
+    let xmin = Math.min(enemyObj.r0.x, defenderObj.r0 ? defenderObj.r0.x : Infinity);
+    let ymax = 0;
+
+    for(let t=0; t<=tmax+0.001; t+=Math.max(0.02, tmax/120)){
+      const pe = posEnemy(t);
+      xmax = Math.max(xmax, pe.x);
+      xmin = Math.min(xmin, pe.x);
+      ymax = Math.max(ymax, pe.y);
+      if(defenderObj.v0){
+        const pd = posDef(defenderObj.v0, defenderObj.r0, t);
+        xmax = Math.max(xmax, pd.x);
+        xmin = Math.min(xmin, pd.x);
+        ymax = Math.max(ymax, pd.y);
+      }
+    }
+    
+    const widthMeters = Math.max(80, (xmax - xmin) * 1.2);
+    const heightMeters = Math.max(40, ymax * 1.2 + 5);
+    const marginPx = 80;
+    scale = Math.min((W - marginPx) / widthMeters, (H - marginPx) / heightMeters);
+    
+    view = {
+      xmin: xmin - (widthMeters * 0.1),
+      ymin: 0,
+      widthMeters,
+      heightMeters
+    };
+  }
+
+  function metersToScreen(pt){
+    const sx = (pt.x - view.xmin) * scale + 40;
+    const sy = H - (pt.y - view.ymin) * scale - 30;
+    return {x:sx,y:sy};
+  }
+
+  function drawGrid(){
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    const groundY = metersToScreen({x:0,y:0}).y;
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    ctx.lineTo(W, groundY);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'left';
+    const stepSize = Math.pow(10, Math.floor(Math.log10(view.widthMeters))) / 2;
+    for(let xm = Math.ceil(view.xmin/stepSize)*stepSize; xm < view.xmin + view.widthMeters; xm += stepSize){
+        if (view.widthMeters / stepSize > 20) continue;
+      const sx = metersToScreen({x:xm,y:0}).x;
+      ctx.beginPath(); ctx.moveTo(sx, groundY-4); ctx.lineTo(sx, groundY+4); ctx.stroke();
+      ctx.fillText(Math.round(xm) + 'm', sx+4, groundY+12);
+    }
+    ctx.restore();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    drawGrid();
+
+    if(defender.interceptPos){
+      const sp = metersToScreen(defender.interceptPos);
+      ctx.fillStyle = '#6cb0ff';
+      ctx.beginPath(); ctx.arc(sp.x, sp.y, 6, 0, Math.PI*2); ctx.fill();
+    }
+
+    ctx.lineWidth = 2;
+    // Enemy path
+    ctx.beginPath();
+    for(let i=0;i<enemy.path.length;i++){
+      const p = metersToScreen(enemy.path[i]);
+      if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
+    }
+    ctx.strokeStyle = '#ff6b6b'; ctx.stroke();
+
+    // Defender path
+    ctx.beginPath();
+    for(let i=0;i<defender.path.length;i++){
+      const p = metersToScreen(defender.path[i]);
+      if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
+    }
+    ctx.strokeStyle = '#3ddc97'; ctx.stroke();
+
+    // Projectiles
+    if(enemy.currentPos){
+      const sp = metersToScreen(enemy.currentPos);
+      ctx.fillStyle = '#ff6b6b'; ctx.beginPath(); ctx.arc(sp.x,sp.y,8,0,Math.PI*2); ctx.fill();
+    }
+    if(defender.currentPos){
+      const sp = metersToScreen(defender.currentPos);
+      ctx.fillStyle = '#3ddc97'; ctx.beginPath(); ctx.arc(sp.x,sp.y,8,0,Math.PI*2); ctx.fill();
+    }
+  }
+
+  function step(dt){
+    simTime += dt * timeScale;
+    
+    const te = simTime;
+    if(te <= enemy.tFlight + 0.01){
+      const p = posEnemy(te);
+      enemy.currentPos = p;
+      if(enemy.path.length === 0 || Math.hypot(p.x - enemy.path[enemy.path.length-1].x, p.y - enemy.path[enemy.path.length-1].y) > 0.1) {
+          enemy.path.push(p);
+      }
+    } else {
+      enemy.currentPos = null;
+    }
+
+    if(defender.v0){
+      const pd = posDef(defender.v0, defender.r0, simTime);
+      if(pd.y >= -5 && simTime <= defender.interceptTime + 0.5){
+        defender.currentPos = pd;
+        if(defender.path.length === 0 || Math.hypot(pd.x - defender.path[defender.path.length-1].x, pd.y - defender.path[defender.path.length-1].y) > 0.1) {
+            defender.path.push(pd);
+        }
+      } else {
+        defender.currentPos = null;
+      }
+    }
+
+    if(enemy.currentPos && defender.currentPos){
+      const dx = enemy.currentPos.x - defender.currentPos.x;
+      const dy = enemy.currentPos.y - defender.currentPos.y;
+      const dist = Math.hypot(dx,dy);
+      if(dist < 2.0){
+        playing = false;
+        btnPlay.textContent = 'Reanudar';
+      }
+    }
+  }
+
+  let last = null;
+  function loop(ts){
+    if(!last) last = ts;
+    const delta = (ts-last)/1000;
+    last = ts;
+    if(playing){
+      const d = Math.min(0.05, delta);
+      step(d);
+    }
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  const sliders = [vslider, aslider, xslider, xdefslider];
+    sliders.forEach(slider => slider.addEventListener('input', () => {
+    vval.textContent = parseFloat(vslider.value).toFixed(0);
+    angval.textContent = parseFloat(aslider.value).toFixed(1);
+    xenemySpan.textContent = xslider.value;
+    xdefSpan.textContent = xdefslider.value;
+    if(!playing) {
+      setupFromUI();
+    }
+  }));
+  sliders.forEach(slider => slider.addEventListener('change', () => {
+      setupFromUI();
+  }));
+
+  btnRandom.addEventListener('click', ()=>{
+    vslider.value = Math.round(rand(100,400));
+    aslider.value = (rand(15,70)).toFixed(2);
+    xslider.value = Math.round(rand(0,1200));
+    xdefslider.value = Math.round(rand(parseFloat(xslider.value) + 500, 8000));
+    setupFromUI();
+    if(!playing) {
+      playing = true;
+      btnPlay.textContent='Pausar';
+    }
+  });
+
+  btnPlay.addEventListener('click', ()=>{
+    playing = !playing; btnPlay.textContent = playing? 'Pausar' : 'Reanudar';
+    if(playing) last = performance.now();
+  });
+  btnReset.addEventListener('click', ()=>{ 
+    setupFromUI();
+    if(!playing){
+      playing = true;
+      btnPlay.textContent='Pausar';
+    }
+  });
+  btnStep.addEventListener('click', ()=>{ if(!playing) { step(0.04); draw(); } });
+  btnFast.addEventListener('click', ()=>{ 
+    timeScale = (timeScale===1?2:1); 
+    btnFast.textContent = 'Velocidad ×' + timeScale; 
+  });
+
+  // Initial setup
+  vslider.value = Math.round(rand(150,350));
+  aslider.value = (rand(25,65)).toFixed(2);
+  xslider.value = Math.round(rand(0,200));
+  xdefslider.value = Math.round(rand(1000,3000));
+  setupFromUI();
+  requestAnimationFrame(loop);
+
+})();
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</body>
+</html>

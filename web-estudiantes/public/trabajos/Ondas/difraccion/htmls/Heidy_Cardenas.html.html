@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Difracción de dos rayos de luz</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      text-align: center;
+      color: purple;
+      margin-top: 20px;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .panel {
+      background-color: #111;
+      padding: 20px;
+      margin-right: 20px;
+      border-radius: 10px;
+      width: 250px;
+    }
+
+    .panel h2 {
+      color: purple;
+    }
+
+    label, input, button {
+      display: block;
+      margin-bottom: 10px;
+      width: 100%;
+    }
+
+    input {
+      padding: 5px;
+    }
+
+    button {
+      background-color: purple;
+      color: white;
+      border: none;
+      padding: 8px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .simulation {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #222;
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .output {
+      margin-top: 10px;
+      font-size: 0.9em;
+    }
+
+    .theory {
+      max-width: 800px;
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #111;
+      border-radius: 10px;
+    }
+
+    .theory h2 {
+      color: purple;
+    }
+  </style>
+</head>
+<body>
+  <h1>Difracción de dos rayos de luz</h1>
+
+  <div class="container">
+    <div class="panel">
+      <h2>Panel de Control</h2>
+      <label for="lambda1">λ₁ (nm):</label>
+      <input type="number" id="lambda1" />
+
+      <label for="lambda2">λ₂ (nm):</label>
+      <input type="number" id="lambda2" />
+
+      <label for="m">Orden m:</label>
+      <input type="number" id="m" />
+
+      <label for="L">Longitud de la rejilla L (m):</label>
+      <input type="number" id="L" />
+
+      <label for="d">Separación entre rendijas d (nm):</label>
+      <input type="number" id="d" readonly />
+
+      <div class="output">
+        <p>λ promedio: <span id="lambdaAvg">-</span> nm</p>
+        <p>θ (°): <span id="theta">-</span></p>
+        <p>Δθ (°): <span id="deltaTheta">-</span></p>
+      </div>
+    </div>
+
+    <div class="simulation">
+      <svg id="simulacion" width="800" height="300">
+        <line x1="400" y1="0" x2="400" y2="300" stroke="white" stroke-width="2" />
+        <line id="ray1Line" x1="400" y1="150" x2="600" y2="150" stroke="lime" stroke-width="2" />
+        <line id="ray2Line" x1="400" y1="150" x2="600" y2="150" stroke="aqua" stroke-width="2" />
+      </svg>
+    </div>
+  </div>
+
+  <div class="theory">
+    <h2>Explicación teórica</h2>
+    <p>
+      <strong>Explicación teórica breve:</strong><br><br>
+      La dispersión angular en una rejilla de difracción se refiere a cómo varía el ángulo de difracción (θ)
+      con respecto a la longitud de onda (λ) de la luz incidente. Esto es crucial para separar longitudes
+      de onda cercanas, como en espectroscopía.
+    </p>
+    <p>
+      <strong>1. Ecuación de la rejilla:</strong><br>
+      La condición para los máximos de interferencia es:
+      <em>d sin(θ) = mλ</em>, donde:<br>
+      d: es la separación entre rendijas<br>
+      m: el orden del espectro<br>
+      θ: el ángulo de difracción.
+    </p>
+    <p>
+      <strong>2. Dispersión angular (dθ/dλ)</strong><br>
+      Derivando implícitamente la ecuación de la rejilla respecto a λ se obtiene:<br>
+      <em>dθ/dλ = m / (d cos(θ))</em><br>
+      Esto indica que la separación angular entre longitudes de onda cercanas depende del orden m y del coseno
+      del ángulo θ. A mayor orden m o menor separación d (mayor número de rendijas por unidad de longitud),
+      la dispersión es más pronunciada, permitiendo distinguir mejor líneas espectrales cercanas.
+    </p>
+  </div>
+
+  <script>
+    const lambda1Input = document.getElementById('lambda1');
+    const lambda2Input = document.getElementById('lambda2');
+    const mInput = document.getElementById('m');
+    const LInput = document.getElementById('L');
+    const dInput = document.getElementById('d');
+    const lambdaAvgSpan = document.getElementById('lambdaAvg');
+    const thetaSpan = document.getElementById('theta');
+    const deltaThetaSpan = document.getElementById('deltaTheta');
+
+    const ray1Line = document.getElementById('ray1Line');
+    const ray2Line = document.getElementById('ray2Line');
+
+    function updateSimulation() {
+      const lambda1 = parseFloat(lambda1Input.value);
+      const lambda2 = parseFloat(lambda2Input.value);
+      const m = parseInt(mInput.value);
+      const L = parseFloat(LInput.value);
+
+      if (!isNaN(L)) {
+        const dMeters = L / 8000;
+        const dNm = dMeters * 1e9;
+        dInput.value = dNm.toFixed(3);
+
+        if (!isNaN(lambda1) && !isNaN(lambda2)) {
+          const avg = (lambda1 + lambda2) / 2;
+          lambdaAvgSpan.textContent = avg.toFixed(3);
+
+          if (!isNaN(m)) {
+            const lambdaAvgMeters = avg * 1e-9;
+            const thetaRad = Math.asin((m * lambdaAvgMeters) / dMeters);
+            const thetaDeg = thetaRad * (180 / Math.PI);
+            thetaSpan.textContent = thetaDeg.toFixed(3);
+
+            const deltaLambda = Math.abs(lambda1 - lambda2) * 1e-9;
+            const deltaThetaRad = (m / (dMeters * Math.cos(thetaRad))) * deltaLambda;
+            const deltaThetaDeg = deltaThetaRad * (180 / Math.PI);
+            deltaThetaSpan.textContent = deltaThetaDeg.toFixed(3);
+
+            const length = 200;
+
+            ray1Line.setAttribute('x2', 400 + length * Math.cos(thetaRad));
+            ray1Line.setAttribute('y2', 150 - length * Math.sin(thetaRad));
+
+            ray2Line.setAttribute('x2', 400 + length * Math.cos(thetaRad + deltaThetaRad));
+            ray2Line.setAttribute('y2', 150 - length * Math.sin(thetaRad + deltaThetaRad));
+          }
+        }
+      }
+    }
+
+    lambda1Input.addEventListener('input', updateSimulation);
+    lambda2Input.addEventListener('input', updateSimulation);
+    mInput.addEventListener('input', updateSimulation);
+    LInput.addEventListener('input', updateSimulation);
+  </script>
+</body>
+</html>

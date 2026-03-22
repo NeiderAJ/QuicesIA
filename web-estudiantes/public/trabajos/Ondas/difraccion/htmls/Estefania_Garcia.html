@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interferencia de Ondas Coherentes</title>
+    
+    <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 20px;
+            background-color: #f4f4f9;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .container {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        code {
+            background-color: #eee;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+        .simulation-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            align-items: center;
+        }
+        .controls, .outputs {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        canvas {
+            width: 100%;
+            height: auto;
+            background-color: #000;
+            border: 1px solid #ccc;
+        }
+        .plot-canvas {
+             background-color: #fff;
+        }
+        .info-value {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        @media (max-width: 768px) {
+            .simulation-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Solución del Problema Físico y Simulación Interactiva</h1>
+
+    <div class="container">
+        <h2>1. Explicación del Fenómeno 💡</h2>
+        <p><strong>Interferencia de Ondas:</strong> Es lo que ocurre cuando dos o más ondas (en este caso, de luz) se encuentran en un mismo punto del espacio. Sus amplitudes se suman vectorialmente (principio de superposición). Esto crea un patrón de interferencia constructiva (franjas brillantes, donde las ondas se refuerzan) y de interferencia destructiva (franjas oscuras, donde las ondas se cancelan).</p>
+        <p><strong>Coherencia:</strong> Para que se forme un patrón de interferencia estable, las ondas deben ser coherentes, es decir, mantener una diferencia de fase constante entre ellas. Esto se logra en el ejercicio al usar una configuración de doble ranura iluminada por la misma fuente.</p>
+    </div>
+
+    <div class="container">
+        <h2>2. Demostración Matemática</h2>
+        <p>A continuación se presenta la derivación para la intensidad resultante en un experimento de interferencia donde las amplitudes de las rendijas no son iguales.</p>
+        
+        <h3>Premisas del problema</h3>
+        <ul>
+            <li>La amplitud de la ranura 1 es el triple de la ranura 2: $A_1 = 3A_2$.</li>
+            <li>La intensidad es proporcional al cuadrado de la amplitud ($I \propto A^2$), por lo tanto: $I_1 = 9I_2$.</li>
+            <li>Se define (de forma particular para el problema) a $I_{max}$ como la intensidad de la ranura 1: $I_{max} \equiv I_1 = 9I_2$.</li>
+        </ul>
+
+        <h3>Fórmula de Intensidad Resultante</h3>
+        <p>La fórmula general para la intensidad resultante ($I$) debido a la interferencia de dos fuentes es:</p>
+        $$I = I_1 + I_2 + 2\sqrt{I_1 I_2} \cos(\phi)$$
+        <p>Donde $\phi$ es la diferencia de fase entre las dos ondas.</p>
+
+        <h3>Desarrollo</h3>
+        <p>1. <strong>Sustitución de Intensidades:</strong> Reemplazamos $I_1$ con $9I_2$ en la fórmula general.</p>
+        $$I = 9I_2 + I_2 + 2\sqrt{(9I_2)(I_2)} \cos(\phi)$$
+        $$I = 10I_2 + 2\sqrt{9I_2^2} \cos(\phi)$$
+        $$I = 10I_2 + 6I_2 \cos(\phi)$$
+
+        <p>2. <strong>Expresión en Términos del $I_{max}$ del Libro:</strong> De la premisa, sabemos que $I_2 = \frac{I_{max}}{9}$. Sustituimos esto:</p>
+        $$I = 10\left(\frac{I_{max}}{9}\right) + 6\left(\frac{I_{max}}{9}\right)\cos(\phi)$$
+        $$I = \frac{10}{9}I_{max} + \frac{2}{3}I_{max}\cos(\phi)$$
+
+        <p>3. <strong>Uso de la Identidad Trigonométrica:</strong> Se utiliza la identidad $\cos(\phi) = 2\cos^2\left(\frac{\phi}{2}\right) - 1$ para expresar el resultado en la forma deseada.</p>
+        $$I = \frac{10}{9}I_{max} + \frac{2}{3}I_{max}\left(2\cos^2\left(\frac{\phi}{2}\right) - 1\right)$$
+        $$I = \frac{10}{9}I_{max} + \frac{4}{3}I_{max}\cos^2\left(\frac{\phi}{2}\right) - \frac{2}{3}I_{max}$$
+
+        <p>4. <strong>Simplificación Algebraica Final:</strong> Agrupamos los términos con $I_{max}$.</p>
+        $$I = \left(\frac{10}{9} - \frac{2}{3}\right)I_{max} + \frac{4}{3}I_{max}\cos^2\left(\frac{\phi}{2}\right)$$
+        $$I = \left(\frac{10 - 6}{9}\right)I_{max} + \frac{4}{3}I_{max}\cos^2\left(\frac{\phi}{2}\right)$$
+        $$I = \frac{4}{9}I_{max} + \frac{4}{3}I_{max}\cos^2\left(\frac{\phi}{2}\right)$$
+        
+        <p>Finalmente, factorizando $\frac{4}{9}I_{max}$, llegamos a la respuesta final:</p>
+        $$I = \frac{4}{9}I_{max}\left(1 + 3\cos^2\left(\frac{\phi}{2}\right)\right) \quad \✅$$
+    </div>
+
+    <div class="container">
+        <h2>3. Interferencia de ondas de luz coherentes con amplitudes desiguales 🔬</h2>
+        <p>Usa los deslizadores para cambiar la amplitud de las ondas de cada rendija ($A_1$ y $A_2$). Observa cómo cambian en tiempo real el patrón de interferencia, la gráfica de intensidad y los valores calculados.</p>
+        
+        <div class="simulation-container">
+            <div class="controls">
+                <div>
+                    <label for="A1_slider">Amplitud Rendija 1 ($A_1$): <span id="A1_val" class="info-value">3.0</span></label>
+                    <input type="range" id="A1_slider" min="0" max="10" value="3" step="0.1">
+                </div>
+                <div>
+                    <label for="A2_slider">Amplitud Rendija 2 ($A_2$): <span id="A2_val" class="info-value">1.0</span></label>
+                    <input type="range" id="A2_slider" min="0" max="10" value="1" step="0.1">
+                </div>
+            </div>
+
+            <div class="outputs">
+                <div>Intensidad 1 ($I_1 \propto A_1^2$): <span id="I1_val" class="info-value">9.00</span></div>
+                <div>Intensidad 2 ($I_2 \propto A_2^2$): <span id="I2_val" class="info-value">1.00</span></div>
+                <div>Intensidad Máxima ($I_{max} = (A_1+A_2)^2$): <span id="Imax_val" class="info-value">16.00</span></div>
+                <div>Intensidad Mínima ($I_{min} = (A_1-A_2)^2$): <span id="Imin_val" class="info-value">4.00</span></div>
+            </div>
+        </div>
+        
+        <h3>Patrón de Interferencia Visualizado</h3>
+        <canvas id="interferencePattern" width="800" height="100"></canvas>
+        
+        <h3>Gráfica de Intensidad vs. Diferencia de Fase ($\phi$)</h3>
+        <canvas id="intensityPlot" class="plot-canvas" width="800" height="250"></canvas>
+
+    </div>
+
+    <script>
+        // --- Referencias a los elementos del DOM ---
+        const A1_slider = document.getElementById('A1_slider');
+        const A2_slider = document.getElementById('A2_slider');
+        const A1_val_span = document.getElementById('A1_val');
+        const A2_val_span = document.getElementById('A2_val');
+        
+        const I1_val_span = document.getElementById('I1_val');
+        const I2_val_span = document.getElementById('I2_val');
+        const Imax_val_span = document.getElementById('Imax_val');
+        const Imin_val_span = document.getElementById('Imin_val');
+
+        const patternCanvas = document.getElementById('interferencePattern');
+        const patternCtx = patternCanvas.getContext('2d');
+        
+        const plotCanvas = document.getElementById('intensityPlot');
+        const plotCtx = plotCanvas.getContext('2d');
+
+        // --- Función principal de actualización ---
+        function updateSimulation() {
+            // 1. Obtener valores de los sliders
+            const A1 = parseFloat(A1_slider.value);
+            const A2 = parseFloat(A2_slider.value);
+            
+            // 2. Calcular intensidades (k=1 para simplicidad)
+            const I1 = A1 * A1;
+            const I2 = A2 * A2;
+            const I_max_total = (A1 + A2) * (A1 + A2);
+            const I_min_total = (A1 - A2) * (A1 - A2);
+            
+            // 3. Actualizar las etiquetas de texto
+            A1_val_span.textContent = A1.toFixed(1);
+            A2_val_span.textContent = A2.toFixed(1);
+            I1_val_span.textContent = I1.toFixed(2);
+            I2_val_span.textContent = I2.toFixed(2);
+            Imax_val_span.textContent = I_max_total.toFixed(2);
+            Imin_val_span.textContent = I_min_total.toFixed(2);
+
+            // 4. Dibujar el patrón de interferencia
+            drawInterferencePattern(A1, A2, I_max_total);
+            
+            // 5. Dibujar la gráfica de intensidad
+            drawIntensityPlot(A1, A2, I_max_total, I_min_total);
+        }
+        
+        // --- Función para dibujar el patrón de franjas ---
+        function drawInterferencePattern(A1, A2, I_max_total) {
+            const width = patternCanvas.width;
+            const height = patternCanvas.height;
+            const cycles = 8; // Número de ciclos de franjas a mostrar
+
+            for (let x = 0; x < width; x++) {
+                // Mapear la posición x a una diferencia de fase phi
+                const phi = (x / width) * 2 * Math.PI * cycles;
+                
+                // Calcular la intensidad en ese punto
+                const I = A1*A1 + A2*A2 + 2 * A1 * A2 * Math.cos(phi);
+                
+                // Normalizar la intensidad a un valor de brillo (0-255)
+                const brightness = I_max_total > 0 ? (I / I_max_total) * 255 : 0;
+                
+                // Dibujar una línea vertical con ese brillo
+                patternCtx.strokeStyle = `rgb(${brightness}, ${brightness}, ${brightness})`;
+                patternCtx.beginPath();
+                patternCtx.moveTo(x, 0);
+                patternCtx.lineTo(x, height);
+                patternCtx.stroke();
+            }
+        }
+        
+        // --- Función para dibujar la gráfica I vs phi ---
+        function drawIntensityPlot(A1, A2, I_max_total, I_min_total) {
+            const width = plotCanvas.width;
+            const height = plotCanvas.height;
+            const padding = 40;
+
+            // Limpiar y preparar el lienzo
+            plotCtx.clearRect(0, 0, width, height);
+            plotCtx.fillStyle = '#fff';
+            plotCtx.fillRect(0,0,width,height);
+            
+            // Dibujar ejes
+            plotCtx.beginPath();
+            plotCtx.strokeStyle = '#333';
+            plotCtx.lineWidth = 1;
+            // Eje Y (Intensidad)
+            plotCtx.moveTo(padding, padding / 2);
+            plotCtx.lineTo(padding, height - padding);
+            // Eje X (Fase)
+            plotCtx.lineTo(width - padding / 2, height - padding);
+            plotCtx.stroke();
+
+            // Etiquetas de los ejes
+            plotCtx.fillStyle = '#333';
+            plotCtx.textAlign = 'center';
+            plotCtx.fillText("Diferencia de Fase (φ)", width / 2, height - 10);
+            plotCtx.save();
+            plotCtx.translate(15, height / 2);
+            plotCtx.rotate(-Math.PI / 2);
+            plotCtx.fillText("Intensidad (I)", 0, 0);
+            plotCtx.restore();
+
+            // Dibujar la curva de intensidad
+            plotCtx.beginPath();
+            plotCtx.strokeStyle = '#e74c3c';
+            plotCtx.lineWidth = 3;
+
+            for (let x = 0; x <= width - padding; x++) {
+                // Mapear el pixel x del lienzo a la fase phi
+                const phi = (x / (width - padding)) * 4 * Math.PI; // Graficar de 0 a 4pi
+                
+                // Calcular la intensidad
+                const I = A1*A1 + A2*A2 + 2 * A1 * A2 * Math.cos(phi);
+                
+                // Mapear el valor I a la posición 'y' en el lienzo
+                const y_range = I_max_total > 0 ? I_max_total * 1.1 : 1;
+                const y = (height - padding) - (I / y_range) * (height - padding * 1.5);
+                
+                if (x === 0) {
+                    plotCtx.moveTo(padding, y);
+                } else {
+                    plotCtx.lineTo(padding + x, y);
+                }
+            }
+            plotCtx.stroke();
+            
+            // Marcar I_max e I_min
+            plotCtx.textAlign = 'left';
+            plotCtx.fillStyle = '#27ae60';
+            const y_max = (height - padding) - (I_max_total / (I_max_total * 1.1)) * (height - padding * 1.5);
+            plotCtx.fillText(`I_max = ${I_max_total.toFixed(2)}`, padding + 5, y_max - 5);
+            plotCtx.beginPath();
+            plotCtx.setLineDash([5, 5]);
+            plotCtx.moveTo(padding, y_max);
+            plotCtx.lineTo(width-padding/2, y_max);
+            plotCtx.stroke();
+            
+            plotCtx.fillStyle = '#c0392b';
+            const y_min = (height - padding) - (I_min_total / (I_max_total * 1.1)) * (height - padding * 1.5);
+            plotCtx.fillText(`I_min = ${I_min_total.toFixed(2)}`, padding + 5, y_min + 15);
+            plotCtx.beginPath();
+            plotCtx.moveTo(padding, y_min);
+            plotCtx.lineTo(width-padding/2, y_min);
+            plotCtx.stroke();
+            plotCtx.setLineDash([]);
+        }
+
+        // --- Event Listeners ---
+        A1_slider.addEventListener('input', updateSimulation);
+        A2_slider.addEventListener('input', updateSimulation);
+
+        // --- Llamada inicial para dibujar el estado por defecto ---
+        window.onload = updateSimulation;
+    </script>
+
+</body>
+</html>
