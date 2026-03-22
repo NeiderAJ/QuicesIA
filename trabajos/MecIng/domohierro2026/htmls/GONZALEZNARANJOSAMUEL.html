@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intercepción de Misil - Proyecto Física Mecánica</title>
+    
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        /* Diseño claro con fondo gris suave y títulos azules como pedía el prompt */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f6f8;
+        }
+        h1, h2, h3 {
+            color: #2980b9;
+        }
+        h1 {
+            text-align: center;
+            border-bottom: 2px solid #2980b9;
+            padding-bottom: 10px;
+        }
+        .section {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .sim-container {
+            text-align: center;
+        }
+        canvas {
+            background-color: #eef8ff;
+            border: 1px solid #bdc3c7;
+            border-radius: 8px;
+            max-width: 100%;
+            margin-top: 15px;
+        }
+        .controls {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .sliders-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            text-align: left;
+            background: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dcdde1;
+        }
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .slider-group label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        input[type=range] {
+            width: 100%;
+        }
+        .buttons-panel {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 15px;
+            transition: background 0.3s;
+        }
+        button:hover { background-color: #1c5980; }
+        button:disabled { background-color: #95a5a6; cursor: not-allowed; }
+        
+        .btn-lanzar { background-color: #e67e22; }
+        .btn-lanzar:hover { background-color: #d35400; }
+
+        .data-panel {
+            text-align: left;
+            background: #fff;
+            padding: 15px;
+            border: 2px dashed #7f8c8d;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+        }
+        .highlight { color: #c0392b; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>Proyecto Final: Defensa Antimisiles</h1>
+    <p style="text-align: center;"><strong>Física Mecánica - Universidad de Antioquia</strong></p>
+
+    <div class="section">
+        <h2>1. Enunciado del problema</h2>
+        <p>Un radar detecta un misil enemigo en vuelo. En el instante de detección, se conocen la posición inicial $\vec{r}_0$ del misil, su velocidad inicial $v_0$ y sus cosenos directores $(l, m, n)$, que determinan su dirección en 3D. El misil se mueve únicamente bajo la acción de la gravedad terrestre.</p>
+        <p>El sistema de defensa debe calcular la dirección y velocidad inicial con la que debe lanzarse un misil interceptor desde el origen. Dependiendo de la altura de detección del enemigo, el interceptor seguirá una trayectoria parabólica simple o activará propulsores adicionales para lograr la intercepción a tiempo.</p>
+    </div>
+
+    <div class="section">
+        <h2>2. Solución algebraica propuesta</h2>
+        
+        <h3>2.1 Reducción del problema de 3D a 2D</h3>
+        <p>Sea el vector velocidad inicial del misil enemigo en 3D dado por $\vec{v}_0 = v_0 (l\hat{i} + m\hat{j} + n\hat{k})$, donde el eje $z$ ($\hat{k}$) representa la vertical y la aceleración de la gravedad es $\vec{g} = -g\hat{k}$. Como no hay fuerzas horizontales actuando, el movimiento se restringe a un plano vertical.</p>
+        <p>Podemos definir un nuevo eje horizontal $X'$ que coincida con la proyección horizontal de la velocidad inicial. La magnitud de la velocidad horizontal es:</p>
+        $$ v_{0h} = \sqrt{(v_0 l)^2 + (v_0 m)^2} = v_0 \sqrt{l^2 + m^2} $$
+        <p>Y la velocidad vertical es $v_{0z} = v_0 n$. De esta manera, reducimos el problema a un plano 2D $(X, Y)$ donde $Y$ es la altura.</p>
+        
+        <h3>2.2 Condiciones de intercepción</h3>
+        <p>Sea el misil enemigo detectado en $(X_E, Y_E)$ en $t=0$. Sus ecuaciones de movimiento son:</p>
+        $$ X_E(t) = X_E + (v_{Ex})t \quad ; \quad Y_E(t) = Y_E + (v_{Ey})t - \frac{1}{2}gt^2 $$
+        
+        <p>El misil defensor parte desde el origen $(0,0)$. Sea $t_{int}$ el tiempo de intercepción. Para que choquen, se debe cumplir $X_D(t_{int}) = X_E(t_{int})$ y $Y_D(t_{int}) = Y_E(t_{int})$.</p>
+
+        <h3>2.3 Caso 1: Sin propulsor (Tiro parabólico clásico)</h3>
+        <p>Si el enemigo es detectado a gran altura, el defensor solo usa la gravedad:</p>
+        $$ v_{Dx} = \frac{X_E(t_{int})}{t_{int}} \quad ; \quad v_{Dy} = \frac{Y_E(t_{int}) + \frac{1}{2}g t_{int}^2}{t_{int}} $$
+
+        <h3>2.4 Caso 2: Con propulsor de aceleración</h3>
+        <p>Si el enemigo es detectado muy cerca al suelo, el tiempo de vuelo es muy corto. Se activa un propulsor que otorga una aceleración vertical extra $a_p$, por lo que la aceleración neta es $a_{neta} = a_p - g$. Las velocidades requeridas cambian a:</p>
+        $$ v_{Dy} = \frac{Y_E(t_{int}) - \frac{1}{2}(a_p - g) t_{int}^2}{t_{int}} $$
+    </div>
+
+    <div class="section">
+        <h2>3. Análisis funcional o teórico</h2>
+        <p>Físicamente, el problema de intercepción tiene múltiples soluciones teóricas. Sin embargo, en la vida real, los sistemas de defensa tienen límites. Si el misil enemigo está cayendo y la altura $Y_E$ es pequeña, la ventana de tiempo para evitar el impacto se reduce drásticamente.</p>
+        <p>Esto justifica el uso de un <strong>propulsor activo</strong>. Una aceleración sostenida ($a_p$) modifica la concavidad de la parábola, permitiendo trayectorias más tensas y rápidas para alcanzar objetivos rasantes antes de que impacten zonas vulnerables.</p>
+    </div>
+
+    <div class="section sim-container">
+        <h2>4 y 5. Planteamiento y Simulación Interactiva</h2>
+        <p style="text-align: left;">Utiliza los sliders para modificar las condiciones iniciales del misil enemigo o presiona "Generar Aleatorio" para que el sistema estocástico asigne valores. Luego presiona "Lanzar Interceptor".</p>
+        
+        <div class="controls">
+            <div class="sliders-panel">
+                <div class="slider-group">
+                    <label>Posición Inicial X: <span id="valX">3500</span> m</label>
+                    <input type="range" id="sliderX" min="1500" max="4500" value="3500" step="100" oninput="actualizarDesdeSliders()">
+                </div>
+                <div class="slider-group">
+                    <label>Altura Inicial Y: <span id="valY">1500</span> m</label>
+                    <input type="range" id="sliderY" min="300" max="2800" value="1500" step="50" oninput="actualizarDesdeSliders()">
+                </div>
+                <div class="slider-group">
+                    <label>Velocidad ($v_0$): <span id="valV">200</span> m/s</label>
+                    <input type="range" id="sliderV" min="100" max="400" value="200" step="10" oninput="actualizarDesdeSliders()">
+                </div>
+                <div class="slider-group">
+                    <label>Ángulo de picada ($\theta$): <span id="valAng">30</span>°</label>
+                    <input type="range" id="sliderAng" min="5" max="75" value="30" step="1" oninput="actualizarDesdeSliders()">
+                </div>
+            </div>
+
+            <div class="buttons-panel">
+                <button onclick="generarAleatorio()">🎲 Generar Enemigo Aleatorio</button>
+                <button id="btnLanzar" class="btn-lanzar" onclick="iniciarSimulacion()">🚀 Lanzar Interceptor</button>
+            </div>
+        </div>
+        
+        <canvas id="simCanvas" width="800" height="400"></canvas>
+        
+        <div class="data-panel" id="panelDatos">
+            Mueve los sliders o presiona el botón aleatorio para inicializar el radar...
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>6. Relación con el sistema Domo de Hierro (Iron Dome)</h2>
+        <p>Esta simulación modela los principios fundamentales del sistema antimisiles israelí <em>Domo de Hierro</em>. Dicho sistema utiliza un radar avanzado para calcular instantáneamente los vectores de posición y velocidad del proyectil enemigo, exactamente como lo hemos parametrizado.</p>
+        <p>Si el algoritmo predictivo determina que el misil impactará en una zona habitada (el origen en nuestra simulación), calcula la trayectoria óptima del interceptor <em>Tamir</em>, el cual posee motores de empuje sólido, análogos al "propulsor activo" programado para interceptaciones de bajo margen de tiempo.</p>
+    </div>
+
+    <div class="section">
+        <h2>7. Conclusiones</h2>
+        <ul>
+            <li><strong>Reducción de complejidad:</strong> Simplificar problemas balísticos 3D a planos 2D reduce la carga computacional, algo vital para radares en tiempo real.</li>
+            <li><strong>Límites del tiro parabólico:</strong> La simulación demuestra que un interceptor sin propulsión es ineficaz contra amenazas a baja altitud.</li>
+            <li><strong>Simulación dinámica:</strong> El uso de sliders y variables estocásticas nos permite comprobar que las ecuaciones algebraicas son robustas ante cualquier escenario.</li>
+        </ul>
+    </div>
+
+    <script>
+        // --- LÓGICA DE LA SIMULACIÓN ---
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const panelDatos = document.getElementById('panelDatos');
+        const btnLanzar = document.getElementById('btnLanzar');
+
+        // Elementos de los Sliders
+        const sliderX = document.getElementById('sliderX');
+        const sliderY = document.getElementById('sliderY');
+        const sliderV = document.getElementById('sliderV');
+        const sliderAng = document.getElementById('sliderAng');
+        
+        const valX = document.getElementById('valX');
+        const valY = document.getElementById('valY');
+        const valV = document.getElementById('valV');
+        const valAng = document.getElementById('valAng');
+
+        // Escalas para dibujar en el Canvas (Metros a Píxeles)
+        const anchoMetros = 5000;
+        const altoMetros = 3000;
+        const scaleX = canvas.width / anchoMetros;
+        const scaleY = canvas.height / altoMetros;
+
+        let enemigo = null;
+        let defensor = null;
+        let t_actual = 0;
+        let animacionId;
+        let interceptado = false;
+        let enEjecucion = false;
+
+        const g = 9.81;
+
+        function toCanvas(x, y) {
+            return {
+                cx: x * scaleX,
+                cy: canvas.height - (y * scaleY)
+            };
+        }
+
+        function dibujarFondo() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Suelo
+            ctx.fillStyle = "#27ae60";
+            ctx.fillRect(0, canvas.height - 5, canvas.width, 5);
+            // Base Defensora (Origen)
+            let base = toCanvas(0, 0);
+            ctx.fillStyle = "#2c3e50";
+            ctx.fillRect(base.cx, base.cy - 15, 20, 15);
+        }
+
+        // Función cuando se mueven los sliders
+        function actualizarDesdeSliders() {
+            if(enEjecucion) return; // No actualizar si la animación está corriendo
+            
+            valX.innerText = sliderX.value;
+            valY.innerText = sliderY.value;
+            valV.innerText = sliderV.value;
+            valAng.innerText = sliderAng.value;
+
+            calcularEscenario(
+                parseFloat(sliderX.value), 
+                parseFloat(sliderY.value), 
+                parseFloat(sliderV.value), 
+                parseFloat(sliderAng.value)
+            );
+        }
+
+        // Función del Botón Estocástico (Aleatorio)
+        function generarAleatorio() {
+            if(enEjecucion) return;
+
+            sliderX.value = Math.floor(1500 + Math.random() * 3000);
+            sliderY.value = Math.floor(500 + Math.random() * 2000);
+            sliderV.value = Math.floor(150 + Math.random() * 200);
+            sliderAng.value = Math.floor(15 + Math.random() * 60);
+
+            actualizarDesdeSliders();
+        }
+
+        function calcularEscenario(x0, y0, v0, anguloGrados) {
+            cancelAnimationFrame(animacionId);
+            t_actual = 0;
+            interceptado = false;
+            
+            // Convertir ángulo a radianes y calcular componentes
+            // Como el misil va hacia la base (origen), la velocidad en X es negativa
+            // y la velocidad en Y también es negativa (picada)
+            let rad = anguloGrados * (Math.PI / 180);
+            let vEx = -v0 * Math.cos(rad); 
+            let vEy = -v0 * Math.sin(rad); 
+
+            // Simulación de cosenos directores para mostrar en datos
+            let l = Math.cos(rad);
+            let n = -Math.sin(rad);
+
+            // Estimación de tiempo de intercepción (a mitad de camino horizontal)
+            let t_int = (x0 * 0.5) / Math.abs(vEx); 
+            let y_int = y0 + vEy * t_int - 0.5 * g * t_int * t_int;
+            
+            // Si la intercepción da bajo tierra, ajustar el tiempo para interceptar antes
+            if(y_int < 0) {
+                let a = -0.5 * g; let b = vEy; let c = y0;
+                let t_vuelo = (-b - Math.sqrt(b*b - 4*a*c)) / (2*a);
+                t_int = t_vuelo * 0.75; 
+                y_int = y0 + vEy * t_int - 0.5 * g * t_int * t_int;
+            }
+
+            let x_int = x0 + vEx * t_int;
+
+            // Lógica de decisión del Defensor
+            let a_prop = 0;
+            let tipoLanzamiento = "Parabólico clásico (Gravedad)";
+            
+            // Si el punto de intercepción es menor a 600m, usar propulsor
+            if(y_int < 600) {
+                a_prop = 25; // Aceleración extra en m/s^2
+                tipoLanzamiento = "Con propulsores activos (Gravedad + Propulsor)";
+            }
+
+            let vDx = x_int / t_int;
+            let vDy = (y_int - 0.5 * (a_prop - g) * t_int * t_int) / t_int;
+
+            enemigo = { x0: x0, y0: y0, vx: vEx, vy: vEy, trail: [] };
+            defensor = { x0: 0, y0: 0, vx: vDx, vy: vDy, ap: a_prop, t_int: t_int, trail: [] };
+
+            dibujarFondo();
+            
+            // Dibujar Enemigo inicial
+            let ePos = toCanvas(enemigo.x0, enemigo.y0);
+            ctx.fillStyle = "#c0392b";
+            ctx.beginPath(); ctx.arc(ePos.cx, ePos.cy, 6, 0, Math.PI * 2); ctx.fill();
+
+            // Mostrar Datos en el Panel
+            panelDatos.innerHTML = `
+                <strong>📡 Datos del Radar (Enemigo):</strong><br>
+                Posición 2D (X, Y): (${x0.toFixed(0)} m, ${y0.toFixed(0)} m) | Velocidad ($v_0$): ${v0.toFixed(1)} m/s<br>
+                Cosenos directores equivalentes: l=${l.toFixed(2)}, n=${n.toFixed(2)}<br>
+                <hr style="border:0; border-top:1px dashed #ccc; margin:8px 0;">
+                <strong>🚀 Solución Defensiva Calculada:</strong><br>
+                Estrategia: <span class="highlight">${tipoLanzamiento}</span><br>
+                Punto de intercepción estimado: (${x_int.toFixed(0)} m, ${y_int.toFixed(0)} m) en ${t_int.toFixed(2)} s<br>
+                Velocidad requerida Defensor (Vx, Vy): (${vDx.toFixed(1)} m/s, ${vDy.toFixed(1)} m/s)
+            `;
+
+            btnLanzar.disabled = false;
+        }
+
+        function iniciarSimulacion() {
+            btnLanzar.disabled = true;
+            enEjecucion = true;
+            sliderX.disabled = true; sliderY.disabled = true;
+            sliderV.disabled = true; sliderAng.disabled = true;
+            
+            animacionId = requestAnimationFrame(animar);
+        }
+
+        function animar() {
+            if(t_actual >= defensor.t_int) {
+                interceptado = true;
+            }
+
+            dibujarFondo();
+
+            // Cálculos Enemigo
+            let ex = enemigo.x0 + enemigo.vx * t_actual;
+            let ey = enemigo.y0 + enemigo.vy * t_actual - 0.5 * g * t_actual * t_actual;
+            enemigo.trail.push({x: ex, y: ey});
+
+            // Cálculos Defensor
+            let dx = defensor.vx * t_actual;
+            let dy = defensor.vy * t_actual + 0.5 * (defensor.ap - g) * t_actual * t_actual;
+            if(!interceptado) defensor.trail.push({x: dx, y: dy});
+
+            // Dibujar estela enemigo
+            ctx.strokeStyle = "rgba(192, 57, 43, 0.4)";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for(let i=0; i<enemigo.trail.length; i++) {
+                let p = toCanvas(enemigo.trail[i].x, enemigo.trail[i].y);
+                i===0 ? ctx.moveTo(p.cx, p.cy) : ctx.lineTo(p.cx, p.cy);
+            }
+            ctx.stroke();
+
+            // Dibujar estela defensor
+            ctx.strokeStyle = "rgba(41, 128, 185, 0.4)";
+            ctx.beginPath();
+            for(let i=0; i<defensor.trail.length; i++) {
+                let p = toCanvas(defensor.trail[i].x, defensor.trail[i].y);
+                i===0 ? ctx.moveTo(p.cx, p.cy) : ctx.lineTo(p.cx, p.cy);
+            }
+            ctx.stroke();
+
+            if(!interceptado) {
+                // Dibujar proyectil enemigo
+                let ePos = toCanvas(ex, ey);
+                ctx.fillStyle = "#c0392b";
+                ctx.beginPath(); ctx.arc(ePos.cx, ePos.cy, 5, 0, Math.PI * 2); ctx.fill();
+
+                // Dibujar proyectil defensor
+                let dPos = toCanvas(dx, dy);
+                ctx.fillStyle = "#2980b9";
+                ctx.beginPath(); ctx.arc(dPos.cx, dPos.cy, 5, 0, Math.PI * 2); ctx.fill();
+
+                t_actual += 0.08; // Control de velocidad de animación
+                
+                if (ey > 0 && ex > 0) {
+                    animacionId = requestAnimationFrame(animar);
+                } else {
+                    // Si falla la intercepción y toca el suelo
+                    panelDatos.innerHTML += `<br><br><span style="color:red; font-weight:bold;">❌ FALLO EN LA INTERCEPCIÓN. IMPACTO EN EL SUELO.</span>`;
+                    reiniciarControles();
+                }
+            } else {
+                // Dibujar Explosión
+                let explPos = toCanvas(ex, ey);
+                ctx.fillStyle = "#e67e22";
+                ctx.beginPath(); ctx.arc(explPos.cx, explPos.cy, 25, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = "#f1c40f";
+                ctx.beginPath(); ctx.arc(explPos.cx, explPos.cy, 12, 0, Math.PI * 2); ctx.fill();
+                
+                panelDatos.innerHTML += `<br><br><span style="color:#27ae60; font-weight:bold; font-size:16px;">💥 ¡AMENAZA NEUTRALIZADA EN EL AIRE!</span>`;
+                reiniciarControles();
+            }
+        }
+
+        function reiniciarControles() {
+            enEjecucion = false;
+            sliderX.disabled = false; sliderY.disabled = false;
+            sliderV.disabled = false; sliderAng.disabled = false;
+        }
+
+        // Inicializar con los valores por defecto de los sliders
+        actualizarDesdeSliders();
+
+    </script>
+</body>
+</html>

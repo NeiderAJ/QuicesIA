@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación Óptica Avanzada: Lentes Convergentes</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;700&display=swap');
+
+        :root {
+            --dark-bg: #0d0c22;
+            --primary-glow: #ffc107;
+            --secondary-glow: #00e5ff;
+            --text-color: #e0e0e0;
+            --wall-color: #d7d4c5;
+            --lens-color: rgba(173, 216, 230, 0.4);
+            --lens-border: #add8e6;
+            --ray1-color: #ff8c00;
+            --ray2-color: #00e5ff;
+            --ray3-color: #4caf50;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1400px;
+            gap: 25px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-glow);
+            text-shadow: 0 0 10px var(--primary-glow);
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 0;
+        }
+
+        .simulation-wrapper {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            background: #000;
+            border: 2px solid var(--secondary-glow);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .optical-bench {
+            position: absolute;
+            bottom: 50%;
+            left: 5%;
+            width: 90%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--secondary-glow), transparent);
+            opacity: 0.6;
+            transform: translateY(50%);
+        }
+
+        .element {
+            position: absolute;
+            bottom: 50%;
+            transform: translate(-50%, 50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .element .label {
+            position: absolute;
+            bottom: -35px;
+            white-space: nowrap;
+            font-size: 14px;
+            color: #ccc;
+            background: rgba(0,0,0,0.5);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        #candle {
+            left: 10%;
+            height: 80px;
+        }
+        #candle .flame {
+            width: 18px;
+            height: 45px;
+            background: radial-gradient(circle, white 5%, #ffac33 30%, #ff8c00 80%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 15px #ffac33, 0 0 25px #ffac33, 0 0 40px #ff8c00, 0 0 60px #ff8c00;
+            animation: flicker 1.5s infinite alternate;
+        }
+        @keyframes flicker {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.05); }
+        }
+        #candle .body { width: 22px; height: 40px; background: #fff; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); border-radius: 2px 2px 0 0; }
+
+        #lens-container { cursor: ew-resize; z-index: 10; }
+        #lens {
+            width: 12px;
+            height: 180px;
+            background-color: var(--lens-color);
+            border: 2px solid var(--lens-border);
+            border-radius: 50%/10%;
+            box-shadow: 0 0 15px var(--lens-border);
+        }
+        #lens-axis { position: absolute; width: 2px; height: 250px; background-color: rgba(173, 216, 230, 0.3); top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+        .focal-point { position: absolute; width: 12px; height: 12px; background-color: #ff4500; border-radius: 50%; bottom: 50%; transform: translate(-50%, 50%); box-shadow: 0 0 10px #ff4500; }
+        .focal-point .label { bottom: -30px; }
+
+        #wall { right: 10%; width: 15px; height: 100%; background-color: var(--wall-color); box-shadow: -5px 0 15px rgba(0,0,0,0.5); }
+        #image-on-wall {
+            position: absolute;
+            bottom: 50%;
+            transform-origin: center;
+            font-size: 45px;
+            cursor: pointer;
+            transition: filter 0.3s ease, opacity 0.3s ease;
+        }
+
+        #ray-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        #ray-canvas path { transition: d 0.1s linear; }
+        
+        .main-content {
+            display: flex;
+            width: 100%;
+            gap: 25px;
+            align-items: flex-start;
+        }
+
+        .controls-theory-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .panel {
+            padding: 20px;
+            background-color: rgba(29, 28, 51, 0.8);
+            border: 1px solid var(--secondary-glow);
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+        }
+        
+        .controls h3, .theory h3, .solution h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-glow);
+            margin-top: 0;
+            border-bottom: 1px solid var(--primary-glow);
+            padding-bottom: 8px;
+        }
+
+        .slider-container { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        input[type="range"] { width: 100%; -webkit-appearance: none; appearance: none; height: 8px; background: #333; border-radius: 5px; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: var(--primary-glow); border-radius: 50%; cursor: pointer; box-shadow: 0 0 10px var(--primary-glow); }
+        input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; background: var(--primary-glow); border-radius: 50%; cursor: pointer; border:none; box-shadow: 0 0 10px var(--primary-glow); }
+        
+        #do-display { font-weight: bold; color: var(--secondary-glow); font-size: 1.1em; }
+        .solution-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, var(--primary-glow), #ffd700);
+            color: var(--dark-bg);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .solution-btn:hover { transform: scale(1.02); box-shadow: 0 0 15px #ffd700; }
+        
+        #solution-content { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #444; }
+        #image-tooltip { position: absolute; background-color: rgba(0, 0, 0, 0.85); color: white; padding: 12px; border-radius: 8px; border: 1px solid var(--primary-glow); display: none; pointer-events: none; white-space: pre-wrap; z-index: 20; }
+        
+        .math-formula {
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic;
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        .math-formula .var { color: var(--secondary-glow); }
+        .math-formula .val { color: var(--primary-glow); }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Simulación Óptica Avanzada</h1>
+    <div class="simulation-wrapper">
+        <div class="optical-bench"></div>
+        <div id="candle" class="element"><div class="flame"></div><div class="body"></div><div class="label">Objeto</div></div>
+        <div id="lens-container" class="element"><div id="lens-axis"></div><div id="lens"></div><div class="label">Lente</div></div>
+        <div id="focal-point-obj" class="focal-point"><div class="label">F</div></div>
+        <div id="focal-point-img" class="focal-point"><div class="label">F'</div></div>
+        <div id="wall" class="element"><div class="label">Pared</div></div>
+        <div id="image-on-wall">🔥</div>
+        <svg id="ray-canvas"></svg>
+        <div id="image-tooltip"></div>
+    </div>
+
+    <div class="main-content">
+        <div class="controls-theory-panel">
+            <div class="panel controls">
+                <h3>Panel de Control</h3>
+                <div class="slider-container">
+                    <label for="lens-slider">Posición de la Lente:</label>
+                    <input type="range" id="lens-slider" min="0" max="1000" value="200">
+                </div>
+                <div id="do-display">Distancia Objeto (sₒ): 0.30 m</div>
+                <button id="solution-btn" class="solution-btn">Mostrar/Ocultar Solución Detallada</button>
+            </div>
+            <div class="panel theory">
+                <h3>Fundamento Teórico</h3>
+                <p>Esta simulación se basa en la <strong>Ecuación de Lentes Delgadas</strong>, una fórmula fundamental en óptica geométrica. [10, 13] Relaciona la distancia focal de una lente con las distancias del objeto y de la imagen.</p>
+                <div class="math-formula">
+                    1/<span class="var">f</span> = 1/<span class="var">sₒ</span> + 1/<span class="var">sᵢ</span>
+                </div>
+                <ul>
+                    <li><span class="var">f</span>: <strong>Distancia Focal</strong>. Positiva para lentes convergentes. [4]</li>
+                    <li><span class="var">sₒ</span>: <strong>Distancia Objeto</strong>. Distancia desde el objeto hasta la lente. Es positiva para objetos reales. [4]</li>
+                    <li><span class="var">sᵢ</span>: <strong>Distancia Imagen</strong>. Distancia desde la lente hasta la imagen. Es positiva para imágenes reales (proyectadas). [4]</li>
+                </ul>
+                <p>El <strong>aumento</strong> (M) describe el tamaño y la orientación de la imagen:</p>
+                <div class="math-formula">
+                    M = -<span class="var">sᵢ</span> / <span class="var">sₒ</span>
+                </div>
+                 <p>Si M < 0, la imagen es invertida. Si |M| > 1, la imagen es más grande que el objeto.</p>
+            </div>
+        </div>
+        <div class="panel solution">
+            <h3>Planteamiento y Solución del Problema</h3>
+            <p><strong>Problema:</strong> Una vela se sitúa a 1.50 m (D) de una pared. Una lente convergente se coloca entre ambas. Al mover la lente 0.90 m (d) de una posición a otra, se obtienen dos imágenes nítidas en la pared.</p>
+            <div id="solution-content">
+                <h4>a) Las dos distancias objeto (sₒ)</h4>
+                <p>Este problema se resuelve elegantemente con el <strong>Método de Bessel</strong>. [7, 15] Demuestra que para una distancia fija (D) entre objeto y pantalla, existen dos posiciones de la lente (separadas por una distancia d) que forman una imagen nítida. Las distancias objeto (sₒ) para estas dos posiciones son:</p>
+                <p class="math-formula">sₒ₁ = (D + d) / 2 = (1.50 + 0.90) / 2 = <span class="val">1.20 m</span></p>
+                <p class="math-formula">sₒ₂ = (D - d) / 2 = (1.50 - 0.90) / 2 = <span class="val">0.30 m</span></p>
+
+                <h4>b) La distancia focal (f) de la lente</h4>
+                <p>La distancia focal se puede calcular directamente con la fórmula de Bessel: [20]</p>
+                <p class="math-formula">f = (D² - d²) / 4D</p>
+                <p>Sustituyendo los valores:</p>
+                <p class="math-formula">f = (1.50² - 0.90²) / (4 * 1.50) = (2.25 - 0.81) / 6.00 = 1.44 / 6.00 = <span class="val">0.24 m</span></p>
+
+                <h4>c) Características de la segunda imagen</h4>
+                <p>La primera imagen (con sₒ₁ = 1.20 m) es reducida. La segunda imagen, que se forma cuando la lente está más cerca de la vela (sₒ₂ = 0.30 m), tiene las siguientes características:</p>
+                <ul>
+                    <li><strong>Ubicación:</strong> La distancia imagen es sᵢ₂ = D - sₒ₂ = 1.50 - 0.30 = <strong>1.20 m</strong> de la lente.</li>
+                    <li><strong>Tipo:</strong> Es una imagen <strong>Real</strong>, ya que se forma en la pared (se puede proyectar). [14]</li>
+                    <li><strong>Orientación:</strong> Es <strong>Invertida</strong>. El aumento lo confirma.</li>
+                    <li><strong>Tamaño Relativo:</strong> Calculamos el aumento M₂.
+                        <p class="math-formula">M₂ = -sᵢ₂ / sₒ₂ = -1.20 / 0.30 = <span class="val">-4.0</span></p>
+                        Como |M| > 1, la imagen es <strong>4 veces más grande</strong> que el objeto.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const wrapper = document.querySelector('.simulation-wrapper');
+    const candle = document.getElementById('candle');
+    const lensContainer = document.getElementById('lens-container');
+    const wall = document.getElementById('wall');
+    const imageOnWall = document.getElementById('image-on-wall');
+    const rayCanvas = document.getElementById('ray-canvas');
+    const slider = document.getElementById('lens-slider');
+    const doDisplay = document.getElementById('do-display');
+    const focalPointObj = document.getElementById('focal-point-obj');
+    const focalPointImg = document.getElementById('focal-point-img');
+    const solutionBtn = document.getElementById('solution-btn');
+    const solutionContent = document.getElementById('solution-content');
+    const imageTooltip = document.getElementById('image-tooltip');
+
+    const D = 1.50;
+    const d = 0.90;
+    const f = (D**2 - d**2) / (4 * D);
+    const so1_solution = (D + d) / 2;
+    const so2_solution = (D - d) / 2;
+
+    let simWidth, simHeight, scale, candleX_px, wallX_px, focalLength_px;
+
+    function setupDimensions() {
+        simWidth = wrapper.offsetWidth;
+        simHeight = wrapper.offsetHeight;
+        const candleX_perc = 10;
+        const wallX_perc = 90;
+        scale = (wallX_perc - candleX_perc) / 100 * simWidth / D;
+        candleX_px = candleX_perc / 100 * simWidth;
+        wallX_px = wallX_perc / 100 * simWidth;
+        focalLength_px = f * scale;
+    }
+
+    function updateSimulation(lensX_px) {
+        lensContainer.style.left = `${lensX_px}px`;
+        const so_px = lensX_px - candleX_px;
+        const so_m = so_px / scale;
+
+        doDisplay.innerHTML = `Distancia Objeto (sₒ): ${so_m.toFixed(2)} m`;
+        focalPointObj.style.left = `${lensX_px - focalLength_px}px`;
+        focalPointImg.style.left = `${lensX_px + focalLength_px}px`;
+
+        let si_m, M;
+        if (Math.abs(so_m - f) < 0.001) {
+            si_m = Infinity;
+            M = Infinity;
+        } else {
+            si_m = 1 / (1/f - 1/so_m);
+            M = -si_m / so_m;
+        }
+        
+        const si_px = si_m * scale;
+        const imageX_px = lensX_px + si_px;
+
+        imageOnWall.style.left = `${wallX_px}px`;
+        imageOnWall.style.transform = `translateX(-50%) translateY(-50%) scaleY(${M}) scaleX(${Math.abs(M)})`;
+        
+        const distanceToWall_px = Math.abs(imageX_px - wallX_px);
+        const blurAmount = Math.min(8, distanceToWall_px / 15);
+        imageOnWall.style.filter = `blur(${blurAmount}px)`;
+        imageOnWall.style.opacity = Math.max(0.1, 1 - distanceToWall_px / (simWidth / 3));
+
+        drawRays(candleX_px, lensX_px, imageX_px, M);
+        updateTooltip(si_m, M);
+    }
+
+    function drawRays(objX, lensX, imgX, mag) {
+        rayCanvas.innerHTML = '';
+        const objHeight = -45; 
+        const imgHeight = objHeight * mag;
+        const midY = simHeight / 2;
+
+        const createRay = (d, color) => {
+            const ray = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            ray.setAttribute('d', d);
+            ray.setAttribute('stroke', color);
+            ray.setAttribute('stroke-width', '2');
+            ray.setAttribute('fill', 'none');
+            ray.setAttribute('stroke-dasharray', '5 5');
+            rayCanvas.appendChild(ray);
+        };
+        
+        // Rayo 1: Paralelo -> Foco Imagen
+        createRay(`M ${objX} ${midY + objHeight} L ${lensX} ${midY + objHeight} L ${imgX} ${midY + imgHeight}`, 'var(--ray1-color)');
+        // Rayo 2: Centro -> Sin desvío
+        createRay(`M ${objX} ${midY + objHeight} L ${imgX} ${midY + imgHeight}`, 'var(--ray2-color)');
+        // Rayo 3: Foco Objeto -> Paralelo
+        createRay(`M ${objX} ${midY + objHeight} L ${lensX} ${midY + imgHeight} L ${imgX} ${midY + imgHeight}`, 'var(--ray3-color)');
+    }
+    
+    function updateTooltip(si, M) {
+        const isReal = si > 0;
+        const orientation = M < 0 ? 'Invertida' : 'Derecha';
+        const size = Math.abs(M) > 1 ? 'Mayor' : (Math.abs(M) < 1 ? 'Menor' : 'Igual');
+        
+        imageTooltip.innerHTML = `<b>Imagen Proyectada</b>
+- Tipo: ${isReal ? 'Real' : 'Virtual'}
+- Orientación: ${orientation}
+- Tamaño: ${size} (${Math.abs(M).toFixed(2)}x)
+- Aumento: ${M.toFixed(2)}`;
+    }
+
+    let isDragging = false;
+    lensContainer.addEventListener('mousedown', () => isDragging = true);
+    document.addEventListener('mouseup', () => isDragging = false);
+    wrapper.addEventListener('mouseleave', () => isDragging = false);
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            const rect = wrapper.getBoundingClientRect();
+            let newLensX = e.clientX - rect.left;
+            const minLensX = candleX_px + 15;
+            const maxLensX = wallX_px - 15;
+            newLensX = Math.max(minLensX, Math.min(newLensX, maxLensX));
+            updateSimulation(newLensX);
+            const sliderValue = (newLensX - minLensX) / (maxLensX - minLensX) * 1000;
+            slider.value = sliderValue;
+        }
+    });
+
+    slider.addEventListener('input', (e) => {
+        const sliderValue = e.target.value / 1000;
+        const minLensX = candleX_px + 15;
+        const maxLensX = wallX_px - 15;
+        const newLensX = minLensX + sliderValue * (maxLensX - minLensX);
+        updateSimulation(newLensX);
+    });
+
+    solutionBtn.addEventListener('click', () => {
+        const isHidden = solutionContent.style.display === 'none';
+        solutionContent.style.display = isHidden ? 'block' : 'none';
+        solutionBtn.textContent = isHidden ? 'Ocultar Solución Detallada' : 'Mostrar Solución Detallada';
+    });
+
+    imageOnWall.addEventListener('mouseenter', () => imageTooltip.style.display = 'block');
+    imageOnWall.addEventListener('mouseleave', () => imageTooltip.style.display = 'none');
+    imageOnWall.addEventListener('mousemove', (e) => {
+        const rect = wrapper.getBoundingClientRect();
+        imageTooltip.style.left = `${e.clientX - rect.left + 20}px`;
+        imageTooltip.style.top = `${e.clientY - rect.top + 20}px`;
+    });
+
+    function initialize() {
+        setupDimensions();
+        const initial_so_m = so2_solution;
+        const initialLensX = candleX_px + (initial_so_m * scale);
+        const minLensX = candleX_px + 15;
+        const maxLensX = wallX_px - 15;
+        const sliderInitialValue = (initialLensX - minLensX) / (maxLensX - minLensX) * 1000;
+        slider.value = sliderInitialValue;
+        updateSimulation(initialLensX);
+    }
+
+    window.addEventListener('resize', initialize);
+    
+    // Import Google Fonts
+    const fontLink = document.createElement('link');
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;700&display=swap';
+    fontLink.rel = 'stylesheet';
+    document.head.appendChild(fontLink);
+
+    initialize();
+});
+</script>
+
+</body>
+</html>

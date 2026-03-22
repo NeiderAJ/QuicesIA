@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto Física Mecánica - Interceptación de Misiles UdeA</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; scroll-behavior: smooth; }
+        canvas { 
+            border: 4px solid #1e40af; 
+            background: radial-gradient(circle, #0f172a 0%, #020617 100%); 
+            border-radius: 20px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            display: block; 
+            margin: 0 auto; 
+        }
+        .section-card { 
+            border-left: 6px solid #3b82f6; 
+            background-color: #ffffff;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-radius: 0 15px 15px 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .formula-box { 
+            background: #f1f5f9; 
+            border-radius: 12px; 
+            padding: 20px; 
+            margin: 15px 0; 
+            border: 1px solid #cbd5e1;
+            overflow-x: auto;
+        }
+        .slider-custom {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #dbeafe;
+            outline: none;
+        }
+        .slider-custom::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1e40af;
+            cursor: pointer;
+            transition: .3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 p-4 md:p-12">
+
+<div class="max-w-6xl mx-auto bg-white p-12 rounded-3xl shadow-2xl border border-slate-200">
+    
+    <header class="text-center border-b-4 border-blue-500 pb-10 mb-12">
+        <h1 class="text-5xl font-black text-blue-900 mb-4 tracking-tight">Análisis de Trayectorias e Interceptación</h1>
+        <p class="text-2xl text-blue-600 font-semibold italic">Curso de Física Mecánica – Universidad de Antioquia</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            <div class="bg-blue-900 text-white p-6 rounded-2xl shadow-lg">
+                <p class="text-sm uppercase tracking-widest opacity-80">Estudiante</p>
+                <p class="text-xl font-bold">Fabiana Alexandra Chávez Romero</p>
+            </div>
+            <div class="bg-blue-700 text-white p-6 rounded-2xl shadow-lg">
+                <p class="text-sm uppercase tracking-widest opacity-80">Identificación</p>
+                <p class="text-xl font-bold">CC: 1017282412</p>
+            </div>
+            <div class="bg-blue-600 text-white p-6 rounded-2xl shadow-lg">
+                <p class="text-sm uppercase tracking-widest opacity-80">Fecha de Entrega</p>
+                <p class="text-xl font-bold">Marzo 2026</p>
+            </div>
+        </div>
+    </header>
+
+    <section class="section-card">
+        <h2 class="text-3xl font-bold text-blue-900 mb-6 underline decoration-blue-500">1. Enunciado del Problema Cinematográfico</h2>
+        <div class="text-lg leading-relaxed space-y-4 text-slate-700">
+            <p>
+                En el contexto de la defensa aeroespacial, el problema fundamental radica en la predicción exacta de una trayectoria parabólica bajo la influencia de un campo gravitatorio uniforme. Un proyectil enemigo es detectado con una velocidad inicial \(v_0\) y una orientación definida por los cosenos directores \((l, m, n)\).
+            </p>
+            <p>
+                La tarea del sistema es calcular, en tiempo real, el vector de lanzamiento de un misil interceptor que parte desde el origen de coordenadas o una base cercana. El sistema debe compensar factores como la aceleración de propulsión adicional y garantizar que la colisión ocurra antes de que el objetivo alcance su punto de impacto en tierra (\(y=0\)).
+            </p>
+        </div>
+    </section>
+
+    <section class="section-card">
+        <h2 class="text-3xl font-bold text-blue-900 mb-6 underline decoration-blue-500">2. Desarrollo Algebraico y Modelado</h2>
+        <div class="space-y-6">
+            <p class="text-lg">Para el análisis bidimensional, descomponemos la velocidad inicial en sus componentes rectangulares:</p>
+            <div class="formula-box text-2xl text-center">
+                \[ v_{xe} = v_0 \cdot l \quad ; \quad v_{ye} = v_0 \cdot m \]
+                \[ \text{Donde } l^2 + m^2 = 1 \text{ (en 2D)} \]
+            </div>
+            <h3 class="text-xl font-bold text-blue-800 mt-8">Ecuaciones de Posición del Objetivo:</h3>
+            <div class="formula-box text-xl">
+                \[ x_e(t) = x_{0e} + (v_0 \cdot l)t \]
+                \[ y_e(t) = y_{0e} + (v_0 \cdot m)t - \frac{1}{2}gt^2 \]
+            </div>
+            <h3 class="text-xl font-bold text-blue-800 mt-8">Ecuaciones del Interceptor (Propulsión Asistida):</h3>
+            <p>El defensor incorpora una aceleración neta \(a_{net} = a_p - g\) en el eje vertical:</p>
+            <div class="formula-box text-xl">
+                \[ x_d(t) = x_{0d} + v_{xd}t \]
+                \[ y_d(t) = y_{0d} + v_{yd}t + \frac{1}{2}(a_p - g)t^2 \]
+            </div>
+        </div>
+    </section>
+
+    <section class="section-card">
+        <h2 class="text-3xl font-bold text-blue-900 mb-6 underline decoration-blue-500">3. Análisis Funcional del Simulador</h2>
+        <p class="text-lg mb-4">El sistema opera bajo una arquitectura de "Detección y Respuesta":</p>
+        <ul class="list-disc ml-8 space-y-3 text-lg text-slate-700">
+            <li><strong>Optimización de Inicio:</strong> El radar ajusta la altura de aparición del enemigo según su ángulo de ataque para mantener la trayectoria dentro del rango visual (450m).</li>
+            <li><strong>Cálculo de Colisión:</strong> Se utiliza un algoritmo de persecución proporcional donde el interceptor ajusta su vector velocidad hacia la posición futura del enemigo.</li>
+            <li><strong>Límites Operativos:</strong> El sistema cancela la operación si el objetivo supera el "techo" del radar o impacta el suelo.</li>
+        </ul>
+    </section>
+
+    <section class="section-card border-l-red-500 bg-slate-50">
+        <h2 class="text-3xl font-bold text-slate-900 mb-8 text-center uppercase tracking-tighter">Panel de Comando Estratégico</h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
+            <div class="space-y-8 bg-white p-6 rounded-2xl shadow-inner border border-slate-200">
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <label class="font-black text-blue-900">Gravedad (m/s²)</label>
+                        <span id="gVal" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold">9.8</span>
+                    </div>
+                    <input type="range" id="gSlider" min="5" max="20" step="0.1" value="9.8" class="slider-custom">
+                </div>
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <label class="font-black text-blue-900">Aceleración Propulsor (m/s²)</label>
+                        <span id="apVal" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold">35</span>
+                    </div>
+                    <input type="range" id="apSlider" min="0" max="80" step="1" value="35" class="slider-custom">
+                </div>
+            </div>
+            <div class="space-y-8 bg-white p-6 rounded-2xl shadow-inner border border-slate-200">
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <label class="font-black text-blue-900">Coseno Director l (Horizontal)</label>
+                        <span id="lVal" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold">-0.80</span>
+                    </div>
+                    <input type="range" id="lSlider" min="-1" max="0" step="0.01" value="-0.80" class="slider-custom">
+                </div>
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <label class="font-black text-blue-900">Coseno Director m (Vertical)</label>
+                        <span id="mVal" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold">0.45</span>
+                    </div>
+                    <input type="range" id="mSlider" min="0" max="1" step="0.01" value="0.45" class="slider-custom">
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap gap-4 justify-center mb-10">
+            <button onclick="generarEscenario()" class="bg-red-600 hover:bg-red-800 text-white px-10 py-4 rounded-xl font-black text-xl shadow-2xl transition-all active:scale-95">1. DETECTAR AMENAZA</button>
+            <button onclick="lanzarDefensa()" class="bg-blue-700 hover:bg-blue-900 text-white px-10 py-4 rounded-xl font-black text-xl shadow-2xl transition-all active:scale-95 border-b-4 border-blue-900">2. LANZAR DEFENSA</button>
+        </div>
+
+        <div id="status" class="bg-slate-950 text-blue-400 p-6 mb-8 rounded-2xl text-center font-mono text-2xl border-4 border-blue-900 shadow-2xl">
+            SISTEMA INICIALIZADO - ESPERANDO DATOS...
+        </div>
+        
+        <canvas id="canvas" width="1000" height="450"></canvas>
+    </section>
+
+    <section class="section-card">
+        <h2 class="text-3xl font-bold text-blue-900 mb-6 underline decoration-blue-500">6. Relación con el sistema Domo de Hierro</h2>
+        <div class="text-lg leading-relaxed space-y-4 text-slate-700">
+            <p>
+                El sistema de defensa conocido como Iron Dome utiliza radares avanzados para detectar proyectiles enemigos y calcular su trayectoria en tiempo real.
+                A partir de esta información el sistema determina si el misil representa una amenaza y calcula la trayectoria que debe seguir un interceptor para destruir el proyectil en el aire.
+            </p>
+            <p> 
+                La simulación representada en este trabajo reproduce de manera simplificada los principios físicos fundamentales en este tipo de sistemas de defensa, utilizando ecuaciones del movimiento parabólico y métodos de simulación computacional.
+            </p>
+        </div>
+    </section>
+
+    <section class="section-card">
+        <h2 class="text-3xl font-bold text-blue-900 mb-6 underline decoration-blue-500">7. Conclusiones</h2>
+        <div class="text-lg leading-relaxed space-y-4 text-slate-700">
+            <p>
+                La reducción del problema tridimensional a un plano bidimensional permite simplificar el análisis matemático de la trayectoria.
+            </p>
+            <p>
+                La simulación computacional permite visualizar de forma clara el proceso de interceptación entre dos proyectiles.
+            </p>
+            <p>
+                El uso de parámetros ajustables facilita el análisis del efecto de la gravedad y aceleración adicional en la dinámica del sistema.
+            </p>
+        </div>
+    </section>
+
+    <footer class="bg-slate-900 text-slate-400 p-8 rounded-3xl mt-12 text-center">
+        <p class="text-xs uppercase tracking-widest italic">
+            "Espíritu de Excelencia y Compromiso Social" - UdeA
+        </p>
+    </footer>
+</div>
+
+<script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const sliders = [
+        { s: document.getElementById("gSlider"), v: document.getElementById("gVal"), unit: "" },
+        { s: document.getElementById("apSlider"), v: document.getElementById("apVal"), unit: "" },
+        { s: document.getElementById("lSlider"), v: document.getElementById("lVal"), prefix: "l = " },
+        { s: document.getElementById("mSlider"), v: document.getElementById("mVal"), prefix: "m = " }
+    ];
+
+    let enemigo = null, defensor = null;
+    let trayE = [], trayD = [];
+    let animacion = null;
+
+    function actualizarInterfaz() {
+        sliders.forEach(obj => {
+            let val = parseFloat(obj.s.value).toFixed(2);
+            obj.v.innerText = (obj.prefix || "") + val + (obj.unit || "");
+        });
+    }
+    sliders.forEach(obj => obj.s.oninput = actualizarInterfaz);
+    actualizarInterfaz();
+
+    function generarEscenario() {
+        cancelAnimationFrame(animacion);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const l = parseFloat(document.getElementById("lSlider").value);
+        const m = parseFloat(document.getElementById("mSlider").value);
+        const v0 = 125;
+
+        // Lógica beneficiosa: ajusta altura inicial según el ángulo m
+        let yBeneficioso = canvas.height - (m * 300) - 80;
+        if(yBeneficioso < 40) yBeneficioso = 40; 
+
+        enemigo = {
+            x: canvas.width - 40,
+            y: yBeneficioso,
+            vx: v0 * l, 
+            vy: v0 * m,
+            r: 10
+        };
+
+        trayE = [{x: enemigo.x, y: enemigo.y}];
+        trayD = [];
+        defensor = null;
+        
+        status.innerText = "RADAR: Amenaza Posicionada. Listo para interceptar.";
+        status.className = "bg-slate-950 text-red-500 p-6 mb-8 rounded-2xl text-center font-mono text-2xl border-4 border-red-900";
+        dibujar();
+    }
+
+    function lanzarDefensa() {
+        if (!enemigo) return;
+        defensor = { x: 40, y: 0, vx: 0, vy: 0, r: 8 };
+        trayD = [{x: defensor.x, y: defensor.y}];
+        status.innerText = "DEFENSA ACTIVA: Interceptando...";
+        status.className = "bg-slate-950 text-cyan-400 p-6 mb-8 rounded-2xl text-center font-mono text-2xl border-4 border-cyan-900";
+        simular();
+    }
+
+    function simular() {
+        const dt = 0.07;
+        const g = parseFloat(document.getElementById("gSlider").value);
+        const ap = parseFloat(document.getElementById("apSlider").value);
+
+        enemigo.x += enemigo.vx * dt;
+        enemigo.y += enemigo.vy * dt;
+        enemigo.vy -= g * dt;
+
+        let dx = enemigo.x - defensor.x;
+        let dy = enemigo.y - defensor.y;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        
+        let velD = 260; 
+        defensor.vx = (dx / dist) * velD;
+        defensor.vy = (dy / dist) * velD + (ap * dt);
+
+        defensor.x += defensor.vx * dt;
+        defensor.y += defensor.vy * dt;
+
+        trayE.push({x: enemigo.x, y: enemigo.y});
+        trayD.push({x: defensor.x, y: defensor.y});
+
+        dibujar();
+
+        if (dist < 20) {
+            status.innerText = "¡INTERCEPTACIÓN CONFIRMADA!";
+            status.className = "bg-green-900 text-white p-6 mb-8 rounded-2xl text-center font-mono text-2xl border-4 border-green-400";
+            
+            ctx.fillStyle = "#fbbf24";
+            ctx.beginPath();
+            ctx.arc(enemigo.x, canvas.height - enemigo.y, 45, 0, Math.PI * 2);
+            ctx.fill();
+            cancelAnimationFrame(animacion);
+            return;
+        }
+
+        if (enemigo.y >= canvas.height || enemigo.y <= 0 || enemigo.x <= 0) {
+            status.innerText = "OBJETIVO FUERA DE RANGO / IMPACTO EN TIERRA";
+            status.className = "bg-red-900 text-white p-6 mb-8 rounded-2xl text-center font-mono text-2xl border-4 border-red-500";
+            cancelAnimationFrame(animacion);
+            return;
+        }
+
+        animacion = requestAnimationFrame(simular);
+    }
+
+    function dibujar() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        dibujarT(trayE, "#f87171");
+        dibujarT(trayD, "#22d3ee");
+
+        if (enemigo) {
+            ctx.shadowBlur = 15; ctx.shadowColor = "red";
+            ctx.fillStyle = "#ef4444";
+            ctx.beginPath(); ctx.arc(enemigo.x, canvas.height - enemigo.y, enemigo.r, 0, Math.PI*2); ctx.fill();
+        }
+        if (defensor) {
+            ctx.shadowColor = "cyan";
+            ctx.fillStyle = "#0891b2";
+            ctx.beginPath(); ctx.arc(defensor.x, canvas.height - defensor.y, defensor.r, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.shadowBlur = 0;
+    }
+
+    function dibujarT(puntos, color) {
+        if (puntos.length < 2) return;
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.setLineDash([5, 10]); ctx.lineWidth = 2;
+        ctx.moveTo(puntos[0].x, canvas.height - puntos[0].y);
+        puntos.forEach(p => ctx.lineTo(p.x, canvas.height - p.y));
+        ctx.stroke(); ctx.setLineDash([]);
+    }
+</script>
+</body>
+</html>

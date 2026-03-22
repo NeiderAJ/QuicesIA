@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulación Defensa Antimisiles</title>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    :root {
+      --bg1: #ffd6ec;
+      --bg2: #e9d6ff;
+      --accent: #c99be6;
+      --muted: #6b5b7b;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, var(--bg1), var(--bg2));
+      color: var(--muted);
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      text-align: center;
+      padding: 2rem;
+      background-color: var(--accent);
+      color: white;
+      border-bottom-left-radius: 30px;
+      border-bottom-right-radius: 30px;
+    }
+    main {
+      max-width: 950px;
+      margin: 2rem auto;
+      background: white;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    section {
+      margin-bottom: 2rem;
+    }
+    h2 {
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 0.3rem;
+    }
+    .paneles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 1rem;
+    }
+    .panel {
+      background: #fdfdfd;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
+    }
+    .panel h3 {
+      margin-top: 0;
+      font-size: 16px;
+      color: var(--accent);
+    }
+    .slider-group {
+      margin: 10px 0;
+    }
+    .slider-group label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    button {
+      background: var(--accent);
+      border: none;
+      color: white;
+      padding: 0.8rem 1.2rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: var(--muted);
+    }
+    #plot {
+      width: 100%;
+      height: 600px;
+      margin-top: 2rem;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: var(--accent);
+      color: white;
+      border-top-left-radius: 30px;
+      border-top-right-radius: 30px;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Simulación de Defensa Antimisiles</h1>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Enunciado del problema</h2>
+      <p>Un radar detecta un <b>misil enemigo</b> en vuelo. En el instante de detección se conocen:</p>
+      <ul>
+        <li>Posición inicial: \( \vec{r}_0 \).</li>
+        <li>Velocidad inicial: \( \vec{v}_0 \).</li>
+        <li>Cosenos directores: \( (l, m, n) \).</li>
+      </ul>
+      <p>El misil enemigo se mueve únicamente bajo la acción de la gravedad terrestre.</p>
+    </section>
+
+    <section>
+      <h2>2. Solución algebraica propuesta</h2>
+      <p>Reducción al plano 2D:</p>
+      <p>\[
+        x(t) = x_0 + v_{0x}t, \quad
+        y(t) = y_0 + v_{0y}t - \tfrac{1}{2} g t^2
+      \]</p>
+      <p>Condiciones de intercepción: 
+      \[
+        x_{enemigo}(t) = x_{defensor}(t), \quad 
+        y_{enemigo}(t) = y_{defensor}(t)
+      \]</p>
+      <p>Si el defensor activa propulsores, se añade una aceleración extra \(a_p\):</p>
+      <p>\[
+        y_{defensor}(t) = y_{0d} + v_{0dy}t + \tfrac{1}{2}(a_p - g)t^2
+      \]</p>
+    </section>
+
+    <section>
+      <h2>3. Análisis funcional o teórico</h2>
+      <p>Se analiza la viabilidad de la interceptación en función de la altura de detección. 
+         Si el misil enemigo se detecta alto, el defensor puede actuar con tiro parabólico clásico. 
+         Si la detección es baja, requiere propulsores adicionales.</p>
+    </section>
+
+    <section>
+      <h2>4. Planteamiento de la simulación</h2>
+      <p>Se generan condiciones iniciales aleatorias para el misil enemigo:</p>
+      <ul>
+        <li>Posición inicial horizontal entre 50 m y 250 m.</li>
+        <li>Velocidad entre 100 m/s y 400 m/s.</li>
+        <li>Ángulo de lanzamiento entre 15° y 75°.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>5. Simulación interactiva</h2>
+      <div class="paneles">
+        <!-- Panel enemigo -->
+        <div class="panel">
+          <h3>Proyectil Enemigo</h3>
+          <button onclick="generarEnemigo()">Generar aleatorio</button>
+          <div class="slider-group">
+            <label>Velocidad inicial (m/s): <span id="v0e_val">200</span></label>
+            <input type="range" id="v0e" min="100" max="400" value="200">
+          </div>
+          <div class="slider-group">
+            <label>Ángulo (°): <span id="anglee_val">45</span></label>
+            <input type="range" id="anglee" min="15" max="75" value="45">
+          </div>
+          <div class="slider-group">
+            <label>Posición inicial X (m): <span id="x0e_val">100</span></label>
+            <input type="range" id="x0e" min="50" max="250" value="100">
+          </div>
+          <div class="slider-group">
+            <label>Posición inicial Y (m): <span id="y0e_val">20</span></label>
+            <input type="range" id="y0e" min="0" max="50" value="20">
+          </div>
+        </div>
+
+        <!-- Panel defensor -->
+        <div class="panel">
+          <h3>Proyectil Defensor</h3>
+          <div class="slider-group">
+            <label>Velocidad inicial (m/s): <span id="v0d_val">250</span></label>
+            <input type="range" id="v0d" min="100" max="400" value="250">
+          </div>
+          <div class="slider-group">
+            <label>Ángulo (°): <span id="angled_val">60</span></label>
+            <input type="range" id="angled" min="15" max="75" value="60">
+          </div>
+          <div class="slider-group">
+            <label>Posición inicial X (m): <span id="x0d_val">0</span></label>
+            <input type="range" id="x0d" min="0" max="100" value="0">
+          </div>
+          <div class="slider-group">
+            <label>Posición inicial Y (m): <span id="y0d_val">0</span></label>
+            <input type="range" id="y0d" min="0" max="50" value="0">
+          </div>
+          <div class="slider-group">
+            <label>Impulso adicional (m/s²): <span id="a_val">0</span></label>
+            <input type="range" id="a" min="0" max="50" value="0">
+          </div>
+        </div>
+      </div>
+
+      <div id="plot"></div>
+    </section>
+
+    <section>
+      <h2>6. Relación con el sistema Domo de Hierro</h2>
+      <p>El sistema real <b>Iron Dome</b> funciona con un principio similar: detecta proyectiles enemigos,
+         calcula su trayectoria y lanza interceptores que pueden maniobrar para asegurar la intercepción.</p>
+    </section>
+
+    <section>
+      <h2>7. Conclusiones</h2>
+      <p>La simulación muestra cómo la física del tiro parabólico puede aplicarse a sistemas de defensa. 
+         La detección temprana es crucial para evitar el uso de propulsores adicionales.</p>
+    </section>
+
+    <section>
+      <h2>8. Bibliografía</h2>
+      <ul>
+        <li>Tipler, P. & Mosca, G. (2008). <i>Física para la ciencia y la tecnología</i>.</li>
+        <li>Serway, R. A. & Jewett, J. W. (2014). <i>Física Universitaria</i>.</li>
+        <li>Documentación técnica sobre el sistema Iron Dome.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    Universidad de Antioquia – Física Mecánica
+  </footer>
+
+  <script>
+    const g = 9.81;
+
+    function actualizarValores() {
+      document.getElementById("v0e_val").textContent = document.getElementById("v0e").value;
+      document.getElementById("anglee_val").textContent = document.getElementById("anglee").value;
+      document.getElementById("x0e_val").textContent = document.getElementById("x0e").value;
+      document.getElementById("y0e_val").textContent = document.getElementById("y0e").value;
+      document.getElementById("v0d_val").textContent = document.getElementById("v0d").value;
+      document.getElementById("angled_val").textContent = document.getElementById("angled").value;
+      document.getElementById("x0d_val").textContent = document.getElementById("x0d").value;
+      document.getElementById("y0d_val").textContent = document.getElementById("y0d").value;
+      document.getElementById("a_val").textContent = document.getElementById("a").value;
+      simular();
+    }
+
+    document.querySelectorAll("input").forEach(input => {
+      input.addEventListener("input", actualizarValores);
+    });
+
+    function generarEnemigo() {
+      document.getElementById("v0e").value = Math.floor(Math.random() * 300 + 100);
+      document.getElementById("anglee").value = Math.floor(Math.random() * 60 + 15);
+      document.getElementById("x0e").value = Math.floor(Math.random() * 200 + 50);
+      document.getElementById("y0e").value = Math.floor(Math.random() * 20 + 10);
+      actualizarValores();
+    }
+
+    function trayectoria(v0, angulo, x0, y0, a_extra=0) {
+      let rad = angulo * Math.PI / 180;
+      let vx = v0 * Math.cos(rad);
+      let vy = v0 * Math.sin(rad);
+      let dt = 0.05;
+      let x = [], y = [];
+      let t = 0;
+      while (true) {
+        let xt = x0 + vx * t;
+        let yt = y0 + vy * t - 0.5 * g * t * t + 0.5 * a_extra * t * t;
+        if (yt < 0) break;
+        x.push(xt);
+        y.push(yt);
+        t += dt;
+      }
+      return {x, y};
+    }
+
+    function simular() {
+      let v0e = parseFloat(document.getElementById("v0e").value);
+      let anglee = parseFloat(document.getElementById("anglee").value);
+      let x0e = parseFloat(document.getElementById("x0e").value);
+      let y0e = parseFloat(document.getElementById("y0e").value);
+
+      let v0d = parseFloat(document.getElementById("v0d").value);
+      let angled = parseFloat(document.getElementById("angled").value);
+      let x0d = parseFloat(document.getElementById("x0d").value);
+      let y0d = parseFloat(document.getElementById("y0d").value);
+      let a = parseFloat(document.getElementById("a").value);
+
+      let enemigo = trayectoria(v0e, anglee, x0e, y0e, 0);
+      let defensor = trayectoria(v0d, angled, x0d, y0d, a);
+
+      let data = [
+        { x: enemigo.x, y: enemigo.y, mode: "lines", name: "Enemigo", line: {color: "red"} },
+        { x: defensor.x, y: defensor.y, mode: "lines", name: "Defensor", line: {color: "blue"} }
+      ];
+
+      let layout = {
+        title: "Trayectorias de Misiles",
+        xaxis: {title: "X (m)"},
+        yaxis: {title: "Y (m)", range: [0, Math.max(...enemigo.y, ...defensor.y) + 20]},
+        legend: {x: 0.8, y: 1}
+      };
+
+      Plotly.newPlot("plot", data, layout);
+    }
+
+    actualizarValores();
+  </script>
+</body>
+</html>
+
+

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Intercepción de Misiles</title>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+body{
+margin:0;
+font-family: Arial, sans-serif;
+background: linear-gradient(135deg, #1e3c72, #2a5298);
+color:white;
+}
+
+h1{
+text-align:center;
+padding:20px;
+}
+
+.container{
+width:90%;
+max-width:900px;
+margin:auto;
+}
+
+.card{
+background:white;
+color:black;
+padding:20px;
+margin-bottom:20px;
+border-radius:15px;
+box-shadow:0px 10px 20px rgba(0,0,0,0.3);
+}
+
+canvas{
+background:#0f172a;
+border-radius:10px;
+display:block;
+margin:auto;
+}
+
+button{
+padding:10px 20px;
+margin:5px;
+border:none;
+border-radius:8px;
+font-size:16px;
+cursor:pointer;
+transition:0.3s;
+}
+
+.btn-blue{ background:#3b82f6; color:white; }
+.btn-green{ background:#10b981; color:white; }
+
+button:hover{
+transform:scale(1.05);
+}
+
+label{
+display:block;
+margin-top:10px;
+}
+
+input{
+width:100%;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Simulación de Intercepción de Misiles</h1>
+<p style="text-align:center;">
+Juan José Parra Polo <br>
+Quiz Física Mecánica <br>
+Profesor Anyeres
+</p>
+
+<div class="container">
+
+<div class="card">
+<h2>1. Enunciado</h2>
+<p>
+Se detecta un misil enemigo en movimiento con posición y velocidad inicial conocidas.
+El objetivo es lanzar un misil interceptor desde el suelo que logre interceptarlo antes
+de que impacte.
+</p>
+</div>
+
+<div class="card">
+<h2>2. Modelo Matemático</h2>
+
+$$ x(t)=x_0+v_0\cos(\theta)t $$
+
+$$ y(t)=y_0+v_0\sin(\theta)t-\frac{1}{2}gt^2 $$
+
+</div>
+
+<div class="card">
+<h2>3. Solución algebraica</h2>
+
+<p>Condición de intercepción:</p>
+
+$$ x_e(t) = x_d(t) $$
+$$ y_e(t) = y_d(t) $$
+
+$$ v_{dx} = \frac{x_0 + v_{ex} t}{t} $$
+$$ v_{dy} = \frac{y_0 + v_{ey} t}{t} $$
+
+$$ v_d = \sqrt{v_{dx}^2 + v_{dy}^2} $$
+
+</div>
+
+<div class="card">
+<h2>4. Análisis funcional</h2>
+
+<p>
+La intercepción depende de la posición, velocidad y gravedad.
+A mayor altura, mayor tiempo de reacción. A menor altura,
+la intercepción es más difícil.
+</p>
+
+</div>
+
+<div class="card">
+<h2>5. Simulación</h2>
+
+<button class="btn-blue" onclick="nuevo()">Nuevo enemigo</button>
+<button class="btn-green" onclick="simular()">Simular</button>
+
+<br><br>
+
+<canvas id="c" width="800" height="400"></canvas>
+
+<p style="text-align:center;margin-top:10px;">
+🔴 enemigo &nbsp;&nbsp; 🔵 interceptor &nbsp;&nbsp; 💥 intercepción
+</p>
+
+</div>
+
+<div class="card">
+<h2>6. Controles</h2>
+
+<label>Velocidad del interceptor</label>
+<input id="vel" type="range" min="150" max="400" value="220">
+
+<label>Gravedad</label>
+<input id="grav" type="range" min="5" max="15" step="0.1" value="9.8">
+
+</div>
+
+<div class="card">
+<h2>7. Relación con sistemas reales</h2>
+<p>
+Los sistemas modernos predicen trayectorias y calculan el momento óptimo de lanzamiento.
+</p>
+</div>
+
+<div class="card">
+<h2>8. Conclusiones</h2>
+<p>
+Se demuestra la aplicación del movimiento parabólico y métodos numéricos.
+</p>
+</div>
+
+<div class="card">
+<h2>9. Bibliografía</h2>
+<ul>
+<li>Serway & Jewett</li>
+<li>Tipler</li>
+</ul>
+</div>
+
+</div>
+
+<script>
+
+let enemigo={}
+let defensor={}
+let t = 0
+let animando = false
+
+const canvas=document.getElementById("c")
+const ctx=canvas.getContext("2d")
+
+const W = 800
+const H = 400
+
+function r(min,max){
+return Math.random()*(max-min)+min
+}
+
+function g(){
+return parseFloat(document.getElementById("grav").value)
+}
+
+function dentro(x,y){
+return x>=0 && x<=W && y>=0 && y<=H
+}
+
+function nuevo(){
+
+let lado = Math.floor(Math.random()*3)
+
+if(lado===0){
+enemigo.x0 = 0
+enemigo.y0 = r(100,350)
+enemigo.a = r(-20,20)*Math.PI/180
+}
+
+if(lado===1){
+enemigo.x0 = 800
+enemigo.y0 = r(100,350)
+enemigo.a = r(160,200)*Math.PI/180
+}
+
+if(lado===2){
+enemigo.x0 = r(100,700)
+enemigo.y0 = 400
+enemigo.a = r(210,330)*Math.PI/180
+}
+
+enemigo.v = r(120,220)
+
+enemigo.vx = enemigo.v*Math.cos(enemigo.a)
+enemigo.vy = enemigo.v*Math.sin(enemigo.a)
+
+// evitar trayectorias verticales
+if(Math.abs(enemigo.vx) < 20){
+return nuevo()
+}
+
+defensor = {}
+dibujar()
+}
+
+function posE(t){
+return{
+x:enemigo.x0+enemigo.vx*t,
+y:enemigo.y0+enemigo.vy*t-0.5*g()*t*t
+}
+}
+
+function calcular(){
+
+let v=parseFloat(document.getElementById("vel").value)
+
+for(let ang=20;ang<80;ang+=0.3){
+
+let vx=v*Math.cos(ang*Math.PI/180)
+let vy=v*Math.sin(ang*Math.PI/180)
+
+for(let t=0;t<20;t+=0.05){
+
+let e=posE(t)
+
+let d={
+x:vx*t,
+y:vy*t-0.5*g()*t*t
+}
+
+if(!dentro(e.x,e.y) || !dentro(d.x,d.y)) continue
+
+let dist=Math.sqrt((e.x-d.x)**2+(e.y-d.y)**2)
+
+if(dist<10){
+defensor={vx,vy}
+return
+}
+
+}
+
+}
+
+}
+
+function animar(){
+
+if(!animando) return
+
+ctx.clearRect(0,0,W,H)
+
+let e = posE(t)
+
+if(!dentro(e.x,e.y)){
+animando = false
+return
+}
+
+ctx.beginPath()
+ctx.arc(e.x, H-e.y, 6, 0, Math.PI*2)
+ctx.fillStyle = "red"
+ctx.fill()
+
+ctx.beginPath()
+for(let tt=0; tt<t; tt+=0.1){
+let p = posE(tt)
+if(!dentro(p.x,p.y)) break
+ctx.lineTo(p.x,H-p.y)
+}
+ctx.strokeStyle="red"
+ctx.stroke()
+
+if(defensor.vx){
+
+let d = {
+x: defensor.vx*t,
+y: defensor.vy*t - 0.5*g()*t*t
+}
+
+if(!dentro(d.x,d.y)){
+animando = false
+return
+}
+
+ctx.beginPath()
+ctx.arc(d.x, H-d.y, 6, 0, Math.PI*2)
+ctx.fillStyle="cyan"
+ctx.fill()
+
+ctx.beginPath()
+for(let tt=0; tt<t; tt+=0.1){
+let p = {
+x: defensor.vx*tt,
+y: defensor.vy*tt - 0.5*g()*tt*tt
+}
+if(!dentro(p.x,p.y)) break
+ctx.lineTo(p.x,H-p.y)
+}
+ctx.strokeStyle="cyan"
+ctx.stroke()
+
+let dist = Math.sqrt((e.x-d.x)**2+(e.y-d.y)**2)
+
+if(dist < 10){
+animando = false
+
+ctx.beginPath()
+ctx.arc(e.x,H-e.y,20,0,Math.PI*2)
+ctx.fillStyle="yellow"
+ctx.fill()
+
+return
+}
+
+}
+
+t += 0.05
+requestAnimationFrame(animar)
+
+}
+
+function simular(){
+
+calcular()
+
+t = 0
+animando = true
+
+animar()
+
+}
+
+function dibujar(){
+
+ctx.clearRect(0,0,W,H)
+
+ctx.beginPath()
+
+for(let t=0;t<20;t+=0.1){
+
+let p=posE(t)
+if(!dentro(p.x,p.y)) break
+
+ctx.lineTo(p.x,H-p.y)
+}
+
+ctx.strokeStyle="red"
+ctx.stroke()
+
+}
+
+nuevo()
+
+</script>
+
+</body>
+</html>

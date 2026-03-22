@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Interferencia por Doble Rendija</title>
+    <style>
+        /* --- Estilos Generales (Tema Claro con Azul) --- */
+        :root {
+            --bg-color: #FFFFFF;        /* Fondo Blanco */
+            --panel-bg-color: #F8F9FA;  /* Gris muy claro para paneles */
+            --title-color: #0056b3;     /* Azul oscuro para títulos */
+            --subtitle-color: #007bff;  /* Azul brillante para subtítulos/énfasis */
+            --text-color: #343A40;      /* Gris oscuro para texto */
+            --border-color: #DEE2E6;    /* Gris claro para bordes */
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        /* --- Contenedor Principal y Layout --- */
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            background-color: var(--bg-color);
+            border-radius: 15px;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        
+        header {
+            background-color: var(--bg-color);
+            color: var(--title-color);
+            padding: 20px 25px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 280px 1fr 350px; /* Aumentado el ancho del panel derecho */
+            gap: 25px;
+            padding: 25px;
+        }
+
+        /* --- Paneles --- */
+        .panel {
+            background-color: var(--panel-bg-color);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .panel h2 {
+            margin-top: 0;
+            color: var(--title-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        /* --- Controles (Sliders) --- */
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .control-group .value-display {
+            display: inline-block;
+            margin-left: 8px;
+            color: var(--subtitle-color);
+            font-weight: bold;
+        }
+        
+        /* --- Canvas de Simulación --- */
+        #simulation-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #physicsCanvas {
+            background-color: #000000;
+            display: block;
+        }
+
+        /* --- Panel de Resultados y Explicaciones --- */
+        .results-group {
+            margin-bottom: 15px;
+        }
+        .results-group strong {
+            color: var(--subtitle-color);
+        }
+        
+        #explanation {
+            margin-top: 20px;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        #explanation h3 {
+             color: var(--title-color);
+        }
+        
+        code {
+            background-color: #e9ecef;
+            color: #333;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* --- Media Queries para Responsividad --- */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Simulación de Interferencia por Doble Rendija</h1>
+        </header>
+
+        <main class="main-content">
+            <!-- ========= PANEL DE CONTROLES ========= -->
+            <section id="controls" class="panel">
+                <h2>Controles</h2>
+                <div class="control-group">
+                    <label for="d_slider">Separación de rendijas (d)</label>
+                    <input type="range" id="d_slider" min="0.01" max="0.5" step="0.001" value="0.25">
+                    <span id="d_value" class="value-display">0.250 mm</span>
+                </div>
+                <div class="control-group">
+                    <label for="lambda_slider">Longitud de onda (λ)</label>
+                    <input type="range" id="lambda_slider" min="400" max="700" step="1" value="550">
+                    <span id="lambda_value" class="value-display">550 nm</span>
+                </div>
+                <div class="control-group">
+                    <label for="L_slider">Distancia Fuente-Rendijas (L)</label>
+                    <input type="range" id="L_slider" min="0.5" max="2.0" step="0.01" value="1.2">
+                    <span id="L_value" class="value-display">1.20 m</span>
+                </div>
+            </section>
+
+            <!-- ========= ÁREA DE SIMULACIÓN (CANVAS) ========= -->
+            <section id="simulation-container">
+                <canvas id="physicsCanvas" width="600" height="450"></canvas>
+            </section>
+
+            <!-- ========= PANEL DE RESULTADOS Y EXPLICACIÓN ========= -->
+            <section id="results" class="panel">
+                <h2>Análisis del Sistema</h2>
+                <div class="results-group">
+                    <strong>Diferencia de Camino (δ):</strong>
+                    <span id="delta_result"></span>
+                </div>
+                <div class="results-group">
+                    <strong>Diferencia de Fase (φ):</strong>
+                    <span id="phi_result"></span>
+                </div>
+                <div class="results-group">
+                    <strong>Intensidad en P (I / I₀):</strong>
+                    <span id="intensity_result"></span>
+                </div>
+                
+                <div id="explanation">
+                    <h3>Descripción del Problema</h3>
+                    <p>Se emite luz monocromática desde una fuente puntual <strong>S</strong>. Esta luz viaja una distancia <strong>L</strong> hasta una primera pantalla que contiene dos rendijas, <strong>S₁</strong> y <strong>S₂</strong>, separadas por una distancia <strong>d</strong>. La luz que atraviesa las rendijas se observa en el punto <strong>P</strong> de una segunda pantalla, que está situado en el eje central, siendo equidistante de S₁ y S₂.</p>
+
+                    <h3>Análisis y Solución</h3>
+                    <p>La intensidad en P depende de la interferencia entre las dos ondas de luz. La clave es la diferencia de camino total (<code>δ</code>) que recorre una onda respecto a la otra.</p>
+                    <ol>
+                        <li><strong>Diferencia de Camino Inicial:</strong> Como S no está infinitamente lejos, las distancias <code>S→S₁</code> y <code>S→S₂</code> no son iguales. Usando Pitágoras y una aproximación (dado que L >> d), esta diferencia de camino es <code>δ ≈ d² / (2L)</code>.</li>
+                        <li><strong>Diferencia de Camino Final:</strong> El punto P es equidistante de S₁ y S₂, por lo que no hay diferencia de camino en este segundo tramo.</li>
+                        <li><strong>Diferencia de Fase (φ):</strong> La diferencia de camino física se traduce en una diferencia de fase (sincronización) mediante la fórmula <code>φ = (2π / λ) * δ</code>.</li>
+                        <li><strong>Intensidad Final (I):</strong> La intensidad resultante en P se calcula con la fórmula de interferencia <code>I = 4I₀ cos²(φ / 2)</code>, donde <code>I₀</code> es la intensidad de una sola rendija.</li>
+                    </ol>
+                    
+                    <h3>Intensidad y Separación de Rendijas (d)</h3>
+                    <p>La variable <code>d</code> tiene un impacto directo y crucial en la intensidad observada en P:</p>
+                    <ul>
+                        <li><strong>Al aumentar <code>d</code>:</strong> La diferencia de camino <code>δ</code> aumenta rápidamente (de forma cuadrática). Esto hace que la fase <code>φ</code> también aumente, provocando que la intensidad en P oscile entre su valor máximo (luz brillante) y mínimo (oscuridad).</li>
+                        <li><strong>Al disminuir <code>d</code>:</strong> La diferencia de camino <code>δ</code> tiende a cero. En consecuencia, la diferencia de fase <code>φ</code> también se acerca a cero. Cuando <code>φ = 0</code>, el término <code>cos²(φ/2)</code> es igual a 1, y la intensidad alcanza su valor máximo de <code>4I₀</code>. Por eso, con rendijas muy juntas, el punto central P siempre es brillante.</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+window.onload = function() {
+    // --- Referencias a Elementos del DOM ---
+    const canvas = document.getElementById('physicsCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const d_slider = document.getElementById('d_slider');
+    const lambda_slider = document.getElementById('lambda_slider');
+    const L_slider = document.getElementById('L_slider');
+
+    const d_value_span = document.getElementById('d_value');
+    const lambda_value_span = document.getElementById('lambda_value');
+    const L_value_span = document.getElementById('L_value');
+
+    const delta_result_span = document.getElementById('delta_result');
+    const phi_result_span = document.getElementById('phi_result');
+    const intensity_result_span = document.getElementById('intensity_result');
+
+    // --- Estado de la simulación ---
+    const state = {
+        d: 0, d_slider: 0, lambda: 0, L: 0, delta: 0, phi: 0, intensity_ratio: 0, lightColor: '#ffffff'
+    };
+
+    function updateSimulation() {
+        readInputs();
+        performCalculations();
+        updateUI();
+        draw();
+    }
+
+    function readInputs() {
+        state.d = parseFloat(d_slider.value) * 1e-3;
+        state.lambda = parseFloat(lambda_slider.value) * 1e-9;
+        state.L = parseFloat(L_slider.value);
+        
+        d_value_span.textContent = `${(state.d * 1e3).toFixed(3)} mm`;
+        lambda_value_span.textContent = `${(state.lambda * 1e9).toFixed(0)} nm`;
+        L_value_span.textContent = `${state.L.toFixed(2)} m`;
+        
+        state.lightColor = wavelengthToRgb(state.lambda * 1e9);
+    }
+
+    function performCalculations() {
+        state.delta = (state.d * state.d) / (2 * state.L);
+        state.phi = (2 * Math.PI / state.lambda) * state.delta;
+        const cos_phi_half = Math.cos(state.phi / 2);
+        state.intensity_ratio = 4 * (cos_phi_half * cos_phi_half);
+    }
+
+    function updateUI() {
+        delta_result_span.textContent = `${(state.delta * 1e9).toExponential(3)} nm`;
+        phi_result_span.textContent = `${(state.phi / Math.PI).toFixed(3)}π rad (${(state.phi * 180 / Math.PI).toFixed(1)}°)`;
+        intensity_result_span.textContent = `${state.intensity_ratio.toFixed(3)} (Máximo teórico: 4.0)`;
+    }
+    
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const sourceX = 50, slitScreenX = 250, detectionScreenX = 500;
+        const patternWidth = 80, centerY = canvasHeight / 2;
+        const d_scale = 35000; 
+        const slitSeparationPixels = state.d * d_scale;
+
+        ctx.strokeStyle = '#888';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(slitScreenX, 0);
+        ctx.lineTo(slitScreenX, canvasHeight);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(detectionScreenX, 0);
+        ctx.lineTo(detectionScreenX, canvasHeight);
+        ctx.stroke();
+
+        const slitSize = 10;
+        ctx.fillStyle = 'white';
+        ctx.fillText("S", sourceX - 15, centerY + 4);
+        ctx.fillRect(sourceX - 2, centerY - 2, 4, 4);
+        
+        const s1_y = centerY - slitSeparationPixels / 2;
+        const s2_y = centerY + slitSeparationPixels / 2;
+        ctx.clearRect(slitScreenX - 3, s1_y - slitSize / 2, 6, slitSize);
+        ctx.clearRect(slitScreenX - 3, s2_y - slitSize / 2, 6, slitSize);
+        ctx.fillText("S₁", slitScreenX + 10, s1_y);
+        ctx.fillText("S₂", slitScreenX + 10, s2_y);
+        
+        ctx.fillText("P", detectionScreenX + 10, centerY + 4);
+        ctx.fillStyle = state.lightColor;
+        ctx.globalAlpha = state.intensity_ratio / 4;
+        ctx.beginPath();
+        ctx.arc(detectionScreenX, centerY, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+
+        ctx.strokeStyle = state.lightColor;
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath();
+        ctx.moveTo(sourceX, centerY);
+        ctx.lineTo(slitScreenX, s1_y);
+        ctx.lineTo(detectionScreenX, centerY);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(sourceX, centerY);
+        ctx.lineTo(slitScreenX, s2_y);
+        ctx.lineTo(detectionScreenX, centerY);
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+        
+        drawInterferencePattern(detectionScreenX + (canvasWidth - detectionScreenX - patternWidth) / 2 + 10, canvasHeight, patternWidth - 20);
+    }
+    
+    function drawInterferencePattern(x, height, width) {
+        const L_prime = 1.0;
+        const y_max_meters = 0.015;
+
+        for (let y_pixel = 0; y_pixel < height; y_pixel++) {
+            const y_meters = (y_pixel - height / 2) * (y_max_meters / (height / 2));
+            const delta_pattern = state.delta + (state.d * y_meters / L_prime);
+            const phi_pattern = (2 * Math.PI / state.lambda) * delta_pattern;
+            const cos_val = Math.cos(phi_pattern / 2);
+            const intensity_pattern = cos_val * cos_val;
+            
+            ctx.beginPath();
+            ctx.moveTo(x, y_pixel);
+            ctx.lineTo(x + width, y_pixel);
+            ctx.strokeStyle = `rgba(${hexToRgb(state.lightColor)}, ${intensity_pattern})`;
+            ctx.stroke();
+        }
+        
+        ctx.fillStyle = 'white';
+        ctx.textAlign = 'center';
+        ctx.font = '12px Arial';
+        ctx.fillText("Patrón Completo", x + width / 2, 15);
+        ctx.textAlign = 'left';
+    }
+
+    function wavelengthToRgb(wavelength) {
+        let r, g, b, factor;
+        if (wavelength >= 380 && wavelength < 440) { r = -(wavelength - 440) / (440 - 380); g = 0.0; b = 1.0; } 
+        else if (wavelength >= 440 && wavelength < 490) { r = 0.0; g = (wavelength - 440) / (490 - 440); b = 1.0; } 
+        else if (wavelength >= 490 && wavelength < 510) { r = 0.0; g = 1.0; b = -(wavelength - 510) / (510 - 490); } 
+        else if (wavelength >= 510 && wavelength < 580) { r = (wavelength - 510) / (580 - 510); g = 1.0; b = 0.0; } 
+        else if (wavelength >= 580 && wavelength < 645) { r = 1.0; g = -(wavelength - 645) / (645 - 580); b = 0.0; } 
+        else if (wavelength >= 645 && wavelength <= 780) { r = 1.0; g = 0.0; b = 0.0; } 
+        else { r = 0.0; g = 0.0; b = 0.0; }
+        if (wavelength >= 380 && wavelength < 420) factor = 0.3 + 0.7 * (wavelength - 380) / (420 - 380);
+        else if (wavelength >= 420 && wavelength < 645) factor = 1.0;
+        else if (wavelength >= 645 && wavelength <= 780) factor = 0.3 + 0.7 * (780 - wavelength) / (780 - 645);
+        else factor = 0.0;
+        r = Math.round(255 * Math.pow(r * factor, 0.8));
+        g = Math.round(255 * Math.pow(g * factor, 0.8));
+        b = Math.round(255 * Math.pow(b * factor, 0.8));
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+     function hexToRgb(hex) {
+        if (hex.startsWith('rgb')) return hex.substring(4, hex.length - 1);
+        let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : "255, 255, 255";
+     }
+
+    d_slider.addEventListener('input', updateSimulation);
+    lambda_slider.addEventListener('input', updateSimulation);
+    L_slider.addEventListener('input', updateSimulation);
+
+    updateSimulation();
+};
+</script>
+
+</body>
+</html>

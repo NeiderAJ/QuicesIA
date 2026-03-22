@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulación de intercepción de misiles — Física Mecánica</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+  <style>
+    canvas { border-radius: 16px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
+    .tag { font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 9999px; background: #eef2ff; color: #3730a3; }
+    .kpi { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="max-w-6xl mx-auto px-6 py-8">
+    <h1 class="text-3xl md:text-4xl font-bold text-indigo-800">
+      Simulación computacional de intercepción de misiles (2D) — inspirado en el Domo de Hierro
+    </h1>
+    <p class="text-sm text-gray-600 mt-2">
+      Archivo autocontenido (HTML + JS). :
+      <span class="mono font-semibold">Juan_Esteban_Rengifo_1085660224</span> ( <span class="mono"></span> .
+    </p>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 space-y-10 pb-16">
+    <!-- Enunciado -->
+    <section class="bg-white shadow-sm rounded-2xl p-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="tag">1</span>
+        <h2 class="text-2xl font-semibold text-indigo-900">Enunciado del problema</h2>
+      </div>
+      <p class="leading-7">
+        Un radar detecta un misil enemigo en vuelo. Se conocen su posición inicial
+        \\(\\mathbf r_0\\), su velocidad inicial \\(\\mathbf v_0\\) y sus cosenos directores \\((\\ell,m,n)\\).
+        El enemigo se mueve solo bajo gravedad terrestre. El sistema debe calcular la
+        dirección y velocidad inicial con que lanzar el misil defensor. Si la detección ocurre
+        alto respecto al suelo, bastará un tiro parabólico clásico; si ocurre muy cerca del suelo,
+        el defensor deberá usar propulsores que agreguen una aceleración extra constante.
+      </p>
+    </section>
+
+    <!-- Solución algebraica -->
+    <section class="bg-white shadow-sm rounded-2xl p-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="tag">2</span>
+        <h2 class="text-2xl font-semibold text-indigo-900">Solución algebraica propuesta</h2>
+      </div>
+
+      <h3 class="text-xl font-semibold mt-4">2.1 Reducción a 2D</h3>
+      <p class="leading-7">
+        El movimiento 3D del proyectil bajo gravedad \\(\\mathbf g = (0,-g,0)\\) siempre queda contenido
+        en un plano: el generado por \\(\\mathbf v_0\\) y \\(\\mathbf g\\). Un vector normal al plano es
+        \\(\\mathbf n = \\mathbf v_0 \\times \\mathbf g\\). Tomando una base ortonormal
+        \\(\\{\\hat{\\mathbf e}_1,\\hat{\\mathbf e}_2\\}\\) sobre ese plano (por ejemplo,
+        \\(\\hat{\\mathbf e}_1 = \\tfrac{\\mathbf v_0}{\\|\\mathbf v_0\\|}\\) y
+        \\(\\hat{\\mathbf e}_2 = \\tfrac{\\mathbf n\\times\\hat{\\mathbf e}_1}{\\|\\mathbf n\\|}\\)),
+        el problema se reduce a un tiro parabólico en coordenadas \\((x,y)\\) con \\(y\\) vertical.
+      </p>
+
+      <h3 class="text-xl font-semibold mt-4">2.2 Condiciones de intercepción (sin propulsor)</h3>
+      <p class="leading-7">
+        Denotemos \\(\\mathbf r_e(t) = \\mathbf r_{e0} + \\mathbf v_{e0} t + \\tfrac12 (0,-g) t^2\\) y
+        \\(\\mathbf r_d(t) = \\mathbf r_{d0} + \\mathbf v_{d0} t + \\tfrac12 (0,-g) t^2\\).
+        Como ambos tienen la <em>misma</em> aceleración, la gravedad se cancela en el movimiento relativo:
+      </p>
+      <p class="leading-7 mono text-sm bg-gray-50 rounded-lg p-3">
+        \\(\\;\\;\\mathbf r_e(t) - \\mathbf r_d(t) = (\\Delta \\mathbf r) + (\\Delta \\mathbf v)\\, t\\) <br/>
+        Intercepción \\(\\iff\\) existe \\(t&gt;0\\) tal que \\((\\Delta \\mathbf r) + (\\Delta \\mathbf v)\\, t = \\mathbf 0\\).
+      </p>
+      <p class="leading-7">
+        Por tanto, para un tiempo de encuentro \\(t\\) cualquiera: \\(\\mathbf v_{d0}(t) = \\mathbf v_{e0} + \\tfrac{\\Delta \\mathbf r}{t}\\).
+        El valor de \\(t\\) que minimiza \\(\\|\\mathbf v_{d0}\\|\\) es
+        \\(t^* = \\tfrac{\\|\\Delta \\mathbf r\\|^2}{\\Delta \\mathbf r \\cdot \\mathbf v_{e0}}\\) (si \\(\\Delta \\mathbf r \\cdot \\mathbf v_{e0} &gt; 0\\)).
+      </p>
+
+      <h3 class="text-xl font-semibold mt-4">2.3 Caso con propulsor (aceleración extra constante)</h3>
+      <p class="leading-7">
+        Si el defensor añade una aceleración constante \\(\\mathbf a_p = A\\, \\hat{\\mathbf u}\\) (módulo \\(A\\),
+        dirección fija \\(\\hat{\\mathbf u}\\)), entonces
+        \\(\\mathbf r_d(t) = \\mathbf r_{d0} + \\mathbf v_{d0} t + \\tfrac12 ((0,-g)+ \\mathbf a_p) t^2\\).
+        Imponiendo \\(\\mathbf r_d(T)=\\mathbf r_e(T)\\) para un tiempo de encuentro \\(T\\), se obtiene
+      </p>
+      <p class="leading-7 mono text-sm bg-gray-50 rounded-lg p-3">
+        \\(\\mathbf v_{d0}(T,\\hat{\\mathbf u}) = \\dfrac{\\mathbf r_e(T) - \\mathbf r_{d0} - \\tfrac12\\big((0,-g)+A\\hat{\\mathbf u}\\big)T^2}{T}\\).
+      </p>
+      <p class="leading-7">
+        La estrategia numérica adoptada es buscar \\(T\\) (y, si aplica, \\(\\hat{\\mathbf u}\\)) que minimicen
+        \\(\\|\\mathbf v_{d0}\\|\\) bajo restricciones de velocidad máxima y aceleración disponibles.
+      </p>
+    </section>
+
+    <!-- Análisis funcional -->
+    <section class="bg-white shadow-sm rounded-2xl p-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="tag">3</span>
+        <h2 class="text-2xl font-semibold text-indigo-900">Análisis funcional / teórico</h2>
+      </div>
+      <ul class="list-disc ml-6 space-y-2 leading-7">
+        <li>La detección “alta” permite intercepción puramente balística (gravedad en ambos cancela en el marco relativo).</li>
+        <li>La detección “cerca del suelo” exige acortar el tiempo de encuentro \\(T\\), elevando la velocidad inicial requerida;
+            para mantenerla dentro de límites físicos, se activa una aceleración extra constante.</li>
+        <li>La intercepción se verifica si la distancia entre trayectorias cae por debajo de un umbral (p. ej., 5 m).</li>
+        <li>En la práctica, se impone \\(v_{d0} \\le v_{\\max}\\) y \\(A \\le A_{\\max}\\); si no hay solución, se reporta “no alcanzable”.</li>
+      </ul>
+    </section>
+
+    <!-- Planteamiento de la simulación -->
+    <section class="bg-white shadow-sm rounded-2xl p-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="tag">4</span>
+        <h2 class="text-2xl font-semibold text-indigo-900">Planteamiento de la simulación</h2>
+      </div>
+      <p class="leading-7">
+        Se generan aleatoriamente \\(\\mathbf r_{e0}\\), \\(\\mathbf v_{e0}\\) y cosenos directores \\((\\ell,m,n)\\)
+        dentro de rangos razonables: posiciones en centenas de metros, velocidades entre 100–400 m/s y ángulos 15°–75°.
+        La simulación se resuelve en el plano 2D que contiene la trayectoria, y permite <em>forzar</em> el uso de propulsor.
+        El cálculo automático escoge \\(T\\) (y la dirección de empuje) que minimizan la velocidad inicial requerida del defensor
+        con las restricciones impuestas.
+      </p>
+    </section>
+
+    <!-- Simulación interactiva -->
+    <section class="bg-white shadow-sm rounded-2xl p-6">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="tag">5</span>
+        <h2 class="text-2xl font-semibold text-indigo-900">Simulación interactiva</h2>
+      </div>
+
+      <div class="grid md:grid-cols-5 gap-6">
+        <!-- Panel de controles -->
+        <div class="md:col-span-2 space-y-5">
+          <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
+            <h3 class="font-semibold text-indigo-900 mb-3">Parámetros globales</h3>
+            <label class="block text-sm">Gravedad g [m/s²]
+              <input id="g" type="range" min="1" max="20" step="0.1" value="9.81" class="w-full">
+            </label>
+            <div class="flex justify-between text-sm mt-1"><span>1</span><span class="kpi" id="gVal">9.81</span><span>20</span></div>
+
+            <label class="block text-sm mt-4">Tiempo máx. T<sub>max</sub> [s]
+              <input id="Tmax" type="range" min="2" max="30" step="0.5" value="15" class="w-full">
+            </label>
+            <div class="flex justify-between text-sm mt-1"><span>2</span><span class="kpi" id="TmaxVal">15.0</span><span>30</span></div>
+
+            <label class="block text-sm mt-4">Paso de tiempo Δt [s]
+              <input id="dt" type="range" min="0.005" max="0.1" step="0.005" value="0.02" class="w-full">
+            </label>
+            <div class="flex justify-between text-sm mt-1"><span>0.005</span><span class="kpi" id="dtVal">0.02</span><span>0.1</span></div>
+          </div>
+
+          <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
+            <h3 class="font-semibold text-indigo-900 mb-3">Defensor</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <label class="block text-sm">x<sub>d0</sub> [m]
+                <input id="xd0" type="number" class="w-full border rounded-lg p-2" value="0">
+              </label>
+              <label class="block text-sm">y<sub>d0</sub> [m]
+                <input id="yd0" type="number" class="w-full border rounded-lg p-2" value="0">
+              </label>
+            </div>
+
+            <label class="block text-sm mt-4">Velocidad máx. v<sub>max</sub> [m/s]
+              <input id="vmax" type="range" min="50" max="600" step="10" value="300" class="w-full">
+            </label>
+            <div class="flex justify-between text-sm mt-1"><span>50</span><span class="kpi" id="vmaxVal">300</span><span>600</span></div>
+
+            <label class="block text-sm mt-4">Aceleración extra A [m/s²]
+              <input id="A" type="range" min="0" max="200" step="1" value="60" class="w-full">
+            </label>
+            <div class="flex justify-between text-sm mt-1"><span>0</span><span class="kpi" id="AVal">60</span><span>200</span></div>
+
+            <label class="inline-flex items-center gap-2 mt-4">
+              <input id="forceBooster" type="checkbox" class="accent-indigo-600">
+              <span class="text-sm">Forzar uso de propulsor</span>
+            </label>
+
+            <label class="block text-sm mt-4">Umbral "cerca del suelo" [m]
+              <input id="yThresh" type="range" min="20" max="200" step="5" value="80" class="w-full">
+            </label>
+            <div class="flex justify-between text-sm mt-1"><span>20</span><span class="kpi" id="yThreshVal">80</span><span>200</span></div>
+          </div>
+
+          <div class="space-y-2">
+            <button id="btnRandom" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-4 py-2 font-semibold">Aleatorizar enemigo</button>
+            <button id="btnSolve" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-4 py-2 font-semibold">Calcular intercepción</button>
+            <button id="btnRun" class="w-full bg-gray-900 hover:bg-black text-white rounded-xl px-4 py-2 font-semibold">Ejecutar simulación</button>
+          </div>
+        </div>
+
+        <!-- Panel de estado + Canvas -->
+        <div class="md:col-span-3 space-y-4">
+          <div class="bg-white border rounded-xl p-4">
+            <h3 class="font-semibold text-indigo-900 mb-2">Estado (parámetros actuales)</h3>
+            <div class="grid grid-cols-2 gap-3 text-sm">
+              <div class="bg-gray-50 rounded-lg p-3">
+                <div class="font-semibold">Enemigo</div>
+                <div>r<sub>e0</sub> = (<span id="rx0"></span>, <span id="ry0"></span>) m</div>
+                <div>|v<sub>e0</sub>| = <span id="ve0"></span> m/s, θ = <span id="thetaE"></span>°</div>
+                <div>cosenos directores (l,m,n) = (<span id="lcos"></span>, <span id="mcos"></span>, <span id="ncos"></span>)</div>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-3">
+                <div class="font-semibold">Defensor (resultado)</div>
+                <div>|v<sub>d0</sub>| = <span id="vd0">—</span> m/s</div>
+                <div>φ (lanzamiento) = <span id="phi">—</span>°</div>
+                <div>Booster A = <span id="Acur">—</span> m/s²</div>
+                <div>T encuentro = <span id="Tmeet">—</span> s</div>
+              </div>
+            </div>
+            <div id="msg" class="text-sm mt-2 text-gray-700"></div>
+          </div>
+
+          <canvas id="cv" width="860" height="460" class="bg-white shadow rounded-2xl"></canvas>
+          <p class="text-xs text-gray-500">La intercepción se marca con un punto verde cuando la separación &lt;= 5 m.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Relación con Domo de Hierro -->
+    <section class="bg-white shadow-sm rounded-2xl p-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="tag">6</span>
+        <h2 class="text-2xl font-semibold text-indigo-900">Relación con el sistema Domo de Hierro</h2>
+      </div>
+      <ul class="list-disc ml-6 space-y-2 leading-7">
+        <li>Este modelo ilustra el principio de cálculo de punto de encuentro bajo simplificaciones (gravedad uniforme, viento nulo).</li>
+        <li>Un sistema real emplea estimación de estado 3D con sensores, guiado proporcional (PN), control en lazo cerrado y propulsión variable.</li>
+        <li>La decisión de usar propulsor aquí se basa en la altura de detección; en sistemas reales depende de múltiples criterios (tiempo-amenaza, alcance, cinemática).</li>
+      </ul>
+    </section>
+
+    <!-- Conclusiones -->
+    <section class="bg-white shadow-sm rounded-2xl p-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="tag">7</span>
+        <h2 class="text-2xl font-semibold text-indigo-900">Conclusiones</h2>
+      </div>
+      <ul class="list-disc ml-6 space-y-2 leading-7">
+        <li>La reducción a 2D simplifica el análisis y la simulación sin perder generalidad.</li>
+        <li>En el caso sin propulsor, la gravedad se cancela en el marco relativo y la condición clave es lineal en el tiempo.</li>
+        <li>Cuando el tiempo disponible es pequeño (detección baja), la aceleración adicional reduce el requerimiento de velocidad inicial.</li>
+        <li>El algoritmo numérico (búsqueda sobre T y dirección de empuje) halla soluciones factibles dentro de límites físicos.</li>
+      </ul>
+    </section>
+
+    <!-- Bibliografía -->
+    <section class="bg-white shadow-sm rounded-2xl p-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="tag">8</span>
+        <h2 class="text-2xl font-semibold text-indigo-900">Bibliografía</h2>
+      </div>
+      <ol class="list-decimal ml-6 space-y-2 leading-7">
+        <li>Tipler, P. A., &amp; Mosca, G. <em>Física para la ciencia y la tecnología, Vol. 1</em>. (Tiro parabólico).</li>
+        <li>Meriam, J. L., &amp; Kraige, L. G. <em>Engineering Mechanics: Dynamics</em>. (Cinemática de partículas).</li>
+        <li>Notas de clase de Física Mecánica (UdeA) sobre proyectiles y movimiento relativo.</li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="max-w-6xl mx-auto px-6 pb-12 text-xs text-gray-500">
+    Hecho con HTML + CSS (Tailwind) + JavaScript. Renderizado de fórmulas con MathJax.
+  </footer>
+
+  <script>
+    // Utilidades numéricas
+    const deg2rad = d => d * Math.PI / 180;
+    const rad2deg = r => r * 180 / Math.PI;
+    const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+
+    // Estado global
+    const state = {
+      g: 9.81, Tmax: 15, dt: 0.02,
+      xd0: 0, yd0: 0,
+      vmax: 300, A: 60, forceBooster: false, yThresh: 80,
+      enemy: null, // { rx0, ry0, v0, theta (deg), l,m,n, vx0, vy0 }
+      result: null // {useBooster, T, phi(rad), vdx0, vdy0}
+    };
+
+    // DOM
+    const $ = id => document.getElementById(id);
+    const cv = $("cv");
+    const ctx = cv.getContext("2d");
+
+    // Controles
+    const bindRange = (id, fmt=x=>x) => {
+      const el = $(id), out = $(id + "Val");
+      const update = () => { out.textContent = (+el.value).toFixed( (id==="dt")?3:1 ); };
+      el.addEventListener("input", () => { update(); syncState(); });
+      update();
+    };
+
+    function syncState(){
+      state.g = +$("g").value;
+      state.Tmax = +$("Tmax").value;
+      state.dt = +$("dt").value;
+      state.xd0 = +$("xd0").value;
+      state.yd0 = +$("yd0").value;
+      state.vmax = +$("vmax").value;
+      state.A = +$("A").value;
+      state.forceBooster = $("forceBooster").checked;
+      state.yThresh = +$("yThresh").value;
+
+      $("gVal").textContent = state.g.toFixed(2);
+      $("TmaxVal").textContent = state.Tmax.toFixed(1);
+      $("dtVal").textContent = state.dt.toFixed(3);
+      $("vmaxVal").textContent = state.vmax.toFixed(0);
+      $("AVal").textContent = state.A.toFixed(0);
+      $("yThreshVal").textContent = state.yThresh.toFixed(0);
+    }
+
+    // Aleatorización de enemigo (3D -> 2D)
+    function randomEnemy(){
+      // Rango de posiciones (centenas de m)
+      const rx0 = 200 + Math.random()*600; // [200,800]
+      const ry0 = 100 + Math.random()*400; // [100,500]
+
+      // Velocidad (100..400 m/s) y ángulo (15..75°)
+      const v0 = 100 + Math.random()*300;
+      const theta = 15 + Math.random()*60; // grados respecto a horizontal (xy plano simulado)
+      const vx0 = v0 * Math.cos(deg2rad(theta));
+      const vy0 = v0 * Math.sin(deg2rad(theta));
+
+      // Dirección 3D aleatoria: cosenos directores (l, m, n)
+      // Generamos un vector unitario al azar en la esfera
+      const u = (() => {
+        const z = -1 + 2*Math.random();
+        const t = 2*Math.PI*Math.random();
+        const r = Math.sqrt(Math.max(0,1 - z*z));
+        return {x: r*Math.cos(t), y: r*Math.sin(t), z: z};
+      })();
+      const l = u.x.toFixed(3), m = u.y.toFixed(3), n = u.z.toFixed(3);
+
+      state.enemy = { rx0, ry0, v0, theta, vx0, vy0, l, m, n };
+
+      // UI
+      $("rx0").textContent = rx0.toFixed(1);
+      $("ry0").textContent = ry0.toFixed(1);
+      $("ve0").textContent = v0.toFixed(1);
+      $("thetaE").textContent = theta.toFixed(1);
+      $("lcos").textContent = l;
+      $("mcos").textContent = m;
+      $("ncos").textContent = n;
+
+      // Reset resultado
+      state.result = null;
+      $("vd0").textContent = "—"; $("phi").textContent = "—";
+      $("Acur").textContent = "—"; $("Tmeet").textContent = "—";
+      $("msg").textContent = "Enemigo regenerado. Pulsa «Calcular intercepción» o ajusta parámetros.";
+    }
+
+    // Cinemática
+    function enemyPos(t){
+      const {rx0, ry0, vx0, vy0} = state.enemy;
+      const y = ry0 + vy0*t - 0.5*state.g*t*t;
+      const x = rx0 + vx0*t;
+      return {x, y};
+    }
+    function defenderPos(t, useBooster, vdx0, vdy0, phi){
+      const ax = useBooster ? state.A*Math.cos(phi) : 0;
+      const ay = (useBooster ? state.A*Math.sin(phi) : 0) - state.g;
+      const x = state.xd0 + vdx0*t + 0.5*ax*t*t;
+      const y = state.yd0 + vdy0*t + 0.5*ay*t*t;
+      return {x, y};
+    }
+
+    // Solver sin booster: escaneo de T
+    function solveNoBooster(){
+      const {rx0, ry0} = state.enemy;
+      const re0 = {x: rx0, y: ry0};
+      const xd0 = state.xd0, yd0 = state.yd0;
+      let best = {speed: Infinity, T: null, vdx0: 0, vdy0: 0};
+      for(let T=0.3; T<=state.Tmax; T+=0.05){
+        const reT = enemyPos(T);
+        // v_d0 = (re(T) - rd0 - 0.5 g j T^2)/T ; con j=(0,1)
+        const vdx0 = (reT.x - xd0) / T;
+        const vdy0 = (reT.y - yd0 + 0.5*state.g*T*T) / T - 0.5*state.g*T + 0.5*state.g*T; // simplifica a: (reT.y - yd0)/T
+        const vdy0_simpl = (reT.y - yd0) / T;
+        const speed = Math.hypot(vdx0, vdy0_simpl);
+        if (speed < best.speed){
+          best = {speed, T, vdx0, vdy0: vdy0_simpl};
+        }
+      }
+      return best;
+    }
+
+    // Solver con booster: escaneo de T y phi
+    function solveWithBooster(){
+      let best = {speed: Infinity, T: null, phi: null, vdx0: 0, vdy0: 0};
+      for(let T=0.3; T<=state.Tmax; T+=0.05){
+        const reT = enemyPos(T);
+        // barrido de ángulo de empuje (0..85°)
+        for(let phi=deg2rad(0); phi<=deg2rad(85); phi+=deg2rad(1)){
+          const ax = state.A*Math.cos(phi);
+          const ay = state.A*Math.sin(phi) - state.g; // ya incluye -g
+          const vdx0 = (reT.x - state.xd0 - 0.5*ax*T*T)/T;
+          const vdy0 = (reT.y - state.yd0 - 0.5*ay*T*T)/T;
+          const speed = Math.hypot(vdx0, vdy0);
+          if (speed < best.speed){
+            best = {speed, T, phi, vdx0, vdy0};
+          }
+        }
+      }
+      return best;
+    }
+
+    function computeIntercept(){
+      if(!state.enemy){ $("msg").textContent = "Primero genera un enemigo."; return; }
+      const nearGround = state.enemy.ry0 <= state.yThresh;
+      const useBooster = state.forceBooster || nearGround;
+      let sol = null;
+      if(!useBooster){
+        sol = solveNoBooster();
+        if(sol.speed > state.vmax){
+          // si no alcanza con v_max, intentar con booster automáticamente
+          const withBoost = solveWithBooster();
+          if(withBoost.speed <= state.vmax){
+            state.result = {useBooster: true, T: withBoost.T, phi: withBoost.phi, vdx0: withBoost.vdx0, vdy0: withBoost.vdy0};
+          } else {
+            state.result = {useBooster: true, T: withBoost.T, phi: withBoost.phi, vdx0: withBoost.vdx0, vdy0: withBoost.vdy0};
+            $("msg").textContent = "Aviso: ni con propulsor actual se logra |v_d0| ≤ v_max. Ajusta A o v_max.";
+          }
+        } else {
+          state.result = {useBooster: false, T: sol.T, phi: null, vdx0: sol.vdx0, vdy0: sol.vdy0};
+        }
+      } else {
+        sol = solveWithBooster();
+        state.result = {useBooster: true, T: sol.T, phi: sol.phi, vdx0: sol.vdx0, vdy0: sol.vdy0};
+        if(sol.speed > state.vmax){
+          $("msg").textContent = "Aviso: con los límites actuales no se alcanza |v_d0| ≤ v_max. Incrementa A o v_max.";
+        }
+      }
+
+      // Actualizar UI
+      const r = state.result;
+      $("vd0").textContent = Math.hypot(r.vdx0, r.vdy0).toFixed(1);
+      $("phi").textContent = r.phi==null ? "balístico" : rad2deg(r.phi).toFixed(1);
+      $("Acur").textContent = r.useBooster ? state.A.toFixed(0) : "0";
+      $("Tmeet").textContent = r.T.toFixed(2);
+      $("msg").textContent = (state.result.useBooster ? "Solución con booster." : "Solución balística.") + " Pulsa «Ejecutar simulación».";
+    }
+
+    // Dibujo
+    function computeTrajectories(){
+      const ptsE = [];
+      const ptsD = [];
+      const r = state.result;
+      const tol = 5; // m
+      let hit = null;
+
+      const re0y = state.enemy.ry0;
+      for(let t=0; t<=state.Tmax; t+=state.dt){
+        const e = enemyPos(t);
+        const d = r
+          ? defenderPos(t, r.useBooster, r.vdx0, r.vdy0, r.phi ?? 0)
+          : {x: state.xd0, y: state.yd0};
+
+        // detener si tocan el suelo (y<=0)
+        if (e.y < 0 && d.y < 0) break;
+
+        ptsE.push(e);
+        ptsD.push(d);
+
+        if(!hit && Math.hypot(e.x - d.x, e.y - d.y) <= tol){
+          hit = {t, x: (e.x+d.x)/2, y: (e.y+d.y)/2};
+        }
+      }
+      return {ptsE, ptsD, hit};
+    }
+
+    function worldBounds(ptsArray){
+      let xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity;
+      for(const arr of ptsArray){
+        for(const p of arr){
+          xmin = Math.min(xmin, p.x); xmax = Math.max(xmax, p.x);
+          ymin = Math.min(ymin, p.y); ymax = Math.max(ymax, p.y);
+        }
+      }
+      // Añadir margen
+      const mx = 20, my = 20;
+      xmin -= mx; xmax += mx; ymin = Math.min(0, ymin - my); ymax += my;
+      return {xmin, xmax, ymin, ymax};
+    }
+
+    function draw(){
+      ctx.clearRect(0,0,cv.width,cv.height);
+
+      if(!state.enemy){
+        ctx.fillStyle = "#111827";
+        ctx.font = "14px ui-sans-serif";
+        ctx.fillText("Pulsa «Aleatorizar enemigo» para comenzar.", 24, 36);
+        return;
+      }
+      // Trayectorias
+      const {ptsE, ptsD, hit} = computeTrajectories();
+      const bounds = worldBounds([ptsE, ptsD]);
+      const W = cv.width, H = cv.height;
+      const sx = x => (x - bounds.xmin) / (bounds.xmax - bounds.xmin) * (W-40) + 20;
+      const sy = y => H - ((y - bounds.ymin) / (bounds.ymax - bounds.ymin) * (H-40) + 20);
+
+      // Ejes
+      ctx.strokeStyle = "#e5e7eb"; ctx.lineWidth = 1;
+      ctx.beginPath();
+      for(let i=0;i<6;i++){
+        const xx = 20 + i*(W-40)/5;
+        ctx.moveTo(xx, 20); ctx.lineTo(xx, H-20);
+        const yy = 20 + i*(H-40)/5;
+        ctx.moveTo(20, yy); ctx.lineTo(W-20, yy);
+      }
+      ctx.stroke();
+
+      // Enemigo
+      ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ptsE.forEach((p,i)=>{ const X=sx(p.x), Y=sy(p.y); if(i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y); });
+      ctx.stroke();
+      ctx.fillStyle = "#ef4444"; const e0 = ptsE[0]; ctx.beginPath(); ctx.arc(sx(e0.x), sy(e0.y), 4, 0, 2*Math.PI); ctx.fill();
+
+      // Defensor
+      ctx.strokeStyle = "#2563eb"; ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ptsD.forEach((p,i)=>{ const X=sx(p.x), Y=sy(p.y); if(i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y); });
+      ctx.stroke();
+      ctx.fillStyle = "#2563eb"; ctx.beginPath(); ctx.arc(sx(state.xd0), sy(state.yd0), 4, 0, 2*Math.PI); ctx.fill();
+
+      // Intercepción
+      if(hit){
+        ctx.fillStyle = "#10b981";
+        ctx.beginPath(); ctx.arc(sx(hit.x), sy(hit.y), 6, 0, 2*Math.PI); ctx.fill();
+        ctx.font = "12px ui-sans-serif"; ctx.fillStyle = "#065f46";
+        ctx.fillText(`Interceptado t≈${hit.t.toFixed(2)} s`, sx(hit.x)+8, sy(hit.y)-8);
+      } else {
+        ctx.font = "12px ui-sans-serif"; ctx.fillStyle = "#6b7280";
+        ctx.fillText("Sin intercepción en T_max (o fuera de umbral).", 28, 28);
+      }
+    }
+
+    // Eventos
+    bindRange("g"); bindRange("Tmax"); bindRange("dt");
+    bindRange("vmax"); bindRange("A"); bindRange("yThresh");
+    ["xd0","yd0"].forEach(id => $(id).addEventListener("input", syncState));
+    $("forceBooster").addEventListener("change", syncState);
+
+    $("btnRandom").addEventListener("click", () => { syncState(); randomEnemy(); draw(); });
+    $("btnSolve").addEventListener("click",  () => { syncState(); computeIntercept(); draw(); });
+    $("btnRun").addEventListener("click",    () => { syncState(); draw(); });
+
+    // Inicializar
+    syncState();
+    randomEnemy();
+    setTimeout(draw, 50);
+  </script>
+</body>
+</html>

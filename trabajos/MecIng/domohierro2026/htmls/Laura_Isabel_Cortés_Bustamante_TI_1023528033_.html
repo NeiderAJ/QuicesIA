@@ -1,0 +1,1888 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Intercepción de Misiles — Tiro Parabólico 3D→2D</title>
+
+<!-- MathJax for LaTeX -->
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'], ['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']], tags: 'ams' },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --sky:     #fef0f8;
+  --sky2:    #fcd9ef;
+  --sky3:    #f7bde0;
+  --white:   #ffffff;
+  --panel:   #fff5fb;
+  --border:  #f0c0df;
+  --accent:  #c0397a;
+  --accent2: #8a1a52;
+  --teal:    #5bab8a;
+  --coral:   #e05c7a;
+  --amber:   #c97a3a;
+  --violet:  #9b7ecb;
+  --text:    #2d1020;
+  --text2:   #6b2a48;
+  --muted:   #c090b0;
+  --enemy:   #e05c7a;
+  --def:     #5bab8a;
+  --thrust:  #c97a3a;
+  --shadow:  0 2px 12px rgba(192,57,122,0.10);
+  --shadow2: 0 4px 24px rgba(192,57,122,0.16);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: linear-gradient(160deg, #fce8f4 0%, #fff5fb 45%, #f5e8f8 100%);
+  min-height: 100vh;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* ─── HEADER ─── */
+header {
+  background: linear-gradient(135deg, #6b0f3a 0%, #a8255c 55%, #c94a84 100%);
+  color: white;
+  padding: 36px 48px 32px;
+  position: relative;
+  overflow: hidden;
+}
+header::before {
+  content:'';
+  position:absolute; inset:0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.header-inner { position:relative; max-width:1200px; margin:0 auto; }
+header h1 {
+  font-family: 'Lora', serif;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+header p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  opacity: 0.75;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+.header-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 12px;
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.dot-live { width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80; animation:blink 1.5s infinite; }
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* ─── NAV ─── */
+nav {
+  background: var(--white);
+  border-bottom: 2px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: var(--shadow);
+}
+.nav-inner {
+  max-width:1200px; margin:0 auto;
+  display: flex; overflow-x: auto;
+  padding: 0 24px;
+  scrollbar-width: none;
+}
+.nav-inner::-webkit-scrollbar { display:none; }
+.nav-btn {
+  background:none; border:none;
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 500;
+  padding: 14px 18px;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  display: flex; align-items:center; gap:6px;
+}
+.nav-btn:hover { color: var(--accent); }
+.nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight:600; }
+.nav-num {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:18px; height:18px; border-radius:50%;
+  background: var(--sky2); color: var(--accent2);
+  font-size:10px; font-weight:700;
+}
+
+/* ─── MAIN LAYOUT ─── */
+.main { max-width:1200px; margin:0 auto; padding: 32px 24px 60px; }
+
+.section { display:none; animation: fadeUp 0.3s ease; }
+.section.active { display: block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+/* ─── CARDS ─── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+}
+.card-accent { border-left: 4px solid var(--accent); }
+.card-coral  { border-left: 4px solid var(--coral); }
+.card-teal   { border-left: 4px solid var(--teal); }
+.card-amber  { border-left: 4px solid var(--amber); }
+.card-violet { border-left: 4px solid var(--violet); }
+
+.card-title {
+  font-family: 'Lora', serif;
+  font-size: 18px; font-weight: 700;
+  color: var(--accent2);
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items:center; gap: 10px;
+}
+.icon { font-size:20px; }
+
+h2.section-title {
+  font-family: 'Lora', serif;
+  font-size: clamp(20px,2.5vw,28px);
+  color: var(--accent2);
+  margin-bottom: 24px;
+  display: flex; align-items:center; gap:12px;
+}
+h2.section-title::after {
+  content:''; flex:1; height:2px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+h3 {
+  font-family: 'Lora', serif;
+  font-size: 16px; color: var(--accent);
+  margin: 20px 0 10px;
+}
+p { margin-bottom:12px; color: var(--text2); }
+ul,ol { padding-left:22px; margin-bottom:12px; }
+li { margin-bottom:6px; color: var(--text2); }
+
+/* ─── MATH BLOCKS ─── */
+.math-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 16px 0;
+  overflow-x: auto;
+}
+.math-box.derive {
+  background: linear-gradient(135deg, #fff0f8 0%, #fde8f4 100%);
+  border-color: #f0b0d0;
+}
+
+/* inline code */
+code {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  background: var(--sky2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: var(--accent2);
+}
+
+/* ─── TWO COL ─── */
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+@media(max-width:700px) { .two-col,.three-col { grid-template-columns:1fr; } }
+
+/* ─── HIGHLIGHT BOXES ─── */
+.highlight-box {
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 12px 0;
+  font-size: 14px;
+}
+.hb-blue  { background:#fde8f4; border-left:4px solid var(--accent); color:#7a0f3a; }
+.hb-teal  { background:#d8f5eb; border-left:4px solid var(--teal);  color:#1a5e40; }
+.hb-coral { background:#fde8f0; border-left:4px solid var(--coral); color:#8b1740; }
+.hb-amber { background:#fef0e0; border-left:4px solid var(--amber); color:#7c3a00; }
+
+/* ─── TABLES ─── */
+table { width:100%; border-collapse:collapse; margin:14px 0; font-size:14px; }
+th { background: var(--sky2); color:var(--accent2); font-weight:600; padding:10px 14px; text-align:left; border:1px solid var(--border); font-family:'DM Sans',sans-serif; }
+td { padding:9px 14px; border:1px solid var(--border); color:var(--text2); }
+tr:nth-child(even) td { background:var(--sky); }
+
+/* ─── ORIGIN BUTTONS ─── */
+.origin-btn {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--sky);
+  color: var(--text2);
+  font-size: 11px;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 500;
+}
+.origin-btn:hover { background: var(--sky2); border-color: var(--accent); color: var(--accent); }
+.origin-btn.active { background: var(--accent); color: white; border-color: var(--accent2); font-weight: 600; }
+
+/* ─── SIMULATION ─── */
+.sim-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media(max-width:900px){ .sim-grid { grid-template-columns:1fr; } }
+
+.controls {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  position: sticky; top:70px;
+}
+.controls-title {
+  font-family:'Lora',serif; font-size:15px; font-weight:700;
+  color:var(--accent2); margin-bottom:16px;
+  padding-bottom:10px; border-bottom:1px solid var(--border);
+}
+
+.param-section {
+  margin-bottom: 14px;
+  padding: 12px;
+  background: var(--sky);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.param-section-title {
+  font-size:11px; font-weight:600; letter-spacing:1.5px;
+  text-transform:uppercase; color:var(--muted);
+  margin-bottom:10px;
+}
+
+.slider-row {
+  display:flex; align-items:center; gap:8px;
+  margin-bottom:8px;
+}
+.slider-label {
+  font-family:'DM Mono',monospace; font-size:11px;
+  color:var(--text2); width:80px; flex-shrink:0;
+}
+input[type=range] {
+  -webkit-appearance:none; flex:1; height:5px;
+  background:var(--border); border-radius:3px; outline:none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; width:16px; height:16px;
+  border-radius:50%; background:var(--accent);
+  cursor:pointer; box-shadow:0 1px 4px rgba(26,111,168,0.3);
+  border: 2px solid white;
+}
+.slider-val {
+  font-family:'DM Mono',monospace; font-size:11px;
+  color:var(--accent); width:60px; text-align:right; font-weight:500;
+}
+
+.btn-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.btn {
+  flex:1; padding:10px 12px;
+  font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600;
+  border-radius:8px; border:none; cursor:pointer;
+  transition: all 0.15s; letter-spacing:0.3px;
+}
+.btn-primary { background:var(--accent); color:white; }
+.btn-primary:hover { background:var(--accent2); box-shadow:var(--shadow2); }
+.btn-secondary { background:var(--amber); color:white; }
+.btn-secondary:hover { background:#b45309; box-shadow:var(--shadow2); }
+.btn-teal { background:var(--teal); color:white; }
+.btn-teal:hover { background:#0a7a6b; }
+
+/* mode badge */
+.mode-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 12px; border-radius:20px;
+  font-size:12px; font-weight:600;
+  margin-bottom:10px;
+}
+.mb-ballistic { background:#d8f5eb; color:#1a5e40; border:1px solid var(--teal); }
+.mb-thruster  { background:#fef0e0; color:#7c3a00; border:1px solid var(--amber); }
+.mb-miss      { background:#fde8f0; color:#8b1740; border:1px solid var(--coral); }
+
+.readout-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }
+.readout-item {
+  background:var(--sky); border:1px solid var(--border);
+  border-radius:6px; padding:8px 10px;
+}
+.readout-label { font-size:9px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--muted); }
+.readout-val {
+  font-family:'DM Mono',monospace; font-size:14px;
+  color:var(--accent2); margin-top:2px;
+}
+
+/* ─── CANVAS AREA ─── */
+.canvas-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+canvas { display:block; width:100%; height:auto; border-radius:6px; }
+
+.legend {
+  display:flex; gap:16px; flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text2); font-weight:500; }
+.legend-line { width:24px; height:3px; border-radius:2px; }
+
+/* animation controls */
+.anim-controls {
+  display:flex; align-items:center; gap:10px;
+  margin-top:14px; padding-top:14px;
+  border-top:1px solid var(--border);
+}
+.anim-btn {
+  padding:7px 18px; border-radius:8px; border:1px solid var(--border);
+  background:var(--sky); color:var(--accent2); font-size:13px;
+  font-weight:600; cursor:pointer; transition:all 0.15s;
+  display:flex; align-items:center; gap:5px;
+}
+.anim-btn:hover { background:var(--accent); color:white; border-color:var(--accent); }
+.anim-btn.playing { background:var(--coral); color:white; border-color:var(--coral); }
+#animProgress {
+  flex:1; -webkit-appearance:none; height:5px;
+  background:var(--border); border-radius:3px;
+}
+#animProgress::-webkit-slider-thumb {
+  -webkit-appearance:none; width:14px; height:14px;
+  border-radius:50%; background:var(--accent);
+  cursor:pointer; border:2px solid white;
+  box-shadow:0 1px 4px rgba(0,0,0,0.2);
+}
+.anim-time { font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); min-width:50px; }
+
+/* status box */
+.status-box {
+  border-radius:8px; padding:12px 16px;
+  font-size:13px; font-weight:600;
+  text-align:center; margin-top:12px;
+  animation:fadeUp 0.3s ease;
+}
+.sb-ok    { background:#d8f5eb; color:#1a5e40; border:1px solid var(--teal); }
+.sb-warn  { background:#fef0e0; color:#7c3a00; border:1px solid var(--amber); }
+.sb-err   { background:#fde8f0; color:#8b1740; border:1px solid var(--coral); }
+
+/* ─── IRON DOME SECTION ─── */
+.dome-card {
+  background: linear-gradient(135deg, #fff0f8, #fde8f4);
+  border-radius:12px; padding:28px 32px;
+  border:1px solid var(--border); margin-bottom:20px;
+}
+.dome-card img { max-width:100%; border-radius:8px; }
+
+/* ─── CONCLUSIONS ─── */
+.conclusion-item {
+  display:flex; gap:14px; align-items:flex-start;
+  padding:14px 0; border-bottom:1px solid var(--border);
+}
+.conclusion-item:last-child { border-bottom:none; }
+.c-num {
+  width:32px; height:32px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--violet)); color:white;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700; font-size:14px;
+}
+
+/* ─── BIBLIOGRAPHY ─── */
+.bib-item {
+  padding:12px 0; border-bottom:1px solid var(--border);
+  font-size:14px; color:var(--text2);
+}
+.bib-item:last-child { border-bottom:none; }
+.bib-num { color:var(--accent); font-weight:700; margin-right:8px; }
+.bib-item a { color:var(--accent); text-decoration:none; }
+.bib-item a:hover { text-decoration:underline; }
+
+/* ─── FOOTER ─── */
+footer {
+  background:linear-gradient(90deg,#6b0f3a,#a8255c); color:rgba(255,255,255,0.75);
+  text-align:center; padding:18px; font-size:12px;
+  letter-spacing:0.5px;
+}
+
+/* ─── SIM MATH PANEL ─── */
+.sim-math-panel {
+  margin-top: 20px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 22px;
+  box-shadow: var(--shadow);
+}
+.smp-title {
+  font-family: 'Lora', serif;
+  font-size: 14px; font-weight: 700;
+  color: var(--accent2);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+  letter-spacing: 0.2px;
+}
+.smp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media(max-width:700px){ .smp-grid { grid-template-columns: 1fr; } }
+.smp-block {
+  background: var(--sky);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.smp-block-title {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.smp-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(240,192,223,0.4);
+  line-height: 1.5;
+}
+.smp-row:last-child { border-bottom: none; }
+.smp-sym {
+  color: var(--accent2);
+  font-weight: 600;
+  min-width: 72px;
+  flex-shrink: 0;
+}
+.smp-eq { color: var(--muted); margin: 0 4px; }
+.smp-formula { color: var(--text2); flex: 1; }
+.smp-val {
+  color: var(--accent);
+  font-weight: 700;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+.smp-val.green { color: var(--teal); }
+.smp-val.amber { color: var(--amber); }
+.smp-intercept {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, #fde8f4, #f7e8ff);
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.smp-no-sol {
+  grid-column: 1 / -1;
+  background: #fde8f0;
+  border: 1px solid var(--coral);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px; color: #8b1740;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-badge"><div class="dot-live"></div>Física Mecánica — Quiz</div>
+    <h1>Sistema de Intercepción Antimisil<br>Tiro Parabólico 3D → 2D</h1>
+    <p style="opacity:1;font-size:16px;font-family:'Lora',serif;font-weight:600;letter-spacing:0.5px;margin-bottom:6px;">Laura Isabel Cortés Bustamante</p>
+    <p>Simulación interactiva · Solución algebraica · Análisis teórico · Conexión con el Domo de Hierro</p>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-inner">
+    <button class="nav-btn active" onclick="showSection('s1',this)"><span class="nav-num">1</span> Enunciado</button>
+    <button class="nav-btn" onclick="showSection('s2',this)"><span class="nav-num">2</span> Álgebra 2D</button>
+    <button class="nav-btn" onclick="showSection('s3',this)"><span class="nav-num">3</span> Análisis Teórico</button>
+    <button class="nav-btn" onclick="showSection('s4',this)"><span class="nav-num">4</span> Planteamiento</button>
+    <button class="nav-btn" onclick="showSection('s5',this)"><span class="nav-num">5</span> Simulación</button>
+    <button class="nav-btn" onclick="showSection('s6',this)"><span class="nav-num">6</span> Domo de Hierro</button>
+    <button class="nav-btn" onclick="showSection('s7',this)"><span class="nav-num">7</span> Conclusiones</button>
+    <button class="nav-btn" onclick="showSection('s8',this)"><span class="nav-num">8</span> Bibliografía</button>
+  </div>
+</nav>
+
+<div class="main">
+
+<!-- ══════════════════════════════════════════════
+     SECCIÓN 1: ENUNCIADO
+══════════════════════════════════════════════ -->
+<div id="s1" class="section active">
+  <h2 class="section-title"><span>📋</span> Enunciado del Problema</h2>
+
+  <div class="card card-accent">
+    <div class="card-title"><span class="icon">🎯</span> Descripción General</div>
+    <p>Un <strong>radar de defensa</strong> detecta un misil enemigo en vuelo. En el instante de detección $t=0$, el sistema conoce con precisión los siguientes datos del proyectil enemigo:</p>
+    <div class="three-col" style="margin:16px 0;">
+      <div class="highlight-box hb-coral">
+        <strong>Posición inicial</strong><br>
+        $\vec{r}_0 = (x_0,\, y_0,\, z_0)$<br>
+        <small>En metros, definida por el usuario.</small>
+      </div>
+      <div class="highlight-box hb-blue">
+        <strong>Velocidad escalar</strong><br>
+        $v_0$ en m/s<br>
+        <small>Magnitud del vector velocidad.</small>
+      </div>
+      <div class="highlight-box hb-teal">
+        <strong>Cosenos directores</strong><br>
+        $(l,\, m,\, n)$<br>
+        <small>Determinan la dirección en 3D.</small>
+      </div>
+    </div>
+    <p>El misil enemigo se mueve únicamente bajo la acción de la <strong>gravedad terrestre</strong> ($g = 9{,}8\ \text{m/s}^2$), sin resistencia del aire.</p>
+  </div>
+
+  <div class="two-col">
+    <div class="card card-coral">
+      <div class="card-title"><span class="icon">🚀</span> Misil Enemigo</div>
+      <p>Sigue un tiro parabólico libre. Su vector velocidad inicial en 3D se construye como:</p>
+      <div class="math-box">$$\vec{v}_0 = v_0\,(l\,\hat{i} + m\,\hat{j} + n\,\hat{k})$$</div>
+      <p>con la restricción de normalización de los cosenos directores:</p>
+      <div class="math-box">$$l^2 + m^2 + n^2 = 1$$</div>
+    </div>
+    <div class="card card-teal">
+      <div class="card-title"><span class="icon">🛡️</span> Misil Defensor</div>
+      <p>Lanzado desde el <strong>origen</strong> $(0,0,0)$ en $t=0$. Opera en dos modos:</p>
+      <ul>
+        <li><strong>Modo balístico:</strong> solo gravedad. Suficiente si el enemigo es detectado alto.</li>
+        <li><strong>Modo propulsor:</strong> gravedad + aceleración extra $a_p$. Activado si la detección ocurre cerca al suelo ($z_0 < H_\text{umbral}$).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card card-amber">
+    <div class="card-title"><span class="icon">📌</span> Objetivo del Sistema</div>
+    <p>El sistema debe calcular la dirección $\theta$ y velocidad $u$ inicial del misil defensor para que ambos proyectiles se encuentren en el mismo punto del espacio al mismo instante de tiempo $t^*$:</p>
+    <div class="math-box">$$\vec{r}_\text{enemigo}(t^*) = \vec{r}_\text{defensor}(t^*)$$</div>
+    <p>Esto constituye la <strong>condición de intercepción</strong>, y su solución requiere primero reducir el espacio 3D a un plano 2D donde ocurre el movimiento del enemigo.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECCIÓN 2: ÁLGEBRA 2D
+══════════════════════════════════════════════ -->
+<div id="s2" class="section">
+  <h2 class="section-title"><span>📐</span> Reducción Algebraica al Plano 2D</h2>
+
+  <div class="card card-accent">
+    <div class="card-title"><span class="icon">1️⃣</span> Vector Velocidad Inicial en 3D</div>
+    <p>A partir de la velocidad escalar $v_0$ y los cosenos directores $(l,m,n)$, las componentes cartesianas de la velocidad inicial son:</p>
+    <div class="math-box derive">
+      $$v_x = v_0\,l, \qquad v_y = v_0\,m, \qquad v_z = v_0\,n$$
+    </div>
+    <p>donde $\hat{k}$ es el eje vertical ascendente y $\hat{i},\hat{j}$ son los ejes horizontales. El ángulo de elevación sobre la horizontal es:</p>
+    <div class="math-box">$$\varphi = \arcsin(n) \qquad \text{(ángulo con el plano horizontal)}$$</div>
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title"><span class="icon">2️⃣</span> Identificación del Plano de la Trayectoria</div>
+    <p>Todo proyectil bajo gravedad pura se mueve en el plano que contiene simultáneamente:</p>
+    <ul>
+      <li>El vector velocidad inicial $\vec{v}_0$</li>
+      <li>La aceleración gravitacional $-g\,\hat{k}$</li>
+    </ul>
+    <p>El vector normal a ese plano es:</p>
+    <div class="math-box derive">
+      $$\hat{n}_\perp = \vec{v}_0 \times \hat{k} = \begin{vmatrix}\hat{i}&\hat{j}&\hat{k}\\v_x&v_y&v_z\\0&0&1\end{vmatrix} = v_y\,\hat{i} - v_x\,\hat{j}$$
+    </div>
+    <div class="highlight-box hb-blue">
+      <strong>Propiedad clave:</strong> La componente horizontal de $\vec{v}_0$ define una sola dirección en el plano $xy$. El movimiento proyectado sobre ese plano y el eje vertical es exactamente un tiro parabólico 2D.
+    </div>
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title"><span class="icon">3️⃣</span> Sistema de Coordenadas 2D en el Plano</div>
+    <p>Se definen los nuevos ejes 2D dentro del plano de la trayectoria:</p>
+    <div class="math-box derive">
+      $$\hat{e}_R = \frac{v_x\,\hat{i} + v_y\,\hat{j}}{|\vec{v}_\text{horiz}|}, \qquad |\vec{v}_\text{horiz}| = \sqrt{v_x^2 + v_y^2}$$
+      $$\hat{e}_Z = \hat{k} \quad \text{(eje vertical, idéntico en 2D y 3D)}$$
+    </div>
+    <p>Las coordenadas 2D de la posición inicial del enemigo son entonces:</p>
+    <div class="math-box derive">
+      $$R_0 = \vec{r}_0 \cdot \hat{e}_R = \frac{x_0 v_x + y_0 v_y}{|\vec{v}_\text{horiz}|}, \qquad Z_0 = z_0$$
+    </div>
+  </div>
+
+  <div class="card card-accent">
+    <div class="card-title"><span class="icon">4️⃣</span> Ecuaciones de Movimiento 2D del Enemigo</div>
+    <p>En el plano $(R, Z)$, el misil enemigo obedece las ecuaciones de tiro parabólico clásico:</p>
+    <div class="math-box derive">
+      $$\boxed{R_e(t) = R_0 + v_R\,t}$$
+      $$\boxed{Z_e(t) = Z_0 + v_z\,t - \frac{1}{2}g\,t^2}$$
+      donde $\quad v_R = |\vec{v}_\text{horiz}| = v_0\sqrt{l^2+m^2}, \quad v_z = v_0\,n$
+    </div>
+  </div>
+
+  <div class="card card-teal">
+    <div class="card-title"><span class="icon">5️⃣</span> Condición de Intercepción — Sin Propulsor</div>
+    <p>El defensor parte del origen $(0,0)$ con ángulo $\theta$ y rapidez $u$:</p>
+    <div class="math-box derive">
+      $$R_d(t) = u\cos\theta\cdot t, \qquad Z_d(t) = u\sin\theta\cdot t - \frac{1}{2}g\,t^2$$
+    </div>
+    <p>Igualando con la posición enemiga en $t = t^*$:</p>
+    <div class="math-box derive">
+      $$u\cos\theta\cdot t^* = R_0 + v_R\,t^* \qquad (I)$$
+      $$u\sin\theta\cdot t^* = Z_0 + v_z\,t^* \qquad (II)$$
+    </div>
+    <p>Dividiendo (II)/(I) se elimina $u$:</p>
+    <div class="math-box derive">
+      $$\tan\theta = \frac{Z_0 + v_z\,t^*}{R_0 + v_R\,t^*}$$
+    </div>
+    <p>Y de (I) se obtiene la velocidad requerida:</p>
+    <div class="math-box derive">
+      $$\boxed{u = \frac{\sqrt{(R_0+v_R t^*)^2+(Z_0+v_z t^*)^2}}{t^*}}$$
+    </div>
+  </div>
+
+  <div class="card card-amber">
+    <div class="card-title"><span class="icon">6️⃣</span> Condición de Intercepción — Con Propulsor</div>
+    <p>Si $Z_0 < H_\text{umbral}$, se activa una aceleración adicional $a_p$ en la dirección de lanzamiento durante un tiempo de <em>boost</em> $t_b$:</p>
+    <div class="math-box derive">
+      $$R_d(t) = u\cos\theta\cdot t + \frac{1}{2}a_p\cos\theta\cdot t^2 \quad (t \leq t_b)$$
+      $$Z_d(t) = u\sin\theta\cdot t + \frac{1}{2}(a_p\sin\theta - g)\,t^2 \quad (t \leq t_b)$$
+    </div>
+    <div class="highlight-box hb-amber">
+      <strong>Criterio de activación:</strong> Si $Z_0 &lt; H_\text{umbral}$, el tiempo de vuelo disponible es corto y un misil balístico no alcanzaría la velocidad necesaria. El propulsor compensa esto añadiendo energía cinética extra en los primeros instantes.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECCIÓN 3: ANÁLISIS TEÓRICO
+══════════════════════════════════════════════ -->
+<div id="s3" class="section">
+  <h2 class="section-title"><span>🔬</span> Análisis Funcional y Teórico</h2>
+
+  <div class="card card-accent">
+    <div class="card-title"><span class="icon">📊</span> Superposición de Movimientos</div>
+    <p>El principio fundamental del tiro parabólico es la <strong>independencia de las componentes del movimiento</strong>:</p>
+    <table>
+      <tr><th>Dirección</th><th>Tipo de movimiento</th><th>Ecuación posición</th><th>Ecuación velocidad</th></tr>
+      <tr><td>Horizontal $R$</td><td>MRU (uniforme)</td><td>$R = R_0 + v_R\,t$</td><td>$\dot{R} = v_R = \text{cte}$</td></tr>
+      <tr><td>Vertical $Z$</td><td>MRUA (acelerado)</td><td>$Z = Z_0 + v_z t - \frac{1}{2}gt^2$</td><td>$\dot{Z} = v_z - gt$</td></tr>
+    </table>
+  </div>
+
+  <div class="two-col">
+    <div class="card card-accent">
+      <div class="card-title"><span class="icon">📈</span> Puntos Cinemáticos Clave</div>
+      <h3>Tiempo de vuelo total</h3>
+      <div class="math-box">
+        $$t_\text{suelo} = \frac{v_z + \sqrt{v_z^2 + 2g Z_0}}{g}$$
+      </div>
+      <h3>Tiempo al apogeo</h3>
+      <div class="math-box">
+        $$t_\text{apogeo} = \frac{v_z}{g} \quad (> 0 \text{ si } v_z > 0)$$
+      </div>
+      <h3>Altura máxima</h3>
+      <div class="math-box">
+        $$Z_\text{max} = Z_0 + \frac{v_z^2}{2g}$$
+      </div>
+      <h3>Alcance horizontal</h3>
+      <div class="math-box">
+        $$\Delta R = v_R \cdot t_\text{suelo}$$
+      </div>
+    </div>
+    <div class="card card-teal">
+      <div class="card-title"><span class="icon">🔢</span> Cosenos Directores — Geometría</div>
+      <p>Los cosenos directores son las proyecciones del vector unitario de velocidad sobre cada eje:</p>
+      <div class="math-box">
+        $$l = \cos\alpha = \frac{v_x}{v_0}, \quad m = \cos\beta = \frac{v_y}{v_0}, \quad n = \cos\gamma = \frac{v_z}{v_0}$$
+      </div>
+      <p>La identidad pitagórica en 3D garantiza la normalización:</p>
+      <div class="math-box">$$\cos^2\alpha + \cos^2\beta + \cos^2\gamma = 1$$</div>
+      <p>Relaciones con ángulos esféricos:</p>
+      <div class="math-box">
+        $$n = \sin\varphi \quad (\text{elevación})$$
+        $$l = \cos\varphi\cos\psi, \quad m = \cos\varphi\sin\psi \quad (\text{azimut } \psi)$$
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-amber">
+    <div class="card-title"><span class="icon">⚡</span> Ventana de Intercepción y Criterio del Propulsor</div>
+    <p>El defensor tiene una <strong>ventana de oportunidad</strong> acotada por la duración del vuelo enemigo. Para que la intercepción sea física y geométricamente válida se deben cumplir:</p>
+    <div class="math-box derive">
+      $$0 < t^* < t_\text{suelo}, \qquad Z_e(t^*) > 0, \qquad \theta \in (0°,\, 90°)$$
+    </div>
+    <p>El criterio para activar el propulsor compara la altura de detección con el umbral:</p>
+    <div class="math-box derive">
+      $$\text{Modo} = \begin{cases} \text{Balístico} & \text{si } Z_0 \geq H_\text{umbral} \\ \text{Propulsor} & \text{si } Z_0 < H_\text{umbral} \end{cases}$$
+    </div>
+    <div class="highlight-box hb-amber">La aceleración extra del propulsor aumenta efectivamente la velocidad máxima alcanzable, ampliando la ventana de soluciones para $t^*$.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECCIÓN 4: PLANTEAMIENTO
+══════════════════════════════════════════════ -->
+<div id="s4" class="section">
+  <h2 class="section-title"><span>⚙️</span> Planteamiento de la Simulación</h2>
+
+  <div class="card card-accent">
+    <div class="card-title"><span class="icon">🎲</span> Generador de Números Aleatorios</div>
+    <p>Para generar escenarios realistas, cada parámetro se muestrea de una distribución uniforme dentro de rangos físicamente razonables:</p>
+    <table>
+      <tr><th>Parámetro</th><th>Símbolo</th><th>Rango</th><th>Unidades</th><th>Criterio de elección</th></tr>
+      <tr><td>Posición horizontal</td><td>$R_0$</td><td>200 – 1800</td><td>m</td><td>Distancias de detección radar</td></tr>
+      <tr><td>Altura inicial</td><td>$Z_0$</td><td>80 – 2800</td><td>m</td><td>Altitud de vuelo balístico</td></tr>
+      <tr><td>Velocidad escalar</td><td>$v_0$</td><td>100 – 400</td><td>m/s</td><td>Misiles subsónicos-supersónicos</td></tr>
+      <tr><td>Ángulo elevación</td><td>$\varphi$</td><td>$-70°$ a $-5°$</td><td>grados</td><td>Misil en fase descendente</td></tr>
+      <tr><td>Umbral propulsor</td><td>$H_\text{umbral}$</td><td>300 – 1000</td><td>m</td><td>Altitud crítica de intercepción</td></tr>
+    </table>
+    <div class="highlight-box hb-blue">Los ángulos negativos modelan un misil enemigo que ya superó su apogeo y se encuentra en descenso — el escenario más crítico para la defensa, con menor tiempo de reacción.</div>
+  </div>
+
+  <div class="card card-teal">
+    <div class="card-title"><span class="icon">🔄</span> Algoritmo de Búsqueda del Tiempo de Intercepción</div>
+    <ol>
+      <li>Calcular la trayectoria completa del enemigo, de $t=0$ hasta $Z_e=0$.</li>
+      <li>Discretizar el tiempo con paso $\Delta t = 0{,}1\ \text{s}$.</li>
+      <li>Para cada $t^*$ candidato: calcular $(R^*, Z^*)$ y verificar $Z^* > 0$ y $R^* > 0$.</li>
+      <li>Calcular el ángulo $\theta = \arctan(Z^*/R^*)$ y la rapidez necesaria $u$.</li>
+      <li>Verificar que $\theta \in (5°, 85°)$ y $u \leq u_\text{max}$ (con boost si aplica).</li>
+      <li>Elegir el <strong>menor $t^*$</strong> válido → intercepción más temprana posible.</li>
+    </ol>
+  </div>
+
+  <div class="two-col">
+    <div class="card card-amber">
+      <div class="card-title"><span class="icon">🔥</span> Dinámica del Propulsor</div>
+      <p>Durante la fase de boost ($0 \leq t \leq t_b$), el misil integra numéricamente su posición con aceleración total:</p>
+      <div class="math-box">
+        $$a_R = a_p\cos\theta, \quad a_Z = a_p\sin\theta - g$$
+      </div>
+      <p>Al finalizar el boost, el misil sigue en modo balístico desde la posición y velocidad alcanzadas.</p>
+    </div>
+    <div class="card card-violet">
+      <div class="card-title"><span class="icon">🖥️</span> Visualización</div>
+      <p>La simulación grafica en el plano 2D $(R,Z)$:</p>
+      <ul>
+        <li><span style="color:var(--coral);font-weight:700">●</span> Trayectoria enemiga (rojo-coral)</li>
+        <li><span style="color:var(--teal);font-weight:700">●</span> Defensor balístico (verde-teal)</li>
+        <li><span style="color:var(--amber);font-weight:700">●</span> Defensor con propulsor (ámbar)</li>
+        <li><strong>★</strong> Punto de intercepción animado</li>
+        <li>Línea punteada de umbral $H_\text{umbral}$</li>
+        <li>Animación cuadro a cuadro con control de tiempo</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECCIÓN 5: SIMULACIÓN
+══════════════════════════════════════════════ -->
+<div id="s5" class="section">
+  <h2 class="section-title"><span>🖥️</span> Simulación Interactiva</h2>
+
+  <div class="sim-grid">
+    <!-- CONTROLS -->
+    <div class="controls">
+      <div class="controls-title">Parámetros de la simulación</div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="randomize()">🎲 Aleatorio</button>
+        <button class="btn btn-primary" onclick="runSim()">▶ Simular</button>
+      </div>
+
+      <div class="param-section">
+        <div class="param-section-title">🎯 Misil Enemigo</div>
+        <div class="slider-row" style="align-items:flex-start;flex-direction:column;gap:6px">
+          <span class="slider-label" style="width:auto;font-size:11px;color:var(--text2)">Origen del ataque</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="origin-btn active" id="ob_rand" onclick="setOrigin('random')" title="Aleatorio">🎲 Aleatorio</button>
+            <button class="origin-btn" id="ob_top" onclick="setOrigin('top')" title="Desde arriba">⬇️ Arriba</button>
+            <button class="origin-btn" id="ob_right" onclick="setOrigin('right')" title="Desde la derecha">⬅️ Derecha</button>
+            <button class="origin-btn" id="ob_left" onclick="setOrigin('left')" title="Desde la izquierda">➡️ Izquierda</button>
+            <button class="origin-btn" id="ob_diag" onclick="setOrigin('diagonal')" title="Diagonal">↙️ Diagonal</button>
+          </div>
+          <span id="vOrigin" style="font-size:11px;color:var(--accent);font-family:'DM Mono',monospace">🎲 Aleatorio</span>
+        </div>
+        <div class="slider-row">
+          <span class="slider-label">$v_0$ (m/s)</span>
+          <input type="range" id="sV0" min="80" max="450" value="260" oninput="sv('vV0',this.value,'m/s')">
+          <span class="slider-val" id="vV0">260 m/s</span>
+        </div>
+        <!-- Hidden sliders kept for compatibility -->
+        <input type="hidden" id="sR0" value="900">
+        <input type="hidden" id="sZ0" value="1200">
+        <input type="hidden" id="sElev" value="-35">
+      </div>
+
+      <div class="param-section">
+        <div class="param-section-title">🛡️ Sistema Defensor</div>
+        <div class="slider-row">
+          <span class="slider-label">$u_\text{max}$</span>
+          <input type="range" id="sUmax" min="100" max="600" value="380" oninput="sv('vUmax',this.value,'m/s')">
+          <span class="slider-val" id="vUmax">380 m/s</span>
+        </div>
+        <div class="slider-row">
+          <span class="slider-label">$H_\text{umb}$ (m)</span>
+          <input type="range" id="sHumb" min="150" max="1500" value="600" oninput="sv('vHumb',this.value,'m')">
+          <span class="slider-val" id="vHumb">600 m</span>
+        </div>
+        <div class="slider-row">
+          <span class="slider-label">$a_p$ (m/s²)</span>
+          <input type="range" id="sAprop" min="5" max="80" value="30" oninput="sv('vAprop',this.value,'m/s²')">
+          <span class="slider-val" id="vAprop">30 m/s²</span>
+        </div>
+        <div class="slider-row">
+          <span class="slider-label">$t_b$ (s)</span>
+          <input type="range" id="sTboost" min="1" max="15" value="5" oninput="sv('vTboost',this.value,'s')">
+          <span class="slider-val" id="vTboost">5 s</span>
+        </div>
+      </div>
+
+      <div id="modeBadge"></div>
+      <div id="readouts" class="readout-grid"></div>
+      <div id="statusBox"></div>
+    </div>
+
+    <!-- CANVAS AREA -->
+    <div class="canvas-wrap">
+      <div class="legend">
+        <div class="legend-item"><div class="legend-line" style="background:var(--enemy)"></div>Misil enemigo</div>
+        <div class="legend-item"><div class="legend-line" style="background:var(--def)"></div>Defensor balístico</div>
+        <div class="legend-item"><div class="legend-line" style="background:var(--thrust)"></div>Defensor propulsor</div>
+        <div class="legend-item"><div class="legend-line" style="background:#6d5ce8;height:2px;border-style:dashed"></div>H umbral</div>
+      </div>
+      <canvas id="simCanvas" width="860" height="520"></canvas>
+
+      <!-- Animation controls -->
+      <div class="anim-controls">
+        <button class="anim-btn" id="playBtn" onclick="toggleAnim()">▶ Reproducir</button>
+        <input type="range" id="animProgress" min="0" max="1000" value="0" oninput="seekAnim(this.value)">
+        <span class="anim-time" id="animTime">t = 0.0 s</span>
+        <button class="anim-btn" onclick="resetAnim()">↺ Reiniciar</button>
+      </div>
+    </div>
+  </div>
+
+    <!-- ══ PANEL DE ECUACIONES ══ -->
+    <div class="sim-math-panel">
+      <div class="smp-title">📐 Solución algebraica — valores actuales</div>
+      <div class="smp-grid" id="smpGrid">
+        <div class="smp-block">
+          <div class="smp-block-title">🎯 Enemigo — velocidades</div>
+          <div class="smp-row"><span class="smp-sym">v<sub>R</sub></span><span class="smp-eq">=</span><span class="smp-formula">v₀·cos φ</span><span class="smp-val" id="smp_vR">—</span></div>
+          <div class="smp-row"><span class="smp-sym">v<sub>z</sub></span><span class="smp-eq">=</span><span class="smp-formula">v₀·sin φ</span><span class="smp-val" id="smp_vz">—</span></div>
+        </div>
+        <div class="smp-block">
+          <div class="smp-block-title">📈 Enemigo — trayectoria</div>
+          <div class="smp-row"><span class="smp-sym">R(t)</span><span class="smp-eq">=</span><span class="smp-formula" id="smp_Rt">—</span></div>
+          <div class="smp-row"><span class="smp-sym">Z(t)</span><span class="smp-eq">=</span><span class="smp-formula" id="smp_Zt">—</span></div>
+        </div>
+        <div class="smp-block">
+          <div class="smp-block-title">⏱️ Puntos clave</div>
+          <div class="smp-row"><span class="smp-sym">t<sub>vuelo</sub></span><span class="smp-eq">=</span><span class="smp-formula">fórmula cuadrática</span><span class="smp-val green" id="smp_tfly">—</span></div>
+          <div class="smp-row"><span class="smp-sym">Z<sub>máx</sub></span><span class="smp-eq">=</span><span class="smp-formula">Z₀ + v<sub>z</sub>²/2g</span><span class="smp-val green" id="smp_hmax">—</span></div>
+          <div class="smp-row"><span class="smp-sym">ΔR</span><span class="smp-eq">=</span><span class="smp-formula">v<sub>R</sub>·t<sub>vuelo</sub></span><span class="smp-val green" id="smp_deltaR">—</span></div>
+        </div>
+        <div class="smp-block">
+          <div class="smp-block-title">🔢 Cosenos directores</div>
+          <div class="smp-row"><span class="smp-sym">l</span><span class="smp-eq">=</span><span class="smp-formula">cos φ</span><span class="smp-val" id="smp_l">—</span></div>
+          <div class="smp-row"><span class="smp-sym">n</span><span class="smp-eq">=</span><span class="smp-formula">sin φ</span><span class="smp-val" id="smp_n">—</span></div>
+          <div class="smp-row"><span class="smp-sym">l²+n²</span><span class="smp-eq">=</span><span class="smp-formula">verificación</span><span class="smp-val green" id="smp_check">—</span></div>
+        </div>
+        <div id="smpIntercept" class="smp-intercept" style="display:none">
+          <div class="smp-block-title" style="color:var(--accent2);margin-bottom:10px">✦ Intercepción</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-family:'DM Mono',monospace;font-size:12px;">
+            <div><div style="color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase">t*</div><div style="font-weight:700;color:var(--accent2)" id="smp_tstar">—</div></div>
+            <div><div style="color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase">R*</div><div style="font-weight:700;color:var(--accent2)" id="smp_Rs">—</div></div>
+            <div><div style="color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase">Z*</div><div style="font-weight:700;color:var(--accent2)" id="smp_Zs">—</div></div>
+            <div><div style="color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase">θ</div><div style="font-weight:700;color:var(--teal)" id="smp_theta">—</div></div>
+            <div><div style="color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase">u</div><div style="font-weight:700;color:var(--teal)" id="smp_u">—</div></div>
+            <div><div style="color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase">Modo</div><div style="font-weight:700;color:var(--amber)" id="smp_mode">—</div></div>
+          </div>
+          <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(192,57,122,0.2);font-family:'DM Mono',monospace;font-size:11px;color:var(--text2)">
+            <span id="smp_eqDef">—</span>
+          </div>
+        </div>
+        <div id="smpNoSol" class="smp-no-sol" style="display:none">
+          ✗ Sin solución — ajusta u<sub>max</sub> o los parámetros del enemigo
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECCIÓN 6: DOMO DE HIERRO
+══════════════════════════════════════════════ -->
+<div id="s6" class="section">
+  <h2 class="section-title"><span>🏰</span> Relación con el Sistema Domo de Hierro</h2>
+
+  <div class="dome-card">
+    <div class="two-col" style="align-items:center; gap:32px;">
+      <div>
+        <h3 style="margin-top:0; font-size:20px; color:var(--accent2);">¿Qué es el Iron Dome?</h3>
+        <p>El <strong>Domo de Hierro</strong> (Iron Dome, en inglés) es un sistema de defensa aérea móvil de corto alcance desarrollado por <strong>Rafael Advanced Defense Systems</strong> e Israel Aerospace Industries, desplegado operacionalmente desde 2011. Está diseñado para interceptar y destruir cohetes de corto alcance, morteros y misiles artillería disparados desde distancias de 4 a 70 km.</p>
+        <p>Su arquitectura comprende tres subsistemas principales que trabajan en tiempo real:</p>
+        <ul>
+          <li><strong>Radar EL/M-2084:</strong> detecta y rastrea proyectiles entrantes.</li>
+          <li><strong>Centro de control y gestión de batalla (BMC):</strong> calcula la trayectoria predicha y evalúa si el impacto amenaza un área protegida.</li>
+          <li><strong>Lanzador Tamir:</strong> misil interceptor con espoleta de proximidad que destruye al objetivo antes del impacto.</li>
+        </ul>
+      </div>
+      <div>
+        <!-- SVG ilustrativo del sistema -->
+        <svg viewBox="0 0 340 260" width="340" style="max-width:100%;border-radius:10px;background:linear-gradient(180deg,#c8e8f8 0%,#b0d8f0 50%,#7aaa7a 85%,#5a8a5a 100%)">
+          <!-- Sky gradient -->
+          <defs>
+            <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#8bc4e8"/>
+              <stop offset="100%" stop-color="#c8e8f8"/>
+            </linearGradient>
+            <linearGradient id="groundG" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#7aaa7a"/>
+              <stop offset="100%" stop-color="#5a8a5a"/>
+            </linearGradient>
+          </defs>
+          <rect width="340" height="220" fill="url(#skyG)"/>
+          <rect y="220" width="340" height="40" fill="url(#groundG)"/>
+
+          <!-- Enemy missile trajectory (dashed red) -->
+          <path d="M 290 20 Q 200 80 80 210" stroke="#e05c3a" stroke-width="2.5" fill="none" stroke-dasharray="6,4" opacity="0.9"/>
+          <!-- Enemy missile marker -->
+          <circle cx="235" cy="58" r="6" fill="#e05c3a" opacity="0.9"/>
+          <polygon points="235,45 228,62 242,62" fill="#e05c3a" transform="rotate(-30,235,58)" opacity="0.9"/>
+
+          <!-- Defender trajectory (green arc) -->
+          <path d="M 60 225 Q 140 60 235 58" stroke="#0d9e8a" stroke-width="2.5" fill="none" opacity="0.9"/>
+          <!-- Explosion -->
+          <circle cx="235" cy="58" r="14" fill="#ffdd00" opacity="0.35"/>
+          <circle cx="235" cy="58" r="9" fill="#ff8800" opacity="0.6"/>
+          <text x="235" y="62" text-anchor="middle" font-size="10" fill="white" font-weight="bold">✦</text>
+
+          <!-- Launcher -->
+          <rect x="40" y="218" width="40" height="8" rx="2" fill="#4a6a8a"/>
+          <rect x="54" y="205" width="12" height="16" rx="2" fill="#6a8aaa"/>
+          <rect x="56" y="198" width="8" height="10" rx="1" fill="#8aaacc" transform="rotate(-20,60,210)"/>
+
+          <!-- Radar dish -->
+          <rect x="260" y="218" width="50" height="6" rx="2" fill="#4a6a8a"/>
+          <ellipse cx="285" cy="212" rx="18" ry="12" fill="none" stroke="#5a7a9a" stroke-width="2.5"/>
+          <line x1="285" y1="218" x2="285" y2="212" stroke="#5a7a9a" stroke-width="2"/>
+
+          <!-- Labels -->
+          <text x="60" y="245" text-anchor="middle" font-size="9" fill="white" font-weight="600">LANZADOR</text>
+          <text x="285" y="245" text-anchor="middle" font-size="9" fill="white" font-weight="600">RADAR</text>
+          <text x="255" y="42" font-size="9" fill="#e05c3a" font-weight="600">AMENAZA</text>
+          <text x="130" y="118" font-size="9" fill="#0d9e8a" font-weight="600" transform="rotate(-52,130,118)">DEFENSOR</text>
+          <text x="216" y="45" font-size="9" fill="#ff8800" font-weight="600">INTERCEPCIÓN</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card card-teal">
+      <div class="card-title"><span class="icon">🔗</span> Conexión con Nuestra Simulación</div>
+      <p>El modelo físico de esta simulación replica fielmente los principios que aplica el Iron Dome:</p>
+      <table>
+        <tr><th>Nuestro modelo</th><th>Iron Dome real</th></tr>
+        <tr><td>Cosenos directores $(l,m,n)$</td><td>Radar mide azimut, elevación y velocidad radial</td></tr>
+        <tr><td>Reducción 3D → 2D</td><td>Cálculo del plano de trayectoria predicha</td></tr>
+        <tr><td>Búsqueda de $t^*$</td><td>Algoritmo de punto de intercepción (PIP)</td></tr>
+        <tr><td>Umbral $H_\text{umbral}$</td><td>Evaluación de zona de impacto: ¿amenaza área protegida?</td></tr>
+        <tr><td>Modo propulsor</td><td>Cohete Tamir con guía activa en fase terminal</td></tr>
+        <tr><td>$u_\text{max}$</td><td>Velocidad máxima del misil interceptor (~Mach 2.2)</td></tr>
+      </table>
+    </div>
+    <div class="card card-accent">
+      <div class="card-title"><span class="icon">📉</span> Simplificaciones del Modelo</div>
+      <p>Nuestro modelo educativo omite efectos que el Iron Dome sí considera:</p>
+      <ul>
+        <li><strong>Resistencia del aire:</strong> a velocidades supersónicas, el arrastre aerodinámico modifica significativamente la trayectoria.</li>
+        <li><strong>Guía activa terminal:</strong> el Tamir ajusta su trayectoria en vuelo usando un buscador de radar activo.</li>
+        <li><strong>Tierra esférica y $g$ variable:</strong> importantes para alcances &gt; 50 km.</li>
+        <li><strong>Viento:</strong> afecta tanto a la amenaza como al interceptor.</li>
+        <li><strong>Discriminación de amenazas:</strong> el BMC decide si interceptar o dejar caer el cohete en zona despoblada.</li>
+      </ul>
+      <div class="highlight-box hb-blue">A pesar de las simplificaciones, el <strong>marco físico esencial</strong> — tiro parabólico, plano de trayectoria, condición de intercepción — es idéntico al núcleo del sistema real.</div>
+    </div>
+  </div>
+
+  <div class="card card-violet">
+    <div class="card-title"><span class="icon">📊</span> Datos Operacionales</div>
+    <div class="three-col">
+      <div class="highlight-box hb-blue" style="text-align:center">
+        <div style="font-size:28px;font-weight:700;color:var(--accent)">90%+</div>
+        <div>Tasa de éxito reportada en conflictos reales (2012–2023)</div>
+      </div>
+      <div class="highlight-box hb-teal" style="text-align:center">
+        <div style="font-size:28px;font-weight:700;color:var(--teal)">4–70 km</div>
+        <div>Rango de intercepción del sistema</div>
+      </div>
+      <div class="highlight-box hb-amber" style="text-align:center">
+        <div style="font-size:28px;font-weight:700;color:var(--amber)">~15 s</div>
+        <div>Tiempo total de reacción radar → intercepción</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECCIÓN 7: CONCLUSIONES
+══════════════════════════════════════════════ -->
+<div id="s7" class="section">
+  <h2 class="section-title"><span>✅</span> Conclusiones</h2>
+
+  <div class="card card-accent">
+    <div class="card-title"><span class="icon">🏆</span> Resultados del Análisis</div>
+    <div class="conclusion-item">
+      <div class="c-num">1</div>
+      <div>
+        <strong>La reducción 3D → 2D es exacta y sin pérdida de información.</strong>
+        <p style="margin-top:4px">El movimiento bajo gravedad pura siempre está confinado al plano definido por $\vec{v}_0$ y $\hat{k}$. Proyectar la velocidad horizontal sobre el eje $\hat{e}_R$ preserva toda la física del problema.</p>
+      </div>
+    </div>
+    <div class="conclusion-item">
+      <div class="c-num">2</div>
+      <div>
+        <strong>Los cosenos directores encapsulan completamente la dirección 3D del lanzamiento.</strong>
+        <p style="margin-top:4px">La identidad $l^2+m^2+n^2=1$ es una restricción geométrica fundamental que reduce los grados de libertad de dos ángulos a una sola condición algebraica.</p>
+      </div>
+    </div>
+    <div class="conclusion-item">
+      <div class="c-num">3</div>
+      <div>
+        <strong>Existen múltiples tiempos de intercepción válidos; el sistema elige el más temprano.</strong>
+        <p style="margin-top:4px">La búsqueda discreta sobre la ventana de vuelo encuentra el $t^*$ mínimo que satisface todas las restricciones físicas, minimizando así el riesgo y maximizando el margen de seguridad.</p>
+      </div>
+    </div>
+    <div class="conclusion-item">
+      <div class="c-num">4</div>
+      <div>
+        <strong>El modo propulsor amplía significativamente la cobertura del sistema defensor.</strong>
+        <p style="margin-top:4px">Al activarse cuando $Z_0 < H_\text{umbral}$, la aceleración extra $a_p$ incrementa la velocidad efectiva del defensor, compensando el menor tiempo de vuelo disponible en detecciones de baja altitud.</p>
+      </div>
+    </div>
+    <div class="conclusion-item">
+      <div class="c-num">5</div>
+      <div>
+        <strong>El modelo reproduce fielmente el núcleo físico del Iron Dome.</strong>
+        <p style="margin-top:4px">Las etapas de detección, predicción de trayectoria, cálculo del punto de intercepción y lanzamiento son matemáticamente equivalentes a las de un sistema de defensa antimisil real, validando el valor educativo de esta simulación.</p>
+      </div>
+    </div>
+    <div class="conclusion-item">
+      <div class="c-num">6</div>
+      <div>
+        <strong>El tiro parabólico, aunque simple, es el fundamento de la balística exterior.</strong>
+        <p style="margin-top:4px">Este ejercicio demuestra cómo los conceptos de cinemática básica —superposición de movimientos, cosenos directores, ecuaciones de segundo grado— tienen aplicaciones directas en tecnología de defensa de nivel mundial.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECCIÓN 8: BIBLIOGRAFÍA
+══════════════════════════════════════════════ -->
+<div id="s8" class="section">
+  <h2 class="section-title"><span>📚</span> Bibliografía</h2>
+
+  <div class="card card-accent">
+    <div class="card-title"><span class="icon">📖</span> Referencias</div>
+
+    <div class="bib-item"><span class="bib-num">[1]</span> Serway, R. A., & Jewett, J. W. (2018). <em>Physics for Scientists and Engineers</em> (10th ed.). Cengage Learning. — Capítulos 3–4: Cinemática en 2D y 3D, tiro parabólico.</div>
+    <div class="bib-item"><span class="bib-num">[2]</span> Halliday, D., Resnick, R., & Krane, K. (2014). <em>Fundamentals of Physics</em> (10th ed.). Wiley. — Capítulo 4: Movimiento en dos y tres dimensiones.</div>
+    <div class="bib-item"><span class="bib-num">[3]</span> Beer, F. P., Johnston, E. R., & Cornwell, P. (2016). <em>Vector Mechanics for Engineers: Dynamics</em> (11th ed.). McGraw-Hill. — Fundamentos de cosenos directores y cinemática vectorial.</div>
+    <div class="bib-item"><span class="bib-num">[4]</span> Etkin, B. (2012). <em>Dynamics of Atmospheric Flight</em>. Dover Publications. — Balística exterior y trayectorias bajo gravedad.</div>
+    <div class="bib-item"><span class="bib-num">[5]</span> Freudenrich, C. (2012). <em>How Iron Dome Works</em>. HowStuffWorks. — <a href="https://science.howstuffworks.com/iron-dome-news.htm" target="_blank">science.howstuffworks.com/iron-dome-news.htm</a></div>
+    <div class="bib-item"><span class="bib-num">[6]</span> Zaloga, S. J. (2011). <em>Scud Ballistic Missile and Launch Systems 1955–2005</em>. Osprey Publishing. — Historia y física de misiles balísticos de corto alcance.</div>
+    <div class="bib-item"><span class="bib-num">[7]</span> Rafael Advanced Defense Systems. (2023). <em>Iron Dome Air Defense System — Technical Overview</em>. — <a href="https://www.rafael.co.il/systems/iron-dome/" target="_blank">rafael.co.il/systems/iron-dome</a></div>
+    <div class="bib-item"><span class="bib-num">[8]</span> Marion, J. B., & Thornton, S. T. (2004). <em>Classical Dynamics of Particles and Systems</em> (5th ed.). Brooks/Cole. — Mecánica clásica: proyectiles y sistemas de referencia.</div>
+    <div class="bib-item"><span class="bib-num">[9]</span> MathJax Consortium. (2023). <em>MathJax Documentation</em>. — <a href="https://docs.mathjax.org" target="_blank">docs.mathjax.org</a> — Renderizado de LaTeX en navegadores web.</div>
+  </div>
+</div>
+
+</div><!-- end .main -->
+
+<footer>
+  Física Mecánica — Tiro Parabólico 3D→2D &nbsp;|&nbsp; Simulador de Intercepción Antimisil &nbsp;|&nbsp; g = 9.8 m/s²
+</footer>
+
+<!-- ══════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════ -->
+<script>
+/* ─── NAV ─── */
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 's5') { runSim(true); }
+}
+
+/* ─── SLIDER LABELS ─── */
+function sv(id, val, unit) {
+  document.getElementById(id).textContent = val + ' ' + unit;
+}
+
+/* ─── ORIGIN MODE ─── */
+let currentOrigin = 'random';
+
+function setOrigin(mode) {
+  currentOrigin = mode;
+  document.querySelectorAll('.origin-btn').forEach(b => b.classList.remove('active'));
+  const idMap = { random: 'rand', top: 'top', right: 'right', left: 'left', diagonal: 'diag' };
+  document.getElementById('ob_' + idMap[mode]).classList.add('active');
+  const labels = { random: '🎲 Aleatorio', top: '⬇️ Desde arriba', right: '⬅️ Desde la derecha', left: '➡️ Desde la izquierda', diagonal: '↙️ Diagonal' };
+  document.getElementById('vOrigin').textContent = labels[mode] || mode;
+  // NO llama runSim — el usuario decide cuándo simular con ▶ Simular
+}
+
+/* ─── Generate enemy params based on origin ─── */
+function genEnemyParams(origin, v0) {
+  // DEF_R=500 es la base fija del defensor.
+  // Los misiles enemigos deben apuntar hacia esa zona.
+  // ~40% de probabilidad de ataque de BAJA altitud (activa propulsor).
+
+  const r  = (a,b) => a + Math.random()*(b-a);
+  const ri = (a,b) => Math.floor(r(a, b));
+  const lowAlt = Math.random() < 0.40; // 40% ataques rasantes
+
+  const choices = origin === 'random'
+    ? ['top','right','left','diagonal'][ri(0,4)]
+    : origin;
+
+  let R0, Z0, vR, vZ, label;
+
+  // Alturas: baja (150–450 m) o normal (900–3000 m)
+  const zHigh = r(900, 3000);
+  const zLow  = r(150, 450);
+
+  if (choices === 'top') {
+    // Cae casi verticalmente sobre el defensor
+    R0 = DEF_R + r(-120, 120);          // directamente encima de la base
+    Z0 = lowAlt ? zLow : zHigh;
+    vR = r(-35, 35);                    // casi sin movimiento horizontal
+    vZ = -(lowAlt ? r(60, 130) : r(v0 * 0.75, v0 * 0.97));
+    label = '⬇️ Desde arriba';
+
+  } else if (choices === 'right') {
+    // Viene desde la DERECHA, cruza hacia el defensor (vR negativo)
+    R0 = r(2500, 4000);
+    Z0 = lowAlt ? zLow : r(600, 2000);
+    vR = -r(v0 * 0.55, v0 * 0.88);
+    vZ = lowAlt ? r(-60, 30) : -r(40, 160);
+    label = '⬅️ Desde la derecha';
+
+  } else if (choices === 'left') {
+    // Viene desde la IZQUIERDA (R negativo), cruza hacia el defensor (vR positivo)
+    R0 = r(-3000, -1500);
+    Z0 = lowAlt ? zLow : r(600, 2000);
+    vR = r(v0 * 0.55, v0 * 0.88);
+    vZ = lowAlt ? r(-60, 30) : -r(40, 160);
+    label = '➡️ Desde la izquierda';
+
+  } else { // diagonal
+    const fromRight = Math.random() > 0.5;
+    if (fromRight) {
+      R0 = r(2000, 3500);
+      Z0 = lowAlt ? zLow : r(1200, 2800);
+      vR = -r(v0 * 0.40, v0 * 0.65);
+      vZ = lowAlt ? r(-50, 20) : -r(v0 * 0.40, v0 * 0.65);
+    } else {
+      R0 = r(-3000, -1500);
+      Z0 = lowAlt ? zLow : r(1200, 2800);
+      vR = r(v0 * 0.40, v0 * 0.65);
+      vZ = lowAlt ? r(-50, 20) : -r(v0 * 0.40, v0 * 0.65);
+    }
+    label = '↙️ Diagonal';
+  }
+
+  return { R0, Z0, vR, vZ, label, type: choices, lowAlt };
+}
+
+/* ─── PARAMS ─── */
+function getP() {
+  return {
+    R0:     +document.getElementById('sR0').value,
+    Z0:     +document.getElementById('sZ0').value,
+    v0:     +document.getElementById('sV0').value,
+    elev:   +document.getElementById('sElev').value * Math.PI / 180,
+    umax:   +document.getElementById('sUmax').value,
+    hUmb:   +document.getElementById('sHumb').value,
+    aProp:  +document.getElementById('sAprop').value,
+    tBoost: +document.getElementById('sTboost').value,
+  };
+}
+
+function randomize() {
+  const r = (a,b) => Math.round(a + Math.random()*(b-a));
+  // Reintentar hasta encontrar parámetros que garanticen solución
+  // (se llama después de que findIntercept ya está definido en el JS)
+  let found = false;
+  for (let attempt = 0; attempt < 80; attempt++) {
+    const v0   = r(120, 380);
+    const umax = r(280, 550);
+    const hUmb = r(300, 900);
+    const ap   = r(12, 65);
+    const tb   = r(2, 12);
+    const ep   = genEnemyParams(currentOrigin, v0);
+    const sol  = findIntercept(ep.R0, ep.Z0, ep.vR, ep.vZ, umax, ap, tb, hUmb);
+    if (!sol) continue;
+    // Solución encontrada — aplicar
+    document.getElementById('sV0').value     = v0;
+    document.getElementById('sUmax').value   = umax;
+    document.getElementById('sHumb').value   = hUmb;
+    document.getElementById('sAprop').value  = ap;
+    document.getElementById('sTboost').value = tb;
+    [['V0','m/s'],['Umax','m/s'],['Humb','m'],['Aprop','m/s²'],['Tboost','s']].forEach(([n,u])=>{
+      sv('v'+n, document.getElementById('s'+n).value, u);
+    });
+    found = true;
+    break;
+  }
+  runSim(true);  // forzar nuevo enemigo generado arriba
+}
+
+/* ─── PHYSICS ─── */
+const G = 9.8;
+
+// Base fija del defensor — siempre en este punto del mapa
+const DEF_R = 500;  // metros horizontales
+const DEF_Z = 0;    // sobre el suelo
+
+// Enemy trajectory — generalized: starts at (R0,Z0) with velocity (vR,vZ)
+function enemyTraj(R0, Z0, vR, vZ, dt) {
+  const pts = [];
+  const disc = vZ*vZ + 2*G*Math.max(0,Z0);
+  const tEnd = disc >= 0
+    ? (Math.abs(vZ) + Math.sqrt(disc)) / G + 1.0
+    : 60;
+  for (let t = 0; t <= tEnd; t += dt) {
+    const R = R0 + vR * t;
+    const Z = Z0 + vZ * t - 0.5 * G * t * t;
+    if (Z < -1) break;
+    pts.push({ R, Z, t });
+  }
+  return pts;
+}
+
+// Defender ballistic trajectory from DEF_R, DEF_Z
+function defBallisticTraj(theta, u, tStar, dt) {
+  const pts = [];
+  for (let t = 0; t <= tStar; t += dt) {
+    const R = DEF_R + u * Math.cos(theta) * t;
+    const Z = DEF_Z + u * Math.sin(theta) * t - 0.5 * G * t * t;
+    if (Z < -2) break;
+    pts.push({ R, Z, t });
+  }
+  const Rf = DEF_R + u * Math.cos(theta) * tStar;
+  const Zf = DEF_Z + u * Math.sin(theta) * tStar - 0.5 * G * tStar * tStar;
+  pts.push({ R: Rf, Z: Zf, t: tStar });
+  return pts;
+}
+
+// Defender with thruster trajectory from DEF_R, DEF_Z
+function defThrusterTraj(theta, u, aProp, tBoost, tStar, dt) {
+  const pts = [];
+  let R = DEF_R, Z = DEF_Z;
+  let vRd = u * Math.cos(theta), vZd = u * Math.sin(theta);
+  const tEnd = tStar + 0.5;
+  for (let t = 0; t <= tEnd; t += dt) {
+    pts.push({ R, Z, t });
+    const aR = t < tBoost ? aProp * Math.cos(theta) : 0;
+    const aZ = t < tBoost ? aProp * Math.sin(theta) - G : -G;
+    vRd += aR * dt; vZd += aZ * dt;
+    R   += vRd * dt; Z   += vZd * dt;
+    if (Z < -2) break;
+  }
+  return pts;
+}
+
+// Find intercept: defender starts at (DEF_R, DEF_Z), enemy at (R0,Z0) with (vR,vZ)
+function findIntercept(R0, Z0, vR, vZ, umax, aProp, tBoost, hUmb) {
+  const thruster = Z0 < hUmb;
+  const uEff = thruster ? umax * 1.6 : umax;
+  const disc = vZ * vZ + 2 * G * Math.max(0, Z0);
+  const tFly = disc >= 0 ? (Math.abs(vZ) + Math.sqrt(disc)) / G : 80;
+  const dt = 0.05;
+  let best = null;
+
+  for (let t = dt; t < tFly; t += dt) {
+    // Posición del enemigo en tiempo t
+    const Rs = R0 + vR * t;
+    const Zs = Z0 + vZ * t - 0.5 * G * t * t;
+    if (Zs < 8) continue;
+
+    // El defensor sale de (DEF_R, DEF_Z) y debe llegar a (Rs, Zs) en tiempo t
+    // R_d = DEF_R + uCos*t  =>  uCos = (Rs - DEF_R) / t
+    // Z_d = DEF_Z + uSin*t - 0.5*G*t²  =>  uSin = (Zs - DEF_Z + 0.5*G*t²) / t
+    let u, theta;
+    if (!thruster) {
+      const uCosT = (Rs - DEF_R) / t;
+      const uSinT = (Zs - DEF_Z + 0.5 * G * t * t) / t;
+      if (uSinT <= 0) continue;
+      theta = Math.atan2(uSinT, uCosT);
+      u = Math.sqrt(uCosT * uCosT + uSinT * uSinT);
+    } else {
+      const tb = Math.min(tBoost, t);
+      const halfApTb2 = 0.5 * aProp * tb * tb;
+      const uSinT_bare = (Zs - DEF_Z + 0.5 * G * t * t) / t;
+      if (uSinT_bare <= 0) continue;
+      const roughTheta = Math.atan2(uSinT_bare, (Rs - DEF_R) / t);
+      const extraR = halfApTb2 * Math.cos(roughTheta);
+      const extraZ = halfApTb2 * Math.sin(roughTheta);
+      const needR = (Rs - DEF_R) - extraR;
+      const needZ = (Zs - DEF_Z + 0.5 * G * t * t) - extraZ;
+      if (needZ <= 0) continue;
+      theta = Math.atan2(needZ, needR);
+      u = Math.sqrt(needR * needR + needZ * needZ) / t;
+    }
+
+    const thetaDeg = theta * 180 / Math.PI;
+    if (thetaDeg < -82 || thetaDeg > 82) continue;
+    if (u < 5 || u > uEff) continue;
+    if (!best) best = { tStar: t, Rs, Zs, theta, u, thruster };
+  }
+  return best;
+}
+
+/* ─── SIMULATION STATE ─── */
+let simState = null;
+let animFrame = null;
+let animT = 0;
+let animPlaying = false;
+let animMaxT = 0;
+let lastEnemyParams = null;   // se reutiliza en ▶ Simular; solo se regenera con 🎲 Aleatorio
+
+function runSim(forceNewEnemy) {
+  cancelAnimationFrame(animFrame);
+  animPlaying = false;
+  animT = 0;
+  document.getElementById('playBtn').textContent = '▶ Reproducir';
+  document.getElementById('playBtn').classList.remove('playing');
+  document.getElementById('animProgress').value = 0;
+  document.getElementById('animTime').textContent = 't = 0.0 s';
+
+  const p = getP();
+
+  // Reutilizar el último enemigo generado a menos que se pida uno nuevo explícitamente
+  const eParams = (forceNewEnemy || !lastEnemyParams)
+    ? genEnemyParams(currentOrigin, p.v0)
+    : lastEnemyParams;
+  lastEnemyParams = eParams;
+
+  const vR = eParams.vR;
+  const vZ = eParams.vZ;
+  const R0 = eParams.R0;
+  const Z0 = eParams.Z0;
+
+  // Store generated params back for display
+  p.R0 = R0; p.Z0 = Z0;
+  p.enemyLabel = eParams.label;
+  p.enemyType  = eParams.type;
+
+  const disc = vZ*vZ + 2*G*Math.max(0,Z0);
+  const tFly = disc >= 0 ? (Math.abs(vZ) + Math.sqrt(disc)) / G : 30;
+  const hMax = Math.max(Z0, Z0 + vZ*vZ/(2*G));
+
+  const enemy = enemyTraj(R0, Z0, vR, vZ, 0.1);
+  const inter = findIntercept(R0, Z0, vR, vZ, p.umax, p.aProp, p.tBoost, p.hUmb);
+
+  let def=[], defT=[];
+  if (inter) {
+    if (!inter.thruster) def = defBallisticTraj(inter.theta, inter.u, inter.tStar, 0.1);
+    else defT = defThrusterTraj(inter.theta, inter.u, p.aProp, p.tBoost, inter.tStar, 0.1);
+  }
+
+  simState = {p, enemy, def, defT, inter, vR, vz: vZ, tFly, hMax};
+  animMaxT = inter ? inter.tStar : tFly;
+
+  // Update readouts
+  const mode = (Z0 < p.hUmb);
+  document.getElementById('modeBadge').innerHTML = inter
+    ? `<div class="mode-badge ${mode?'mb-thruster':'mb-ballistic'}">${mode?'⚡ Modo Propulsor':'🛡️ Modo Balístico'}</div>`
+    : `<div class="mode-badge mb-miss">✗ Sin solución</div>`;
+
+  document.getElementById('readouts').innerHTML = `
+    <div class="readout-item"><div class="readout-label">Origen</div><div class="readout-val" style="font-size:11px">${p.enemyLabel||'—'}</div></div>
+    <div class="readout-item"><div class="readout-label">Altitud ini.</div><div class="readout-val" style="color:${eParams.lowAlt?'var(--coral)':'var(--teal)'}">${Z0.toFixed(0)} m ${eParams.lowAlt?'⚡':'🔵'}</div></div>
+    <div class="readout-item"><div class="readout-label">v_horiz</div><div class="readout-val">${vR.toFixed(0)} m/s</div></div>
+    <div class="readout-item"><div class="readout-label">v_vertical</div><div class="readout-val">${vZ.toFixed(0)} m/s</div></div>
+    <div class="readout-item"><div class="readout-label">H máx</div><div class="readout-val">${hMax.toFixed(0)} m</div></div>
+    <div class="readout-item"><div class="readout-label">t vuelo</div><div class="readout-val">${tFly.toFixed(1)} s</div></div>
+    ${inter?`<div class="readout-item"><div class="readout-label">t intercep.</div><div class="readout-val">${inter.tStar.toFixed(1)} s</div></div>
+    <div class="readout-item"><div class="readout-label">θ defensor</div><div class="readout-val">${(inter.theta*180/Math.PI).toFixed(1)}°</div></div>`:''}
+  `;
+
+  if (inter) {
+    document.getElementById('statusBox').innerHTML = `<div class="status-box ${inter.thruster?'sb-warn':'sb-ok'}">${inter.thruster?'⚡ INTERCEPCIÓN CON PROPULSOR':'✅ INTERCEPCIÓN BALÍSTICA'} — t* = ${inter.tStar.toFixed(1)} s &nbsp;|&nbsp; u = ${inter.u.toFixed(0)} m/s</div>`;
+  } else {
+    document.getElementById('statusBox').innerHTML = `<div class="status-box sb-err">✗ Sin solución — incrementa u_max o ajusta parámetros</div>`;
+  }
+
+  updateMathPanel(p, vR, vZ, tFly, hMax, inter);
+  drawFrame(0);
+  // Auto-arrancar la animación desde el principio
+  animT = 0;
+  animPlaying = true;
+  lastTime = null;
+  document.getElementById('playBtn').textContent = '⏸ Pausar';
+  document.getElementById('playBtn').classList.add('playing');
+  lastRAF = requestAnimationFrame(animate);
+}
+
+/* ─── DRAW ─── */
+function drawFrame(currentT) {
+  if (!simState) return;
+  const {p, enemy, def, defT, inter, hMax} = simState;
+  const canvas = document.getElementById('simCanvas');
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  const PAD={l:72,r:36,t:30,b:52};
+  const IW = W-PAD.l-PAD.r, IH = H-PAD.t-PAD.b;
+
+  // bounds — support negative R (enemy from left side)
+  const allPts = [...enemy,...def,...defT];
+  let minR = Math.min(...allPts.map(pt=>pt.R), 0);
+  let maxR = Math.max(...allPts.map(pt=>pt.R), 100);
+  let maxZ = Math.max(...allPts.map(pt=>pt.Z), 100)*1.18;
+  // Add padding to R range
+  const rangeR = maxR - minR;
+  minR = minR - rangeR * 0.08;
+  maxR = maxR + rangeR * 0.08;
+
+  // tx maps R to canvas x, ty maps Z to canvas y
+  const tx = r => PAD.l + ((r - minR) / (maxR - minR)) * IW;
+  const ty = z => H - PAD.b - (z / maxZ) * IH;
+
+  // Background
+  const bgGrad = ctx.createLinearGradient(0,0,0,H-PAD.b);
+  bgGrad.addColorStop(0,'#fff0fa');
+  bgGrad.addColorStop(1,'#fff8fd');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0,0,W,H);
+
+  // Ground
+  const gGrad = ctx.createLinearGradient(0,H-PAD.b,0,H);
+  gGrad.addColorStop(0,'#7ab87a'); gGrad.addColorStop(1,'#5a8a5a');
+  ctx.fillStyle = gGrad;
+  ctx.fillRect(0,H-PAD.b,W,PAD.b);
+
+  // Grid
+  ctx.strokeStyle='rgba(192,57,122,0.07)'; ctx.lineWidth=1;
+  for(let i=0;i<=10;i++){const x=PAD.l+i*IW/10; ctx.beginPath();ctx.moveTo(x,PAD.t);ctx.lineTo(x,H-PAD.b);ctx.stroke();}
+  for(let i=0;i<=8;i++){const y=PAD.t+i*IH/8;  ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(W-PAD.r,y);ctx.stroke();}
+
+  // Axis lines
+  ctx.strokeStyle='rgba(192,57,122,0.35)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(PAD.l,PAD.t); ctx.lineTo(PAD.l,H-PAD.b); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PAD.l,H-PAD.b); ctx.lineTo(W-PAD.r,H-PAD.b); ctx.stroke();
+
+  // Tick labels
+  ctx.fillStyle='#b04070'; ctx.font='10px DM Mono, monospace'; ctx.textAlign='center';
+  for(let i=0;i<=5;i++){
+    const v=((minR + (maxR-minR)*i/5)/1000).toFixed(1);
+    ctx.fillText(v+'km', PAD.l+i*IW/5, H-PAD.b+18);
+  }
+  ctx.textAlign='right';
+  for(let i=0;i<=4;i++){
+    const v=(maxZ*i/4/1000).toFixed(1);
+    ctx.fillText(v+'km', PAD.l-6, H-PAD.b-i*IH/4+4);
+  }
+  ctx.textAlign='center';
+  ctx.fillStyle='#b04070'; ctx.font='11px DM Sans, sans-serif';
+  ctx.fillText('R — distancia horizontal (km)', PAD.l+IW/2, H-6);
+  ctx.save(); ctx.translate(14,PAD.t+IH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Z — altitud (km)',0,0); ctx.restore();
+
+  // Umbral line
+  const yUmb = ty(p.hUmb);
+  if(yUmb > PAD.t && yUmb < H-PAD.b){
+    ctx.setLineDash([8,5]);
+    ctx.strokeStyle='rgba(109,92,232,0.4)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(PAD.l,yUmb); ctx.lineTo(W-PAD.r,yUmb); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(109,92,232,0.7)'; ctx.textAlign='right'; ctx.font='10px DM Mono, monospace';
+    ctx.fillText('H_umb='+p.hUmb+'m', W-PAD.r-4, yUmb-4);
+    ctx.textAlign='center';
+  }
+
+  // Draw path helper
+  function drawPath(pts, color, width, maxT) {
+    const filtered = maxT !== undefined ? pts.filter(p=>p.t<=maxT) : pts;
+    if(!filtered.length) return;
+    ctx.strokeStyle = color; ctx.lineWidth = width;
+    ctx.shadowColor = color; ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.moveTo(tx(filtered[0].R), ty(filtered[0].Z));
+    for(let i=1;i<filtered.length;i++) ctx.lineTo(tx(filtered[i].R), ty(filtered[i].Z));
+    ctx.stroke(); ctx.shadowBlur=0;
+  }
+
+  // Cap para ambos misiles: ambos se detienen exactamente en tStar
+  const enemyCap = inter ? Math.min(currentT, inter.tStar) : currentT;
+  const defCap   = inter ? Math.min(currentT, inter.tStar) : currentT;
+
+  drawPath(enemy,'#e05c3a',2.5,enemyCap);   // enemigo se para en tStar
+  drawPath(def,  '#0d9e8a',2.5,defCap);     // defensor se para en tStar
+  drawPath(defT, '#d97706',2.5,defCap);     // defensor propulsor se para en tStar
+
+  // Guardar bgGrad para uso posterior en bloque explosión
+  const bgGrad2 = bgGrad;
+
+  // Start dots — enemy start position
+  ctx.fillStyle='#e05c3a'; ctx.shadowColor='#e05c3a'; ctx.shadowBlur=8;
+  ctx.beginPath(); ctx.arc(tx(p.R0),ty(p.Z0),5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(tx(p.R0),ty(p.Z0),2.5,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.fillStyle='#e05c3a'; ctx.font='10px DM Sans, sans-serif'; ctx.textAlign='center';
+  ctx.fillText('🚀 Enemigo', tx(p.R0), ty(p.Z0) - 10);
+
+  // Base fija del defensor en DEF_R
+  const bx = tx(DEF_R), by = ty(DEF_Z);
+  // Plataforma de lanzamiento
+  ctx.fillStyle = '#0d9e8a';
+  ctx.shadowColor = '#0d9e8a'; ctx.shadowBlur = 12;
+  ctx.fillRect(bx - 14, by - 8, 28, 8);
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#0a7a6b';
+  ctx.fillRect(bx - 18, by - 2, 36, 4);
+  // Torre
+  ctx.fillStyle = '#0d9e8a';
+  ctx.fillRect(bx - 3, by - 18, 6, 12);
+  // Cañón (apunta hacia arriba-derecha)
+  ctx.strokeStyle = '#0d9e8a'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(bx, by - 16); ctx.lineTo(bx + 10, by - 26); ctx.stroke();
+  ctx.fillStyle = '#0d9e8a'; ctx.font = 'bold 10px DM Sans, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('🛡️ Base Defensora', bx, by - 30);
+
+  // Direction label on canvas top-right
+  if (p.enemyLabel) {
+    ctx.fillStyle = 'rgba(224,92,58,0.85)';
+    ctx.beginPath();
+    const lx = W - PAD.r - 4, ly = PAD.t + 4;
+    ctx.roundRect ? ctx.roundRect(lx - 130, ly, 130, 22, 5) : ctx.rect(lx-130, ly, 130, 22);
+    ctx.fill();
+    ctx.fillStyle = 'white'; ctx.font = 'bold 11px DM Sans, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(p.enemyLabel, lx - 65, ly + 15);
+    ctx.textAlign = 'center';
+  }
+
+  // ── INTERCEPCIÓN: freeze ambos misiles exactamente en tStar y dibujar impacto ──
+  if (inter) {
+    const tDraw = Math.min(currentT, inter.tStar);
+
+    // Redibujar los paths limitados a tDraw (ya que arriba se dibujaron hasta currentT)
+    // Limpiar paths sobrantes redibujando encima con límite correcto
+    // (los drawPath ya están dibujados con currentT arriba; los redibujamos con cap)
+    // Enemy: continúa su trayectoria natural
+    // Defender: se detiene en tStar — ya cubierto por cap de tDraw
+
+    // Posición exacta de ambos misiles en tDraw (interpolada)
+    function getPos(pts, t) {
+      if (!pts.length) return null;
+      let idx = pts.findIndex(q => q.t >= t);
+      if (idx < 0) idx = pts.length - 1;
+      if (idx === 0) return {R: pts[0].R, Z: pts[0].Z};
+      const p0 = pts[idx-1], p1 = pts[idx];
+      const f = (t - p0.t) / Math.max(0.001, p1.t - p0.t);
+      return {R: p0.R + (p1.R - p0.R)*f, Z: p0.Z + (p1.Z - p0.Z)*f};
+    }
+
+    const dPts = def.length ? def : defT;
+    const dColor = def.length ? '#0d9e8a' : '#d97706';
+
+    // Antes de tStar: redibujar paths con cap en tDraw para que defensor pare en tStar
+    // (los paths ya dibujados arriba son hasta currentT; necesitamos defensor solo hasta tStar)
+    // Redibujamos defender path encima con fondo para "borrar" el exceso
+    // Más limpio: redibujamos todo el canvas si currentT > tStar
+    if (currentT > inter.tStar) {
+      // Repintar fondo encima de los paths dibujados antes
+      ctx.fillStyle = bgGrad2; // guardado abajo
+      // En realidad más simple: los paths ya se dibujaron con currentT;
+      // solo necesitamos NO dibujar el defensor más allá de tStar.
+      // El bloque drawPath arriba ya usa currentT para enemy (correcto),
+      // pero también para def/defT. Aquí los redibujamos bien.
+      // Solución: en drawPath de def/defT usar cap = min(currentT, tStar)
+    }
+
+    // ── Dibujar los dos misiles JUNTOS en tDraw ──
+    const ePos = getPos(enemy, tDraw);
+    const dPos = getPos(dPts, tDraw);
+
+    // ── Dibujar misiles como puntos animados ──
+    const atIntercept = currentT >= inter.tStar;
+
+    if (!atIntercept) {
+      // Misil enemigo — dot rojo con halo
+      if (ePos) {
+        ctx.shadowColor = '#e05c3a'; ctx.shadowBlur = 20;
+        ctx.fillStyle = '#e05c3a';
+        ctx.beginPath(); ctx.arc(tx(ePos.R), ty(ePos.Z), 8, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.beginPath(); ctx.arc(tx(ePos.R), ty(ePos.Z), 3.5, 0, Math.PI*2); ctx.fill();
+      }
+      // Misil defensor — dot teal/ámbar con halo
+      if (dPos) {
+        ctx.shadowColor = dColor; ctx.shadowBlur = 20;
+        ctx.fillStyle = dColor;
+        ctx.beginPath(); ctx.arc(tx(dPos.R), ty(dPos.Z), 8, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.beginPath(); ctx.arc(tx(dPos.R), ty(dPos.Z), 3.5, 0, Math.PI*2); ctx.fill();
+      }
+    }
+
+    // ── EXPLOSION en el punto exacto de toque ──
+    if (currentT >= inter.tStar) {
+      const ix = tx(inter.Rs), iy = ty(inter.Zs);
+      const age = currentT - inter.tStar;
+
+      // Onda expansiva — 3 anillos en cascada
+      for (let r = 0; r < 3; r++) {
+        const delay = r * 0.10;
+        const rAge = age - delay;
+        if (rAge < 0) continue;
+        const radius = Math.min(52, rAge * 85);
+        const alpha = Math.max(0, 0.8 - rAge * 1.8);
+        ctx.strokeStyle = r === 0 ? `rgba(255,70,110,${alpha})`
+                        : r === 1 ? `rgba(255,160,40,${alpha})`
+                                  : `rgba(255,230,140,${alpha})`;
+        ctx.lineWidth = 3.5 - r * 0.8;
+        ctx.beginPath(); ctx.arc(ix, iy, radius, 0, Math.PI*2); ctx.stroke();
+      }
+
+      // Bola de fuego central
+      const fr = Math.min(26, 5 + age * 55);
+      const fa = Math.max(0, 0.95 - age * 1.4);
+      const fg = ctx.createRadialGradient(ix, iy, 0, ix, iy, fr);
+      fg.addColorStop(0, `rgba(255,255,210,${fa})`);
+      fg.addColorStop(0.4, `rgba(255,120,30,${fa * 0.85})`);
+      fg.addColorStop(1, `rgba(210,40,80,0)`);
+      ctx.fillStyle = fg;
+      ctx.beginPath(); ctx.arc(ix, iy, fr, 0, Math.PI*2); ctx.fill();
+
+      // Chispas radiales
+      if (age < 0.9) {
+        for (let s = 0; s < 10; s++) {
+          const sa = (s / 10) * Math.PI * 2 + age * 4;
+          const sl = Math.min(32, age * 90);
+          const sa2 = Math.max(0, 0.9 - age * 1.6);
+          ctx.strokeStyle = `rgba(255,210,60,${sa2})`; ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(ix + 4 * Math.cos(sa), iy + 4 * Math.sin(sa));
+          ctx.lineTo(ix + sl * Math.cos(sa), iy + sl * Math.sin(sa));
+          ctx.stroke();
+        }
+      }
+
+      // ── PANEL de tiempo en pantalla (aparece al tocar) ──
+      const panelAlpha = Math.min(1, age * 4);
+      ctx.globalAlpha = panelAlpha;
+
+      // Fondo del panel
+      const px = ix - 80, py = iy + 28;
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.strokeStyle = dColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(px, py, 160, 52, 8) : ctx.rect(px, py, 160, 52);
+      ctx.fill(); ctx.stroke();
+
+      // Texto del panel
+      ctx.fillStyle = '#2d1020';
+      ctx.font = 'bold 13px DM Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('💥 ¡INTERCEPCIÓN!', ix, py + 18);
+      ctx.fillStyle = dColor;
+      ctx.font = 'bold 15px DM Mono, monospace';
+      ctx.fillText(`t* = ${inter.tStar.toFixed(2)} s`, ix, py + 38);
+      ctx.textAlign = 'center';
+      ctx.globalAlpha = 1;
+    }
+  } else {
+    // Sin intercepción: dibujar dots normales con currentT
+    function getPos2(pts, t) {
+      if (!pts.length) return null;
+      let idx = pts.findIndex(q => q.t >= t);
+      if (idx < 0) idx = pts.length - 1;
+      if (idx === 0) return {R: pts[0].R, Z: pts[0].Z};
+      const p0 = pts[idx-1], p1 = pts[idx];
+      const f = (t - p0.t) / Math.max(0.001, p1.t - p0.t);
+      return {R: p0.R + (p1.R - p0.R)*f, Z: p0.Z + (p1.Z - p0.Z)*f};
+    }
+    const ePos2 = getPos2(enemy, currentT);
+    if (ePos2) {
+      ctx.fillStyle = '#e05c3a'; ctx.shadowColor = '#e05c3a'; ctx.shadowBlur = 14;
+      ctx.beginPath(); ctx.arc(tx(ePos2.R), ty(ePos2.Z), 7, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(tx(ePos2.R), ty(ePos2.Z), 3, 0, Math.PI*2); ctx.fill();
+    }
+  }
+}
+
+/* ─── ANIMATION ─── */
+let lastRAF = null;
+let lastTime = null;
+
+function toggleAnim() {
+  if (!simState) { runSim(); return; }
+  animPlaying = !animPlaying;
+  const btn = document.getElementById('playBtn');
+  if (animPlaying) {
+    btn.textContent = '⏸ Pausar'; btn.classList.add('playing');
+    lastTime = null;
+    lastRAF = requestAnimationFrame(animate);
+  } else {
+    btn.textContent = '▶ Reproducir'; btn.classList.remove('playing');
+    cancelAnimationFrame(lastRAF);
+  }
+}
+
+function animate(ts) {
+  if (!animPlaying) return;
+  if (!lastTime) lastTime = ts;
+  // Velocidad 1:1 real, suave y lineal
+  const dt = (ts - lastTime) / 1000;
+  lastTime = ts;
+  animT = Math.min(animT + dt, animMaxT);
+  document.getElementById('animProgress').value = (animT / animMaxT) * 1000;
+  document.getElementById('animTime').textContent = 't = ' + animT.toFixed(2) + ' s';
+  drawFrame(animT);
+
+  // Parar exactamente en tStar si hay intercepción
+  if (animT >= animMaxT) {
+    animPlaying = false;
+    document.getElementById('playBtn').textContent = '▶ Reproducir';
+    document.getElementById('playBtn').classList.remove('playing');
+    lastTime = null;
+    // Mostrar frame final congelado en el momento del toque
+    drawFrame(animMaxT);
+    return;
+  }
+  lastRAF = requestAnimationFrame(animate);
+}
+
+function seekAnim(val) {
+  animT = (val / 1000) * animMaxT;
+  document.getElementById('animTime').textContent = 't = ' + animT.toFixed(2) + ' s';
+  drawFrame(animT);
+}
+
+function resetAnim() {
+  animPlaying = false; animT = 0; lastTime = null;
+  cancelAnimationFrame(lastRAF);
+  document.getElementById('playBtn').textContent = '▶ Reproducir';
+  document.getElementById('playBtn').classList.remove('playing');
+  document.getElementById('animProgress').value = 0;
+  document.getElementById('animTime').textContent = 't = 0.00 s';
+  drawFrame(0);
+}
+
+
+
+/* ─── SIM MATH PANEL UPDATER ─── */
+function updateMathPanel(p, vR, vz, tFly, hMax, inter) {
+  const f2 = v => (+v).toFixed(2);
+  const f1 = v => (+v).toFixed(1);
+  const f4 = v => (+v).toFixed(4);
+  const elevDeg = (p.elev * 180 / Math.PI).toFixed(1);
+  const sign = vz >= 0 ? '+' : '−';
+  const absVz = Math.abs(vz).toFixed(2);
+
+  // velocities
+  document.getElementById('smp_vR').textContent = f2(vR) + ' m/s';
+  document.getElementById('smp_vz').textContent = f2(vz) + ' m/s';
+
+  // trajectory formulas with numbers substituted
+  const vRsign = vR >= 0 ? '+' : '−';
+  document.getElementById('smp_Rt').textContent = f1(p.R0) + ' ' + vRsign + ' ' + Math.abs(vR).toFixed(1) + '·t';
+  document.getElementById('smp_Zt').textContent = f1(p.Z0) + ' ' + sign + ' ' + absVz + '·t − 4.9t²';
+
+  // key times
+  document.getElementById('smp_tfly').textContent = f2(tFly) + ' s';
+  document.getElementById('smp_hmax').textContent = f1(hMax) + ' m';
+  document.getElementById('smp_deltaR').textContent = f1(vR * tFly) + ' m';
+
+  // cosines
+  document.getElementById('smp_l').textContent = f4(Math.cos(p.elev));
+  document.getElementById('smp_n').textContent = f4(Math.sin(p.elev));
+  const check = Math.cos(p.elev)**2 + Math.sin(p.elev)**2;
+  document.getElementById('smp_check').textContent = f4(check) + ' ✓';
+
+  // intercept panel
+  const intDiv = document.getElementById('smpIntercept');
+  const noSolDiv = document.getElementById('smpNoSol');
+  if (inter) {
+    intDiv.style.display = 'block';
+    noSolDiv.style.display = 'none';
+    document.getElementById('smp_tstar').textContent = f2(inter.tStar) + ' s';
+    document.getElementById('smp_Rs').textContent = f1(inter.Rs) + ' m';
+    document.getElementById('smp_Zs').textContent = f1(inter.Zs) + ' m';
+    document.getElementById('smp_theta').textContent = (inter.theta * 180 / Math.PI).toFixed(1) + '°';
+    document.getElementById('smp_u').textContent = f1(inter.u) + ' m/s';
+    document.getElementById('smp_mode').textContent = inter.thruster ? '⚡ Propulsor' : '🛡️ Balístico';
+    if (!inter.thruster) {
+      const dist = Math.sqrt(inter.Rs**2 + inter.Zs**2).toFixed(1);
+      document.getElementById('smp_eqDef').innerHTML =
+        'u = √(R*²+Z*²)/t* = √(' + f1(inter.Rs) + '²+' + f1(inter.Zs) + '²) / ' + f2(inter.tStar) +
+        ' = ' + dist + '/' + f2(inter.tStar) + ' = <strong>' + f1(inter.u) + ' m/s</strong>';
+    } else {
+      const tb = Math.min(p.tBoost, inter.tStar);
+      const thetaDeg = (inter.theta * 180 / Math.PI).toFixed(1);
+      document.getElementById('smp_eqDef').innerHTML =
+        'u = (R*−½·a<sub>p</sub>·cos θ·t<sub>b</sub>²) / (cos θ·t*) = <strong>' + f1(inter.u) + ' m/s</strong>';
+    }
+  } else {
+    intDiv.style.display = 'none';
+    noSolDiv.style.display = 'block';
+  }
+}
+
+/* ─── INIT ─── */
+window.addEventListener('load', ()=>{
+  runSim(true);
+  drawFrame(0);
+});
+</script>
+</body>
+</html>

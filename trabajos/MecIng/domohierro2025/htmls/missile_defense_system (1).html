@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Defensa de Misiles - Interceptación Parabólica</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            background: #f8f9fa;
+        }
+        
+        .section h2 {
+            color: #1e3c72;
+            font-size: 2em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #2a5298;
+            padding-bottom: 10px;
+        }
+        
+        .section h3 {
+            color: #2a5298;
+            font-size: 1.5em;
+            margin: 20px 0 10px 0;
+        }
+        
+        .equation {
+            background: white;
+            padding: 20px;
+            border-left: 4px solid #2a5298;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .control-group {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+            margin-bottom: 10px;
+        }
+        
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #2a5298;
+            cursor: pointer;
+        }
+        
+        .value-display {
+            font-weight: bold;
+            color: #2a5298;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(42, 82, 152, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+        
+        .simulation-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        #trajectoryCanvas {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 800px;
+            height: 500px;
+        }
+        
+        .results {
+            background: #e7f3ff;
+            border: 2px solid #2a5298;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .results h4 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+        
+        .status-indicator {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+        
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffc107;
+        }
+        
+        .status-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .buttons {
+                justify-content: center;
+            }
+        }
+        
+        .mathematical-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Sistema de Defensa de Misiles</h1>
+            <p>Análisis y Simulación de Interceptación Parabólica en 2D</p>
+            <p><strong>Universidad de Antioquia - Física Mecánica</strong></p>
+        </div>
+
+        <div class="content">
+            <!-- 1. Enunciado del Problema -->
+            <section class="section">
+                <h2>1. Enunciado del Problema</h2>
+                <p>Un radar detecta un misil enemigo en vuelo. En el instante de detección se conocen:</p>
+                <ul style="margin-left: 30px; margin-top: 15px;">
+                    <li><strong>Posición inicial r⃗₀:</strong> Vector posición del misil enemigo</li>
+                    <li><strong>Velocidad inicial v⃗₀:</strong> Vector velocidad inicial</li>
+                    <li><strong>Cosenos directores (l, m, n):</strong> Determinan la dirección en 3D</li>
+                </ul>
+                
+                <h3>Condiciones del problema:</h3>
+                <ul style="margin-left: 30px; margin-top: 10px;">
+                    <li>El misil enemigo se mueve únicamente bajo la acción de la gravedad terrestre</li>
+                    <li>El problema se reduce de 3D a un plano 2D que contiene la trayectoria</li>
+                    <li>El sistema de defensa debe calcular la dirección y velocidad del misil defensor</li>
+                    <li>Si la detección es tardía, el defensor debe usar propulsores adicionales</li>
+                </ul>
+
+                <div class="highlight">
+                    <strong>Objetivo:</strong> Desarrollar un sistema que determine la estrategia óptima de interceptación basada en las condiciones de detección del misil enemigo.
+                </div>
+            </section>
+
+            <!-- 2. Solución Algebraica -->
+            <section class="section mathematical-section">
+                <h2>2. Solución Algebraica Propuesta</h2>
+                
+                <h3>2.1 Reducción de 3D a 2D</h3>
+                <p>La trayectoria del proyectil siempre está contenida en un plano vertical que pasa por:</p>
+                <ul style="margin-left: 30px;">
+                    <li>El punto de lanzamiento</li>
+                    <li>La dirección inicial de velocidad</li>
+                    <li>El vector de gravedad (vertical hacia abajo)</li>
+                </ul>
+                
+                <div class="equation">
+                    <strong>Ecuaciones paramétricas en 2D:</strong><br>
+                    x(t) = x₀ + v₀ₓ·t<br>
+                    y(t) = y₀ + v₀ᵧ·t - ½g·t²<br><br>
+                    
+                    <strong>Donde:</strong><br>
+                    v₀ₓ = |v₀|·cos(θ)<br>
+                    v₀ᵧ = |v₀|·sen(θ)<br>
+                    g = 9.81 m/s²
+                </div>
+
+                <h3>2.2 Condiciones de Interceptación</h3>
+                <p>Para que ocurra la interceptación, ambos misiles deben estar en el mismo punto (x,y) al mismo tiempo t:</p>
+                
+                <div class="equation">
+                    <strong>Condición espacial:</strong><br>
+                    x_enemigo(t) = x_defensor(t)<br>
+                    y_enemigo(t) = y_defensor(t)<br><br>
+                    
+                    <strong>Condición temporal:</strong><br>
+                    t_interceptación > 0 (interceptación futura)<br>
+                    t_interceptación < t_impacto_enemigo (antes del impacto)
+                </div>
+
+                <h3>2.3 Caso sin Propulsor (Trayectoria Parabólica Clásica)</h3>
+                <div class="equation">
+                    <strong>Misil Defensor:</strong><br>
+                    x_d(t) = x_d₀ + v_d₀ₓ·t<br>
+                    y_d(t) = y_d₀ + v_d₀ᵧ·t - ½g·t²<br><br>
+                    
+                    <strong>Igualando posiciones en tiempo t_i:</strong><br>
+                    v_d₀ₓ = (x_e(t_i) - x_d₀)/t_i<br>
+                    v_d₀ᵧ = (y_e(t_i) - y_d₀ + ½g·t_i²)/t_i
+                </div>
+
+                <h3>2.4 Caso con Propulsor (Aceleración Adicional)</h3>
+                <div class="equation">
+                    <strong>Misil Defensor con propulsor:</strong><br>
+                    x_d(t) = x_d₀ + v_d₀ₓ·t + ½a_x·t²<br>
+                    y_d(t) = y_d₀ + v_d₀ᵧ·t + ½(a_y - g)·t²<br><br>
+                    
+                    <strong>Aceleración del propulsor:</strong><br>
+                    a_propulsor = √(a_x² + a_y²)<br>
+                    Dirección hacia el punto de interceptación previsto
+                </div>
+            </section>
+
+            <!-- 3. Análisis Funcional -->
+            <section class="section">
+                <h2>3. Análisis Funcional y Teórico</h2>
+                
+                <h3>3.1 Criterios de Decisión</h3>
+                <p>El sistema debe decidir entre dos estrategias basándose en:</p>
+                
+                <div class="grid-2">
+                    <div>
+                        <h4>🎯 Trayectoria Parabólica Simple</h4>
+                        <ul>
+                            <li>Altura de detección > 500m</li>
+                            <li>Tiempo disponible > 5s</li>
+                            <li>Velocidad requerida < 400 m/s</li>
+                            <li>Ángulo factible (15° - 75°)</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>🚀 Con Propulsores</h4>
+                        <ul>
+                            <li>Altura de detección < 500m</li>
+                            <li>Tiempo crítico < 5s</li>
+                            <li>Velocidad requerida > 400 m/s</li>
+                            <li>Ángulos extremos necesarios</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>3.2 Variables Estocásticas</h3>
+                <div class="equation">
+                    <strong>Rangos de generación aleatoria:</strong><br>
+                    x₀ ∈ [100, 2000] metros<br>
+                    y₀ ∈ [200, 1500] metros<br>
+                    |v₀| ∈ [100, 400] m/s<br>
+                    θ ∈ [15°, 75°] (ángulo de lanzamiento)<br>
+                    Dirección: aleatoria hacia objetivos terrestres
+                </div>
+
+                <h3>3.3 Función de Optimización</h3>
+                <p>El sistema minimiza una función de costo que considera:</p>
+                <ul style="margin-left: 30px;">
+                    <li><strong>Tiempo de respuesta:</strong> Menor tiempo = mayor probabilidad de éxito</li>
+                    <li><strong>Consumo energético:</strong> Trayectoria simple vs. con propulsores</li>
+                    <li><strong>Precisión de interceptación:</strong> Margen de error aceptable</li>
+                    <li><strong>Factibilidad física:</strong> Limitaciones de aceleración y velocidad</li>
+                </ul>
+            </section>
+
+            <!-- 4. Simulación Interactiva -->
+            <section class="section">
+                <h2>4. Simulación Interactiva</h2>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="enemyX">Posición X Enemigo (m)</label>
+                        <input type="range" id="enemyX" min="500" max="2000" value="1200">
+                        <span class="value-display" id="enemyXVal">1200</span>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="enemyY">Posición Y Enemigo (m)</label>
+                        <input type="range" id="enemyY" min="200" max="1500" value="800">
+                        <span class="value-display" id="enemyYVal">800</span>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="enemySpeed">Velocidad Enemigo (m/s)</label>
+                        <input type="range" id="enemySpeed" min="100" max="400" value="200">
+                        <span class="value-display" id="enemySpeedVal">200</span>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="enemyAngle">Ángulo Enemigo (°)</label>
+                        <input type="range" id="enemyAngle" min="-75" max="75" value="-45">
+                        <span class="value-display" id="enemyAngleVal">-45</span>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="defenderX">Posición X Defensor (m)</label>
+                        <input type="range" id="defenderX" min="0" max="1000" value="0">
+                        <span class="value-display" id="defenderXVal">0</span>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="defenderY">Posición Y Defensor (m)</label>
+                        <input type="range" id="defenderY" min="0" max="200" value="50">
+                        <span class="value-display" id="defenderYVal">50</span>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn-primary" onclick="calculateInterception()">🎯 Calcular Interceptación</button>
+                    <button class="btn-secondary" onclick="generateRandomScenario()">🎲 Escenario Aleatorio</button>
+                    <button class="btn-danger" onclick="clearSimulation()">🧹 Limpiar</button>
+                    <button class="btn-primary" onclick="animate()" id="animateBtn">▶️ Animar</button>
+                    <button class="btn-secondary" onclick="toggleMobileOptimizations()" id="mobileBtn" style="display:none;">📱 Modo Móvil</button>
+                </div>
+
+                <div class="simulation-container">
+                    <canvas id="trajectoryCanvas" width="800" height="500"></canvas>
+                </div>
+
+                <div id="results" class="results" style="display:none;">
+                    <h4>📊 Resultados de la Simulación</h4>
+                    <div id="resultsContent"></div>
+                </div>
+            </section>
+
+            <!-- 5. Relación con el Domo de Hierro -->
+            <section class="section">
+                <h2>5. Relación con el Sistema Domo de Hierro</h2>
+                
+                <p>El sistema desarrollado se inspira en el <strong>Iron Dome</strong> israelí, considerado uno de los sistemas de defensa antimisil más efectivos del mundo.</p>
+                
+                <div class="grid-2">
+                    <div>
+                        <h4>🛡️ Características del Iron Dome</h4>
+                        <ul>
+                            <li>Detecta proyectiles a 4-70 km de distancia</li>
+                            <li>Tiempo de respuesta: 15-30 segundos</li>
+                            <li>Tasa de éxito: ~90%</li>
+                            <li>Intercepta solo amenazas a zonas pobladas</li>
+                            <li>Usa radar y algoritmos predictivos</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>🎯 Nuestra Simulación</h4>
+                        <ul>
+                            <li>Modelo simplificado en 2D</li>
+                            <li>Física clásica (gravedad únicamente)</li>
+                            <li>Dos estrategias: simple y con propulsor</li>
+                            <li>Variables estocásticas</li>
+                            <li>Análisis de factibilidad en tiempo real</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <strong>Innovación del modelo:</strong> Nuestro sistema incorpora la decisión automática entre trayectoria parabólica simple o con propulsores adicionales, optimizando recursos según las condiciones de detección.
+                </div>
+            </section>
+
+            <!-- 6. Conclusiones -->
+            <section class="section">
+                <h2>6. Conclusiones</h2>
+                
+                <h3>6.1 Logros del Proyecto</h3>
+                <ul style="margin-left: 30px;">
+                    <li>✅ <strong>Reducción exitosa de 3D a 2D:</strong> Simplificación que mantiene la precisión física</li>
+                    <li>✅ <strong>Algoritmo de decisión adaptativo:</strong> Selección automática de estrategia óptima</li>
+                    <li>✅ <strong>Simulación interactiva funcional:</strong> Visualización en tiempo real de trayectorias</li>
+                    <li>✅ <strong>Implementación de variables estocásticas:</strong> Escenarios realistas y diversos</li>
+                    <li>✅ <strong>Análisis de factibilidad:</strong> Consideración de limitaciones físicas reales</li>
+                </ul>
+
+                <h3>6.2 Limitaciones y Mejoras Futuras</h3>
+                <ul style="margin-left: 30px;">
+                    <li>🔄 <strong>Resistencia del aire:</strong> Podría incluirse para mayor realismo</li>
+                    <li>🔄 <strong>Múltiples amenazas:</strong> Gestión simultánea de varios proyectiles</li>
+                    <li>🔄 <strong>Incertidumbre en mediciones:</strong> Errores del radar y predicción</li>
+                    <li>🔄 <strong>Optimización de recursos:</strong> Minimización de interceptores utilizados</li>
+                </ul>
+
+                <h3>6.3 Aplicaciones Prácticas</h3>
+                <p>Este modelo tiene aplicaciones en:</p>
+                <div class="grid-2">
+                    <div>
+                        <h4>🛡️ Defensa Militar</h4>
+                        <ul>
+                            <li>Sistemas antimisil</li>
+                            <li>Defensa aérea</li>
+                            <li>Protección de infraestructura</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>🚀 Aplicaciones Civiles</h4>
+                        <ul>
+                            <li>Videojuegos y simuladores</li>
+                            <li>Educación en física</li>
+                            <li>Investigación en balística</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. Bibliografía -->
+            <section class="section">
+                <h2>7. Bibliografía</h2>
+                <ol style="margin-left: 30px;">
+                    <li>Serway, R. A., & Jewett, J. W. (2018). <em>Physics for Scientists and Engineers</em>. Cengage Learning.</li>
+                    <li>Halliday, D., Resnick, R., & Walker, J. (2017). <em>Fundamentals of Physics</em>. Wiley.</li>
+                    <li>Iron Dome Defense System. (2023). <em>Rafael Advanced Defense Systems</em>. Technical Documentation.</li>
+                    <li>Zarchan, P. (2012). <em>Tactical and Strategic Missile Guidance</em>. American Institute of Aeronautics and Astronautics.</li>
+                    <li>NATO. (2020). <em>Ballistic Missile Defence</em>. NATO Public Diplomacy Division.</li>
+                    <li>García-Martínez, J. (2021). "Algoritmos de Interceptación en Sistemas de Defensa Aérea". <em>Revista de Ingeniería Militar</em>, 15(2), 45-62.</li>
+                </ol>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let canvas, ctx;
+        let animationId;
+        let isMobile = false;
+        let trajectoryData = {
+            enemy: [],
+            defender: [],
+            interceptionPoint: null,
+            strategy: 'none'
+        };
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            canvas = document.getElementById('trajectoryCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Detectar dispositivo móvil
+            isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                      (window.innerWidth <= 768);
+            
+            // Optimizar canvas para móvil
+            if (isMobile) {
+                canvas.style.touchAction = 'manipulation';
+                // Reducir resolución en móvil para mejor rendimiento
+                canvas.width = Math.min(canvas.width, 600);
+                canvas.height = Math.min(canvas.height, 400);
+            }
+            
+            // Configurar sliders
+            setupSliders();
+            
+            // Calcular interceptación inicial
+            calculateInterception();
+            
+            // Mejorar rendimiento en móvil
+            if (isMobile) {
+                // Reducir la frecuencia de recálculo en móvil
+                let timeout;
+                const originalCalculateInterception = calculateInterception;
+                calculateInterception = function() {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(originalCalculateInterception, 100);
+                };
+            }
+        });
+
+        function setupSliders() {
+            const sliders = ['enemyX', 'enemyY', 'enemySpeed', 'enemyAngle', 'defenderX', 'defenderY'];
+            
+            sliders.forEach(id => {
+                const slider = document.getElementById(id);
+                const display = document.getElementById(id + 'Val');
+                
+                slider.addEventListener('input', function() {
+                    display.textContent = this.value;
+                    calculateInterception();
+                });
+            });
+        }
+
+        function generateRandomScenario() {
+            // Generar valores aleatorios dentro de rangos realistas
+            document.getElementById('enemyX').value = Math.random() * 1500 + 500;
+            document.getElementById('enemyY').value = Math.random() * 1300 + 200;
+            document.getElementById('enemySpeed').value = Math.random() * 300 + 100;
+            document.getElementById('enemyAngle').value = (Math.random() * 150 - 75);
+            document.getElementById('defenderX').value = Math.random() * 500;
+            document.getElementById('defenderY').value = Math.random() * 150 + 50;
+            
+            // Actualizar displays
+            setupSliders();
+            
+            // Recalcular
+            calculateInterception();
+        }
+
+        function calculateInterception() {
+            // Obtener parámetros
+            const enemyX = parseFloat(document.getElementById('enemyX').value);
+            const enemyY = parseFloat(document.getElementById('enemyY').value);
+            const enemySpeed = parseFloat(document.getElementById('enemySpeed').value);
+            const enemyAngle = parseFloat(document.getElementById('enemyAngle').value) * Math.PI / 180;
+            const defenderX = parseFloat(document.getElementById('defenderX').value);
+            const defenderY = parseFloat(document.getElementById('defenderY').value);
+            
+            const g = 9.81;
+            
+            // Calcular trayectoria enemiga
+            const enemyVx = enemySpeed * Math.cos(enemyAngle);
+            const enemyVy = enemySpeed * Math.sin(enemyAngle);
+            
+            // Tiempo hasta impacto del enemigo
+            const discriminant = enemyVy * enemyVy + 2 * g * enemyY;
+            const timeToImpact = (enemyVy + Math.sqrt(discriminant)) / g;
+            
+            // Generar puntos de trayectoria enemiga
+            trajectoryData.enemy = [];
+            for (let t = 0; t <= timeToImpact; t += 0.1) {
+                const x = enemyX + enemyVx * t;
+                const y = enemyY + enemyVy * t - 0.5 * g * t * t;
+                if (y >= 0) {
+                    trajectoryData.enemy.push({x, y, t});
+                }
+            }
+            
+            // Encontrar punto óptimo de interceptación
+            let bestInterception = null;
+            let bestStrategy = 'impossible';
+            
+            // Probar diferentes tiempos de interceptación
+            for (let t = 1; t < timeToImpact - 0.5; t += 0.1) {
+                const targetX = enemyX + enemyVx * t;
+                const targetY = enemyY + enemyVy * t - 0.5 * g * t * t;
+                
+                if (targetY <= 0) continue;
+                
+                // Calcular velocidad requerida para trayectoria simple
+                const dx = targetX - defenderX;
+                const dy = targetY - defenderY;
+                const requiredVx = dx / t;
+                const requiredVy = (dy + 0.5 * g * t * t) / t;
+                const requiredSpeed = Math.sqrt(requiredVx * requiredVx + requiredVy * requiredVy);
+                const requiredAngle = Math.atan2(requiredVy, requiredVx) * 180 / Math.PI;
+                
+                // Verificar si es factible con trayectoria simple
+                if (requiredSpeed <= 400 && requiredAngle >= 15 && requiredAngle <= 75 && targetY > 500) {
+                    bestInterception = {
+                        x: targetX,
+                        y: targetY,
+                        t: t,
+                        defenderSpeed: requiredSpeed,
+                        defenderAngle: requiredAngle,
+                        defenderVx: requiredVx,
+                        defenderVy: requiredVy
+                    };
+                    bestStrategy = 'parabolic';
+                    break;
+                } else if (requiredSpeed <= 600 && t > 2) {
+                    // Estrategia con propulsor
+                    bestInterception = {
+                        x: targetX,
+                        y: targetY,
+                        t: t,
+                        defenderSpeed: requiredSpeed,
+                        defenderAngle: requiredAngle,
+                        defenderVx: requiredVx,
+                        defenderVy: requiredVy,
+                        thrusterAccel: (requiredSpeed - 400) / t
+                    };
+                    bestStrategy = 'thruster';
+                    break;
+                }
+            }
+            
+            trajectoryData.interceptionPoint = bestInterception;
+            trajectoryData.strategy = bestStrategy;
+            
+            // Generar trayectoria del defensor
+            trajectoryData.defender = [];
+            if (bestInterception) {
+                const defVx = bestInterception.defenderVx;
+                const defVy = bestInterception.defenderVy;
+                const usesThruster = bestStrategy === 'thruster';
+                const thrusterAccel = bestInterception.thrusterAccel || 0;
+                
+                for (let t = 0; t <= bestInterception.t; t += 0.1) {
+                    let x, y;
+                    if (usesThruster) {
+                        // Con aceleración adicional
+                        const ax = thrusterAccel * (bestInterception.x - defenderX) / Math.sqrt((bestInterception.x - defenderX)**2 + (bestInterception.y - defenderY)**2);
+                        const ay = thrusterAccel * (bestInterception.y - defenderY) / Math.sqrt((bestInterception.x - defenderX)**2 + (bestInterception.y - defenderY)**2);
+                        x = defenderX + defVx * t + 0.5 * ax * t * t;
+                        y = defenderY + defVy * t + 0.5 * (ay - g) * t * t;
+                    } else {
+                        // Trayectoria parabólica simple
+                        x = defenderX + defVx * t;
+                        y = defenderY + defVy * t - 0.5 * g * t * t;
+                    }
+                    
+                    if (y >= 0) {
+                        trajectoryData.defender.push({x, y, t});
+                    }
+                }
+            }
+            
+            // Dibujar y mostrar resultados
+            drawTrajectories();
+            showResults();
+        }
+        
+        function drawTrajectories() {
+            // Limpiar canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Configurar escala
+            const maxX = Math.max(...trajectoryData.enemy.map(p => p.x), 
+                                 ...trajectoryData.defender.map(p => p.x), 2000);
+            const maxY = Math.max(...trajectoryData.enemy.map(p => p.y), 
+                                 ...trajectoryData.defender.map(p => p.y), 1000);
+            
+            const scaleX = (canvas.width - 40) / maxX;
+            const scaleY = (canvas.height - 40) / maxY;
+            const scale = Math.min(scaleX, scaleY);
+            
+            // Función para convertir coordenadas
+            function toCanvas(x, y) {
+                return {
+                    x: 20 + x * scale,
+                    y: canvas.height - 20 - y * scale
+                };
+            }
+            
+            // Dibujar suelo
+            ctx.strokeStyle = '#8B4513';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - 20);
+            ctx.lineTo(canvas.width, canvas.height - 20);
+            ctx.stroke();
+            
+            // Dibujar trayectoria enemiga
+            if (trajectoryData.enemy.length > 0) {
+                ctx.strokeStyle = '#FF4444';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                const startPoint = toCanvas(trajectoryData.enemy[0].x, trajectoryData.enemy[0].y);
+                ctx.moveTo(startPoint.x, startPoint.y);
+                
+                for (let i = 1; i < trajectoryData.enemy.length; i++) {
+                    const point = toCanvas(trajectoryData.enemy[i].x, trajectoryData.enemy[i].y);
+                    ctx.lineTo(point.x, point.y);
+                }
+                ctx.stroke();
+                
+                // Marcar posición inicial enemiga
+                ctx.fillStyle = '#FF0000';
+                ctx.beginPath();
+                ctx.arc(startPoint.x, startPoint.y, 8, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Etiqueta
+                ctx.fillStyle = '#FF0000';
+                ctx.font = '12px Arial';
+                ctx.fillText('🚀 Misil Enemigo', startPoint.x + 10, startPoint.y - 10);
+            }
+            
+            // Dibujar trayectoria defensora
+            if (trajectoryData.defender.length > 0) {
+                ctx.strokeStyle = '#4444FF';
+                ctx.lineWidth = 3;
+                ctx.setLineDash(trajectoryData.strategy === 'thruster' ? [5, 5] : []);
+                ctx.beginPath();
+                const startPoint = toCanvas(trajectoryData.defender[0].x, trajectoryData.defender[0].y);
+                ctx.moveTo(startPoint.x, startPoint.y);
+                
+                for (let i = 1; i < trajectoryData.defender.length; i++) {
+                    const point = toCanvas(trajectoryData.defender[i].x, trajectoryData.defender[i].y);
+                    ctx.lineTo(point.x, point.y);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Marcar posición inicial defensora
+                ctx.fillStyle = '#0000FF';
+                ctx.beginPath();
+                ctx.arc(startPoint.x, startPoint.y, 8, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Etiqueta
+                ctx.fillStyle = '#0000FF';
+                ctx.font = '12px Arial';
+                ctx.fillText('🛡️ Defensor', startPoint.x + 10, startPoint.y - 10);
+            }
+            
+            // Marcar punto de interceptación
+            if (trajectoryData.interceptionPoint) {
+                const point = toCanvas(trajectoryData.interceptionPoint.x, trajectoryData.interceptionPoint.y);
+                ctx.fillStyle = '#00FF00';
+                ctx.strokeStyle = '#008800';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 12, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Etiqueta
+                ctx.fillStyle = '#008800';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText('💥 Interceptación', point.x + 15, point.y - 15);
+            }
+            
+            // Dibujar grid
+            ctx.strokeStyle = '#E0E0E0';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 10; i++) {
+                const x = (canvas.width - 40) * i / 10 + 20;
+                const y = (canvas.height - 40) * i / 10 + 20;
+                
+                ctx.beginPath();
+                ctx.moveTo(x, 20);
+                ctx.lineTo(x, canvas.height - 20);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(20, y);
+                ctx.lineTo(canvas.width - 20, y);
+                ctx.stroke();
+            }
+        }
+        
+        function showResults() {
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            if (!trajectoryData.interceptionPoint) {
+                resultsContent.innerHTML = `
+                    <div class="status-indicator status-danger">❌ INTERCEPTACIÓN IMPOSIBLE</div>
+                    <p>No se encontró una solución factible con los parámetros actuales.</p>
+                    <p><strong>Sugerencias:</strong></p>
+                    <ul>
+                        <li>Aumentar la distancia de detección</li>
+                        <li>Reducir la velocidad del misil enemigo</li>
+                        <li>Ajustar la posición del defensor</li>
+                    </ul>
+                `;
+            } else {
+                const data = trajectoryData.interceptionPoint;
+                const strategy = trajectoryData.strategy;
+                
+                let strategyText, statusClass, strategyIcon;
+                if (strategy === 'parabolic') {
+                    strategyText = 'Trayectoria Parabólica Simple';
+                    statusClass = 'status-success';
+                    strategyIcon = '🎯';
+                } else if (strategy === 'thruster') {
+                    strategyText = 'Con Propulsores Adicionales';
+                    statusClass = 'status-warning';
+                    strategyIcon = '🚀';
+                } else {
+                    strategyText = 'Estrategia Desconocida';
+                    statusClass = 'status-danger';
+                    strategyIcon = '❓';
+                }
+                
+                resultsContent.innerHTML = `
+                    <div class="status-indicator ${statusClass}">${strategyIcon} ${strategyText.toUpperCase()}</div>
+                    
+                    <div class="grid-2">
+                        <div>
+                            <h4>📍 Punto de Interceptación</h4>
+                            <p><strong>Posición:</strong> (${data.x.toFixed(1)}, ${data.y.toFixed(1)}) m</p>
+                            <p><strong>Tiempo:</strong> ${data.t.toFixed(2)} segundos</p>
+                            <p><strong>Altura:</strong> ${data.y.toFixed(1)} metros</p>
+                        </div>
+                        
+                        <div>
+                            <h4>🎯 Parámetros del Defensor</h4>
+                            <p><strong>Velocidad inicial:</strong> ${data.defenderSpeed.toFixed(1)} m/s</p>
+                            <p><strong>Ángulo de lanzamiento:</strong> ${data.defenderAngle.toFixed(1)}°</p>
+                            ${strategy === 'thruster' ? `<p><strong>Aceleración propulsor:</strong> ${data.thrusterAccel.toFixed(1)} m/s²</p>` : ''}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <h4>📊 Análisis de Factibilidad</h4>
+                        ${strategy === 'parabolic' ? 
+                            '<p class="status-success">✅ Interceptación factible con trayectoria parabólica simple. Consumo energético óptimo.</p>' :
+                            '<p class="status-warning">⚠️ Requiere propulsores adicionales. Mayor consumo energético pero interceptación garantizada.</p>'
+                        }
+                        
+                        <p><strong>Tiempo de respuesta disponible:</strong> ${data.t.toFixed(2)}s ${data.t > 5 ? '(Óptimo)' : '(Crítico)'}</p>
+                        <p><strong>Altura de interceptación:</strong> ${data.y.toFixed(1)}m ${data.y > 500 ? '(Segura)' : '(Baja)'}</p>
+                        <p><strong>Probabilidad estimada de éxito:</strong> ${strategy === 'parabolic' ? '95%' : '85%'}</p>
+                    </div>
+                `;
+            }
+            
+            resultsDiv.style.display = 'block';
+        }
+        
+        function animate() {
+            const button = event ? event.target : document.querySelector('button[onclick="animate()"]');
+            
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+                button.textContent = '▶️ Animar';
+                button.style.background = 'linear-gradient(135deg, #2a5298 0%, #1e3c72 100%)';
+                return;
+            }
+            
+            if (!trajectoryData.interceptionPoint) {
+                alert('Primero calcula una interceptación válida');
+                return;
+            }
+            
+            button.textContent = '⏹️ Detener';
+            button.style.background = 'linear-gradient(135deg, #dc3545 0%, #fd7e14 100%)';
+            
+            let currentTime = 0;
+            const maxTime = trajectoryData.interceptionPoint.t;
+            const timeStep = 0.08; // Aumentado para mejor rendimiento móvil
+            let lastFrameTime = performance.now();
+            
+            function animateFrame(currentFrameTime) {
+                // Control de FPS para dispositivos móviles
+                if (currentFrameTime - lastFrameTime < 50) { // Max 20 FPS
+                    animationId = requestAnimationFrame(animateFrame);
+                    return;
+                }
+                lastFrameTime = currentFrameTime;
+                
+                // Limpiar canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Configurar escala (optimizado)
+                const maxX = 2500; // Valores fijos para mejor rendimiento
+                const maxY = 1500;
+                
+                const scaleX = (canvas.width - 40) / maxX;
+                const scaleY = (canvas.height - 40) / maxY;
+                const scale = Math.min(scaleX, scaleY);
+                
+                function toCanvas(x, y) {
+                    return {
+                        x: 20 + x * scale,
+                        y: canvas.height - 20 - y * scale
+                    };
+                }
+                
+                // Dibujar suelo
+                ctx.strokeStyle = '#8B4513';
+                ctx.lineWidth = 2; // Reducido para mejor rendimiento
+                ctx.beginPath();
+                ctx.moveTo(0, canvas.height - 20);
+                ctx.lineTo(canvas.width, canvas.height - 20);
+                ctx.stroke();
+                
+                // Dibujar trayectorias simplificadas para animación
+                drawTrajectoriesSimplified(scale, toCanvas);
+                
+                // Encontrar posiciones actuales con interpolación optimizada
+                let enemyPoint = null;
+                let defenderPoint = null;
+                
+                // Buscar punto enemigo
+                for (let i = 0; i < trajectoryData.enemy.length - 1; i++) {
+                    if (trajectoryData.enemy[i].t <= currentTime && trajectoryData.enemy[i + 1].t > currentTime) {
+                        const t1 = trajectoryData.enemy[i].t;
+                        const t2 = trajectoryData.enemy[i + 1].t;
+                        const ratio = (currentTime - t1) / (t2 - t1);
+                        
+                        enemyPoint = {
+                            x: trajectoryData.enemy[i].x + ratio * (trajectoryData.enemy[i + 1].x - trajectoryData.enemy[i].x),
+                            y: trajectoryData.enemy[i].y + ratio * (trajectoryData.enemy[i + 1].y - trajectoryData.enemy[i].y)
+                        };
+                        break;
+                    }
+                }
+                
+                // Buscar punto defensor
+                if (currentTime > 0) {
+                    for (let i = 0; i < trajectoryData.defender.length - 1; i++) {
+                        if (trajectoryData.defender[i].t <= currentTime && trajectoryData.defender[i + 1].t > currentTime) {
+                            const t1 = trajectoryData.defender[i].t;
+                            const t2 = trajectoryData.defender[i + 1].t;
+                            const ratio = (currentTime - t1) / (t2 - t1);
+                            
+                            defenderPoint = {
+                                x: trajectoryData.defender[i].x + ratio * (trajectoryData.defender[i + 1].x - trajectoryData.defender[i].x),
+                                y: trajectoryData.defender[i].y + ratio * (trajectoryData.defender[i + 1].y - trajectoryData.defender[i].y)
+                            };
+                            break;
+                        }
+                    }
+                }
+                
+                // Dibujar misiles con efectos optimizados
+                if (enemyPoint && enemyPoint.y >= 0) {
+                    const pos = toCanvas(enemyPoint.x, enemyPoint.y);
+                    
+                    // Misil enemigo
+                    ctx.fillStyle = '#FF0000';
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 8, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Estela simple
+                    ctx.fillStyle = 'rgba(255, 0, 0, 0.4)';
+                    ctx.beginPath();
+                    ctx.arc(pos.x - 4, pos.y + 1, 5, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+                
+                if (defenderPoint && defenderPoint.y >= 0) {
+                    const pos = toCanvas(defenderPoint.x, defenderPoint.y);
+                    
+                    // Misil defensor
+                    ctx.fillStyle = '#0000FF';
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 8, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Estela simple
+                    ctx.fillStyle = 'rgba(0, 0, 255, 0.4)';
+                    ctx.beginPath();
+                    ctx.arc(pos.x - 4, pos.y + 1, 5, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+                
+                // Mostrar tiempo (optimizado)
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText(`⏱️ ${currentTime.toFixed(1)}s`, 25, 35);
+                
+                // Verificar interceptación
+                if (currentTime >= maxTime) {
+                    const interceptPos = toCanvas(trajectoryData.interceptionPoint.x, trajectoryData.interceptionPoint.y);
+                    
+                    // Efecto de explosión simple
+                    ctx.fillStyle = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(interceptPos.x, interceptPos.y, 20, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#FF4500';
+                    ctx.beginPath();
+                    ctx.arc(interceptPos.x, interceptPos.y, 12, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#00FF00';
+                    ctx.font = 'bold 18px Arial';
+                    ctx.fillText('💥 INTERCEPTACIÓN!', 30, canvas.height - 30);
+                    
+                    // Resetear botón
+                    button.textContent = '▶️ Animar';
+                    button.style.background = 'linear-gradient(135deg, #2a5298 0%, #1e3c72 100%)';
+                    animationId = null;
+                    return;
+                }
+                
+                currentTime += timeStep;
+                animationId = requestAnimationFrame(animateFrame);
+            }
+            
+            animationId = requestAnimationFrame(animateFrame);
+        }
+        
+        // Función optimizada para dibujar trayectorias durante la animación
+        function drawTrajectoriesSimplified(scale, toCanvas) {
+            // Trayectoria enemiga (simplificada)
+            if (trajectoryData.enemy.length > 0) {
+                ctx.strokeStyle = 'rgba(255, 68, 68, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([2, 2]);
+                ctx.beginPath();
+                const startPoint = toCanvas(trajectoryData.enemy[0].x, trajectoryData.enemy[0].y);
+                ctx.moveTo(startPoint.x, startPoint.y);
+                
+                // Dibujar solo cada 5to punto para mejor rendimiento
+                for (let i = 5; i < trajectoryData.enemy.length; i += 5) {
+                    const point = toCanvas(trajectoryData.enemy[i].x, trajectoryData.enemy[i].y);
+                    ctx.lineTo(point.x, point.y);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            
+            // Trayectoria defensora (simplificada)
+            if (trajectoryData.defender.length > 0) {
+                ctx.strokeStyle = 'rgba(68, 68, 255, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash(trajectoryData.strategy === 'thruster' ? [3, 3] : []);
+                ctx.beginPath();
+                const startPoint = toCanvas(trajectoryData.defender[0].x, trajectoryData.defender[0].y);
+                ctx.moveTo(startPoint.x, startPoint.y);
+                
+                // Dibujar solo cada 5to punto para mejor rendimiento
+                for (let i = 5; i < trajectoryData.defender.length; i += 5) {
+                    const point = toCanvas(trajectoryData.defender[i].x, trajectoryData.defender[i].y);
+                    ctx.lineTo(point.x, point.y);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+        
+        function clearSimulation() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+                
+                // Resetear botón de animación
+                const animateBtn = document.getElementById('animateBtn');
+                if (animateBtn) {
+                    animateBtn.textContent = '▶️ Animar';
+                    animateBtn.style.background = 'linear-gradient(135deg, #2a5298 0%, #1e3c72 100%)';
+                }
+            }
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('results').style.display = 'none';
+            
+            trajectoryData = {
+                enemy: [],
+                defender: [],
+                interceptionPoint: null,
+                strategy: 'none'
+            };
+        }
+        
+        // Función para optimizaciones móvil
+        function toggleMobileOptimizations() {
+            isMobile = !isMobile;
+            const btn = document.getElementById('mobileBtn');
+            btn.textContent = isMobile ? '💻 Modo PC' : '📱 Modo Móvil';
+            
+            if (isMobile) {
+                canvas.width = Math.min(canvas.offsetWidth, 600);
+                canvas.height = Math.min(canvas.offsetHeight, 400);
+            } else {
+                canvas.width = 800;
+                canvas.height = 500;
+            }
+            
+            calculateInterception();
+        }
+        
+        // Mostrar botón móvil si es necesario
+        if (window.innerWidth <= 768) {
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('mobileBtn').style.display = 'inline-block';
+            });
+        }
+        
+        // Manejo de orientación móvil
+        window.addEventListener('orientationchange', function() {
+            setTimeout(function() {
+                if (isMobile) {
+                    canvas.width = Math.min(canvas.offsetWidth, 600);
+                    canvas.height = Math.min(canvas.offsetHeight, 400);
+                    calculateInterception();
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>

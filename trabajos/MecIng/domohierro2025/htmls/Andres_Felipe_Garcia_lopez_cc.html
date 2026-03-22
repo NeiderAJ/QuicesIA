@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulación Intercepción de Misiles</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 20px;
+    }
+    section {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #004080;
+    }
+    canvas {
+      background: #fafafa;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    label, button {
+      display: block;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <section>
+    <h2>Enunciado del Problema</h2>
+    <p>Un radar detecta un misil enemigo en vuelo. A partir de su posición inicial, velocidad y dirección, se debe lanzar un misil defensor capaz de interceptarlo. Dependiendo de la altura de detección, el misil defensor puede seguir un tiro parabólico simple o requerir propulsores adicionales.</p>
+  </section>
+
+  <section>
+    <h2>Solución Algebraica Propuesta</h2>
+    <p>La trayectoria del misil enemigo se modela como un tiro parabólico en 2D bajo gravedad. El misil defensor debe calcular una dirección y velocidad inicial que permita interceptar al enemigo. En casos cercanos al suelo, se añade una aceleración extra simulando propulsores.</p>
+  </section>
+
+  <section>
+    <h2>Simulación Interactiva</h2>
+    <button onclick="generarAleatorio()">Generar parámetros aleatorios</button>
+    <label>Velocidad inicial del enemigo (m/s): <input type="range" id="v0e" min="100" max="400" value="200" step="10" oninput="simular()"></label>
+    <label>Ángulo de lanzamiento del enemigo (°): <input type="range" id="angleE" min="15" max="75" value="45" step="1" oninput="simular()"></label>
+    <label>Velocidad inicial del defensor (m/s): <input type="range" id="v0d" min="100" max="400" value="220" step="10" oninput="simular()"></label>
+    <label>Ángulo de lanzamiento del defensor (°): <input type="range" id="angleD" min="15" max="75" value="50" step="1" oninput="simular()"></label>
+    <label>Aceleración extra del defensor (m/s²): <input type="range" id="accD" min="0" max="50" value="0" step="1" oninput="simular()"></label>
+    <canvas id="grafico" width="600" height="400"></canvas>
+  </section>
+
+  <section>
+    <h2>Conclusiones</h2>
+    <p>La simulación muestra cómo un misil defensor puede interceptar a un enemigo bajo diferentes condiciones iniciales, inspirándose en sistemas como el Domo de Hierro.</p>
+  </section>
+
+<script>
+function simular(){
+  const g = 9.8;
+  const v0e = parseFloat(document.getElementById('v0e').value);
+  const angleE = parseFloat(document.getElementById('angleE').value) * Math.PI / 180;
+  const v0d = parseFloat(document.getElementById('v0d').value);
+  const angleD = parseFloat(document.getElementById('angleD').value) * Math.PI / 180;
+  const accD = parseFloat(document.getElementById('accD').value);
+
+  const dt = 0.1;
+  let t = 0;
+  let xE=[], yE=[], xD=[], yD=[];
+
+  while (t < 20){
+    let xe = v0e*Math.cos(angleE)*t;
+    let ye = v0e*Math.sin(angleE)*t - 0.5*g*t*t;
+    let xd = v0d*Math.cos(angleD)*t;
+    let yd = v0d*Math.sin(angleD)*t - 0.5*(g-accD)*t*t;
+
+    if(ye<0 && yd<0) break;
+    if(ye>=0){ xE.push(xe); yE.push(ye);} 
+    if(yd>=0){ xD.push(xd); yD.push(yd);} 
+    t+=dt;
+  }
+
+  const ctx = document.getElementById('grafico').getContext('2d');
+  if(window.miGrafico){ window.miGrafico.destroy(); }
+  window.miGrafico = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: xE,
+      datasets: [
+        {
+          label: 'Misil Enemigo',
+          data: yE,
+          borderColor: 'red',
+          fill: false,
+        },
+        {
+          label: 'Misil Defensor',
+          data: yD,
+          borderColor: 'blue',
+          fill: false,
+        }
+      ]
+    },
+    options: {
+      responsive: false,
+      scales: {
+        x: {
+          title: { display: true, text: 'Distancia (m)' }
+        },
+        y: {
+          title: { display: true, text: 'Altura (m)' }
+        }
+      }
+    }
+  });
+}
+
+function generarAleatorio(){
+  document.getElementById('v0e').value = Math.floor(100+Math.random()*300);
+  document.getElementById('angleE').value = Math.floor(15+Math.random()*60);
+  simular();
+}
+
+window.onload=simular;
+</script>
+
+</body>
+</html>

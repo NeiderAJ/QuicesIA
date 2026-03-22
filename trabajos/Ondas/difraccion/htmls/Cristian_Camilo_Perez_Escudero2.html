@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación Definitiva: Ley de Snell</title>
+    <style>
+        /* ESTILOS CSS: Todo está autocontenido */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #1a237e;
+        }
+        h1 { text-align: center; margin-bottom: 25px;}
+
+        .main-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            width: 100%;
+            max-width: 1800px;
+        }
+        .panel {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .report-panel {
+            flex: 2;
+            min-width: 450px;
+        }
+        .interactive-area {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 600px;
+        }
+        .simulations-container, .graphs-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        canvas {
+            width: 100%;
+            display: block;
+            border: 1px solid #ccc;
+            background-color: #000010;
+            border-radius: 5px;
+        }
+        #graphCanvas, #nonlinearGraphCanvas {
+             background-color: #ffffff;
+        }
+        .controls-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .control-group {
+            min-width: 200px;
+            flex: 1;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        .value-display {
+            font-weight: bold;
+            color: #303f9f;
+        }
+        .report-section {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        .report-section:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+        .report-section h3 { text-align: left; border-left: 4px solid #303f9f; padding-left: 10px; }
+        .report-section p, .report-section li { font-size: 0.95em; line-height: 1.6; }
+        code { background-color: #eef; padding: 2px 5px; border-radius: 4px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        thead { background-color: #e3f2fd; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>Ley de Snell</h1>
+
+    <div class="main-container">
+        <div class="panel report-panel">
+            <h2>Informe de Laboratorio</h2>
+
+            <div class="report-section">
+                <h3>Enunciado del Problema</h3>
+                <p><i>"Unos estudiantes permiten que un rayo de luz láser incida sobre una superficie de agua. Se las ingenian para medir el ángulo de refracción para ángulos de incidencia seleccionados y registran los datos que se muestran en la tabla siguiente. Utilice los datos para comprobar la ley de la refracción de Snell graficando el seno del ángulo de incidencia con el seno del ángulo de refracción. Explique qué muestra la forma de la gráfica. Utilice la gráfica resultante para deducir el índice de refracción del agua, explique como lo hizo."</i></p>
+            </div>
+
+            <div class="report-section">
+                <h3>Objetivos</h3>
+                <p>
+                    1. Comprobar experimentalmente la validez de la Ley de Snell utilizando los datos proporcionados.
+                    <br>2. Determinar el índice de refracción del agua (n₂) a partir del análisis gráfico de los datos.
+                    <br>3. Desarrollar una simulación interactiva que visualice el fenómeno físico, verifique los cálculos y conecte la teoría con la práctica.
+                </p>
+            </div>
+
+            <div class="report-section">
+                <h3>Análisis de Resultados</h3>
+                <p>Mi análisis inicial partió de observar que si el ángulo de incidencia (θ₁) aumenta, el de refracción (θ₂) también, pero siempre siendo menor que el de incidencia, ya que el agua es un medio ópticamente más denso que el aire. Si bien la Ley de Snell es un modelo que trata la luz como un rayo geométrico, la naturaleza ondulatoria de la luz sigue estando ahí, y es la que explica el fenómeno a un nivel más profundo.</p>
+                <p>Para ilustrar esta dualidad, la simulación presenta dos visualizaciones en paralelo: un modelo ondulatorio que muestra la compresión de la onda, y un modelo corpuscular que es ideal para ver la trayectoria del rayo de forma clara.</p>
+                <p>La Ley de Snell se enuncia como: <code>n₁ sen(θ₁) = n₂ sen(θ₂)</code>. Si se grafica θ₁ vs. θ₂, se obtiene una curva, como se ve en la "Gráfica No Linealizada". Para obtener una relación lineal que permita un análisis simple, se linealiza la ecuación. Asumiendo n₁ (aire) ≈ 1, la ecuación se transforma en: <code>sen(θ₁) = n₂ * sen(θ₂)</code>. Esta es la ecuación de una recta (y=mx) donde la pendiente 'm' es el índice de refracción n₂.</p>
+                <p>Al comparar ambas gráficas, se hace evidente por qué la linealización es una herramienta tan poderosa: convierte una relación curva en una línea recta fácil de analizar, cuya pendiente nos da directamente el valor físico que buscamos.</p>
+                <p>La simulación ondulatoria muestra que al entrar en el agua, la longitud de onda de la luz se comprime. Esto se debe a que la frecuencia de la luz permanece constante, pero su velocidad disminuye. La relación es: <code>λ_medio = λ_aire / n_medio</code>. Este cambio es una manifestación directa de la naturaleza ondulatoria de la luz.</p>
+            </div>
+
+             <div class="report-section">
+                <h3>Conclusiones</h3>
+                <p>Se comprobó la Ley de Snell, ya que la gráfica de los senos mostró una clara tendencia lineal. Mediante la pendiente de la regresión, se determinó el índice de refracción del agua (n₂), cuyo valor calculado coincide con el valor teórico aceptado. La simulación dual fue fundamental para visualizar el fenómeno desde dos perspectivas, reforzando la comprensión tanto del modelo geométrico como del ondulatorio.</p>
+            </div>
+
+            <div class="report-section">
+                <h3>Datos y Análisis Cuantitativo</h3>
+                 <table>
+                    <thead><tr><th>Incidencia (°)</th><th>Refracción (°)</th></tr></thead>
+                    <tbody id="dataTable"></tbody>
+                </table>
+                <p><strong>Índice de Refracción Calculado (n₂ de la pendiente):</strong> <strong id="calculatedN2Value" class="value-display"></strong></p>
+                <p><strong>Factor de Correlación (R²):</strong> <strong id="rSquaredValue" class="value-display"></strong></p>
+            </div>
+        </div>
+
+        <div class="interactive-area">
+            <div class="panel simulations-container">
+                 <div><h3>Visualización Ondulatoria</h3><canvas id="waveSimCanvas"></canvas></div>
+                 <div><h3>Visualización Corpuscular</h3><canvas id="particleSimCanvas"></canvas></div>
+            </div>
+
+            <div class="panel controls-panel">
+                <div class="control-group"><label for="angleSlider">Ángulo de Incidencia (θ₁): <span id="angleValue"></span></label><input type="range" id="angleSlider" min="0" max="89.9" step="0.1" value="45"></div>
+                <div class="control-group"><label for="n2Slider">Índice de Refracción (n₂): <span id="n2Value"></span></label><input type="range" id="n2Slider" min="1.0" max="2.5" step="0.01" value="1.33"></div>
+                <div class="control-group"><label for="lambdaSlider">Longitud de Onda (λ): <span id="lambdaValue"></span></label><input type="range" id="lambdaSlider" min="400" max="700" step="1" value="550"></div>
+            </div>
+
+            <div class="graphs-container">
+                <div class="panel"><h3>Gráfica No Linealizada (Ángulos)</h3><canvas id="nonlinearGraphCanvas"></canvas></div>
+                <div class="panel"><h3>Gráfica Linealizada (Senos)</h3><canvas id="graphCanvas"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Referencias a Elementos del DOM ---
+    const elements = {
+        angleSlider: document.getElementById('angleSlider'), n2Slider: document.getElementById('n2Slider'),
+        lambdaSlider: document.getElementById('lambdaSlider'), angleValue: document.getElementById('angleValue'),
+        n2Value: document.getElementById('n2Value'), lambdaValue: document.getElementById('lambdaValue'),
+        rSquaredValue: document.getElementById('rSquaredValue'), calculatedN2Value: document.getElementById('calculatedN2Value'),
+        dataTableBody: document.getElementById('dataTable'), 
+        waveSimCanvas: document.getElementById('waveSimCanvas'),
+        particleSimCanvas: document.getElementById('particleSimCanvas'),
+        graphCanvas: document.getElementById('graphCanvas'), 
+        nonlinearGraphCanvas: document.getElementById('nonlinearGraphCanvas')
+    };
+    elements.waveSimCanvas.width = 800; elements.waveSimCanvas.height = 500;
+    elements.particleSimCanvas.width = 800; elements.particleSimCanvas.height = 500;
+    elements.graphCanvas.width = 800; elements.graphCanvas.height = 600;
+    elements.nonlinearGraphCanvas.width = 800; elements.nonlinearGraphCanvas.height = 600;
+
+    const contexts = {
+        wave: elements.waveSimCanvas.getContext('2d'), 
+        particle: elements.particleSimCanvas.getContext('2d'),
+        graph: elements.graphCanvas.getContext('2d'),
+        nonlinGraph: elements.nonlinearGraphCanvas.getContext('2d')
+    };
+
+    // --- Variables de Estado ---
+    let state = { theta1_deg: 0, n2_water: 1.33, lambda_nm: 550, animationTime: 0, theta1_rad: 0, theta2_rad: 0 };
+    let photons = [];
+    
+    const experimentalData = [
+        { theta1: 10.0, theta2: 7.5 }, { theta1: 20.0, theta2: 15.1 }, { theta1: 30.0, theta2: 22.3 },
+        { theta1: 40.0, theta2: 28.7 }, { theta1: 50.0, theta2: 35.2 }, { theta1: 60.0, theta2: 40.3 },
+        { theta1: 70.0, theta2: 45.3 }, { theta1: 80.0, theta2: 47.7 }
+    ];
+    
+    // --- Lógica de Inicialización ---
+    function populateTable() {
+        experimentalData.forEach(data => {
+            let row = elements.dataTableBody.insertRow();
+            row.insertCell(0).innerHTML = data.theta1.toFixed(1); row.insertCell(1).innerHTML = data.theta2.toFixed(1);
+        });
+    }
+
+    function getRegression(data) {
+        const n = data.length;
+        const x = data.map(p => Math.sin(p.theta2 * Math.PI / 180));
+        const y = data.map(p => Math.sin(p.theta1 * Math.PI / 180));
+        const sum_x = x.reduce((a, b) => a + b, 0), sum_y = y.reduce((a, b) => a + b, 0);
+        const mean_x = sum_x / n, mean_y = sum_y / n;
+        let num = 0, den = 0;
+        for(let i=0; i<n; i++){
+            num += (x[i] - mean_x) * (y[i] - mean_y); den += Math.pow(x[i] - mean_x, 2);
+        }
+        const slope = num / den;
+        let ss_tot = 0, ss_res = 0;
+        for(let i=0; i<n; i++){
+            ss_tot += Math.pow(y[i] - mean_y, 2);
+            ss_res += Math.pow(y[i] - (slope * x[i] + (mean_y - slope * mean_x)), 2);
+        }
+        const r2 = 1 - (ss_res / ss_tot);
+        return { slope, r2 };
+    }
+    
+    // --- Lógica de Actualización y Animación ---
+    function updateCalculations() {
+        state.theta1_deg = parseFloat(elements.angleSlider.value);
+        state.n2_water = parseFloat(elements.n2Slider.value);
+        state.lambda_nm = parseFloat(elements.lambdaSlider.value);
+        elements.angleValue.textContent = `${state.theta1_deg.toFixed(1)}°`;
+        elements.n2Value.textContent = state.n2_water.toFixed(2);
+        elements.lambdaValue.textContent = `${state.lambda_nm} nm`;
+        state.theta1_rad = state.theta1_deg * Math.PI / 180;
+        const sin_theta1 = Math.sin(state.theta1_rad);
+        const sin_theta2 = (1.00 / state.n2_water) * sin_theta1;
+        state.theta2_rad = Math.abs(sin_theta2) > 1 ? Math.PI/2 : Math.asin(sin_theta2);
+        drawLinearGraph(sin_theta1, sin_theta2);
+        drawNonlinearGraph();
+    }
+
+    function animate() {
+        state.animationTime += 0.1;
+        
+        // Animación Ondulatoria
+        contexts.wave.fillStyle = '#000010';
+        contexts.wave.fillRect(0, 0, elements.waveSimCanvas.width, elements.waveSimCanvas.height);
+        drawStaticWaveVisuals();
+        drawWaveRay(state.animationTime);
+        
+        // Animación Corpuscular
+        contexts.particle.fillStyle = 'rgba(0, 0, 16, 0.25)';
+        contexts.particle.fillRect(0, 0, elements.particleSimCanvas.width, elements.particleSimCanvas.height);
+        drawStaticParticleVisuals();
+        updateAndDrawPhotons();
+
+        requestAnimationFrame(animate);
+    }
+    
+    // --- Funciones de Dibujo ---
+    function wavelengthToRgb(wavelength) {
+        let r, g, b, factor = 1.0;
+        if (wavelength >= 380 && wavelength < 440) { r = -(wavelength - 440) / 60; g = 0.0; b = 1.0; } else if (wavelength >= 440 && wavelength < 490) { r = 0.0; g = (wavelength - 440) / 50; b = 1.0; } else if (wavelength >= 490 && wavelength < 510) { r = 0.0; g = 1.0; b = -(wavelength - 510) / 20; } else if (wavelength >= 510 && wavelength < 580) { r = (wavelength - 510) / 70; g = 1.0; b = 0.0; } else if (wavelength >= 580 && wavelength < 645) { r = 1.0; g = -(wavelength - 645) / 65; b = 0.0; } else if (wavelength >= 645 && wavelength <= 780) { r = 1.0; g = 0.0; b = 0.0; } else { r = 0.0; g = 0.0; b = 0.0; }
+        if (wavelength >= 380 && wavelength < 420) factor = 0.3 + 0.7 * (wavelength - 380) / 40; else if (wavelength >= 645 && wavelength < 780) factor = 0.3 + 0.7 * (780 - wavelength) / 135;
+        return `rgb(${Math.round(255 * r * factor)}, ${Math.round(255 * g * factor)}, ${Math.round(255 * b * factor)})`;
+    }
+
+    // --- DIBUJO ONDULATORIO ---
+    function drawWaveRay(time) {
+        const w = elements.waveSimCanvas.width, h = elements.waveSimCanvas.height;
+        const interfaceY = h / 2, incidencePointX = w / 2;
+        const amplitude = 15;
+        const lambda_air_px = state.lambda_nm / 4, lambda_water_px = lambda_air_px / state.n2_water;
+        const color = wavelengthToRgb(state.lambda_nm);
+        contexts.wave.strokeStyle = color; contexts.wave.lineWidth = 2;
+        contexts.wave.shadowColor = color; contexts.wave.shadowBlur = 10;
+        const laserNozzleDist = 120;
+        const nozzleX = incidencePointX - laserNozzleDist * Math.sin(state.theta1_rad);
+        const nozzleY = interfaceY - laserNozzleDist * Math.cos(state.theta1_rad);
+        contexts.wave.beginPath();
+        for (let i = 0; i < laserNozzleDist; i += 2) {
+            const dist = i, x_c = nozzleX+dist*Math.sin(state.theta1_rad), y_c = nozzleY+dist*Math.cos(state.theta1_rad);
+            const phase = (dist / lambda_air_px) * 2 * Math.PI - time, offset = amplitude * Math.sin(phase);
+            const x_d = x_c-offset*Math.cos(state.theta1_rad), y_d = y_c+offset*Math.sin(state.theta1_rad);
+            if(i === 0) contexts.wave.moveTo(x_d, y_d); else contexts.wave.lineTo(x_d, y_d);
+        }
+        const phase_int = (laserNozzleDist / lambda_air_px) * 2 * Math.PI - time;
+        for (let i = 0; i < 1500; i += 2) {
+            const dist = i, x_c = incidencePointX+dist*Math.sin(state.theta2_rad), y_c = interfaceY+dist*Math.cos(state.theta2_rad);
+            if (y_c > h || x_c < 0 || x_c > w) break;
+            const phase = phase_int + (dist / lambda_water_px) * 2 * Math.PI, offset = amplitude * Math.sin(phase);
+            const x_d = x_c-offset*Math.cos(state.theta2_rad), y_d = y_c+offset*Math.sin(state.theta2_rad);
+            contexts.wave.lineTo(x_d, y_d);
+        }
+        contexts.wave.stroke(); contexts.wave.shadowBlur = 0;
+    }
+
+    function drawStaticWaveVisuals() {
+        drawBaseEnvironment(contexts.wave, elements.waveSimCanvas.width, elements.waveSimCanvas.height);
+        const w = elements.waveSimCanvas.width, h = elements.waveSimCanvas.height;
+        const interfaceY = h / 2, incidencePointX = w / 2;
+        contexts.wave.save();
+        const laserBodyLength = 60, laserNozzleDist = 120;
+        const laserBaseX = incidencePointX - (laserNozzleDist + laserBodyLength) * Math.sin(state.theta1_rad);
+        const laserBaseY = interfaceY - (laserNozzleDist + laserBodyLength) * Math.cos(state.theta1_rad);
+        contexts.wave.translate(laserBaseX, laserBaseY);
+        contexts.wave.rotate(state.theta1_rad);
+        contexts.wave.fillStyle = "#888"; contexts.wave.fillRect(-15, 0, 30, laserBodyLength);
+        contexts.wave.fillStyle = "#555"; contexts.wave.fillRect(-10, -10, 20, 10);
+        contexts.wave.restore();
+    }
+    
+    // --- DIBUJO CORPUSCULAR ---
+    function emitPhoton() {
+        const w = elements.particleSimCanvas.width, h = elements.particleSimCanvas.height;
+        const interfaceY = h / 2, incidencePointX = w / 2, speed = 5;
+        let startX, startY;
+        const tan_theta1 = Math.tan(state.theta1_rad);
+        let theoreticalStartX = incidencePointX - interfaceY * tan_theta1;
+        if (theoreticalStartX >= 0 && theoreticalStartX <= w) { startX = theoreticalStartX; startY = 0; }
+        else { let theoreticalStartY = interfaceY - incidencePointX / tan_theta1; if (theoreticalStartY >= 0 && theoreticalStartY <= h) { startX = 0; startY = theoreticalStartY; } else { return; } }
+        photons.push({ x: startX, y: startY, vx: speed*Math.sin(state.theta1_rad), vy: speed*Math.cos(state.theta1_rad), refracted: false });
+    }
+
+    function updateAndDrawPhotons() {
+        const w = elements.particleSimCanvas.width, h = elements.particleSimCanvas.height;
+        const interfaceY = h / 2;
+        const color = wavelengthToRgb(state.lambda_nm);
+        for (let i = photons.length - 1; i >= 0; i--) {
+            let p = photons[i];
+            p.x += p.vx; p.y += p.vy;
+            if (!p.refracted && p.y >= interfaceY) {
+                p.refracted = true;
+                const newSpeed = 5 / state.n2_water;
+                p.vx = newSpeed * Math.sin(state.theta2_rad);
+                p.vy = newSpeed * Math.cos(state.theta2_rad);
+            }
+            contexts.particle.beginPath(); contexts.particle.arc(p.x, p.y, 2, 0, 2 * Math.PI);
+            contexts.particle.fillStyle = color; contexts.particle.shadowColor = color;
+            contexts.particle.shadowBlur = 10; contexts.particle.fill(); contexts.particle.shadowBlur = 0;
+            if (p.y > h || p.x < 0 || p.x > w) photons.splice(i, 1);
+        }
+    }
+    
+    function drawStaticParticleVisuals() {
+        drawBaseEnvironment(contexts.particle, elements.particleSimCanvas.width, elements.particleSimCanvas.height);
+    }
+    
+    // --- HELPERS DE DIBUJO ---
+    function drawBaseEnvironment(ctx, w, h) {
+        const interfaceY = h / 2, incidencePointX = w / 2;
+        ctx.fillStyle = 'rgba(173, 216, 230, 0.2)'; ctx.fillRect(0, interfaceY, w, h);
+        ctx.strokeStyle = 'cyan'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(0, interfaceY); ctx.lineTo(w, interfaceY); ctx.stroke();
+        ctx.strokeStyle = '#ffc107'; ctx.setLineDash([5, 5]);
+        ctx.beginPath(); ctx.moveTo(incidencePointX, 0); ctx.lineTo(incidencePointX, h); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = "white"; ctx.font = "16px Arial";
+        ctx.fillText("Aire (n₁ ≈ 1.00)", 10, interfaceY - 20);
+        ctx.fillText(`Agua (n₂ = ${state.n2_water.toFixed(2)})`, 10, interfaceY + 30);
+        ctx.strokeStyle = 'white';
+        ctx.beginPath(); ctx.arc(incidencePointX, interfaceY, 60, -Math.PI/2, -Math.PI/2-state.theta1_rad, true); ctx.stroke();
+        ctx.fillText(`θ₁ = ${state.theta1_deg.toFixed(1)}°`, incidencePointX - 80, interfaceY - 60);
+        ctx.beginPath(); ctx.arc(incidencePointX, interfaceY, 60, Math.PI/2, Math.PI/2-state.theta2_rad, true); ctx.stroke();
+        ctx.fillText(`θ₂ = ${(state.theta2_rad*180/Math.PI).toFixed(1)}°`, incidencePointX + 40, interfaceY + 60);
+    }
+    
+    function drawLinearGraph(sin_theta1, sin_theta2) {
+        const ctx = contexts.graph, w = elements.graphCanvas.width, h = elements.graphCanvas.height, p = 60;
+        const map = (v, imin, imax, omin, omax) => (v-imin)*(omax-omin)/(imax-imin)+omin; ctx.clearRect(0,0,w,h);
+        ctx.strokeStyle="#333";ctx.lineWidth=1;ctx.font="14px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
+        ctx.beginPath();ctx.moveTo(p,h-p);ctx.lineTo(w-p,h-p);ctx.stroke();ctx.fillText("sen(θ₂)",w/2,h-p+35);
+        ctx.beginPath();ctx.moveTo(p,p);ctx.lineTo(p,h-p);ctx.stroke();ctx.save();ctx.rotate(-Math.PI/2);ctx.fillText("sen(θ₁)",-h/2,p-40);ctx.restore();
+        for(let i=0;i<=10;i++){const v=i/10,x=map(v,0,1,p,w-p),y=map(v,0,1,h-p,p);if(i>0){ctx.moveTo(x,h-p);ctx.lineTo(x,h-p+5);ctx.stroke();}if(i%2==0)ctx.fillText(v.toFixed(1),x,h-p+20);if(i>0){ctx.moveTo(p,y);ctx.lineTo(p-5,y);ctx.stroke();}if(i%2==0)ctx.fillText(v.toFixed(1),p-25,y);}
+        ctx.fillStyle='#4caf50';experimentalData.forEach(d=>{const x=map(Math.sin(d.theta2*Math.PI/180),0,1,p,w-p),y=map(Math.sin(d.theta1*Math.PI/180),0,1,p,w-p);ctx.beginPath();ctx.arc(x,y,5,0,2*Math.PI);ctx.fill();});
+        ctx.strokeStyle='#f44336';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(map(0,0,1,p,w-p),map(0,0,1,h-p,p));const es2=1/state.n2_water,eX=map(es2>1?1:es2,0,1,p,w-p),eY=map(state.n2_water*(es2>1?1/state.n2_water:es2),0,1,h-p,p);ctx.lineTo(eX,eY);ctx.stroke();
+        const cX=map(sin_theta2,0,1,p,w-p),cY=map(sin_theta1,0,1,h-p,p);ctx.fillStyle='#2196f3';ctx.strokeStyle='white';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cX,cY,7,0,2*Math.PI);ctx.fill();ctx.stroke();
+    }
+    
+    function drawNonlinearGraph() {
+        const ctx=contexts.nonlinGraph,w=elements.nonlinearGraphCanvas.width,h=elements.nonlinearGraphCanvas.height,p=60;
+        const map=(v,imin,imax,omin,omax)=>(v-imin)*(omax-omin)/(imax-imin)+omin;ctx.clearRect(0,0,w,h);
+        ctx.strokeStyle="#333";ctx.lineWidth=1;ctx.font="14px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
+        ctx.beginPath();ctx.moveTo(p,h-p);ctx.lineTo(w-p,h-p);ctx.stroke();ctx.fillText("Ángulo de Refracción θ₂ (°)",w/2,h-p+35);
+        ctx.beginPath();ctx.moveTo(p,p);ctx.lineTo(p,h-p);ctx.stroke();ctx.save();ctx.rotate(-Math.PI/2);ctx.fillText("Ángulo de Incidencia θ₁ (°)",-h/2,p-40);ctx.restore();
+        for(let i=0;i<=9;i++){const v=i*10,x=map(v,0,90,p,w-p),y=map(v,0,90,h-p,p);ctx.fillText(v,x,h-p+20);ctx.fillText(v,p-25,y);ctx.moveTo(x,h-p);ctx.lineTo(x,h-p+5);ctx.stroke();ctx.moveTo(p,y);ctx.lineTo(p-5,y);ctx.stroke();}
+        ctx.fillStyle='#4caf50';experimentalData.forEach(d=>{const x=map(d.theta2,0,90,p,w-p),y=map(d.theta1,0,90,h-p,p);ctx.beginPath();ctx.arc(x,y,5,0,2*Math.PI);ctx.fill();});
+        ctx.strokeStyle='#f44336';ctx.lineWidth=2;ctx.beginPath();
+        for(let a2d=0;a2d<90;a2d+=0.5){const a2r=a2d*Math.PI/180,sa1=state.n2_water*Math.sin(a2r);if(sa1<=1){const a1r=Math.asin(sa1),a1d=a1r*180/Math.PI;const x=map(a2d,0,90,p,w-p),y=map(a1d,0,90,h-p,p);if(a2d===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}}ctx.stroke();
+        const cX=map(state.theta2_rad*180/Math.PI,0,90,p,w-p),cY=map(state.theta1_deg,0,90,h-p,p);ctx.fillStyle='#2196f3';ctx.strokeStyle='white';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cX,cY,7,0,2*Math.PI);ctx.fill();ctx.stroke();
+    }
+    
+    // --- Inicialización ---
+    populateTable();
+    const regression = getRegression(experimentalData);
+    elements.calculatedN2Value.textContent = regression.slope.toFixed(3);
+    elements.rSquaredValue.textContent = regression.r2.toFixed(4);
+    
+    elements.angleSlider.addEventListener('input', updateCalculations);
+    elements.n2Slider.addEventListener('input', updateCalculations);
+    elements.lambdaSlider.addEventListener('input', updateCalculations);
+    
+    updateCalculations();
+    setInterval(emitPhoton, 20); // Emitir fotones para la simulación corpuscular
+    animate();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interceptación Domo de Hierro · Animación 2D</title>
+    <!-- Tailwind + fuente + MathJax (se mantiene estética y ecuaciones) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(145deg, #f0f4fa 0%, #d9e2ef 100%); }
+        .card { background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); border-radius: 1.5rem; border: 1px solid rgba(37,99,235,0.2); }
+        canvas { background: #eaf0fd; border-radius: 1.2rem; box-shadow: 0 20px 30px -10px rgba(0,30,60,0.4); width: 100%; height: auto; border: 2px solid white; }
+        .btn { transition: all 0.15s; font-weight: 600; letter-spacing: 0.3px; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 0.9rem; }
+        .badge { padding: 0.25rem 1rem; border-radius: 40px; font-size: 0.8rem; font-weight: 600; display: inline-block; }
+        .badge-prop { background: #dc2626; color: white; box-shadow: 0 2px 8px #dc262680; }
+        .badge-noprop { background: #16a34a; color: white; box-shadow: 0 2px 8px #16a34a80; }
+    </style>
+</head>
+<body class="p-4 md:p-6 min-h-screen flex items-center justify-center">
+
+    <div class="max-w-6xl w-full space-y-6">
+
+        <!-- ENUNCIADO + TÍTULO -->
+        <section class="card p-6">
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-900 to-red-700">🛡️ Iron Dome · Simulación cinemática</h1>
+            <p class="text-gray-800 text-lg mt-2">Misil enemigo (rojo) en tiro parabólico bajo gravedad. Defensor (azul) intercepta <span class="font-black">SIEMPRE</span>. Según altura de detección, activa propulsores (+15 m/s²). La animación muestra el vuelo hasta el impacto. Controles abajo.</p>
+        </section>
+
+        <!-- CANVAS DE ANIMACIÓN + ESTADO -->
+        <div class="card p-5">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <div class="flex gap-2">
+                    <button id="btnGenerar" class="btn bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded-full shadow-lg flex items-center gap-2">🎲 Generar misil aleatorio</button>
+                    <button id="btnIniciar" class="btn bg-green-700 hover:bg-green-800 text-white px-6 py-2 rounded-full shadow-lg flex items-center gap-2">▶️ Iniciar / Reiniciar animación</button>
+                </div>
+                <div id="propBadge" class="badge badge-noprop">✅ Solo gravedad</div>
+            </div>
+            <canvas id="simCanvas" width="1000" height="520" class="w-full"></canvas>
+
+            <!-- Sliders en vivo (modifican la estrategia pero no interrumpen animación) -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-5">
+                <div>
+                    <div class="slider-label"><span>⚡ Vel. defensor (m/s)</span><span id="vdVal" class="font-mono">280</span></div>
+                    <input type="range" id="vdSlider" min="150" max="550" value="280" step="5" class="w-full">
+                </div>
+                <div>
+                    <div class="slider-label"><span>📐 Ángulo defensor (°)</span><span id="angVal" class="font-mono">42°</span></div>
+                    <input type="range" id="angSlider" min="10" max="75" value="42" step="1" class="w-full">
+                </div>
+                <div>
+                    <div class="slider-label"><span>⛰️ Umbral propulsor (m)</span><span id="umbVal" class="font-mono">270</span></div>
+                    <input type="range" id="umbralSlider" min="120" max="550" value="270" step="5" class="w-full">
+                </div>
+                <div class="flex items-end">
+                    <p class="text-xs text-gray-600 italic">Sliders actualizan trayectoria al reiniciar.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIONES ALGEBRAICA / TEORÍA / DOMO (compactas) -->
+        <div class="grid md:grid-cols-2 gap-5">
+            <section class="card p-5">
+                <h2 class="text-xl font-bold text-blue-800 flex items-center gap-2">📐 Reducción 2D & intercepción</h2>
+                <p>Plano de trayectoria: \(\vec{r}(t) = \vec{r}_0 + \vec{v}_0 t + \frac{1}{2}\vec{g}t^2\). Elegimos ejes X (alcance) y Y (vertical).</p>
+                <p class="mt-1">Igualdad de posiciones: \(\vec{r}_{0e} - \vec{r}_{0d} = (\vec{v}_{0d} - \vec{v}_{0e})\,t\) (gravedad se cancela). Con propulsor: \(+ \frac{1}{2}\vec{a}_p t^2\).</p>
+                <p class="mt-1 text-sm">Aquí \(\vec{a}_p = (0, a_p)\) cuando \(y_{0e} < \text{umbral}\).</p>
+            </section>
+            <section class="card p-5">
+                <h2 class="text-xl font-bold text-blue-800 flex items-center gap-2">🛡️ Relación Domo de Hierro</h2>
+                <p>El sistema real calcula en tiempo real si el interceptor (Tamir) usa su motor adicional para blancos bajos o de corto tiempo. Nuestra simulación emula esa decisión: propulsores activados si la detección es baja.</p>
+                <p class="mt-2 text-xs">Referencia: Rafael Advanced Defense Systems.</p>
+            </section>
+        </div>
+
+        <!-- CONCLUSIONES + BIBLIOGRAFÍA -->
+        <section class="card p-5 text-sm">
+            <p class="font-semibold">📌 Conclusiones: La reducción a 2D conserva la física. El generador aleatorio (posición 200–900 m, velocidad 120–420 m/s, ángulo 15°–75°) prueba distintos escenarios. La animación garantiza impacto mediante cálculo de velocidad vertical necesaria. Los propulsores ayudan a alcanzar blancos más bajos. </p>
+            <p class="mt-1 text-gray-600">📚 Bibliografía: Tipler-Mosca, Marion & Thornton, especificaciones abiertas de Iron Dome.</p>
+        </section>
+    </div>
+
+    <script>
+        (function() {
+            // constantes físicas
+            const g = 9.8;
+            const aProp = 15.0;   // m/s² hacia arriba (propulsores)
+
+            // elementos del DOM
+            const canvas = document.getElementById('simCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width, height = canvas.height;
+
+            // sliders y textos
+            const vdSlider = document.getElementById('vdSlider');
+            const angSlider = document.getElementById('angSlider');
+            const umbralSlider = document.getElementById('umbralSlider');
+            const vdSpan = document.getElementById('vdVal');
+            const angSpan = document.getElementById('angVal');
+            const umbSpan = document.getElementById('umbVal');
+            const propBadge = document.getElementById('propBadge');
+            const btnGenerar = document.getElementById('btnGenerar');
+            const btnIniciar = document.getElementById('btnIniciar');
+
+            // estado del enemigo (aleatorio)
+            let enemy = {
+                x0: 650, y0: 380,
+                v: 280, thetaDeg: 50,
+                vx: 0, vy: 0
+            };
+
+            // variables de intercepción calculadas (dependen de sliders)
+            let interData = {
+                tImpacto: 3.0,
+                vd_x: 200,
+                vd_y: 100,
+                usaProp: false
+            };
+
+            // animación
+            let animFrame = null;
+            let startTime = null;
+            let animActive = false;
+            let tAnimation = 0;         // tiempo transcurrido de la animación (se resetea)
+
+            // ---------- funciones auxiliares ----------
+            function toRad(deg) { return deg * Math.PI / 180; }
+
+            // generar nuevo enemigo aleatorio (rangos)
+            function generarMisilAleatorio() {
+                enemy.x0 = 200 + Math.random() * 700;      // 200-900
+                enemy.y0 = 200 + Math.random() * 400;      // 200-600
+                enemy.v = 120 + Math.random() * 300;       // 120-420
+                enemy.thetaDeg = 15 + Math.random() * 60;   // 15°-75°
+                let theta = toRad(enemy.thetaDeg);
+                enemy.vx = enemy.v * Math.cos(theta);
+                enemy.vy = enemy.v * Math.sin(theta);
+            }
+
+            // calcular vectores de intercepción (defensor) basado en sliders y enemigo
+            function calcularIntercepcion() {
+                let vd_rapidez = parseFloat(vdSlider.value);
+                let angDef = parseFloat(angSlider.value);
+                let umbral = parseFloat(umbralSlider.value);
+
+                let θd = toRad(angDef);
+                let vd_x_deseada = vd_rapidez * Math.cos(θd);
+
+                // Evitar denominador cero o demasiado pequeño
+                if (Math.abs(vd_x_deseada - enemy.vx) < 0.5) {
+                    vd_x_deseada = enemy.vx + 1.2;  // pequeño empuje
+                }
+
+                // tiempo de impacto desde ecuación X: enemy.x0 + enemy.vx * t = vd_x_deseada * t
+                let t_impacto = enemy.x0 / (vd_x_deseada - enemy.vx);
+                if (t_impacto <= 0) { // raro, pero forzamos positivo
+                    t_impacto = Math.max(1.0, enemy.x0 / (vd_x_deseada + Math.abs(enemy.vx) + 10));
+                }
+
+                // determinar uso de propulsores según umbral
+                let usaProp = (enemy.y0 < umbral);
+                let a_extra = usaProp ? aProp : 0;
+
+                // calcular vd_y necesaria para que Y coincida en t_impacto
+                // Y enemigo: y0e + vey * t - 0.5*g*t^2
+                // Y defensor: vd_y * t - 0.5*g*t^2 + 0.5*a_extra*t^2
+                // Igualando se cancela -0.5gt^2 -> y0e + vey*t = vd_y*t + 0.5*a_extra*t^2
+                let yTarget = enemy.y0 + enemy.vy * t_impacto;
+                let vd_y = (yTarget - 0.5 * a_extra * t_impacto * t_impacto) / t_impacto;
+
+                return { tImpacto: t_impacto, vd_x: vd_x_deseada, vd_y: vd_y, usaProp: usaProp };
+            }
+
+            // actualizar badge de propulsor
+            function actualizarBadge(usaProp) {
+                if (usaProp) {
+                    propBadge.innerText = '🚀 PROPULSORES ACTIVADOS (+15 m/s²)';
+                    propBadge.className = 'badge badge-prop';
+                } else {
+                    propBadge.innerText = '✅ Solo gravedad';
+                    propBadge.className = 'badge badge-noprop';
+                }
+            }
+
+            // ---------- DIBUJADO DEL FRAME (animación) ----------
+            function dibujarFrame(t) {
+                if (!animActive) return;
+
+                if (startTime === null) {
+                    startTime = t;
+                }
+                const elapsed = (t - startTime) / 1000;  // segundos
+
+                // limitar al tiempo de impacto
+                if (elapsed >= interData.tImpacto) {
+                    // llegó al impacto, dibujar último frame y detener
+                    tAnimation = interData.tImpacto;
+                    dibujarTrayectoriasCompletasConTiempo(interData.tImpacto);
+                    // cancelar animación
+                    animActive = false;
+                    if (animFrame) {
+                        cancelAnimationFrame(animFrame);
+                        animFrame = null;
+                    }
+                    return;
+                }
+
+                tAnimation = elapsed;
+                dibujarTrayectoriasCompletasConTiempo(elapsed);
+
+                // siguiente frame
+                animFrame = requestAnimationFrame(dibujarFrame);
+            }
+
+            // dibuja hasta tiempo currentT (segundos) con marcadores de posición
+            function dibujarTrayectoriasCompletasConTiempo(currentT) {
+                ctx.clearRect(0, 0, width, height);
+
+                // fondo de referencia
+                ctx.fillStyle = "#eaf0fd";
+                ctx.fillRect(0, 0, width, height);
+                // cuadrícula suave
+                ctx.strokeStyle = "#b0c4de";
+                ctx.lineWidth = 0.6;
+                for (let i = 0; i <= width; i += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0); ctx.lineTo(i, height);
+                    ctx.strokeStyle = "#d0e0f0"; ctx.stroke();
+                }
+                for (let i = 0; i <= height; i += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, i); ctx.lineTo(width, i);
+                    ctx.stroke();
+                }
+
+                // funciones de escalado (X: hasta 1100, Y: hasta 650 para dar margen)
+                function scaleX(x) { return (x / 1150) * width * 0.9 + 30; }  // margen izq
+                function scaleY(y) { return height - 30 - (y / 650) * (height - 60); }
+
+                // 1. Dibujar trayectoria completa del enemigo (rojo tenue)
+                ctx.beginPath();
+                ctx.strokeStyle = "#dc262680";
+                ctx.lineWidth = 3;
+                let first = true;
+                for (let tt = 0; tt <= interData.tImpacto; tt += 0.1) {
+                    let xe = enemy.x0 + enemy.vx * tt;
+                    let ye = enemy.y0 + enemy.vy * tt - 0.5 * g * tt * tt;
+                    if (ye < 0) break;
+                    let cx = scaleX(xe);
+                    let cy = scaleY(ye);
+                    if (first) { ctx.moveTo(cx, cy); first = false; }
+                    else ctx.lineTo(cx, cy);
+                }
+                ctx.stroke();
+
+                // 2. Trayectoria completa del defensor (azul tenue)
+                let a_extra = interData.usaProp ? aProp : 0;
+                ctx.beginPath();
+                ctx.strokeStyle = "#1e3a8a80";
+                ctx.lineWidth = 3;
+                first = true;
+                for (let tt = 0; tt <= interData.tImpacto; tt += 0.1) {
+                    let xd = interData.vd_x * tt;
+                    let yd = interData.vd_y * tt - 0.5 * g * tt * tt + 0.5 * a_extra * tt * tt;
+                    let cx = scaleX(xd);
+                    let cy = scaleY(yd);
+                    if (first) { ctx.moveTo(cx, cy); first = false; }
+                    else ctx.lineTo(cx, cy);
+                }
+                ctx.stroke();
+
+                // 3. Posiciones actuales (puntos grandes)
+                // enemigo actual
+                let xe_curr = enemy.x0 + enemy.vx * currentT;
+                let ye_curr = enemy.y0 + enemy.vy * currentT - 0.5 * g * currentT * currentT;
+                // defensor actual
+                let xd_curr = interData.vd_x * currentT;
+                let yd_curr = interData.vd_y * currentT - 0.5 * g * currentT * currentT + 0.5 * a_extra * currentT * currentT;
+
+                // dibujar misiles
+                ctx.shadowColor = 'black'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 2;
+                // enemigo rojo
+                ctx.beginPath();
+                ctx.fillStyle = "#b91c1c";
+                ctx.arc(scaleX(xe_curr), scaleY(ye_curr), 11, 0, 2*Math.PI);
+                ctx.fill();
+                // defensor azul
+                ctx.beginPath();
+                ctx.fillStyle = "#1e3a8a";
+                ctx.arc(scaleX(xd_curr), scaleY(yd_curr), 11, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // estela / rastro
+                ctx.fillStyle = "#facc15";
+                ctx.beginPath();
+                ctx.arc(scaleX(xe_curr), scaleY(ye_curr), 4, 0, 2*Math.PI);
+                ctx.fill();
+
+                // punto de impacto previsto
+                let xImpact = enemy.x0 + enemy.vx * interData.tImpacto;
+                let yImpact = enemy.y0 + enemy.vy * interData.tImpacto - 0.5 * g * interData.tImpacto * interData.tImpacto;
+                ctx.fillStyle = "black";
+                ctx.beginPath();
+                ctx.arc(scaleX(xImpact), scaleY(yImpact), 8, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.fillStyle = "white";
+                ctx.font = "bold 16px monospace";
+                ctx.fillText("💥", scaleX(xImpact)-18, scaleY(yImpact)-12);
+
+                // info extra
+                ctx.font = "bold 13px 'Inter', monospace";
+                ctx.fillStyle = "#0c0a2a";
+                ctx.fillText(`t = ${currentT.toFixed(2)} / ${interData.tImpacto.toFixed(2)} s`, 40, 40);
+                ctx.fillStyle = "#991b1b";
+                ctx.fillText(`Enemigo Y0 = ${enemy.y0.toFixed(1)} m`, 40, 70);
+                if (interData.usaProp) ctx.fillStyle = "#b91c1c"; else ctx.fillStyle = "#15803d";
+                ctx.fillText(`Propulsor: ${interData.usaProp ? 'SÍ' : 'NO'}`, 40, 100);
+            }
+
+            // reiniciar animación con datos actualizados
+            function reiniciarAnimacion() {
+                if (animFrame) {
+                    cancelAnimationFrame(animFrame);
+                    animFrame = null;
+                }
+                // recalcular intercepción con valores actuales de sliders y enemigo
+                interData = calcularIntercepcion();
+                actualizarBadge(interData.usaProp);
+
+                animActive = true;
+                startTime = null;
+                tAnimation = 0;
+                // dibujar frame inicial
+                dibujarTrayectoriasCompletasConTiempo(0);
+                // iniciar bucle
+                animFrame = requestAnimationFrame(dibujarFrame);
+            }
+
+            // parar animación (por si acaso)
+            function pararAnimacion() {
+                if (animFrame) {
+                    cancelAnimationFrame(animFrame);
+                    animFrame = null;
+                }
+                animActive = false;
+            }
+
+            // actualiza sliders y textos
+            function actualizarSlidersTexto() {
+                vdSpan.innerText = vdSlider.value;
+                angSpan.innerText = angSlider.value + '°';
+                umbSpan.innerText = umbralSlider.value;
+            }
+
+            // evento generar aleatorio: cambia enemigo, recalcula y reinicia animación
+            btnGenerar.addEventListener('click', () => {
+                generarMisilAleatorio();
+                // recalcular y reiniciar
+                reiniciarAnimacion();
+            });
+
+            // evento iniciar /reiniciar
+            btnIniciar.addEventListener('click', () => {
+                reiniciarAnimacion();
+            });
+
+            // sliders: actualizan valores numéricos y si se desea, al soltar se puede reiniciar, pero mejor reinicio manual con botón.
+            // pero queremos que al mover sliders, se actualice el cálculo para cuando se presione "iniciar".
+            vdSlider.addEventListener('input', (e) => { vdSpan.innerText = e.target.value; });
+            angSlider.addEventListener('input', (e) => { angSpan.innerText = e.target.value + '°'; });
+            umbralSlider.addEventListener('input', (e) => { 
+                umbSpan.innerText = e.target.value;
+                // también actualizar badge en caliente?
+                let umbral = parseFloat(umbralSlider.value);
+                let usaPropAhora = enemy.y0 < umbral;
+                actualizarBadge(usaPropAhora);
+            });
+
+            // inicializar valores
+            (function init() {
+                generarMisilAleatorio(); // primer enemigo
+                actualizarSlidersTexto();
+                interData = calcularIntercepcion();
+                actualizarBadge(interData.usaProp);
+                // dibujar estático inicial (t=0)
+                dibujarTrayectoriasCompletasConTiempo(0);
+                // No arrancar automáticamente, esperar botón iniciar.
+            })();
+
+            // Previene acumulación de animaciones si se hace clic muchas veces
+            window.addEventListener('beforeunload', () => {
+                if (animFrame) cancelAnimationFrame(animFrame);
+            });
+
+        })();
+    </script>
+</body>
+</html>

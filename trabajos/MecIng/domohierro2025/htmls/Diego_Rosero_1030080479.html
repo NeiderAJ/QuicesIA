@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Intercepción de Proyectiles DIEGO ROSERO cc1030080479</title>
+    <style>
+        /* Estilos generales del cuerpo y la tipografía */
+        body {
+            background-color: #1a1a1a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        /* Pantalla de Inicio */
+        .startScreen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100vh;
+            width: 100%;
+            background-color: #1a1a1a;
+            color: #00ff00;
+        }
+        /* Títulos de la simulación */
+        h1, h2 {
+          text-align: center;
+          text-transform: uppercase;
+          border-bottom: 2px solid #00ff00;
+          padding-bottom: 10px;
+          width: 100%;
+          font-size: 2rem;
+          margin-bottom: 20px;
+        }
+
+        .start-screen h1 {
+          font-size: 3rem;
+          margin-bottom: 10px;
+        }
+
+        .start-screen p {
+          font-size: 1.2rem;
+          margin-top: 0;
+          margin-bottom: 40px;
+        }
+        /* Boton de inicio */
+        .start-button {
+          background-color: #00ff00;
+          color: #1a1a1a;
+          border: 2px solid #00ff00;
+          padding: 15px 30px;
+          font-size: 1.5rem;
+          font-family: 'Courier New', monospace;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          border-radius: 5px;
+          text-transform: uppercase;
+        }
+
+        .start-buttom:hover {
+          background-color: #1a1a1a;
+          color: #00ff00;
+          box-shadow: 0 0 15px #00ff00;
+        }
+        /* Ocultar contenido */
+        .main-content {
+          display: none;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+          max-width: 1200px;
+          padding: 20px;
+        }
+
+        #main-content {
+          display: none;
+        }
+
+        /* Títulos de la simulación */
+        h1, h2 {
+            text-align: center;
+            text-transform: uppercase;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 10px;
+            width: 100%;
+        }
+
+        /* Contenedor principal para organizar la UI */
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        /* Contenedor para los controles de la simulación */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            background-color: #2a2a2a;
+            border: 1px solid #00ff00;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        /* Contenedor para la simulación aleatoria (nueva) */
+        .random-sim-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 20px;
+        }
+
+        .random-sim-container .sim-canvas {
+            flex: 1;
+            min-width: 600px;
+            border: 2px solid #00ff00;
+            background-color: #000;
+            border-radius: 8px;
+        }
+
+        .random-sim-container .sim-info-panel {
+            flex: 1;
+            min-width: 300px;
+            background-color: #2a2a2a;
+            border: 1px solid #00ff00;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Estilo para cada grupo de control (slider + label) */
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .control-group label, .control-group p {
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        /* Estilo para los sliders de entrada */
+        input[type="range"] {
+            width: 150px;
+            -webkit-appearance: none;
+            background: #444;
+            height: 5px;
+            border: 1px solid #00ff00;
+            outline: none;
+            border-radius: 5px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #00ff00;
+            cursor: pointer;
+            border: 1px solid #00ff00;
+            border-radius: 50%;
+        }
+
+        /* Estilo para los botones */
+        button {
+            background-color: #00ff00;
+            color: #1a1a1a;
+            border: 2px solid #00ff00;
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #00cc00;
+        }
+
+        /* Contenedor del lienzo de la simulación original */
+        .manual-sim-canvas {
+            border: 2px solid #00ff00;
+            background-color: #000;
+            border-radius: 8px;
+        }
+
+        /* Estilo para la tabla de resultados y cajas de información */
+        #results-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        #results-box, #interceptor-info-box {
+            background-color: #2a2a2a;
+            border: 1px solid #00ff00;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            border: 1px solid #00ff00;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #1a1a1a;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+
+
+  <div id="main-content";>
+  </div>
+
+    <script type="text/javascript" async
+      src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [['$','$'], ['\\(','\\)']],
+          processEscapes: true
+        }
+      });
+    </script>
+    <div class="container">
+        <h1>Sistema de Defensa (Quiz #1)</h1>
+
+        <div style="text-align: left; max-width: 800px; margin-bottom: 20px; border: 1px solid #00ff00; padding: 20px; border-radius: 8px"
+        <p> Hecho por: Diego Rosero Vallejo </p>
+        <p> cc: 1030080479 </p>
+        <p> Física Mecánica </p>
+        <p> Prof. Anyeres Neider Atehortua Jimenez </p>
+        </div>
+
+        <h2>Enunciado del Problema</h2>
+        <div style="text-align: left; max-width: 800px; margin-bottom: 20px; border: 1px solid #00ff00; padding: 20px; border-radius: 8px;">
+            <p>En el desarrollo de nuestro sistema antimisiles el radar detecta un misil enemigo en vuelo y, conociendo su posición inicial, su velocidad inicial y sus cosenos directores, logramos calcular su trayectoria para interceptarlo en el aire antes de que impacte en la zona protegida. Esta simulación visualiza este proceso en tiempo real.</p>
+        </div>
+
+        <h2>Solución Algebraica Propuesta</h2>
+        <div style="text-align: left; max-width: 800px; margin-bottom: 20px; border: 1px solid #00ff00; padding: 20px; border-radius: 8px;">
+            <p>Para simplificar el problema y realizar los cálculos de manera eficiente, se ha reducido el sistema de 3D a 2D. Esto se logra asumiendo que tanto el misil enemigo como el interceptor se mueven en un plano vertical, por lo que su movimiento en el eje Z es nulo. Este supuesto se justifica porque un sistema de radar real, conociendo los cosenos directores, puede proyectar la trayectoria del misil enemigo en un plano vertical para un cálculo más simple.</p>
+
+            <p>Las ecuaciones utilizadas para modelar la trayectoria parabólica del misil enemigo, sin considerar la resistencia del aire, son:</p>
+
+            <ul>
+                <li>Posición en el eje x: $x_E(t) = v_{E,x} t$</li>
+                <li>Posición en el eje y: $y_E(t) = v_{E,y} t - \frac{1}{2} g t^2$</li>
+            </ul>
+
+            <p>Donde $v_{E,x}$ y $v_{E,y}$ son las componentes de la velocidad inicial del misil enemigo, y $g$ es la aceleración de la gravedad ($g \approx 9.8 \text{ m/s}^2$).</p>
+
+            <p>Para predecir la trayectoria del misil enemigo y determinar si es una amenaza, se calcula el alcance horizontal ($R$) que el misil tendría si no fuera interceptado. Este cálculo es crucial para el sistema de defensa, ya que permite saber si el misil impactará dentro de la zona protegida.</p>
+
+            <p>El alcance horizontal se calcula con la siguiente ecuación, donde $v_E$ es la velocidad inicial del misil enemigo y $\theta_E$ es el ángulo de lanzamiento:</p>
+
+            <ul>
+                <li>Alcance horizontal: $R = \frac{v_E^2 \sin(2\theta_E)}{g}$</li>
+            </ul>
+
+            <h3>Intercepción por Navegación Proporcional</h3>
+            <p>Una vez que el misil enemigo entra en la zona de defensa, se lanza el misil interceptor. Para asegurar una intercepción exitosa, el interceptor utiliza un modelo de <strong>navegación proporcional</strong>. Específicamente, se emplea un método de <strong>"persecución pura"</strong>, donde la dirección de la velocidad del interceptor siempre apunta directamente a la posición actual del objetivo. Este enfoque asegura que la trayectoria del interceptor se adapte en tiempo real, corrigiendo su curso para contrarrestar cualquier movimiento inesperado del objetivo.</p>
+
+            <p>Estos vectores de posición, $r_E(t)$ para el misil enemigo y $r_I(t)$ para el misil interceptor, se calculan en cada instante de la simulación. El vector de posición del misil enemigo, que parte del origen $(0,0)$, es una función de su velocidad inicial y la gravedad, dada por:
+            $$r_E(t) = (v_{E,x} t, \quad v_{E,y} t - \frac{1}{2} g t^2)$$
+            Por otro lado, el vector de posición del misil interceptor, que se lanza desde la base en $(x_{I,base}, y_{I,base})$, se actualiza continuamente en función de su velocidad y el tiempo, de la siguiente manera:
+            $$r_I(t) = (x_{I,base} + v_{I,x} t, \quad y_{I,base} + v_{I,y} t - \frac{1}{2} g t^2)$$
+            La clave de la navegación proporcional es que las componentes de la velocidad del interceptor, $v_{I,x}$ y $v_{I,y}$, se ajustan continuamente para que la dirección del misil interceptor apunte siempre al misil enemigo. Es esta adaptación constante la que garantiza la intercepción.</p>
+
+            <p>La formulación matemática de este sistema se basa en vectores. Si $r_E(t)$ es el vector de posición del misil enemigo en el tiempo y $r_I(t)$ es el vector de posición del misil interceptor, entonces el vector de la línea de visión (el vector que va del interceptor al objetivo) es:</p>
+
+            <ul>
+                <li>Vector de línea de visión: $r_{LOS} = r_E(t) - r_I(t)$</li>
+            </ul>
+
+            <p>El sistema actualiza la velocidad del misil interceptor ($v_I$) en cada momento para que su dirección coincida con la de este vector de línea de visión, manteniendo una magnitud de velocidad constante ($v_{I,mag}$). Esto se expresa como:</p>
+
+            <ul>
+                <li>Vector de velocidad del interceptor: $v_I = v_{I,mag} \left( \frac{r_{LOS}}{|r_{LOS}|} \right)$</li>
+            </ul>
+
+            <p>En el plano 2D de la simulación, esto se traduce en las siguientes componentes de velocidad, donde $dx$ y $dy$ son las diferencias de posición entre el misil enemigo y el interceptor en los ejes x e y, respectivamente:</p>
+
+            <ul>
+                <li>Velocidad en el eje x: $v_{I,x} = v_{I,mag} \left( \frac{dx}{\sqrt{dx^2 + dy^2}} \right)$</li>
+                <li>Velocidad en el eje y: $v_{I,y} = v_{I,mag} \left( \frac{dy}{\sqrt{dx^2 + dy^2}} \right)$</li>
+            </ul>
+
+            <h3>Intercepción por Predicción de Trayectoria</h3>
+            <p>Una estrategia alternativa es predecir el punto exacto de intercepción y lanzar el misil interceptor una sola vez con la dirección y velocidad adecuadas para alcanzar ese punto. Este enfoque es menos flexible, pero puede ser más eficiente si el misil enemigo sigue una trayectoria balística predecible sin maniobras.</p>
+
+            <p>El objetivo es encontrar un tiempo de intercepción ($t_{int}$) y un punto de intercepción $(x_{int}, y_{int})$ donde las trayectorias de ambos misiles se crucen. Las ecuaciones de movimiento para ambos misiles son:</p>
+
+            <ul>
+                <li><strong>Misil Enemigo:</strong></li>
+                <li>$x_E(t) = v_{E,x} t$</li>
+                <li>$y_E(t) = v_{E,y} t - \frac{1}{2} g t^2$</li>
+            </ul>
+
+            <ul>
+                <li><strong>Misil Interceptor:</strong> (lanzado desde $(x_{I,base}, y_{I,base})$ en un tiempo $t_{lanzamiento}$)</li>
+                <li>$x_I(t) = x_{I,base} + v_{I,x} (t - t_{lanzamiento})$</li>
+                <li>$y_I(t) = y_{I,base} + v_{I,y} (t - t_{lanzamiento}) - \frac{1}{2} g (t - t_{lanzamiento})^2$</li>
+            </ul>
+
+            <p>Para que la intercepción ocurra, las posiciones deben ser iguales en el tiempo de intercepción ($t_{int}$). Esto nos da un sistema de ecuaciones:</p>
+
+            <ul>
+                <li>$x_E(t_{int}) = x_I(t_{int})$</li>
+                <li>$y_E(t_{int}) = y_I(t_{int})$</li>
+            </ul>
+
+            <p>Resolviendo este sistema, podemos determinar las componentes de velocidad inicial  ($v_{I,x}, v_{I,y}$) que el misil interceptor necesita. El misil interceptor se lanzará desde su base $(x_{I,base}, y_{I,base})$ para alcanzar la posición del misil enemigo en el tiempo $t_{int}$.</p>
+
+            <p>A diferencia de la navegación proporcional, este método no realiza ajustes en tiempo real. La trayectoria se calcula una vez y se asume que el misil seguirá ese camino perfectamente. Por lo tanto, cualquier desviación del misil enemigo o error en el cálculo inicial podría llevar a un fallo en la intercepción.</p>
+        </div>
+
+        <h2>Simulación Manual de Defensa</h2>
+        <div class="controls">
+            <!-- Slider para la velocidad del misil enemigo -->
+            <div class="control-group">
+                <label for="velocidadInicialEnemigo">Velocidad Inicial del Misil Enemigo (m/s):</label>
+                <input type="range" id="velocidadInicialEnemigo" min="800" max="1500" value="1000" step="100" oninput="resetSimulation()">
+                <p><span id="vInicialEnemigoValue">1000</span> m/s</p>
+            </div>
+            <!-- Slider para el ángulo del misil enemigo -->
+            <div class="control-group">
+                <label for="anguloEnemigo">Ángulo del Misil Enemigo (°):</label>
+                <input type="range" id="anguloEnemigo" min="25" max="65" value="45" step="1" oninput="resetSimulation()">
+                <p><span id="anguloEnemigoValue">45</span>°</p>
+            </div>
+            <!-- Slider para la velocidad de la simulación -->
+             <div class="control-group">
+                <label for="timeScale">Velocidad de Simulación (x):</label>
+                <input type="range" id="timeScale" min="1" max="10" value="1" step="0.5">
+                <p><span id="timeScaleValue">1.0</span>x</p>
+            </div>
+            <!-- Botones de control de la simulación -->
+            <button id="startStopBtn" onclick="toggleSimulation()">Comenzar Simulación</button>
+            <button id="resetBtn" onclick="resetSimulation()">Reiniciar Simulación</button>
+        </div>
+
+        <canvas class="manual-sim-canvas" id="simulationCanvas" width="1000" height="700"></canvas>
+
+        <div id="results-container">
+            <div id="results-box">
+                <h2>Resultados de la Simulación</h2>
+                <p id="interception-status">Presiona "Comenzar Simulación" para iniciar.</p>
+                <p>Predicción de Impacto: <strong id="predicted-impact">N/A</strong></p>
+                <p>Estado de Amenaza: <strong id="threat-status">N/A</strong></p>
+                <table id="real-time-table">
+                    <thead>
+                        <tr>
+                            <th>Tiempo (s)</th>
+                            <th>Proyectil</th>
+                            <th>Posición (km)</th>
+                            <th>Velocidad (m/s)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2" id="time-display">0.00</td>
+                            <td>Enemigo</td>
+                            <td id="enemy-position">N/A</td>
+                            <td id="enemy-velocity">N/A</td>
+                        </tr>
+                        <tr>
+                            <td>Interceptor</td>
+                            <td id="interceptor-position">N/A</td>
+                            <td id="interceptor-velocity">N/A</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="interceptor-info-box">
+                <h2>Parámetros de Lanzamiento del Interceptor</h2>
+                <table id="interceptor-info-table">
+                    <thead>
+                        <tr>
+                            <th>Parámetro</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Velocidad Inicial</td>
+                            <td id="interceptor-initial-speed">N/A</td>
+                        </tr>
+                        <tr>
+                            <td>Ángulo Inicial</td>
+                            <td id="interceptor-initial-angle">N/A</td>
+                        </tr>
+                        <tr>
+                            <td>Variación de Ángulo</td>
+                            <td id="interceptor-angle-variation">N/A</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <table id="final-results-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Tiempo Final (s)</th>
+                    <th>Proyectil Enemigo (x, y)</th>
+                    <th>Proyectil Interceptor (x, y)</th>
+                </tr>
+            </thead>
+            <tbody id="data-table">
+            </tbody>
+        </table>
+
+        <!-- Segunda simulación: Aleatoria -->
+        <h2>Simulación de Detección Aleatoria</h2>
+        <div class="random-sim-container">
+            <canvas class="sim-canvas" id="simulationCanvasRandom" width="600" height="420"></canvas>
+            <div class="sim-info-panel">
+                <div style="margin-bottom: 20px;">
+                    <button id="startStopRandomBtn" onclick="toggleRandomSimulation()">Comenzar Simulación</button>
+                    <button id="resetRandomBtn" onclick="resetRandomSimulation()">Reiniciar Simulación</button>
+                    <div class="control-group" style="margin-top: 10px;">
+                        <label for="timeScaleRandom">Velocidad de Simulación (x):</label>
+                        <input type="range" id="timeScaleRandom" min="1" max="10" value="1" step="0.5">
+                        <p><span id="timeScaleRandomValue">1.0</span>x</p>
+                    </div>
+                </div>
+
+                <div id="random-results-box" style="width: 100%;">
+                    <h2>Resultados</h2>
+                    <p>Velocidad del Misil Enemigo: <strong id="vInicialEnemigoRandomValue">N/A</strong> m/s</p>
+                    <p>Ángulo del Misil Enemigo: <strong id="anguloEnemigoRandomValue">N/A</strong>°</p>
+                    <p id="interception-status-random">Presiona "Comenzar Simulación" para iniciar.</p>
+                    <p>Predicción de Impacto: <strong id="predicted-impact-random">N/A</strong></p>
+                    <p>Estado de Amenaza: <strong id="threat-status-random">N/A</strong></p>
+                    <table id="real-time-table-random">
+                        <thead>
+                            <tr>
+                                <th>Tiempo (s)</th>
+                                <th>Proyectil</th>
+                                <th>Posición (km)</th>
+                                <th>Velocidad (m/s)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td rowspan="2" id="time-display-random">0.00</td>
+                                <td>Enemigo</td>
+                                <td id="enemy-position-random">N/A</td>
+                                <td id="enemy-velocity-random">N/A</td>
+                            </tr>
+                            <tr>
+                                <td>Interceptor</td>
+                                <td id="interceptor-position-random">N/A</td>
+                                <td id="interceptor-velocity-random">N/A</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="random-interceptor-info-box" style="width: 100%; margin-top: 20px;">
+                    <h2>Parámetros del Interceptor</h2>
+                    <table id="interceptor-info-table-random">
+                        <thead>
+                            <tr>
+                                <th>Parámetro</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Velocidad Inicial</td>
+                                <td id="interceptor-initial-speed-random">N/A</td>
+                            </tr>
+                            <tr>
+                                <td>Ángulo Inicial</td>
+                                <td id="interceptor-initial-angle-random">N/A</td>
+                            </tr>
+                            <tr>
+                                <td>Variación de Ángulo</td>
+                                <td id="interceptor-angle-variation-random">N/A</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <table id="final-results-table-random" style="display: none; width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Tiempo Final (s)</th>
+                            <th>Proyectil Enemigo (x, y)</th>
+                            <th>Proyectil Interceptor (x, y)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-table-random">
+                    </tbody>
+                </table>
+            </div>
+          </div>
+            <h2> Analisís Teórico </h2>
+            <div style="text-align: left; max-width: 800px; margin-bottom: 20px; border: 1px solid #00ff00; padding: 20px; border-radius: 8px"
+                <p> La base principal de la simulación desarrollada son los principios fundamentales de la cinemática de proyectiles y el uso de las ecuaciones. </P>
+                <h3> La Física del Proyectil Enemigo </h3>
+                <p> La simulación comienza con la trayectoria del misil enemigo, que se modela como un lanzamiento parabólico en dos dimensiones. Este movimiento solamente se ve afectado por una fuerza: La gravedad (g).</p>
+                <li> Movimiento Horizontal: No hay fuerzas actuando sobre el eje X, por lo que la velocidad horizontal $(V_{x_int})$ es constante. La posición en cualquier momento (t) se calcula con la ecuación: x = $V(0,x_{int})t$ </p>
+                <li> Movimiento Vertical: En el eje Y, la gravedad ejerce una aceleración constante y negativa, esto implica que la velocidad vertical $(V{y_int})$ si cambie con el tiempo. La posición	en cualquier momento (t) se calcula con la ecuación: y = $V(0,y_{int}) - \frac{1}{2} g t^2$</li>
+                <h3> El Desafio de la Intercepción </h3>
+                <p> El verdadero desafío de la simulación es el sistema de intercepción, en esta simulación se intentó implementar un sistema de intercepción por probabilidad, en donde se calculaban muchas posibles trayectorias del misil enemigo y el misil interceptor se lanzaba en dirección al lugar donde habia mayor probabilidad de que estuviera el misil enemigo, por desgracia no se logró implementar este sistema en esta simulación y se optó por un sistema "más tradicional".</p>
+                <p> Para que el misil interceptor impacte al enemigo se deben cumplir dos condiciones cruciales: </P>
+                  <li> Ambos misiles deben estar en la misma posición (x, y) en el mismo instante de tiempo (t).</li>
+                  <li> El misil interceptor debe ser lanzado en el momento justo, cuando el misil enemigo entra en la zona de amenaza (en este caso 50km de radio). </li>
+                <h3> Cálculo del Punto y Tiempo de Intercepción </h3>
+                <p> Para determinar el momento y la posición exactos del impacto, el código resuelve un sistema de ecuaciones cinemáticas. El objetivo es encontrar un tiempo $(t_{intercepto})$ y una velocidad inicial del interceptor $(V_{intercepto})$ que permitan que los dos misiles se encuentren. </p>
+                <p> La fórmula que se utiliza la simulación es una ecuación de segundo grado que se encuentra luego de igualar las posiciones de ambos proyectiles. Si el discriminante de esta ecuación $(Δ = b^2 - 4ac)$ es positivo, significa que hay una solución real en donde la intercepción es teóricamente posible. </p>
+                <h4> El proceso de Simulación en Acción </h3>
+                <p> La simulación	combina estos principios teóricos con la programación para mostrar el resultado visualmente: </p>
+                 <li>1. Captura de Parámetros: El usuario manipula los sliders (para el caso de la simulación manual) para definir la velocidad y el ángulo iniciales del misil enemigo. (En el caso de la simulación aleatoria, estos valores estan definidos entre un rango de 800 a 1500 m/s y 25° a 65°, el cual se escoge aleatoriamente gracias a una función matemática). </li>
+                 <li>2. Activación de la Intercepción: Cuando el misil enemigo entra en la zona de amenza (radio de 50km), la simulación inicia el cálculo de la trayectoria del interceptor. (Hay un pequeño añadido en esta sección que se explica a continuación). </li>
+                 <li>3. Animación: El bucle de animación se encarga de: </li>
+                  <li> Calcular la nueva posición de ambos misiles en cada fotograma. </li>
+                  <li> Dibujar los misiles y sus trayectorias en los gráficos dedicados. </li>
+                  <li> Detectar si ha ocurrido una colisión. Si es así, detiene la simulación. (El misil enemigo tambien puede colisionar con el piso) </li>
+                <h3> Pequeños Agregados </h3>
+                <p> Para mejorar la experiencia de usuario y hacer más realista la simulación se implementaron pequeños detalles tales como: </p>
+                  <li> Se implementó un sistema de multiplicador sobre el tiempo de la simulación, lo que hace que se pueda alterar la velocidad en la que transcurre la simulación en tiempo real y mientras esta está en funcionamiento. </li>
+                  <li> Se colocó como condición en la simulación que para que haya un impacto entre los misiles estos deben estar a menos de 500 metros (0.5km), este es un añadido únicamente para implementar realismo a la simulación y que las colisiones que se detectaran fueran físicamente imposibles. </li>
+                  <li> Al sistema de detección de trayectoria se le implementó un sistema que calcula el lugar de impacto en el suelo del misil enemigo (este es representado como el semicírculo azul que es más transparente), y si este no se encuentra a menos de 35000 metros (35km) del epicentro de la zona de detección (zona segura) el protocolo de lanzamiento del misil interceptor no se da a cabo, por lo que si el misil enemigo pasa por la zona de detección del misil interceptor (Lo que vendría a ser el radar en la vida real), pero la trayectoria de este no indica que va a impactar contra el suelo en un radio de 35km no se va a lanzar un misil para intentar interceptarlo. Este es otro pequeño detalle que únicamente se implementó para volver más realista la simulación, como en la vida real que el Domo de Hierro de Israel calcula el lugar de impacto más probable de sus objetivos y si este no está cerca de un lugar de interés (puede ser un pueblo o una base militar) no va a desperdiciar un misil en intentar interceptarlo. </li>
+                <h3> En caso de tener problemas con la simulación se recomienda presionar el botón de "reiniciar simulación".</h3>
+              </div>
+
+            <h2> Relación con el Domo de Hierro </h2> <!--Escrito por Diego Rosero cc:1030080479 -->
+            <div style="text-align: left; max-width: 800px; margin-bottom: 20px; border: 1px solid #00ff00; padding: 20px; border-radius: 8px"
+              <p>La relación de la simulación desarrollada es directa ya que se trata de un sistema antimisiles, igualmente que el domo de hierro. Por lo que con este mismo sistema y utilizando las mismas ecuaciones, en teoria podriamos desarrollar un sistema antimisiles usando radares para encontrar la posición y la velocidad inicial del misil enemigo para asi predecir su trayectoria.</p>
+              <p> Sin embargo debemos reconocer que esta simulación es un modelo altamente simplificado en donde no se toman en cuenta condiciones como:</p>
+                <li> En la realidad estos sistemas funcionan en tres dimensiones, mientras que nosotros lo simplificamos a solo dos dimensiones.</li>
+                <li> No se tuvo en cuenta la fricción con el aire para ninguna de las ecuaciones de esta simulación, lo que en la vida real es vital para acercarnos a los modelos buscados.</li>
+            </div>
+
+            <h2> Conclusiones </h2>
+            <div style="text-align: left; max-width: 800px; margin-bottom: 20px; border: 1px solid #00ff00; padding: 20px; border-radius: 8px"
+             <p> En conclusion, gracias al uso de las ecuaciones de movimiento podemos calcular la trayectoria de un objeto que describe un movimiento parabólico, teniendo la trayectoria podemos encontrar un ángulo y una velocidad inicial para lanzar otro objeto e interceptarlo en el aire.</p>
+             <p> En pocas palabras, añadiendo una dimension más de movimiento a los objetos podemos crear sistemas de intersepción aerea, puediendo usarla para fines militares como es el caso del ejemplo de la simulación, o para gestionar tráfico aereo, entre otros muchos usos.</p>
+           </div>
+           <h2> Bibliografía </h2>
+           <div style="text-align: left; max-width: 800px; margin-bottom: 20px; border: 1px solid #00ff00; padding: 20px; border-radius: 8px"
+            <p> A continuación se listan las fuentes utilizadas para la creación de la simulación. </p>
+            <li> Universidad de Antioquia, Facultad de Ingeniería. (2025). "Quiz - Simulación computacional de intercepción de misiles." Archivo PDF. </li>
+            <li> Youtube. (s.f.). "Aspi funciona la Cúpula de Hierro de Israel, su sistema de defensa anti-misiles" [Video]. Youtube. Recuperado de: </li>
+            <link> https://www.youtube.com/watch?v=TOdjjZIe2PY </link>
+            <li> Google Gemini (2025). Herramienta de inteligencia artificial usada para la reducción algebraica al plano 2D, la generación del código HTML y la incorporación de funcionalidades como el generador de números aleatorios y el diseño estético.</li>
+          </div>
+      </div>
+
+    <script>
+        // Sección de la Simulación Manual
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+        const vInicialEnemigoSlider = document.getElementById('velocidadInicialEnemigo');
+        const anguloEnemigoSlider = document.getElementById('anguloEnemigo');
+        const vInicialEnemigoValue = document.getElementById('vInicialEnemigoValue');
+        const anguloEnemigoValue = document.getElementById('anguloEnemigoValue');
+        const timeScaleSlider = document.getElementById('timeScale');
+        const timeScaleValue = document.getElementById('timeScaleValue');
+        const dataTable = document.getElementById('data-table');
+        const finalResultsTable = document.getElementById('final-results-table');
+        const interceptionStatus = document.getElementById('interception-status');
+        const startStopBtn = document.getElementById('startStopBtn');
+        const timeDisplay = document.getElementById('time-display');
+        const enemyPositionDisplay = document.getElementById('enemy-position');
+        const enemyVelocityDisplay = document.getElementById('enemy-velocity');
+        const interceptorPositionDisplay = document.getElementById('interceptor-position');
+        const interceptorVelocityDisplay = document.getElementById('interceptor-velocity');
+        const interceptorInitialSpeedDisplay = document.getElementById('interceptor-initial-speed');
+        const interceptorInitialAngleDisplay = document.getElementById('interceptor-initial-angle');
+        const interceptorAngleVariationDisplay = document.getElementById('interceptor-angle-variation');
+        const predictedImpactDisplay = document.getElementById('predicted-impact');
+        const threatStatusDisplay = document.getElementById('threat-status');
+
+        let enemyProjectile = null;
+        let interceptorProjectile = null;
+        let animationFrameId = null;
+        let lastTime = 0;
+        let timeAccumulator = 0;
+        let isInterceptorActive = false;
+        let isRunning = false;
+        let interceptorLaunchTime = null;
+        let interceptorInitialAngleRad = null;
+        let isThreatDetected = false;
+
+        const g = 9.8; // Aceleración debido a la gravedad (m/s^2)
+        const scale = 0.0057; // Escala de la simulación (1 píxel = ~175 metros)
+        const defenseZoneRadius = 50000; // 50 km en metros
+        const threatZoneRadius = 35000; // 35 km en metros, la nueva zona de impacto a proteger
+        const interceptorBase = { x: 100000, y: 0 }; // 100 km desde el origen
+        const vInterceptor = 1500; // 1500 m/s para el misil interceptor
+
+        vInicialEnemigoSlider.oninput = () => { vInicialEnemigoValue.textContent = vInicialEnemigoSlider.value; resetSimulation(); };
+        anguloEnemigoSlider.oninput = () => { anguloEnemigoValue.textContent = anguloEnemigoSlider.value; resetSimulation(); };
+        timeScaleSlider.oninput = () => { timeScaleValue.textContent = parseFloat(timeScaleSlider.value).toFixed(1); };
+
+        function startSimulation()  { // Esta es la parte que hice yo //
+          const startScreen = document.getElementById("startScreen");
+          starScreen.style.display = "none";
+
+          const mainContent = document.getElementById("main-content");
+          mainContent.style.display = "flex";
+
+          resetSimulation();
+          startNewSimulation();
+          resetRandomSimulation();
+          startNewRandomSimulation();
+          }
+
+        function drawPreviewPath() {
+            const vInitialEnemigo = parseFloat(vInicialEnemigoSlider.value);
+            const angleEnemy = parseFloat(anguloEnemigoSlider.value);
+            const thetaE_rad = angleEnemy * Math.PI / 180;
+            const range = (vInitialEnemigo * vInitialEnemigo * Math.sin(2 * thetaE_rad)) / g;
+            const path = [];
+            for (let x = 0; x <= range; x += 10000) {
+                const y = x * Math.tan(thetaE_rad) - (g * x * x) / (2 * vInitialEnemigo * vInitialEnemigo * Math.pow(Math.cos(thetaE_rad), 2));
+                if (y >= 0) { path.push({ x: x, y: y }); } else { break; }
+            }
+            if (path.length > 0) {
+                ctx.beginPath();
+                ctx.setLineDash([5, 5]);
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 1;
+                ctx.moveTo(path[0].x * scale, canvas.height - path[0].y * scale);
+                for (let i = 1; i < path.length; i++) { ctx.lineTo(path[i].x * scale, canvas.height - path[i].y * scale); }
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        function resetSimulation() {
+            if (animationFrameId) { cancelAnimationFrame(animationFrameId); }
+            isRunning = false;
+            startStopBtn.textContent = "Comenzar Simulación";
+            enemyProjectile = null;
+            interceptorProjectile = null;
+            timeAccumulator = 0;
+            isInterceptorActive = false;
+            interceptorLaunchTime = null;
+            interceptorInitialAngleRad = null;
+            isThreatDetected = false;
+            interceptionStatus.textContent = "Presiona 'Comenzar Simulación' para iniciar.";
+            predictedImpactDisplay.textContent = "N/A";
+            threatStatusDisplay.textContent = "N/A";
+            threatStatusDisplay.style.color = '#00ff00';
+            timeDisplay.textContent = "0.00";
+            enemyPositionDisplay.textContent = "N/A";
+            enemyVelocityDisplay.textContent = "N/A";
+            interceptorPositionDisplay.textContent = "N/A";
+            interceptorVelocityDisplay.textContent = "N/A";
+            interceptorInitialSpeedDisplay.textContent = "N/A";
+            interceptorInitialAngleDisplay.textContent = "N/A";
+            interceptorAngleVariationDisplay.textContent = "N/A";
+            finalResultsTable.style.display = 'none';
+            dataTable.innerHTML = '';
+            drawCanvas();
+        }
+
+        function toggleSimulation() {
+            if (isRunning) {
+                isRunning = false;
+                startStopBtn.textContent = "Reanudar Simulación";
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            } else {
+                isRunning = true;
+                startStopBtn.textContent = "Pausar Simulación";
+                if (!enemyProjectile) { startNewSimulation(); } else { lastTime = performance.now(); animate(lastTime); }
+            }
+        }
+
+        function startNewSimulation() {
+            const vInitialEnemigo = parseFloat(vInicialEnemigoSlider.value);
+            const angleEnemy = parseFloat(anguloEnemigoSlider.value);
+            const thetaE_rad = angleEnemy * Math.PI / 180;
+            enemyProjectile = {
+                v_initial_x: vInitialEnemigo * Math.cos(thetaE_rad),
+                v_initial_y: vInitialEnemigo * Math.sin(thetaE_rad),
+                x: 0, y: 0, path: [{ x: 0, y: 0 }]
+            };
+            const predictedRange = (vInitialEnemigo * vInitialEnemigo * Math.sin(2 * thetaE_rad)) / g;
+            predictedImpactDisplay.textContent = `${(predictedRange / 1000).toFixed(2)} km`;
+            if (Math.abs(predictedRange - interceptorBase.x) <= threatZoneRadius) {
+                isThreatDetected = true;
+                threatStatusDisplay.textContent = "AMENAZA DETECTADA";
+                threatStatusDisplay.style.color = '#ff0000';
+            } else {
+                isThreatDetected = false;
+                threatStatusDisplay.textContent = "SIN AMENAZA";
+                threatStatusDisplay.style.color = '#00ff00';
+            }
+            interceptionStatus.textContent = "Simulación en curso.";
+            lastTime = performance.now();
+            animate(lastTime);
+        }
+
+        function animate(currentTime) {
+            if (!isRunning || !enemyProjectile) { animationFrameId = requestAnimationFrame(animate); return; }
+            const timeScale = parseFloat(timeScaleSlider.value);
+            let deltaTime = (currentTime - lastTime) / 1000;
+            if (deltaTime > 0.1) deltaTime = 0.1;
+            lastTime = currentTime;
+            timeAccumulator += deltaTime * timeScale;
+            drawCanvas();
+            enemyProjectile.x = enemyProjectile.v_initial_x * timeAccumulator;
+            enemyProjectile.y = enemyProjectile.v_initial_y * timeAccumulator - 0.5 * g * Math.pow(timeAccumulator, 2);
+            if (enemyProjectile.y >= 0) {
+                enemyProjectile.path.push({ x: enemyProjectile.x, y: enemyProjectile.y });
+                drawProjectile(enemyProjectile.x, enemyProjectile.y, '#ff0000', ctx, scale);
+                drawPath(enemyProjectile.path, '#ff0000', ctx, scale);
+            } else { endSimulation("El misil enemigo impactó el suelo.", false); return; }
+            if (!isInterceptorActive && isThreatDetected) {
+                const distance = Math.sqrt(Math.pow(enemyProjectile.x - interceptorBase.x, 2) + Math.pow(enemyProjectile.y - interceptorBase.y, 2));
+                if (distance <= defenseZoneRadius) {
+                    isInterceptorActive = true;
+                    interceptorLaunchTime = timeAccumulator;
+                    interceptionStatus.textContent = `¡Misil interceptor lanzado! Rastreado el objetivo.`;
+                    const dx = enemyProjectile.x - interceptorBase.x;
+                    const dy = enemyProjectile.y - interceptorBase.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const newVx = (dx / dist) * vInterceptor;
+                    const newVy = (dy / dist) * vInterceptor;
+                    interceptorProjectile = {
+                        v_initial_x: newVx, v_initial_y: newVy, x: interceptorBase.x, y: interceptorBase.y, path: [{ x: interceptorBase.x, y: interceptorBase.y }]
+                    };
+                    interceptorInitialAngleRad = Math.atan2(newVy, newVx);
+                    interceptorInitialSpeedDisplay.textContent = vInterceptor.toFixed(2);
+                    interceptorInitialAngleDisplay.textContent = (interceptorInitialAngleRad * 180 / Math.PI).toFixed(2) + '°';
+                }
+            }
+            if (interceptorProjectile) {
+                const t_interceptor_elapsed = timeAccumulator - interceptorLaunchTime;
+                if (t_interceptor_elapsed >= 0) {
+                    const targetX = enemyProjectile.x;
+                    const targetY = enemyProjectile.y;
+                    const dx = targetX - interceptorProjectile.x;
+                    const dy = targetY - interceptorProjectile.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist > 0) {
+                        const newVx = (dx / dist) * vInterceptor;
+                        const newVy = (dy / dist) * vInterceptor;
+                        interceptorProjectile.v_initial_x = newVx;
+                        interceptorProjectile.v_initial_y = newVy;
+                    }
+                    interceptorProjectile.x += interceptorProjectile.v_initial_x * (deltaTime * timeScale);
+                    interceptorProjectile.y += interceptorProjectile.v_initial_y * (deltaTime * timeScale);
+                    interceptorProjectile.path.push({ x: interceptorProjectile.x, y: interceptorProjectile.y });
+                    drawProjectile(interceptorProjectile.x, interceptorProjectile.y, '#00ff00', ctx, scale);
+                    drawPath(interceptorProjectile.path, '#00ff00', ctx, scale);
+                    const currentAngleRad = Math.atan2(interceptorProjectile.v_initial_y, interceptorProjectile.v_initial_x);
+                    const angleVariationDeg = (currentAngleRad - interceptorInitialAngleRad) * 180 / Math.PI;
+                    interceptorAngleVariationDisplay.textContent = angleVariationDeg.toFixed(2) + '°';
+                }
+            }
+            if (interceptorProjectile) {
+                 const distance = Math.sqrt(Math.pow(enemyProjectile.x - interceptorProjectile.x, 2) + Math.pow(enemyProjectile.y - interceptorProjectile.y, 2));
+                 if (distance < 500) { endSimulation(`¡Intercepción Exitosa! Ocurrió en tiempo ${timeAccumulator.toFixed(2)}s.`, true); return; }
+            }
+            if (enemyProjectile.y < -10) { endSimulation("El misil enemigo impactó el suelo.", false); return; }
+            timeDisplay.textContent = timeAccumulator.toFixed(2);
+            if (enemyProjectile) {
+                const v_enemy_x = enemyProjectile.v_initial_x;
+                const v_enemy_y = enemyProjectile.v_initial_y - g * timeAccumulator;
+                const v_enemy_mag = Math.sqrt(Math.pow(v_enemy_x, 2) + Math.pow(v_enemy_y, 2));
+                enemyPositionDisplay.textContent = `(${(enemyProjectile.x/1000).toFixed(2)}, ${(enemyProjectile.y/1000).toFixed(2)})`;
+                enemyVelocityDisplay.textContent = `${v_enemy_mag.toFixed(2)}`;
+            }
+            if (interceptorProjectile) {
+                const currentVx = interceptorProjectile.v_initial_x;
+                const currentVy = interceptorProjectile.v_initial_y;
+                const v_interceptor_mag = Math.sqrt(Math.pow(currentVx, 2) + Math.pow(currentVy, 2));
+                interceptorPositionDisplay.textContent = `(${(interceptorProjectile.x/1000).toFixed(2)}, ${(interceptorProjectile.y/1000).toFixed(2)})`;
+                interceptorVelocityDisplay.textContent = `${v_interceptor_mag.toFixed(2)}`;
+            }
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        function endSimulation(message, intercepted) {
+            if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
+            isRunning = false;
+            startStopBtn.textContent = "Simulación Terminada";
+            interceptionStatus.textContent = message;
+            finalResultsTable.style.display = 'table';
+            dataTable.innerHTML = '';
+            const row = dataTable.insertRow();
+            const cell1 = row.insertCell(0);
+            const cell2 = row.insertCell(1);
+            const cell3 = row.insertCell(2);
+            cell1.textContent = timeAccumulator.toFixed(2);
+            cell2.textContent = `(${(enemyProjectile.x/1000).toFixed(2)} km, ${(enemyProjectile.y/1000).toFixed(2)} km)`;
+            cell3.textContent = interceptorProjectile ? `(${(interceptorProjectile.x/1000).toFixed(2)} km, ${(interceptorProjectile.y/1000).toFixed(2)} km)` : "N/A";
+            enemyProjectile = null;
+            interceptorProjectile = null;
+        }
+
+        function drawProjectile(x, y, color, context, scaleFactor) {
+            context.beginPath();
+            context.arc(x * scaleFactor, context.canvas.height - y * scaleFactor, 5, 0, Math.PI * 2);
+            context.fillStyle = color;
+            context.fill();
+        }
+
+        function drawPath(path, color, context, scaleFactor) {
+            context.beginPath();
+            context.setLineDash([5, 5]);
+            context.strokeStyle = color;
+            context.lineWidth = 1;
+            context.moveTo(path[0].x * scaleFactor, context.canvas.height - path[0].y * scaleFactor);
+            for (let i = 1; i < path.length; i++) { context.lineTo(path[i].x * scaleFactor, context.canvas.height - path[i].y * scaleFactor); }
+            context.stroke();
+            context.setLineDash([]);
+        }
+
+        function drawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 1;
+            ctx.font = '12px Courier New';
+            ctx.fillStyle = '#00ff00';
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height);
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.stroke();
+            for (let i = 0; i <= 175000; i += 25000) {
+                const x_coord = i * scale;
+                ctx.fillText(`${(i / 1000).toFixed(0)} km`, x_coord, canvas.height - 10);
+                ctx.beginPath();
+                ctx.moveTo(x_coord, canvas.height);
+                ctx.lineTo(x_coord, canvas.height - 5);
+                ctx.stroke();
+            }
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, canvas.height);
+            ctx.stroke();
+            for (let i = 0; i <= 100000; i += 10000) {
+                const y_coord = canvas.height - i * scale;
+                ctx.fillText(`${(i / 1000).toFixed(0)} km`, 5, y_coord);
+                ctx.beginPath();
+                ctx.moveTo(0, y_coord);
+                ctx.lineTo(5, y_coord);
+                ctx.stroke();
+            }
+            ctx.beginPath();
+            ctx.arc(interceptorBase.x * scale, canvas.height - interceptorBase.y * scale, defenseZoneRadius * scale, 0, Math.PI, true);
+            ctx.strokeStyle = '#0000ff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(interceptorBase.x * scale, canvas.height - interceptorBase.y * scale, threatZoneRadius * scale, 0, Math.PI, true);
+            ctx.fillStyle = 'rgba(0, 0, 255, 0.3)';
+            ctx.fill();
+            drawPreviewPath();
+            if (enemyProjectile) {
+                drawProjectile(enemyProjectile.x, enemyProjectile.y, '#ff0000', ctx, scale);
+                drawPath(enemyProjectile.path, '#ff0000', ctx, scale);
+            }
+            if (interceptorProjectile) {
+                drawProjectile(interceptorProjectile.x, interceptorProjectile.y, '#00ff00', ctx, scale);
+                drawPath(interceptorProjectile.path, '#00ff00', ctx, scale);
+            }
+        }
+
+        // Sección de la Simulación Aleatoria
+        const canvasRandom = document.getElementById('simulationCanvasRandom');
+        const ctxRandom = canvasRandom.getContext('2d');
+        const timeScaleRandomSlider = document.getElementById('timeScaleRandom');
+        const timeScaleRandomValue = document.getElementById('timeScaleRandomValue');
+        const startStopRandomBtn = document.getElementById('startStopRandomBtn');
+        const interceptionStatusRandom = document.getElementById('interception-status-random');
+        const predictedImpactRandomDisplay = document.getElementById('predicted-impact-random');
+        const threatStatusRandomDisplay = document.getElementById('threat-status-random');
+        const timeDisplayRandom = document.getElementById('time-display-random');
+        const enemyPositionRandomDisplay = document.getElementById('enemy-position-random');
+        const enemyVelocityRandomDisplay = document.getElementById('enemy-velocity-random');
+        const interceptorPositionRandomDisplay = document.getElementById('interceptor-position-random');
+        const interceptorVelocityRandomDisplay = document.getElementById('interceptor-velocity-random');
+        const interceptorInitialSpeedRandomDisplay = document.getElementById('interceptor-initial-speed-random');
+        const interceptorInitialAngleRandomDisplay = document.getElementById('interceptor-initial-angle-random');
+        const interceptorAngleVariationRandomDisplay = document.getElementById('interceptor-angle-variation-random');
+        const vInicialEnemigoRandomValue = document.getElementById('vInicialEnemigoRandomValue');
+        const anguloEnemigoRandomValue = document.getElementById('anguloEnemigoRandomValue');
+        const dataTableRandom = document.getElementById('data-table-random');
+        const finalResultsTableRandom = document.getElementById('final-results-table-random');
+
+        let enemyProjectileRandom = null;
+        let interceptorProjectileRandom = null;
+        let animationFrameIdRandom = null;
+        let lastTimeRandom = 0;
+        let timeAccumulatorRandom = 0;
+        let isInterceptorActiveRandom = false;
+        let isRunningRandom = false;
+        let interceptorLaunchTimeRandom = null;
+        let interceptorInitialAngleRandomRad = null;
+        let isThreatDetectedRandom = false;
+
+        timeScaleRandomSlider.oninput = () => { timeScaleRandomValue.textContent = parseFloat(timeScaleRandomSlider.value).toFixed(1); };
+
+        function resetRandomSimulation() {
+            if (animationFrameIdRandom) { cancelAnimationFrame(animationFrameIdRandom); }
+            isRunningRandom = false;
+            startStopRandomBtn.textContent = "Comenzar Simulación";
+            enemyProjectileRandom = null;
+            interceptorProjectileRandom = null;
+            timeAccumulatorRandom = 0;
+            isInterceptorActiveRandom = false;
+            interceptorLaunchTimeRandom = null;
+            interceptorInitialAngleRandomRad = null;
+            isThreatDetectedRandom = false;
+            interceptionStatusRandom.textContent = "Presiona 'Comenzar Simulación' para iniciar.";
+            predictedImpactRandomDisplay.textContent = "N/A";
+            threatStatusRandomDisplay.textContent = "N/A";
+            threatStatusRandomDisplay.style.color = '#00ff00';
+            timeDisplayRandom.textContent = "0.00";
+            enemyPositionRandomDisplay.textContent = "N/A";
+            enemyVelocityRandomDisplay.textContent = "N/A";
+            interceptorPositionRandomDisplay.textContent = "N/A";
+            interceptorVelocityRandomDisplay.textContent = "N/A";
+            interceptorInitialSpeedRandomDisplay.textContent = "N/A";
+            interceptorInitialAngleRandomDisplay.textContent = "N/A";
+            interceptorAngleVariationRandomDisplay.textContent = "N/A";
+            vInicialEnemigoRandomValue.textContent = "N/A";
+            anguloEnemigoRandomValue.textContent = "N/A";
+            finalResultsTableRandom.style.display = 'none';
+            dataTableRandom.innerHTML = '';
+            drawRandomCanvas();
+        }
+
+        function toggleRandomSimulation() {
+            if (isRunningRandom) {
+                isRunningRandom = false;
+                startStopRandomBtn.textContent = "Reanudar Simulación";
+                if (animationFrameIdRandom) cancelAnimationFrame(animationFrameIdRandom);
+            } else {
+                isRunningRandom = true;
+                startStopRandomBtn.textContent = "Pausar Simulación";
+                if (!enemyProjectileRandom) { startNewRandomSimulation(); } else { lastTimeRandom = performance.now(); animateRandom(lastTimeRandom); }
+            }
+        }
+
+        function startNewRandomSimulation() {
+            const vInitialEnemigo = Math.random() * (1500 - 800) + 800;
+            const angleEnemy = Math.random() * (65 - 25) + 25;
+            vInicialEnemigoRandomValue.textContent = vInitialEnemigo.toFixed(2);
+            anguloEnemigoRandomValue.textContent = angleEnemy.toFixed(2);
+            const thetaE_rad = angleEnemy * Math.PI / 180;
+            enemyProjectileRandom = {
+                v_initial_x: vInitialEnemigo * Math.cos(thetaE_rad),
+                v_initial_y: vInitialEnemigo * Math.sin(thetaE_rad),
+                x: 0, y: 0, path: [{ x: 0, y: 0 }]
+            };
+            const predictedRange = (vInitialEnemigo * vInitialEnemigo * Math.sin(2 * thetaE_rad)) / g;
+            predictedImpactRandomDisplay.textContent = `${(predictedRange / 1000).toFixed(2)} km`;
+            if (Math.abs(predictedRange - interceptorBase.x) <= threatZoneRadius) {
+                isThreatDetectedRandom = true;
+                threatStatusRandomDisplay.textContent = "AMENAZA DETECTADA";
+                threatStatusRandomDisplay.style.color = '#ff0000';
+            } else {
+                isThreatDetectedRandom = false;
+                threatStatusRandomDisplay.textContent = "SIN AMENAZA";
+                threatStatusRandomDisplay.style.color = '#00ff00';
+            }
+            interceptionStatusRandom.textContent = "Simulación en curso.";
+            lastTimeRandom = performance.now();
+            animateRandom(lastTimeRandom);
+        }
+
+        function animateRandom(currentTime) {
+            if (!isRunningRandom || !enemyProjectileRandom) { animationFrameIdRandom = requestAnimationFrame(animateRandom); return; }
+            const timeScale = parseFloat(timeScaleRandomSlider.value);
+            let deltaTime = (currentTime - lastTimeRandom) / 1000;
+            if (deltaTime > 0.1) deltaTime = 0.1;
+            lastTimeRandom = currentTime;
+            timeAccumulatorRandom += deltaTime * timeScale;
+            drawRandomCanvas();
+            enemyProjectileRandom.x = enemyProjectileRandom.v_initial_x * timeAccumulatorRandom;
+            enemyProjectileRandom.y = enemyProjectileRandom.v_initial_y * timeAccumulatorRandom - 0.5 * g * Math.pow(timeAccumulatorRandom, 2);
+            if (enemyProjectileRandom.y >= 0) {
+                enemyProjectileRandom.path.push({ x: enemyProjectileRandom.x, y: enemyProjectileRandom.y });
+                drawProjectile(enemyProjectileRandom.x, enemyProjectileRandom.y, '#ff0000', ctxRandom, scale);
+                drawPath(enemyProjectileRandom.path, '#ff0000', ctxRandom, scale);
+            } else { endRandomSimulation("El misil enemigo impactó el suelo.", false); return; }
+            if (!isInterceptorActiveRandom && isThreatDetectedRandom) {
+                const distance = Math.sqrt(Math.pow(enemyProjectileRandom.x - interceptorBase.x, 2) + Math.pow(enemyProjectileRandom.y - interceptorBase.y, 2));
+                if (distance <= defenseZoneRadius) {
+                    isInterceptorActiveRandom = true;
+                    interceptorLaunchTimeRandom = timeAccumulatorRandom;
+                    interceptionStatusRandom.textContent = `¡Misil interceptor lanzado! Rastreado el objetivo.`;
+                    const dx = enemyProjectileRandom.x - interceptorBase.x;
+                    const dy = enemyProjectileRandom.y - interceptorBase.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const newVx = (dx / dist) * vInterceptor;
+                    const newVy = (dy / dist) * vInterceptor;
+                    interceptorProjectileRandom = {
+                        v_initial_x: newVx, v_initial_y: newVy, x: interceptorBase.x, y: interceptorBase.y, path: [{ x: interceptorBase.x, y: interceptorBase.y }]
+                    };
+                    interceptorInitialAngleRandomRad = Math.atan2(newVy, newVx);
+                    interceptorInitialSpeedRandomDisplay.textContent = vInterceptor.toFixed(2);
+                    interceptorInitialAngleRandomDisplay.textContent = (interceptorInitialAngleRandomRad * 180 / Math.PI).toFixed(2) + '°';
+                }
+            }
+            if (interceptorProjectileRandom) {
+                const t_interceptor_elapsed = timeAccumulatorRandom - interceptorLaunchTimeRandom;
+                if (t_interceptor_elapsed >= 0) {
+                    const targetX = enemyProjectileRandom.x;
+                    const targetY = enemyProjectileRandom.y;
+                    const dx = targetX - interceptorProjectileRandom.x;
+                    const dy = targetY - interceptorProjectileRandom.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist > 0) {
+                        const newVx = (dx / dist) * vInterceptor;
+                        const newVy = (dy / dist) * vInterceptor;
+                        interceptorProjectileRandom.v_initial_x = newVx;
+                        interceptorProjectileRandom.v_initial_y = newVy;
+                    }
+                    interceptorProjectileRandom.x += interceptorProjectileRandom.v_initial_x * (deltaTime * timeScale);
+                    interceptorProjectileRandom.y += interceptorProjectileRandom.v_initial_y * (deltaTime * timeScale);
+                    interceptorProjectileRandom.path.push({ x: interceptorProjectileRandom.x, y: interceptorProjectileRandom.y });
+                    drawProjectile(interceptorProjectileRandom.x, interceptorProjectileRandom.y, '#00ff00', ctxRandom, scale);
+                    drawPath(interceptorProjectileRandom.path, '#00ff00', ctxRandom, scale);
+                    const currentAngleRad = Math.atan2(interceptorProjectileRandom.v_initial_y, interceptorProjectileRandom.v_initial_x);
+                    const angleVariationDeg = (currentAngleRad - interceptorInitialAngleRandomRad) * 180 / Math.PI;
+                    interceptorAngleVariationRandomDisplay.textContent = angleVariationDeg.toFixed(2) + '°';
+                }
+            }
+            if (interceptorProjectileRandom) {
+                 const distance = Math.sqrt(Math.pow(enemyProjectileRandom.x - interceptorProjectileRandom.x, 2) + Math.pow(enemyProjectileRandom.y - interceptorProjectileRandom.y, 2));
+                 if (distance < 500) { endRandomSimulation(`¡Intercepción Exitosa! Ocurrió en tiempo ${timeAccumulatorRandom.toFixed(2)}s.`, true); return; }
+            }
+            if (enemyProjectileRandom.y < -10) { endRandomSimulation("El misil enemigo impactó el suelo.", false); return; }
+            timeDisplayRandom.textContent = timeAccumulatorRandom.toFixed(2);
+            if (enemyProjectileRandom) {
+                const v_enemy_x = enemyProjectileRandom.v_initial_x;
+                const v_enemy_y = enemyProjectileRandom.v_initial_y - g * timeAccumulatorRandom;
+                const v_enemy_mag = Math.sqrt(Math.pow(v_enemy_x, 2) + Math.pow(v_enemy_y, 2));
+                enemyPositionRandomDisplay.textContent = `(${(enemyProjectileRandom.x/1000).toFixed(2)}, ${(enemyProjectileRandom.y/1000).toFixed(2)})`;
+                enemyVelocityRandomDisplay.textContent = `${v_enemy_mag.toFixed(2)}`;
+            }
+            if (interceptorProjectileRandom) {
+                const currentVx = interceptorProjectileRandom.v_initial_x;
+                const currentVy = interceptorProjectileRandom.v_initial_y;
+                const v_interceptor_mag = Math.sqrt(Math.pow(currentVx, 2) + Math.pow(currentVy, 2));
+                interceptorPositionRandomDisplay.textContent = `(${(interceptorProjectileRandom.x/1000).toFixed(2)}, ${(interceptorProjectileRandom.y/1000).toFixed(2)})`;
+                interceptorVelocityRandomDisplay.textContent = `${v_interceptor_mag.toFixed(2)}`;
+            }
+            animationFrameIdRandom = requestAnimationFrame(animateRandom);
+        }
+
+        function endRandomSimulation(message, intercepted) {
+            if (animationFrameIdRandom) { cancelAnimationFrame(animationFrameIdRandom); animationFrameIdRandom = null; }
+            isRunningRandom = false;
+            startStopRandomBtn.textContent = "Simulación Terminada";
+            interceptionStatusRandom.textContent = message;
+            finalResultsTableRandom.style.display = 'table';
+            dataTableRandom.innerHTML = '';
+            const row = dataTableRandom.insertRow();
+            const cell1 = row.insertCell(0);
+            const cell2 = row.insertCell(1);
+            const cell3 = row.insertCell(2);
+            cell1.textContent = timeAccumulatorRandom.toFixed(2);
+            cell2.textContent = `(${(enemyProjectileRandom.x/1000).toFixed(2)} km, ${(enemyProjectileRandom.y/1000).toFixed(2)} km)`;
+            cell3.textContent = interceptorProjectileRandom ? `(${(interceptorProjectileRandom.x/1000).toFixed(2)} km, ${(interceptorProjectileRandom.y/1000).toFixed(2)} km)` : "N/A";
+            enemyProjectileRandom = null;
+            interceptorProjectileRandom = null;
+        }
+
+        function drawPreviewPathRandom() {
+            const vInitialEnemigo = parseFloat(vInicialEnemigoRandomValue.textContent);
+            const angleEnemy = parseFloat(anguloEnemigoRandomValue.textContent);
+            if (isNaN(vInitialEnemigo) || isNaN(angleEnemy)) return;
+            const thetaE_rad = angleEnemy * Math.PI / 180;
+            const range = (vInitialEnemigo * vInitialEnemigo * Math.sin(2 * thetaE_rad)) / g;
+            const path = [];
+            for (let x = 0; x <= range; x += 10000) {
+                const y = x * Math.tan(thetaE_rad) - (g * x * x) / (2 * vInitialEnemigo * vInitialEnemigo * Math.pow(Math.cos(thetaE_rad), 2));
+                if (y >= 0) { path.push({ x: x, y: y }); } else { break; }
+            }
+            if (path.length > 0) {
+                ctxRandom.beginPath();
+                ctxRandom.setLineDash([5, 5]);
+                ctxRandom.strokeStyle = '#ffff00';
+                ctxRandom.lineWidth = 1;
+                ctxRandom.moveTo(path[0].x * scale, canvasRandom.height - path[0].y * scale);
+                for (let i = 1; i < path.length; i++) { ctxRandom.lineTo(path[i].x * scale, canvasRandom.height - path[i].y * scale); }
+                ctxRandom.stroke();
+                ctxRandom.setLineDash([]);
+            }
+        }
+
+        function drawRandomCanvas() {
+            ctxRandom.clearRect(0, 0, canvasRandom.width, canvasRandom.height);
+            ctxRandom.fillStyle = '#000';
+            ctxRandom.fillRect(0, 0, canvasRandom.width, canvasRandom.height);
+            ctxRandom.strokeStyle = '#555';
+            ctxRandom.lineWidth = 1;
+            ctxRandom.font = '12px Courier New';
+            ctxRandom.fillStyle = '#00ff00';
+            ctxRandom.beginPath();
+            ctxRandom.moveTo(0, canvasRandom.height);
+            ctxRandom.lineTo(canvasRandom.width, canvasRandom.height);
+            ctxRandom.stroke();
+            for (let i = 0; i <= 175000; i += 25000) {
+                const x_coord = i * scale;
+                ctxRandom.fillText(`${(i / 1000).toFixed(0)} km`, x_coord, canvasRandom.height - 10);
+                ctxRandom.beginPath();
+                ctxRandom.moveTo(x_coord, canvasRandom.height);
+                ctxRandom.lineTo(x_coord, canvasRandom.height - 5);
+                ctxRandom.stroke();
+            }
+            ctxRandom.beginPath();
+            ctxRandom.moveTo(0, 0);
+            ctxRandom.lineTo(0, canvasRandom.height);
+            ctxRandom.stroke();
+            for (let i = 0; i <= 100000; i += 10000) {
+                const y_coord = canvasRandom.height - i * scale;
+                ctxRandom.fillText(`${(i / 1000).toFixed(0)} km`, 5, y_coord);
+                ctxRandom.beginPath();
+                ctxRandom.moveTo(0, y_coord);
+                ctxRandom.lineTo(5, y_coord);
+                ctxRandom.stroke();
+            }
+            ctxRandom.beginPath();
+            ctxRandom.arc(interceptorBase.x * scale, canvasRandom.height - interceptorBase.y * scale, defenseZoneRadius * scale, 0, Math.PI, true);
+            ctxRandom.strokeStyle = '#0000ff';
+            ctxRandom.lineWidth = 2;
+            ctxRandom.stroke();
+            ctxRandom.beginPath();
+            ctxRandom.arc(interceptorBase.x * scale, canvasRandom.height - interceptorBase.y * scale, threatZoneRadius * scale, 0, Math.PI, true);
+            ctxRandom.fillStyle = 'rgba(0, 0, 255, 0.3)';
+            ctxRandom.fill();
+            drawPreviewPathRandom();
+            if (enemyProjectileRandom) {
+                drawProjectile(enemyProjectileRandom.x, enemyProjectileRandom.y, '#ff0000', ctxRandom, scale);
+                drawPath(enemyProjectileRandom.path, '#ff0000', ctxRandom, scale);
+            }
+            if (interceptorProjectileRandom) {
+                drawProjectile(interceptorProjectileRandom.x, interceptorProjectileRandom.y, '#00ff00', ctxRandom, scale);
+                drawPath(interceptorProjectileRandom.path, '#00ff00', ctxRandom, scale);
+            }
+        }
+
+        // Configuración inicial al cargar la página
+        window.onload = () => {
+             vInicialEnemigoValue.textContent = vInicialEnemigoSlider.value;
+             anguloEnemigoValue.textContent = anguloEnemigoSlider.value;
+             timeScaleValue.textContent = parseFloat(timeScaleSlider.value).toFixed(1);
+             timeScaleRandomValue.textContent = parseFloat(timeScaleRandomSlider.value).toFixed(1);
+             drawCanvas();
+             drawRandomCanvas();
+        };
+    </script>
+</body>
+</html>

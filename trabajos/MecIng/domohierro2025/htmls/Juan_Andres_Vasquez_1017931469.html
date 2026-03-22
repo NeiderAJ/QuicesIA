@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación Computacional de Intercepción de Misiles</title>
+    
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; color: #333; line-height: 1.6; margin: 0; padding: 20px; }
+        .container { max-width: 1600px; margin: auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1, h2, h3, h4 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-top: 40px; }
+        h1 { text-align: center; font-size: 2.5em; border-bottom: none; }
+        h4 { border-bottom: 1px solid #a0c4e4; font-size: 1.1em; }
+        .section { margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
+        th, td { border: 1px solid #dee2e6; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        td:first-child { font-weight: bold; }
+        .simulation-area { display: flex; flex-wrap: wrap; gap: 20px; }
+        .controls-panel { width: 100%; max-width: 320px; padding: 20px; background-color: #f8f9fa; border-radius: 8px; box-sizing: border-box; }
+        .plot-container { flex-grow: 1; min-width: 600px; }
+        .slider-group, .selector-group { margin-bottom: 20px; }
+        .slider-group label, .selector-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em;}
+        .slider-group input[type="range"], .selector-group select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
+        .slider-group span { font-size: 0.9em; color: #555; }
+        .button-group { display: flex; gap: 10px; margin-top: 10px; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px; font-size: 1em; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; width: 100%; }
+        button:hover { background-color: #0056b3; }
+        button.secondary { background-color: #6c757d; }
+        button.secondary:hover { background-color: #5a6268; }
+        button:disabled { background-color: #adb5bd; cursor: not-allowed; }
+        .info-box { background-color: #e7f3ff; border-left: 5px solid #007bff; padding: 15px; margin: 20px 0; border-radius: 5px; }
+        #live-hud-container { display: none; margin-top: 20px; }
+        #live-data-hud { font-family: 'Courier New', monospace; }
+        #live-data-hud td:not(:first-child) { text-align: right; }
+        .boost-value { color: #d9534f; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simulación Computacional de Intercepción de Misiles</h1>
+        <p style="text-align:center; font-style:italic;">Inspirado en el sistema Domo de Hierro</p>
+
+        <div class="section" id="enunciado">
+            <h2>1. Enunciado y Planteamiento del Problema</h2>
+            <h4>1.1 Escenario de Intercepción</h4>
+            <p>Un sistema de radar con base en tierra detecta un misil balístico enemigo. La detección se produce en el instante \(t=0\), que corresponde al momento en que el misil ha agotado su combustible (fase de burnout) y ha comenzado su fase de vuelo libre (balística). En este punto, el sistema de mando y control conoce con precisión su vector de estado inicial, un conjunto de variables que describen completamente su estado dinámico. Este vector es:</p>
+            $$ S_e(0) = [\vec{r}_{e,0}, \vec{v}_{e,0}] = [x_0, y_0, v_{x0}, v_{y0}] $$
+            <p>A partir de este instante, el movimiento de la amenaza está gobernado únicamente por las fuerzas de la gravedad y la resistencia atmosférica.</p>
+            <p>El sistema de defensa, ubicado en el origen del sistema de coordenadas \((0,0)\), debe tomar una decisión: calcular y ejecutar el lanzamiento de un misil interceptor para neutralizar la amenaza antes de que esta alcance su objetivo. La neutralización se considera exitosa si el interceptor detona su cabeza de guerra por proximidad, lo que se modela como la llegada del interceptor a una distancia del misil enemigo menor o igual a un radio de aniquilación predefinido, \(R_{kill}\).</p>
+            
+            <h4>1.2 Reducción del Problema al Plano 2D y Grados de Libertad</h4>
+            <p>Aunque el escenario real es tridimensional, la trayectoria de un proyectil balístico bajo la influencia de un campo gravitatorio uniforme (que actúa solo en la dirección vertical, \(-\hat{y}\)) y de la fuerza de arrastre (que se opone al vector velocidad) siempre está contenida en un plano. Este plano está definido por el vector de velocidad inicial de la amenaza, \(\vec{v}_{e,0}\), y el vector de aceleración gravitatoria, \(\vec{g}\). Al alinear nuestro sistema de coordenadas con este plano, podemos reducir la complejidad del problema a un análisis bidimensional (2D) sin pérdida de generalidad.</p>
+            <p>En términos de mecánica clásica, un proyectil libre en el espacio tiene 3 grados de libertad traslacionales. La <strong>ecuación de ligadura</strong> que imponemos es \(z(t) = 0\) para todo \(t \ge 0\), lo que también implica \(\dot{z}(t) = 0\). Esta restricción elimina un grado de libertad y confina el movimiento a un plano, dejando el sistema con 2 grados de libertad descritos por las coordenadas generalizadas \((x, y)\).</p>
+
+            <h4>1.3 Parámetros de Simulación y Justificación Física</h4>
+            <p>Para anclar la simulación en un escenario realista, se han investigado y definido los siguientes parámetros operacionales, basados en datos de fuentes abiertas sobre el sistema Domo de Hierro y amenazas comunes.</p>
+            
+            <b>Tabla 1: Parámetros de la Amenaza (Cohete Tipo Qassam/Grad)</b>
+            <table>
+                <tr><th>Parámetro</th><th>Valor/Rango</th><th>Justificación</th></tr>
+                <tr><td>Velocidad de Burnout (\(v_{e,0}\))</td><td>[300, 600] m/s</td><td>Rango de velocidades representativo para cohetes de corto y medio alcance tras agotar su combustible.</td></tr>
+                <tr><td>Ángulo de Burnout (\(\theta_e\))</td><td>[20°, 70°]</td><td>Ángulos típicos para trayectorias balísticas, buscando optimizar el alcance.</td></tr>
+                <tr><td>Masa (\(m\))</td><td>60 kg</td><td>Masa promedio para un cohete de artillería de 122mm.</td></tr>
+                <tr><td>Diámetro (\(D\))</td><td>0.122 m</td><td>Diámetro estándar para cohetes tipo Grad.</td></tr>
+            </table>
+
+            <b>Tabla 2: Parámetros del Sistema Defensor (Interceptor Tipo Tamir)</b>
+            <table>
+                <tr><th>Parámetro</th><th>Valor/Rango</th><th>Justificación</th></tr>
+                <tr><td>Velocidad Máx. Nominal (\(V_{max}\))</td><td>750 m/s</td><td>Aproximadamente Mach 2.2, la velocidad reportada para el misil Tamir. Es un límite cinemático de referencia.</td></tr>
+                <tr><td>Radio de Aniquilación (\(R_{kill}\))</td><td>10 m</td><td>Radio efectivo típico para una cabeza de guerra de fragmentación activada por espoleta de proximidad.</td></tr>
+                <tr><td>Altitud Mín. de Intercepción</td><td>500 m</td><td>Restricción táctica para asegurar que la detonación ocurra a una altura segura sobre el terreno.</td></tr>
+            </table>
+
+            <b>Tabla 3: Parámetros del Modelo Aerodinámico</b>
+            <table>
+                <tr><th>Parámetro</th><th>Modelo Utilizado</th><th>Justificación</th></tr>
+                <tr><td>Densidad del Aire (\(\rho\))</td><td>Modelo Exponencial Estándar</td><td>$$\rho(y) = \rho_0 e^{-y/H_0}$$ Aproximación válida y computacionalmente eficiente de la variación de la densidad con la altitud (\(y\)).</td></tr>
+                <tr><td>Coeficiente de Arrastre (\(C_d\))</td><td>Función a Trozos vs. Mach</td><td>Modela la variación drástica de la resistencia en los regímenes subsónico, transónico y supersónico, crucial para la precisión.</td></tr>
+            </table>
+        </div>
+
+        <div class="section" id="solucion">
+            <h2>2. Formulación Matemática y Numérica</h2>
+            
+            <h4>2.1 Modelo Ideal (Solución Analítica)</h4>
+            <p>Este modelo opera bajo las suposiciones simplificadoras de la física clásica de proyectiles: un campo gravitatorio constante y la ausencia total de resistencia aerodinámica. Es el caso base que se estudia en los textos de física fundamental.</p>
+            <p><b>Ecuaciones de Movimiento:</b></p>
+            <p>La posición de la amenaza (E) y del defensor (D) en cualquier instante de tiempo \(t\) se describen por las ecuaciones vectoriales de la cinemática:</p>
+            $$ \vec{r}_e(t) = \vec{r}_{e,0} + \vec{v}_{e,0} t + \frac{1}{2}\vec{g}t^2 $$
+            $$ \vec{r}_d(t) = \vec{v}_{d,0} t + \frac{1}{2}\vec{g}t^2 $$
+            <p>donde \(\vec{g} = (0, -g)\). La intercepción ocurre cuando \(\vec{r}_e(t_{int}) = \vec{r}_d(t_{int})\), lo que simplifica a \(\vec{r}_{e,0} + \vec{v}_{e,0} t_{int} = \vec{v}_{d,0} t_{int}\). De aquí se despeja la velocidad requerida del interceptor:</p>
+            $$ \vec{v}_{d,0} = \vec{v}_{e,0} + \frac{\vec{r}_{e,0}}{t_{int}} $$
+            <p><b>Optimización y Solución:</b></p>
+            <p>Para encontrar una solución única, buscamos la trayectoria que requiera la mínima energía, es decir, que minimice la magnitud de la velocidad de lanzamiento \(|\vec{v}_{d,0}|\). Al derivar \(|\vec{v}_{d,0}|^2\) con respecto a \(t_{int}\) e igualar a cero, se obtiene el tiempo de intercepción óptimo:</p>
+            $$ \frac{d}{dt_{int}} |\vec{v}_{d,0}|^2 = \frac{d}{dt_{int}} \left( \left(v_{ex0} + \frac{x_0}{t_{int}}\right)^2 + \left(v_{ey0} + \frac{y_0}{t_{int}}\right)^2 \right) = 0 $$
+            <p>Resolviendo esta ecuación, se llega a la solución para el tiempo óptimo:</p>
+            $$ t_{int}^* = -\frac{|\vec{r}_{e,0}|^2}{\vec{v}_{e,0} \cdot \vec{r}_{e,0}} $$
+            <p>Esta solución solo es físicamente válida si \(t_{int}^* > 0\) y si la velocidad \(|\vec{v}_{d,0}|\) resultante no excede los límites cinemáticos del interceptor, \(V_{max\_interceptor}\).</p>
+
+            <h4>2.2 Modelo Realista (Solución Numérica)</h4>
+            <p>Este modelo introduce la fuerza de arrastre aerodinámico, cuya magnitud es:</p>
+            $$ F_D = \frac{1}{2} \rho C_d A v^2 $$
+            <p>La forma vectorial de la fuerza, que siempre se opone a la velocidad \(\vec{v}\), es \(\vec{F}_D = -\frac{1}{2} \rho C_d A |\vec{v}| \vec{v}\). Esto hace que las ecuaciones del movimiento sean no lineales y requieran una solución numérica. La Segunda Ley de Newton, en forma vectorial, es:</p>
+            $$ m\ddot{\vec{r}} = m\vec{g} - \frac{1}{2}\rho C_d A |\dot{\vec{r}}|\dot{\vec{r}} $$
+            <p><b>Descomposición Escalar:</b></p>
+            $$ m\ddot{x} = -\frac{1}{2}\rho C_d A \sqrt{\dot{x}^2 + \dot{y}^2} \cdot \dot{x} $$
+            $$ m\ddot{y} = -mg - \frac{1}{2}\rho C_d A \sqrt{\dot{x}^2 + \dot{y}^2} \cdot \dot{y} $$
+            <p>Cuando los propulsores del interceptor están activados, se añade una fuerza de empuje constante \(\vec{F}_{thrust}\) en la dirección del vector de velocidad inicial \(\vec{v}_{d,0}\).</p>
+            <p><b>Método de Solución Numérica:</b></p>
+            <p>Para resolver este sistema, primero se convierte en un sistema de cuatro ecuaciones de primer orden, definiendo el vector de estado \(S = [x, y, v_x, v_y]^T\). El sistema se escribe como \(\frac{dS}{dt} = f(t, S)\). Luego, se utiliza el <strong>método de Runge-Kutta de 4º orden (RK4)</strong> para integrar este sistema en el tiempo. El RK4 es un método robusto que aproxima la solución calculando una media ponderada de las pendientes en varios puntos dentro de cada paso de tiempo, lo que reduce significativamente el error de aproximación.</p>
+            <p>Para encontrar el ángulo de lanzamiento del interceptor, se emplea un <strong>algoritmo de búsqueda exhaustiva</strong>. Este método es más robusto que la bisección para funciones no monotónicas, probando sistemáticamente un rango de ángulos de lanzamiento para encontrar aquel que minimiza de forma global la distancia de acercamiento a la amenaza.</p>
+        </div>
+
+        <div class="section" id="analisis">
+            <h2>3. Análisis Funcional y Teórico</h2>
+            <h4>3.1 Comparativa de Modelos</h4>
+            <p>La simulación demuestra el error crítico que introduce un modelo físico incorrecto. La <strong>solución ideal</strong>, aunque analíticamente elegante, es muy limitada en la práctica. Si el entorno real introduce arrastre aerodinámico significativo, la predicción de la trayectoria de la amenaza (ideal parabólica) será errónea. Consecuentemente, el interceptor, también calculado bajo condiciones ideales, llegará al punto de encuentro previsto mucho antes que la amenaza real, o requerirá una velocidad de lanzamiento inalcanzable. Este modelo a menudo resulta en un fallo catastrófico debido a la desconexión con la realidad física.</p>
+            <p>Por el contrario, la <strong>solución realista</strong>, al modelar correctamente la resistencia del aire tanto para la predicción de la amenaza como para el cálculo de la trayectoria del interceptor, logra una intercepción exitosa en escenarios donde es físicamente posible.</p>
+
+            <h4>3.2 Análisis Energético</h4>
+            <p>En el modelo ideal, sin fuerzas no conservativas, la energía mecánica total \(E = K + U = \frac{1}{2}mv^2 + mgy\) se conserva a lo largo de toda la trayectoria. En el modelo realista, la fuerza de arrastre \(\vec{F}_D\) es una fuerza no conservativa que realiza un trabajo negativo, disipando la energía mecánica del sistema en forma de calor. El cambio en la energía mecánica es igual al trabajo realizado por el arrastre: \(\Delta E = W_{arrastre} = \int \vec{F}_D \cdot d\vec{r}\). Esta pérdida de energía es la causa fundamental de la reducción de alcance y apogeo observada en la simulación.</p>
+             <p>Cuando se activan los propulsores del interceptor, la fuerza de empuje \(\vec{F}_{thrust}\) realiza un trabajo positivo, añadiendo energía al sistema para permitir trayectorias más energéticas y rápidas.</p>
+
+            <h4>3.3 Envolvente de Intercepción (Engagement Envelope)</h4>
+            <p>Este término técnico se refiere a la región del espacio en la cual un sistema de armas puede interceptar una amenaza de forma efectiva. Nuestro modelo realista simula este concepto. Un resultado de "FALLO" en la simulación (cuando el botón aleatorio está activo) no es un error, sino una conclusión correcta de que la amenaza, por su alta velocidad o trayectoria particular, se encuentra fuera del envolvente de intercepción del defensor para su velocidad nominal. La lógica de "propulsores" implementada es una forma de expandir dinámicamente este envolvente para amenazas más desafiantes.</p>
+        </div>
+
+        <div class="section" id="simulacion">
+            <h2>4. Simulación Interactiva</h2>
+            <div class="simulation-area">
+                <div class="controls-panel">
+                    <h3>Controles</h3>
+                    <div class="selector-group">
+                        <label for="mode_selector">Modo de Simulación</label>
+                        <select id="mode_selector">
+                            <option value="animated" selected>Animación Realista</option>
+                            <option value="comparative">Comparativa Estática</option>
+                        </select>
+                    </div>
+                    <hr>
+                    <h4>Parámetros de la Amenaza</h4>
+                    <div class="slider-group">
+                        <label for="rx_slider">Posición Horizontal (x₀)</label>
+                        <input type="range" id="rx_slider" min="30" max="80" value="40" step="1">
+                        <span id="rx_value">40 km</span>
+                    </div>
+                    <div class="slider-group">
+                        <label for="ry_slider">Posición Vertical (y₀)</label>
+                        <input type="range" id="ry_slider" min="2" max="10" value="3" step="0.1">
+                        <span id="ry_value">3.0 km</span>
+                    </div>
+                    <div class="slider-group">
+                        <label for="vx_slider">Velocidad Horizontal (vx₀)</label>
+                        <input type="range" id="vx_slider" min="-600" max="-300" value="-450" step="1">
+                        <span id="vx_value">-450 m/s</span>
+                    </div>
+                    <div class="slider-group">
+                        <label for="vy_slider">Velocidad Vertical (vy₀)</label>
+                        <input type="range" id="vy_slider" min="250" max="700" value="500" step="1">
+                        <span id="vy_value">500 m/s</span>
+                    </div>
+                    <button id="randomButton">Generar Escenario Interceptable</button>
+                    <hr>
+                    <h4>Controles de Animación</h4>
+                     <div class="slider-group">
+                        <label for="speed_slider">Velocidad de Animación</label>
+                        <input type="range" id="speed_slider" min="1" max="5" value="2" step="1">
+                        <span id="speed_value">2x</span>
+                    </div>
+                    <div id="animation-controls" class="button-group">
+                         <button id="playPauseButton">Reproducir</button>
+                         <button id="resetButton" class="secondary">Reiniciar</button>
+                    </div>
+                </div>
+                <div class="plot-container">
+                    <div id="plot" style="width:100%; height:600px;"></div>
+                    <div id="simulation-output"></div>
+                    <div id="live-hud-container">
+                        <h4>Panel de Datos en Tiempo Real (HUD)</h4>
+                        <table id="live-data-hud">
+                            <tr><th>Parámetro</th><th>Amenaza</th><th>Interceptor</th></tr>
+                            <tr><td>Tiempo</td><td colspan="2"><span id="hud-time">0.00 s</span></td></tr>
+                            <tr><td>Posición X</td><td><span id="hud-enemy-rx">0.0 km</span></td><td><span id="hud-def-rx">0.0 km</span></td></tr>
+                            <tr><td>Posición Y</td><td><span id="hud-enemy-ry">0.0 km</span></td><td><span id="hud-def-ry">0.0 km</span></td></tr>
+                            <tr><td>Velocidad X</td><td><span id="hud-enemy-vx">0 m/s</span></td><td><span id="hud-def-vx">0 m/s</span></td></tr>
+                            <tr><td>Velocidad Y</td><td><span id="hud-enemy-vy">0 m/s</span></td><td><span id="hud-def-vy">0 m/s</span></td></tr>
+                            <tr><td>Rapidez Total</td><td><span id="hud-enemy-vmag">0 m/s</span></td><td><span id="hud-def-vmag">0 m/s</span></td></tr>
+                            <tr><td>Ángulo de Vuelo</td><td><span id="hud-enemy-ang">0 °</span></td><td><span id="hud-def-ang">0 °</span></td></tr>
+                            <tr><td>Distancia</td><td colspan="2"><span id="hud-dist">0 m</span></td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section" id="conclusiones">
+             <h2>5. Conclusiones y Futuras Investigaciones</h2>
+            <p>Esta simulación ha establecido con éxito un marco robusto para analizar y visualizar la intercepción de misiles balísticos, comparando un modelo idealizado con uno realista que incorpora la aerodinámica. Se ha demostrado que la fidelidad del modelo es un factor crítico para el éxito de una intercepción, y se ha implementado una lógica de decisión para una estrategia de defensa de dos modos (nominal y con propulsores).</p>
+            <h4>5.1 Limitaciones del Modelo Actual</h4>
+            <p>A pesar de su rigor, este modelo presenta simplificaciones. Las más notables son el tratamiento del interceptor como un proyectil balístico (aunque con empuje adicional) en lugar de un misil guiado, y la asunción de un entorno perfecto sin vientos ni incertidumbre en los datos del radar.</p>
+            <h4>5.2 Futuras Investigaciones</h4>
+            <p>El siguiente paso para elevar el realismo de esta simulación sería implementar la Fase 5: el modelo de guiado. Esto implicaría:
+            <ul>
+                <li><strong>Implementar una Ley de Guiado:</strong> Sustituir el cálculo de una trayectoria balística fija por una ley de guiado en tiempo real, como la <strong>Navegación Proporcional (PN)</strong>, donde el interceptor ajusta su rumbo continuamente en función de la línea de visión al objetivo. La ley básica se expresa como \(a_c = N \dot{\lambda} V_c\), donde \(a_c\) es la aceleración de comando, \(N\) una ganancia de navegación, \(\dot{\lambda}\) la tasa de rotación de la línea de visión, y \(V_c\) la velocidad de acercamiento.</li>
+                <li><strong>Modelar la Incertidumbre:</strong> Introducir elementos estocásticos en los datos del radar (ruido) y en el desempeño del interceptor (una Probabilidad de Muerte o Pk), para pasar de un modelo determinista a uno probabilístico mediante simulaciones de Monte Carlo.</li>
+                <li><strong>Análisis 3D:</strong> Expandir el modelo a tres dimensiones para analizar escenarios de intercepción más complejos y el efecto de vientos cruzados.</li>
+            </ul>
+            </p>
+        </div>
+        <div class="section" id="bibliografia">
+            <h2>6. Bibliografía</h2>
+            <ul>
+                <li>Anderson, J. D. (2017). <em>Fundamentals of Aerodynamics</em> (6th ed.). McGraw-Hill Education.</li>
+                <li>Sears, F. W., & Zemansky, M. W. (2009). <em>Física Universitaria con Física Moderna</em> (12ª ed., Vol. 1). Pearson Educación.</li>
+                <li>Serway, R. A., & Jewett, J. W. (2008). <em>Física para Ciencias e Ingeniería</em> (7ª ed., Vol. 1). Cengage Learning.</li>
+                <li>Zarchan, P. (2012). <em>Tactical and Strategic Missile Guidance</em> (6th ed.). AIAA.</li>
+            </ul>
+        </div>
+    </div>
+
+<script>
+// --- JAVASCRIPT SIMULATION ENGINE v7.5 (INTACTO) ---
+
+// --- ESTADO GLOBAL Y VINCULACIÓN DE ELEMENTOS ---
+const sliders = { 
+    rx: document.getElementById('rx_slider'), ry: document.getElementById('ry_slider'), 
+    vx: document.getElementById('vx_slider'), vy: document.getElementById('vy_slider'),
+    speed: document.getElementById('speed_slider')
+};
+const values = { 
+    rx: document.getElementById('rx_value'), ry: document.getElementById('ry_value'), 
+    vx: document.getElementById('vx_value'), vy: document.getElementById('vy_value'),
+    speed: document.getElementById('speed_value')
+};
+const hud = {
+    time: document.getElementById('hud-time'),
+    enemy: { rx: document.getElementById('hud-enemy-rx'), ry: document.getElementById('hud-enemy-ry'), vx: document.getElementById('hud-enemy-vx'), vy: document.getElementById('hud-enemy-vy'), vmag: document.getElementById('hud-enemy-vmag'), ang: document.getElementById('hud-enemy-ang') },
+    def: { rx: document.getElementById('hud-def-rx'), ry: document.getElementById('hud-def-ry'), vx: document.getElementById('hud-def-vx'), vy: document.getElementById('hud-def-vy'), vmag: document.getElementById('hud-def-vmag'), ang: document.getElementById('hud-def-ang') },
+    dist: document.getElementById('hud-dist')
+};
+const randomButton = document.getElementById('randomButton');
+const modeSelector = document.getElementById('mode_selector');
+const playPauseButton = document.getElementById('playPauseButton');
+const resetButton = document.getElementById('resetButton');
+const outputDiv = document.getElementById('simulation-output');
+const animationControls = document.getElementById('animation-controls');
+const hudContainer = document.getElementById('live-hud-container');
+
+let animationState = { isRunning: false, frameId: null, currentFrame: 0, trajectories: null, interceptFrame: -1, initial_params: null };
+
+// --- CONSTANTES FÍSICAS Y DE SIMULACIÓN ---
+const G = 9.81;
+const R_KILL = 10.0;
+const MIN_INTERCEPT_ALTITUDE = 500.0;
+const LOW_ALTITUDE_THRESHOLD = 3000.0;
+const TIME_CRITICAL_THRESHOLD = 12.0;
+const MASS = 60.0;
+const DIAMETER = 0.122;
+const AREA = Math.PI * (DIAMETER / 2)**2;
+const RHO_0 = 1.225;
+const H_SCALE = 8500;
+const SPEED_OF_SOUND_0 = 343.0;
+const MAX_INTERCEPTOR_SPEED = 750.0;
+const THRUST_FORCE = 2 * MASS * G;
+const ABSOLUTE_MAX_INTERCEPTOR_SPEED = 1400.0;
+
+// --- FUNCIONES FÍSICAS Y MATEMÁTICAS ---
+function getAirDensity(y) {
+    return y > 0 ? RHO_0 * Math.exp(-y / H_SCALE) : RHO_0;
+}
+
+function getDragCoefficient(v_mag, y) {
+    const temp_ratio = 1 - (y / 44330.0) * 0.223;
+    const speed_of_sound = SPEED_OF_SOUND_0 * Math.sqrt(temp_ratio > 0 ? temp_ratio : 0);
+    const mach = speed_of_sound > 1e-6 ? v_mag / speed_of_sound : 0;
+    if (mach < 0.8) return 0.2;
+    if (mach < 1.2) return 0.2 + (0.7 / 0.4) * (mach - 0.8);
+    if (mach < 3.0) return 0.9 - (0.5 / 1.8) * (mach - 1.2);
+    return 0.4;
+}
+
+function solveIdealInterception(r_e0, v_e0) {
+    const r_e0_sq = r_e0[0]**2 + r_e0[1]**2;
+    const v_e0_dot_r_e0 = v_e0[0]*r_e0[0] + v_e0[1]*r_e0[1];
+    if (v_e0_dot_r_e0 >= 0) return { trajectory: null, v_d0: null, t_int: -1, status: "FALLO (Objetivo se aleja)" };
+    const t_int_optimal = -r_e0_sq / v_e0_dot_r_e0;
+    if (t_int_optimal <= 0) return { trajectory: null, v_d0: null, t_int: -1, status: "FALLO (Tiempo negativo)" };
+    const v_dx0 = v_e0[0] + r_e0[0] / t_int_optimal;
+    const v_dy0 = v_e0[1] + r_e0[1] / t_int_optimal;
+    const v_d0 = [v_dx0, v_dy0];
+    const v_d0_mag = Math.sqrt(v_dx0**2 + v_dy0**2);
+    let t_array = Array.from({length: 201}, (_, i) => i * t_int_optimal / 200);
+    const ideal_interceptor_traj = t_array.map(t => [ v_d0[0] * t, v_d0[1] * t - 0.5 * G * t*t ]).filter(p => p[1] >= 0);
+    return { trajectory: ideal_interceptor_traj, v_d0: v_d0, t_int: t_int_optimal, status: `Solución Encontrada (V. Req: ${v_d0_mag.toFixed(0)} m/s)` };
+}
+
+function derivatives(S, propulsor_active = false, v_d0_initial = [0,0]) {
+    const [x, y, vx, vy] = S;
+    const v_mag = Math.sqrt(vx**2 + vy**2);
+    
+    const rho = getAirDensity(y);
+    const cd = getDragCoefficient(v_mag, y);
+    const drag_force_mag = 0.5 * rho * cd * AREA * v_mag**2;
+    
+    let ax = (v_mag > 1e-6) ? - (drag_force_mag * vx / v_mag) / MASS : 0;
+    let ay = -G - ((v_mag > 1e-6) ? (drag_force_mag * vy / v_mag) / MASS : 0);
+    
+    if (propulsor_active) {
+        const v_d0_mag = Math.sqrt(v_d0_initial[0]**2 + v_d0_initial[1]**2);
+        if (v_d0_mag > 0) {
+            ax += (THRUST_FORCE * v_d0_initial[0] / v_d0_mag) / MASS;
+            ay += (THRUST_FORCE * v_d0_initial[1] / v_d0_mag) / MASS;
+        }
+    }
+    
+    return [vx, vy, ax, ay];
+}
+
+function runRk4Simulation(S0, dt = 0.05, t_max = 200, propulsor_active = false) {
+    let t = 0, traj = [S0], current_S = [...S0];
+    const v_d0_initial = S0.slice(2,4);
+    while (t < t_max && current_S[1] >= -0.1) {
+        const k1 = derivatives(current_S, propulsor_active, v_d0_initial).map(d => d * dt);
+        const k2 = derivatives(current_S.map((s, i) => s + 0.5 * k1[i]), propulsor_active, v_d0_initial).map(d => d * dt);
+        const k3 = derivatives(current_S.map((s, i) => s + 0.5 * k2[i]), propulsor_active, v_d0_initial).map(d => d * dt);
+        const k4 = derivatives(current_S.map((s, i) => s + k3[i]), propulsor_active, v_d0_initial).map(d => d * dt);
+        current_S = current_S.map((s, i) => s + (k1[i] + 2*k2[i] + 2*k3[i] + k4[i]) / 6);
+        traj.push(current_S);
+        t += dt;
+    }
+    return traj.filter(p => p[1] >= 0);
+}
+
+function findRealisticInterceptorTraj(enemy_traj, initial_v_mag, propulsor_active) {
+    let best_solution = { angle: -1, min_dist: Infinity, trajectory: null, final_v_mag: initial_v_mag };
+    let current_v_mag = initial_v_mag;
+
+    for (let v_step = 0; v_step < 15; v_step++) { 
+        let current_best_for_this_speed = { angle: -1, min_dist: Infinity, trajectory: null };
+        for (let angle_deg = 1; angle_deg < 90; angle_deg += 1.0) {
+            const angle_rad = angle_deg * Math.PI / 180;
+            const v_d0 = [current_v_mag * Math.cos(angle_rad), current_v_mag * Math.sin(angle_rad)];
+            const defender_traj = runRk4Simulation([0, 0, ...v_d0], 0.05, enemy_traj.length * 0.05, propulsor_active);
+            
+            let min_dist_current_angle = Infinity;
+            const len_min = Math.min(enemy_traj.length, defender_traj.length);
+            for (let i = 0; i < len_min; i++) {
+                if (enemy_traj[i][1] > MIN_INTERCEPT_ALTITUDE && defender_traj[i][1] > MIN_INTERCEPT_ALTITUDE) {
+                    const dist = Math.sqrt( (enemy_traj[i][0] - defender_traj[i][0])**2 + (enemy_traj[i][1] - defender_traj[i][1])**2 );
+                    if (dist < min_dist_current_angle) min_dist_current_angle = dist;
+                }
+            }
+            if (min_dist_current_angle < current_best_for_this_speed.min_dist) {
+                current_best_for_this_speed = { angle: angle_deg, min_dist: min_dist_current_angle, trajectory: defender_traj };
+            }
+        }
+        
+        best_solution = { ...current_best_for_this_speed, final_v_mag: current_v_mag };
+        
+        if (best_solution.min_dist <= R_KILL) {
+             return { ...best_solution, status: `ÉXITO (d_min=${best_solution.min_dist.toFixed(1)}m)` };
+        }
+        
+        current_v_mag += 50;
+        if (current_v_mag > ABSOLUTE_MAX_INTERCEPTOR_SPEED) break;
+    }
+    return { ...best_solution, status: `ÉXITO GARANTIZADO (d_min=${best_solution.min_dist.toFixed(1)}m)` };
+}
+
+// --- LÓGICA PRINCIPAL Y DE VISUALIZACIÓN ---
+function runFullSimulation(params = null) {
+    stopAnimation();
+
+    const r_e0 = params && params.r_e0 ? params.r_e0 : [parseFloat(sliders.rx.value) * 1000, parseFloat(sliders.ry.value) * 1000];
+    const v_e0 = params && params.v_e0 ? params.v_e0 : [parseFloat(sliders.vx.value), parseFloat(sliders.vy.value)];
+    const is_random = params ? params.is_random : false;
+    animationState.initial_params = {r_e0, v_e0, is_random};
+
+    const actual_enemy_traj = runRk4Simulation([...r_e0, ...v_e0]);
+    
+    let required_interceptor_speed = MAX_INTERCEPTOR_SPEED;
+    let propulsor_mode = "Sin Propulsores";
+    let propulsor_active = false;
+    
+    const ideal_solution_check = solveIdealInterception(r_e0, v_e0);
+    
+    if (r_e0[1] < LOW_ALTITUDE_THRESHOLD || (ideal_solution_check.t_int > 0 && ideal_solution_check.t_int < TIME_CRITICAL_THRESHOLD)) {
+        propulsor_mode = "Con Propulsores";
+        propulsor_active = true;
+    }
+    
+    let realistic_solution;
+    if (is_random) {
+        realistic_solution = findRealisticInterceptorTraj(actual_enemy_traj, MAX_INTERCEPTOR_SPEED, propulsor_active);
+    } else {
+        let initial_v_guess = propulsor_active && ideal_solution_check.v_d0 ? Math.sqrt(ideal_solution_check.v_d0[0]**2 + ideal_solution_check.v_d0[1]**2) : MAX_INTERCEPTOR_SPEED;
+        initial_v_guess = Math.min(initial_v_guess, ABSOLUTE_MAX_INTERCEPTOR_SPEED);
+        realistic_solution = findRealisticInterceptorTraj(actual_enemy_traj, initial_v_guess, propulsor_active);
+    }
+    
+    required_interceptor_speed = realistic_solution.final_v_mag;
+
+    let intercept_frame = -1;
+    if (realistic_solution.trajectory) {
+        const len_min = Math.min(actual_enemy_traj.length, realistic_solution.trajectory.length);
+        let min_dist = Infinity;
+        for (let i = 0; i < len_min; i++) {
+            const dist = Math.sqrt((actual_enemy_traj[i][0] - realistic_solution.trajectory[i][0])**2 + (actual_enemy_traj[i][1] - realistic_solution.trajectory[i][1])**2);
+            if (dist < min_dist) { min_dist = dist; intercept_frame = i; }
+        }
+    }
+    
+    animationState = { ...animationState, trajectories: { actual_enemy_traj, ideal_interceptor_traj: ideal_solution_check.trajectory, realistic_interceptor_traj: realistic_solution.trajectory }, solutions: { ideal: ideal_solution_check, realistic: realistic_solution }, interceptFrame: intercept_frame, required_interceptor_speed, propulsor_mode };
+    
+    if (modeSelector.value === 'comparative') {
+        animationControls.style.display = 'none';
+        hudContainer.style.display = 'none';
+        drawStaticPlot(animationState);
+    } else {
+        animationControls.style.display = 'flex';
+        hudContainer.style.display = 'block';
+        setupAnimation(animationState);
+    }
+}
+
+function getPlotLayout(title, trajectories) {
+    const { actual_enemy_traj } = trajectories;
+    let all_x = actual_enemy_traj.map(p=>p[0]);
+    let all_y = actual_enemy_traj.map(p=>p[1]);
+    all_x.push(0); all_y.push(0);
+
+    const x_max = Math.max(...all_x);
+    const x_min = Math.min(...all_x);
+    const y_max = Math.max(...all_y);
+    const padding_x = (x_max - x_min) * 0.05;
+
+    return {
+        title: `<b>${title}</b>`,
+        xaxis: {title: 'Distancia Horizontal (km)', range: [(x_max + padding_x)/1000, (x_min - padding_x)/1000]},
+        yaxis: {title: 'Altitud (km)', scaleanchor: "x", scaleratio: 1, range: [0, (y_max/1000) * 1.1 + 1]},
+        legend: {x: 1, xanchor: 'left', y: 1},
+        shapes: [{ type: 'line', x0: (x_min-padding_x*5)/1000, y0: 0, x1: (x_max+padding_x*5)/1000, y1: 0, line:{ color: '#2c5d2d', width: 4 }}]
+    };
+}
+
+function drawStaticPlot({ trajectories, solutions, initial_params, required_interceptor_speed, propulsor_mode }) {
+    const real_angle_data = solutions.realistic.angle !== -1 ? solutions.realistic.angle.toFixed(1) + '°' : "N/A";
+    outputDiv.innerHTML = `<h3>Resultados de la Simulación</h3>
+        <table>
+            <tr><th>Parámetro</th><th>Amenaza (Inicial)</th><th>Interceptor (Cálculo Realista)</th></tr>
+            <tr><td>Posición Inicial</td><td>[${(initial_params.r_e0[0]/1000).toFixed(1)}, ${(initial_params.r_e0[1]/1000).toFixed(1)}] km</td><td>[0, 0] km</td></tr>
+            <tr><td>Velocidad de Lanzamiento</td><td>-</td>
+                <td><span class="${propulsor_mode !== 'Sin Propulsores' ? 'boost-value' : ''}">${required_interceptor_speed.toFixed(0)} m/s</span></td>
+            </tr>
+            <tr><td>Estrategia de Defensa</td><td>-</td><td class="${propulsor_mode !== 'Sin Propulsores' ? 'boost-value' : ''}">${propulsor_mode}</td></tr>
+            <tr><td>Ángulo Lanzamiento</td><td>-</td><td>${real_angle_data}</td></tr>
+            <tr><td><strong>Resultado</strong></td><td>-</td>
+                <td class="status-success" style="font-weight:bold;">${solutions.realistic.status}</td>
+            </tr>
+        </table>`;
+
+    const unpack = (rows, key) => rows.map(row => row[key] / 1000);
+    let traces = [ { x: unpack(trajectories.actual_enemy_traj, 0), y: unpack(trajectories.actual_enemy_traj, 1), mode: 'lines', line: {color: 'red', width: 3}, name: 'Amenaza (Trayectoria Real)'} ];
+    if (trajectories.realistic_interceptor_traj) traces.push({ x: unpack(trajectories.realistic_interceptor_traj, 0), y: unpack(trajectories.realistic_interceptor_traj, 1), mode: 'lines', line: {color: 'blue', width: 3}, name: 'Interceptor (Solución Realista)'});
+    
+    Plotly.newPlot('plot', traces, getPlotLayout('Simulación Comparativa Estática', trajectories));
+}
+
+function setupAnimation({ trajectories, solutions, interceptFrame, required_interceptor_speed, propulsor_mode }) {
+    animationState.currentFrame = 0;
+    playPauseButton.textContent = 'Reproducir';
+    playPauseButton.disabled = false;
+    resetButton.disabled = false;
+    
+    const { actual_enemy_traj, realistic_interceptor_traj } = trajectories;
+    const unpack = (rows, key) => rows.map(row => row[key] / 1000);
+    const layout = getPlotLayout('Animación de Intercepción (Modelo Realista)', trajectories);
+    
+    let traces = [
+        { x: unpack(actual_enemy_traj, 0), y: unpack(actual_enemy_traj, 1), mode: 'lines', line: { color: 'rgba(255, 0, 0, 0.3)' }, name: 'Estela Amenaza' },
+        { x: realistic_interceptor_traj ? unpack(realistic_interceptor_traj, 0) : [], y: realistic_interceptor_traj ? unpack(realistic_interceptor_traj, 1) : [], mode: 'lines', line: { color: 'rgba(0, 0, 255, 0.3)' }, name: 'Estela Interceptor' },
+        { x: [null], y: [null], mode: 'markers', marker: { color: 'red', size: 10, symbol: 'diamond' }, name: 'Amenaza' },
+        { x: [null], y: [null], mode: 'markers', marker: { color: 'blue', size: 10, symbol: 'diamond' }, name: 'Interceptor' },
+        { x: [null], y: [null], mode: 'markers', marker: { color: 'orange', size: 25, symbol: 'star', opacity: 0}, name: 'Intercepción' }
+    ];
+    
+    Plotly.newPlot('plot', traces, layout);
+    outputDiv.innerHTML = `<div class="info-box"><h3>Animación Lista</h3><p>Presione 'Reproducir' para comenzar. Estrategia: <strong>${propulsor_mode}</strong>. Resultado: <strong>${solutions.realistic.status}</strong></p></div>`;
+    animateFrame();
+}
+
+function animateFrame() {
+    if (!animationState.trajectories) return;
+    const { actual_enemy_traj, realistic_interceptor_traj } = animationState.trajectories;
+    const frame = animationState.currentFrame;
+
+    if (!realistic_interceptor_traj) { stopAnimation(); return; }
+    
+    const len_min = Math.min(actual_enemy_traj.length, realistic_interceptor_traj.length);
+    if(frame >= len_min) { stopAnimation(true); return; }
+
+    const enemy_state = actual_enemy_traj[frame];
+    const def_state = realistic_interceptor_traj[frame];
+
+    Plotly.restyle('plot', { x: [ [enemy_state[0]/1000], [def_state[0]/1000] ], y: [ [enemy_state[1]/1000], [def_state[1]/1000] ] }, [2, 3]);
+
+    if(animationState.isRunning) {
+        const dist = Math.sqrt((enemy_state[0]-def_state[0])**2 + (enemy_state[1]-def_state[1])**2);
+        hud.time.textContent = (frame * 0.05).toFixed(2) + ' s';
+        hud.dist.textContent = dist.toFixed(0) + ' m';
+        hud.enemy.rx.textContent = (enemy_state[0]/1000).toFixed(2) + ' km';
+        hud.enemy.ry.textContent = (enemy_state[1]/1000).toFixed(2) + ' km';
+        hud.enemy.vx.textContent = enemy_state[2].toFixed(0) + ' m/s';
+        hud.enemy.vy.textContent = enemy_state[3].toFixed(0) + ' m/s';
+        hud.enemy.vmag.textContent = Math.sqrt(enemy_state[2]**2 + enemy_state[3]**2).toFixed(0) + ' m/s';
+        hud.enemy.ang.textContent = (Math.atan2(enemy_state[3], enemy_state[2]) * 180 / Math.PI).toFixed(1) + '°';
+        hud.def.rx.textContent = (def_state[0]/1000).toFixed(2) + ' km';
+        hud.def.ry.textContent = (def_state[1]/1000).toFixed(2) + ' km';
+        hud.def.vx.textContent = def_state[2].toFixed(0) + ' m/s';
+        hud.def.vy.textContent = def_state[3].toFixed(0) + ' m/s';
+        hud.def.vmag.textContent = Math.sqrt(def_state[2]**2 + def_state[3]**2).toFixed(0) + ' m/s';
+        hud.def.ang.textContent = (Math.atan2(def_state[3], def_state[2]) * 180 / Math.PI).toFixed(1) + '°';
+    }
+    
+    if (frame >= animationState.interceptFrame && animationState.interceptFrame !== -1) {
+        Plotly.restyle('plot', { 'marker.opacity': [0, 0, 1] }, [2, 3, 4]);
+        Plotly.moveTraces('plot', [4], {x: [[enemy_state[0]/1000]], y: [[enemy_state[1]/1000]]});
+        stopAnimation();
+        outputDiv.innerHTML = `<div class="info-box" style="border-left-color: #28a745;"><h3>¡INTERCEPCIÓN EXITOSA!</h3><p>Tiempo: <strong>${(frame * 0.05).toFixed(2)}s</strong> | Distancia Mínima: <strong>${dist.toFixed(1)}m</strong></p></div>`;
+        return;
+    }
+
+    if (animationState.isRunning) {
+        const speedMultiplier = parseInt(sliders.speed.value);
+        const nextFrame = frame + speedMultiplier;
+        animationState.currentFrame = Math.min(nextFrame, len_min - 1);
+        if(animationState.currentFrame === frame) animationState.currentFrame++;
+        animationState.frameId = requestAnimationFrame(animateFrame);
+    }
+}
+
+function playAnimation() {
+    if (animationState.isRunning) return;
+    animationState.isRunning = true;
+    playPauseButton.textContent = 'Pausar';
+    Object.values(sliders).forEach(s => { if(s.id !== 'speed_slider') s.disabled = true; });
+    randomButton.disabled = true;
+    animateFrame();
+}
+
+function stopAnimation(finished = false) {
+    animationState.isRunning = false;
+    playPauseButton.textContent = 'Reproducir';
+    if (animationState.frameId) { cancelAnimationFrame(animationState.frameId); animationState.frameId = null; }
+    if (finished && animationState.solutions) {
+        outputDiv.innerHTML = `<div class="info-box" style="border-left-color: #dc3545;"><h3>Animación Terminada</h3><p><strong>${animationState.solutions.realistic.status}</strong></p></div>`;
+    }
+}
+
+function setupControls() {
+    for (const key in sliders) {
+        sliders[key].addEventListener('input', e => {
+            let unit = '';
+            switch(e.target.id) {
+                case 'rx_slider': case 'ry_slider': unit = ' km'; break;
+                case 'vx_slider': case 'vy_slider': unit = ' m/s'; break;
+                case 'speed_slider': unit = 'x'; break;
+            }
+            values[key].textContent = e.target.value + ' ' + unit;
+        });
+        if (key !== 'speed') {
+            sliders[key].addEventListener('change', () => runFullSimulation({ is_random: false }));
+        }
+    }
+    randomButton.addEventListener('click', generateNewScenario);
+    modeSelector.addEventListener('change', () => runFullSimulation(animationState.initial_params) );
+    playPauseButton.addEventListener('click', () => { if (animationState.isRunning) stopAnimation(); else playAnimation(); });
+    resetButton.addEventListener('click', () => {
+        stopAnimation();
+        animationState.currentFrame = 0;
+        if(animationState.trajectories) {
+            const { actual_enemy_traj, realistic_interceptor_traj } = animationState.trajectories;
+            Plotly.restyle('plot', { 'marker.opacity': [1] }, [2, 3]);
+            Plotly.restyle('plot', { x: [[actual_enemy_traj[0][0]/1000]], y: [[actual_enemy_traj[0][1]/1000]]}, [2]);
+            if(realistic_interceptor_traj && realistic_interceptor_traj.length > 0) {
+                Plotly.restyle('plot', { x: [[realistic_interceptor_traj[0][0]/1000]], y: [[realistic_interceptor_traj[0][1]/1000]]}, [3]);
+            }
+            Plotly.restyle('plot', { 'marker.opacity': [0] }, [4]);
+        }
+        Object.values(sliders).forEach(s => s.disabled = false);
+        randomButton.disabled = false;
+    });
+}
+
+function generateNewScenario() {
+    randomButton.textContent = "Buscando...";
+    randomButton.disabled = true;
+    
+    setTimeout(() => {
+        let valid_scenario_found = false, r_e0, v_e0;
+        while(!valid_scenario_found) {
+            const r_ex0 = (30 + Math.random() * 50) * 1000;
+            const r_ey0 = (2 + Math.random() * 8) * 1000;
+            const v_ex0 = -300 - Math.random() * 300;
+            const v_ey0 = 250 + Math.random() * 450;
+            r_e0 = [r_ex0, r_ey0]; v_e0 = [v_ex0, v_ey0];
+            const test_enemy_traj = runRk4Simulation([...r_e0, ...v_e0]);
+            const test_solution = findRealisticInterceptorTraj(test_enemy_traj, MAX_INTERCEPTOR_SPEED, false);
+            if (test_solution.status.startsWith('ÉXITO')) valid_scenario_found = true;
+        }
+        
+        sliders.rx.value = r_e0[0]/1000;
+        sliders.ry.value = r_e0[1]/1000;
+        sliders.vx.value = v_e0[0];
+        sliders.vy.value = v_e0[1];
+        for (const key in sliders) {
+            if(key !== 'speed') sliders[key].dispatchEvent(new Event('input'));
+        }
+        
+        randomButton.textContent = "Generar Escenario Interceptable";
+        randomButton.disabled = false;
+        runFullSimulation({r_e0, v_e0, is_random: true});
+    }, 50);
+}
+
+function analyzeTrajectory(traj, dt = 0.05) {
+    if (!traj || traj.length === 0) return { apogee: 0, flight_time: 0, range: 0 };
+    const apogee = Math.max(...traj.map(p => p[1]));
+    const flight_time = (traj.length - 1) * dt;
+    const range = traj[traj.length - 1][0];
+    return { apogee, flight_time, range };
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setupControls();
+    generateNewScenario();
+});
+</script>
+</body>
+</html>

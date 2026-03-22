@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATHENA System</title>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/1078/1078023.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono&display=swap');
+        body { font-family: 'Roboto Mono', monospace; background-color: #0d1117; color: #c9d1d9; }
+        .title-font { font-family: 'Orbitron', sans-serif; }
+        .section-box { background-color: rgba(22, 27, 34, 0.85); border: 1px solid #30363d; border-radius: 8px; padding: 24px; margin-bottom: 24px; backdrop-filter: blur(8px); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
+        .header { color: #58a6ff; border-bottom: 2px solid #30363d; padding-bottom: 8px; margin-bottom: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        canvas { background-color: transparent; border: 1px solid #30363d; border-radius: 6px; cursor: crosshair; position: relative; width: 100%; height: auto; aspect-ratio: 16 / 9; }
+        .canvas-container { position: relative; overflow: hidden; border-radius: 6px; background-color: #010409; }
+        input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; background: #30363d; outline: none; border-radius: 4px; transition: background 0.3s; }
+        input[type="range"]:hover { background: #484f58; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: #58a6ff; cursor: pointer; border-radius: 50%; box-shadow: 0 0 5px #58a6ff, 0 0 10px #58a6ff; transition: transform 0.2s; }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+        .btn { background-color: #238636; color: white; padding: 10px 20px; border: 1px solid #2ea043; border-radius: 6px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        .btn:disabled { background-color: #222; border-color: #333; color: #666; cursor: not-allowed; transform: translateY(0); box-shadow: none; }
+        .btn:hover:not(:disabled) { background-color: #2ea043; box-shadow: 0 0 15px #2ea043; transform: translateY(-2px); }
+        .btn-secondary { background-color: #30363d; border-color: #484f58; }
+        .btn-secondary:hover:not(:disabled) { background-color: #484f58; box-shadow: 0 0 15px #484f58; }
+        .btn-info { background-color: #1f6feb; border-color: #388bfd; }
+        .btn-info:hover:not(:disabled) { background-color: #388bfd; box-shadow: 0 0 15px #388bfd; }
+        .btn-warning { background-color: #b0871d; border-color: #e3b341; }
+        .btn-warning:hover:not(:disabled) { background-color: #e3b341; box-shadow: 0 0 15px #e3b341;}
+        .status-box { padding: 12px; border-radius: 6px; font-weight: bold; transition: all 0.3s; }
+        .status-intercepted { background: linear-gradient(45deg, #238636, #2ea043); color: white; box-shadow: 0 0 10px #2ea043; }
+        .status-missed { background: linear-gradient(45deg, #da3633, #e94e4e); color: white; box-shadow: 0 0 10px #da3633; }
+        .status-running { background: linear-gradient(45deg, #388bfd, #58a6ff); color: white; box-shadow: 0 0 10px #58a6ff; }
+        .status-idle { background-color: #30363d; color: #c9d1d9; }
+        .status-locked { background: linear-gradient(45deg, #e3b341, #f0c674); color: #0d1117; box-shadow: 0 0 10px #f0c674;}
+        .report-content h3 { font-size: 1.1rem; color: #58a6ff; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; font-family: 'Orbitron', sans-serif; }
+        .report-content p, .report-content ul { color: #8a9cb1; line-height: 1.7; }
+        .report-content li { margin-left: 1rem; list-style-type: '» '; padding-left: 0.5rem; }
+        .katex-container { margin: 1rem 0; padding: 1rem; background-color: rgba(1, 4, 9, 0.7); border-radius: 6px; border: 1px solid #30363d; overflow-x: auto;}
+        .log-box { background-color: rgba(1, 4, 9, 0.7); border: 1px solid #30363d; border-radius: 6px; padding: 12px; height: 100px; overflow-y: scroll; font-size: 0.75rem; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-content { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 24px; transform: scale(0.95); transition: transform 0.3s ease; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2ea043; }
+        input:checked + .slider:before { transform: translateX(26px); }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+<!-- Welcome Modal -->
+<div id="welcomeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 hidden">
+  <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl w-11/12 max-w-xl text-gray-100 card">
+    <h2 class="text-2xl font-bold mb-2">Bienvenido - Proyecto</h2>
+    <p class="mb-4">Estudiante: <strong>Sheyla Lorena Negrette Gonzalez</strong><br>Profesor: <strong>Anyeres Neider Atehortua Jimenez</strong><br>Materia: <strong>Física Mecánica</strong></p>
+    <p class="text-sm mb-4">Este proyecto simula intercepciones balísticas. Puedes alternar entre modos sin propulsor y con propulsor, ajustar parámetros libremente y usar zoom para ver la simulación con mayor resolución.</p>
+    <div class="flex items-center gap-3">
+      <label class="inline-flex items-center gap-2"><input type="checkbox" id="dontShowWelcome"> No mostrar de nuevo</label>
+      <div class="flex-1"></div>
+      <button id="closeWelcome" class="px-4 py-2 rounded bg-cyan-500 text-slate-900 font-semibold">Comenzar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tutorial Modal -->
+<div id="tutorialModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 hidden">
+  <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl w-11/12 max-w-2xl text-gray-100 card">
+    <h2 class="text-2xl font-bold mb-2 title-font">Tutorial del Sistema ATHENA</h2>
+    <div id="tutorialContent" class="mb-4 text-gray-300"></div>
+    <div class="flex items-center justify-between">
+      <span id="tutorialStep" class="text-sm text-gray-500"></span>
+      <div class="flex gap-3">
+        <button id="tutorialPrev" class="px-4 py-2 rounded bg-slate-700 text-slate-300 font-semibold">Anterior</button>
+        <button id="tutorialNext" class="px-4 py-2 rounded bg-cyan-500 text-slate-900 font-semibold">Siguiente</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <div class="max-w-7xl mx-auto">
+        
+        <header class="text-center mb-8">
+            <img src="https://cdn-icons-png.flaticon.com/512/1078/1078023.png" alt="ATHENA Logo" class="w-24 mx-auto mb-4">
+            <h1 class="text-4xl font-bold text-gray-200 title-font">[ ATHENA - SISTEMA DE DEFENSA BALÍSTICA ]</h1>
+            <p class="text-lg text-gray-400">Q1 - Física Mecánica · Universidad de Antioquia</p>
+            <p id="operatorInfo" class="text-sm text-cyan-400 mt-2"></p>
+        </header>
+
+        <div class="section-box">
+            <h2 class="text-2xl font-bold header"><i class="fas fa-file-alt"></i>  Enunciado del Problema</h2>
+            <div class="report-content">
+              <p>Un radar detecta un misil enemigo en vuelo. En el instante de detección, se conocen su posición inicial $\vec{r}_{0}$, su velocidad inicial $\vec{v}_{0}$, y sus cosenos directores (l, m, n), que determinan su dirección en 3D. El misil enemigo se mueve únicamente bajo la acción de la gravedad terrestre.</p>
+              <h3>Reducción al Plano 2D</h3>
+              <p>Aunque el problema se plantea en 3D, siempre existe un plano que contiene la trayectoria del proyectil. Se debe identificar ese plano y reducir el problema a un tiro parabólico en 2D para simplificar el análisis y la simulación.</p>
+              <h3>Estrategia de Defensa</h3>
+              <p>El sistema de defensa debe calcular la dirección y velocidad inicial de lanzamiento del misil defensor. Si la detección es tardía o el objetivo es difícil, el misil defensor puede activar propulsores adicionales que le proporcionen una aceleración extra para lograr interceptar al enemigo a tiempo.</p>
+            </div>
+        </div>
+
+        <div class="section-box">
+            <h2 class="text-2xl font-bold header"><i class="fas fa-calculator"></i>  Solución Algebraica Propuesta</h2>
+            <div class="report-content">
+              <h3>Reducción a 2D</h3>
+              <p>El movimiento parabólico ocurre en el plano vertical definido por el vector de velocidad inicial $\vec{v}_{0}$ y el vector de la gravedad $\vec{g}$. Al alinear el eje X con la componente horizontal de la velocidad y el eje Y con la vertical, el problema 3D se simplifica a un análisis en 2D sin pérdida de generalidad.</p>
+              <h3>Ecuaciones de Movimiento (Misil Enemigo)</h3>
+              <p>El misil enemigo sigue un tiro parabólico clásico. Sus ecuaciones de posición en función del tiempo $t$ son:</p>
+              <div class="katex-container"> x_e(t) = x_{0e} + (v_{0e} \cos \theta_e) t </div>
+              <div class="katex-container"> y_e(t) = y_{0e} + (v_{0e} \sin \theta_e) t - \frac{1}{2} g t^2 </div>
+              <h3>Ecuaciones de Movimiento (Misil Defensor)</h3>
+              <p>El misil defensor puede tener una aceleración adicional $a_{\text{extra}}$ en la dirección de su velocidad inicial. Sus ecuaciones son:</p>
+              <div class="katex-container"> x_d(t) = x_{0d} + (v_{0d} \cos \theta_d) t + \frac{1}{2} (a_{\text{extra}} \cos \theta_d) t^2 </div>
+              <div class="katex-container"> y_d(t) = y_{0d} + (v_{0d} \sin \theta_d) t + \frac{1}{2} (a_{\text{extra}} \sin \theta_d - g) t^2 </div>
+              <h3>Condición de Intercepción</h3>
+              <p>La intercepción ocurre en un tiempo $t_{\text{int}}$ si la distancia entre los dos misiles es menor o igual a un radio de proximidad $R$. La condición es:</p>
+              <div class="katex-container"> \sqrt{(x_e(t_{\text{int}}) - x_d(t_{\text{int}}))^2 + (y_e(t_{\text{int}}) - y_d(t_{\text{int}}))^2} \le R </div>
+              <p>Para encontrar el tiempo y ángulo óptimos, el sistema debe resolver estas ecuaciones para minimizar la distancia en algún punto de la trayectoria.</p>
+            </div>
+        </div>
+        
+        <div class="section-box">
+            <h2 class="text-2xl font-bold header"><i class="fas fa-cogs"></i>  Análisis y Planteamiento de la Simulación</h2>
+             <div class="report-content">
+              <h3>Análisis Funcional</h3>
+              <p>La simulación modela las trayectorias de dos proyectiles en un plano 2D. El "enemigo" sigue una trayectoria parabólica simple. El "defensor" puede tener una propulsión adicional, lo que añade un término cuadrático a sus ecuaciones de movimiento, alterando su trayectoria de una parábola simple.</p>
+              <h3>Generador de Escenarios Aleatorios</h3>
+              <p>Se implementó un botón "Generar Amenaza" que asigna valores dentro de rangos predefinidos y razonables a los parámetros del misil enemigo (posición, velocidad, ángulo). Esto permite probar la robustez del sistema de defensa bajo diversas condiciones, cumpliendo con el requisito del elemento estocástico.</p>
+              <h3>Algoritmo de Intercepción y Probabilidad de Derribo</h3>
+              <p>El sistema cuenta con un botón de **"Calcular Solución"** que ejecuta un algoritmo predictivo para encontrar el punto y tiempo óptimos de intercepción. Se introduce un nuevo parámetro, el **"Radio de Explosión"**, que define el alcance letal del interceptor. La simulación culmina en el momento de la detonación, donde se calcula la **Probabilidad de Derribo (Pk)** en función de la distancia final al objetivo. Un sorteo estocástico basado en esta probabilidad determina el éxito de la misión.</p>
+            </div>
+        </div>
+        
+        <div class="section-box">
+            <h2 class="text-2xl font-bold header"><i class="fas fa-satellite-dish"></i>  Simulación Interactiva</h2>
+            <div class="canvas-container mb-6">
+                <canvas id="simulationCanvas"></canvas>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                 <div>
+                    <h3 class="text-xl font-semibold text-gray-300 mb-4 title-font">CONFIGURACIÓN DE MISIÓN</h3>
+                    <div class="space-y-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                        <div class="pt-2">
+                            <label class="block mb-1 text-sm font-bold text-red-400">Amenaza</label>
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-xs">Posición X Inicial (m)</label>
+                            <input type="range" id="posX" min="10000" max="14000" value="12000" class="w-full">
+                            <span id="posXValue" class="text-sm text-cyan-400">12000 m</span>
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-xs">Altitud Inicial (m)</label>
+                            <input type="range" id="posY" min="6000" max="9000" value="7500" class="w-full">
+                            <span id="posYValue" class="text-sm text-cyan-400">7500 m</span>
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-xs">Velocidad Inicial (m/s)</label>
+                            <input type="range" id="velocity" min="300" max="800" value="500" class="w-full">
+                            <span id="velocityValue" class="text-sm text-cyan-400">500 m/s</span>
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-xs">Ángulo de Entrada (°)</label>
+                            <input type="range" id="angle" min="95" max="165" value="135" class="w-full">
+                            <span id="angleValue" class="text-sm text-cyan-400">135 °</span>
+                        </div>
+                         <div class="pt-4">
+                            <label class="block mb-1 text-sm font-bold text-blue-400">Defensa</label>
+                        </div>
+                         <div>
+                            <label class="block mb-1 text-xs">Posición Base (m)</label>
+                            <input type="range" id="baseX" min="0" max="5000" value="1000" class="w-full">
+                            <span id="baseXValue" class="text-sm text-cyan-400">1000 m</span>
+                        </div>
+                         <div>
+                            <label class="block mb-1 text-xs">Radio de Explosión (m)</label>
+                            <input type="range" id="blastRadius" min="50" max="200" value="100" class="w-full">
+                            <span id="blastRadiusValue" class="text-sm text-cyan-400">100 m</span>
+                        </div>
+                         <div class="flex items-center justify-between pt-2">
+                            <label class="block text-xs font-bold text-yellow-400">Forzar Propulsor</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="forceBooster">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                 <div>
+                    <h3 class="text-xl font-semibold text-gray-300 mb-4 title-font">ACCIONES DE COMANDO</h3>
+                    <div id="solutionDisplay" class="text-xs mb-4 text-gray-400 space-y-1 p-3 bg-gray-900/50 rounded-md border border-gray-700">
+                        <p>Solución de Tiro: <span class="text-white font-semibold">Pendiente de cálculo...</span></p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="randomBtn" class="btn btn-secondary w-full col-span-2 sm:col-span-1"><i class="fas fa-random mr-2"></i>Generar</button>
+                        <button id="solveBtn" class="btn btn-info w-full col-span-2 sm:col-span-1"><i class="fas fa-brain mr-2"></i>Calcular</button>
+                        <button id="interceptBtn" class="btn w-full col-span-2 mt-2"><i class="fas fa-crosshairs mr-2"></i>¡INTERCEPTAR!</button>
+                         <div class="col-span-2 grid grid-cols-2 gap-3">
+                            <button id="reportTxtBtn" class="btn btn-secondary w-full mt-2 hidden"><i class="fas fa-file-alt mr-2"></i>.txt</button>
+                            <button id="reportPdfBtn" class="btn btn-warning w-full mt-2 hidden"><i class="fas fa-file-pdf mr-2"></i>.pdf</button>
+                         </div>
+                    </div>
+                </div>
+                 <div>
+                    <h3 class="text-xl font-semibold text-gray-300 mb-4 title-font">SISTEMA Y REGISTRO</h3>
+                    <div id="status" class="status-box status-idle text-center">EN ESPERA</div>
+                    <div id="missionLog" class="log-box mt-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-box">
+            <h2 class="text-2xl font-bold header"><i class="fas fa-chart-line"></i>  Análisis de Intercepción</h2>
+            <div class="bg-gray-900 p-4 rounded-lg" style="height: 250px;">
+                <canvas id="analysisChart"></canvas>
+            </div>
+        </div>
+
+        <div class="section-box">
+            <h2 class="text-2xl font-bold header"><i class="fas fa-shield-alt"></i>  Relación con el Sistema Domo de Hierro</h2>
+            <div class="report-content">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Iron_Dome_launch.jpg/640px-Iron_Dome_launch.jpg" alt="Lanzamiento del sistema Domo de Hierro" class="rounded-lg shadow-lg float-right ml-6 mb-4 w-1/3">
+              <p>Esta simulación, aunque simplificada, se inspira en los principios operativos del sistema de defensa aérea israelí Domo de Hierro.</p>
+              <h3>Similitudes:</h3>
+              <ul>
+                <li><strong>Misión:</strong> El objetivo fundamental es interceptar un proyectil en vuelo (cohetes, misiles de corto alcance) antes de que alcance su objetivo.</li>
+                <li><strong>Cálculo de Trayectoria:</strong> Ambos sistemas deben predecir la trayectoria del objetivo entrante basándose en datos iniciales (posición, velocidad).</li>
+                <li><strong>Intercepción Dinámica:</strong> El Domo de Hierro lanza un interceptor (misil Tamir) en una trayectoria calculada para encontrarse con el objetivo. Esta simulación modela un concepto similar de "punto de encuentro" futuro.</li>
+                <li><strong>Ojiva de Proximidad:</strong> La implementación del **Radio de Explosión** y la **Probabilidad de Derribo** simula el funcionamiento de las ojivas de fragmentación por proximidad que usan los interceptores reales, que no requieren un impacto directo.</li>
+              </ul>
+              <h3>Simplificaciones:</h3>
+              <ul>
+                <li><strong>2D vs. 3D:</strong> La simulación es en 2D, mientras que el sistema real opera en un complejo entorno tridimensional.</li>
+                <li><strong>Factores Atmosféricos:</strong> Se ignora la resistencia del aire, el viento y otros factores atmosféricos que afectan a las trayectorias reales.</li>
+              </ul>
+            </div>
+        </div>
+        
+        <div class="section-box">
+            <h2 class="text-2xl font-bold header"><i class="fas fa-lightbulb"></i>  Conclusiones</h2>
+             <div class="report-content">
+              <p>El desarrollo de esta simulación ha permitido aplicar y visualizar conceptos fundamentales de la cinemática de partículas y el movimiento de proyectiles de una manera interactiva y tangible.</p>
+              <ul>
+                <li>Se ha demostrado que la intercepción de un proyectil balístico es un problema complejo que depende críticamente de la precisión de los datos iniciales y de la capacidad de respuesta del sistema defensor.</li>
+                <li>La introducción de una aceleración adicional en el misil defensor expande significativamente su "envolvente de intercepción", permitiéndole alcanzar objetivos que serían imposibles con una trayectoria puramente parabólica.</li>
+                <li>La simulación del **Radio de Explosión** y la **Probabilidad de Derribo** añade una capa de realismo, demostrando que la intercepción es un evento estocástico y no determinista, donde la proximidad es clave para el éxito.</li>
+                <li>La capacidad de generar reportes detallados post-misión convierte al simulador en una poderosa herramienta de análisis y aprendizaje, permitiendo una evaluación cuantitativa de cada escenario.</li>
+              </ul>
+            </div>
+        </div>
+
+        <div class="section-box">
+            <h2 class="text-2xl font-bold header"><i class="fas fa-book"></i>  Bibliografía</h2>
+            <div class="report-content">
+              <ul>
+                <li>Serway, R. A., & Jewett, J. W. (2018). *Physics for Scientists and Engineers with Modern Physics*. Cengage Learning. (Conceptos de movimiento de proyectiles).</li>
+                <li>Tipler, P. A., & Mosca, G. (2007). *Physics for Scientists and Engineers*. W. H. Freeman. (Cinemática en dos dimensiones).</li>
+                <li>Williams, I. (2012). *The Iron Dome System: A Case Study in Asymmetric Conflict*. Royal United Services Institute (RUSI).</li>
+              </ul>
+            </div>
+        </div>
+    </div>
+    <footer class="mt-8 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-sm text-gray-500">
+                &copy; 2025 Sheyla Lorena Negrette Gonzalez. Todos los derechos reservados.
+            </p>
+        </div>
+    </footer>
+    
+    <script>
+    // --- AUDIO ENGINE ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx; 
+    function initializeAudio() { if (!audioCtx) { audioCtx = new AudioContext(); } }
+    function playSound(type) {
+        if (!audioCtx) return;
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        switch(type) {
+            case 'launch': oscillator.type = 'sawtooth'; oscillator.frequency.setValueAtTime(100, audioCtx.currentTime); oscillator.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 1); gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5); oscillator.start(); oscillator.stop(audioCtx.currentTime + 1.5); break;
+            case 'explosion': oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); oscillator.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.8); gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1); oscillator.start(); oscillator.stop(audioCtx.currentTime + 1); break;
+            case 'lock': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2); oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.2); break;
+            case 'booster': const boosterOsc = audioCtx.createOscillator(); const boosterGain = audioCtx.createGain(); boosterOsc.type = 'square'; boosterOsc.frequency.setValueAtTime(200, audioCtx.currentTime); boosterOsc.frequency.linearRampToValueAtTime(400, audioCtx.currentTime + 2); boosterGain.gain.setValueAtTime(0.2, audioCtx.currentTime); boosterGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 2.5); boosterOsc.connect(boosterGain); boosterGain.connect(audioCtx.destination); boosterOsc.start(); boosterOsc.stop(audioCtx.currentTime + 2.5); break;
+        }
+    }
+
+    // --- CONFIG & INITIALIZATION ---
+    const canvas = document.getElementById('simulationCanvas');
+    const ctx = canvas.getContext('2d');
+    const g = 9.81;
+
+    // --- GLOBAL STATE ---
+    let state = {};
+    let simulationTime = 0;
+    let isSimulating = false;
+    let isPostSim = false;
+    let targetLocked = false;
+    let predictedImpactX = null;
+    let optimalSolution = null;
+    let lastMissionData = {};
+    let explosionData = null;
+    let particles = [];
+    let stars = [];
+    let impactSummary = null;
+    let view = { minX: 0, maxX: 15000, minY: 0, maxY: 10000, scale: 1, offsetX: 0, offsetY: 0 };
+    let analysisChart, analysisData = [];
+
+    // --- UI ELEMENTS ---
+    const forceBoosterCheckbox = document.getElementById('forceBooster');
+    const missionLogEl = document.getElementById('missionLog');
+    const posXSlider = document.getElementById('posX');
+    const posYSlider = document.getElementById('posY');
+    const velocitySlider = document.getElementById('velocity');
+    const angleSlider = document.getElementById('angle');
+    const baseXSlider = document.getElementById('baseX');
+    const blastRadiusSlider = document.getElementById('blastRadius');
+    const interceptBtn = document.getElementById('interceptBtn');
+    const randomBtn = document.getElementById('randomBtn');
+    const solveBtn = document.getElementById('solveBtn');
+    const reportTxtBtn = document.getElementById('reportTxtBtn');
+    const reportPdfBtn = document.getElementById('reportPdfBtn');
+    const posXValue = document.getElementById('posXValue');
+    const posYValue = document.getElementById('posYValue');
+    const velocityValue = document.getElementById('velocityValue');
+    const angleValue = document.getElementById('angleValue');
+    const baseXValue = document.getElementById('baseXValue');
+    const blastRadiusValue = document.getElementById('blastRadiusValue');
+    const statusEl = document.getElementById('status');
+    const solutionDisplayEl = document.getElementById('solutionDisplay');
+    const operatorInfoEl = document.getElementById('operatorInfo');
+
+    function logMessage(message, type) {
+        const p = document.createElement('p');
+        p.className = `log-message ${type}`;
+        p.textContent = `> ${message}`;
+        missionLogEl.appendChild(p);
+        missionLogEl.scrollTop = missionLogEl.scrollHeight;
+    }
+    
+    function setStatus(text, type) {
+        statusEl.textContent = text;
+        statusEl.className = `status-box status-${type} text-center`;
+    }
+
+    function calculateAndSetViewBounds() {
+        const enemyParams = getParamsFromSliders();
+        if (!enemyParams) return;
+        const baseX = parseFloat(baseXSlider.value);
+        let bounds = { minX: Math.min(0, baseX), maxX: Math.max(0, baseX), minY: 0, maxY: 0 };
+        let lastY = enemyParams.y0;
+        for (let t = 0; t < 100; t += 0.1) {
+            const x = enemyParams.x0 + enemyParams.vx0 * t;
+            const y = enemyParams.y0 + enemyParams.vy0 * t - 0.5 * g * t * t;
+            bounds.minX = Math.min(bounds.minX, x);
+            bounds.maxX = Math.max(bounds.maxX, x);
+            bounds.maxY = Math.max(bounds.maxY, y);
+            if (y < 0 && lastY >= 0) {
+                const discriminant = Math.pow(enemyParams.vy0, 2) + 2 * g * enemyParams.y0;
+                if (discriminant < 0) break;
+                const timeToGround = (enemyParams.vy0 + Math.sqrt(discriminant)) / g;
+                const impactX = enemyParams.x0 + enemyParams.vx0 * timeToGround;
+                bounds.maxX = Math.max(bounds.maxX, impactX);
+                bounds.minX = Math.min(bounds.minX, impactX);
+                break;
+            }
+            lastY = y;
+        }
+        const interception = calculateInterception();
+        if (interception && (interception.x || (interception.solution && interception.solution.x))) {
+            const intX = interception.x || interception.solution.x;
+            const intY = interception.y || interception.solution.y;
+            bounds.maxY = Math.max(bounds.maxY, intY);
+            if (interception.type === 'parabolic') {
+                const h_max_d = Math.pow(interception.vdy, 2) / (2 * g);
+                bounds.maxY = Math.max(bounds.maxY, h_max_d);
+            }
+        }
+        const paddingX = (bounds.maxX - bounds.minX) * 0.1 || 1000;
+        const paddingY = (bounds.maxY - bounds.minY) * 0.1 || 1000;
+        view.minX = bounds.minX - paddingX;
+        view.maxX = bounds.maxX + paddingX;
+        view.minY = bounds.minY;
+        view.maxY = bounds.maxY + paddingY;
+        const worldWidth = view.maxX - view.minX;
+        const worldHeight = view.maxY - view.minY;
+        if (worldWidth <= 0 || worldHeight <= 0) return;
+        const dpr = window.devicePixelRatio || 1;
+        const scaleX = (canvas.clientWidth * dpr) / worldWidth;
+        const scaleY = (canvas.clientHeight * dpr) / worldHeight;
+        view.scale = Math.min(scaleX, scaleY);
+        const canvasWorldWidth = (canvas.clientWidth * dpr) / view.scale;
+        const canvasWorldHeight = (canvas.clientHeight * dpr) / view.scale;
+        view.offsetX = view.minX - (canvasWorldWidth - worldWidth) / 2;
+        view.offsetY = view.minY - (canvasWorldHeight - worldHeight) / 2;
+    }
+
+    function resizeCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        const container = document.querySelector('.canvas-container');
+        if (container) {
+            const rect = container.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            canvas.style.width = `${rect.width}px`;
+            canvas.style.height = `${rect.height}px`;
+        }
+        calculateAndSetViewBounds();
+    }
+
+    function toCanvasCoords(x, y) {
+        if (!isFinite(x) || !isFinite(y)) return undefined;
+        const dpr = window.devicePixelRatio || 1;
+        const canvasX = (x - view.offsetX) * view.scale / dpr;
+        const canvasY = canvas.clientHeight - ((y - view.offsetY) * view.scale / dpr);
+        return { x: canvasX, y: canvasY };
+    }
+
+    // --- 2D DRAWING LOGIC ---
+    function createStars(count) {
+        stars = [];
+        for (let i = 0; i < count; i++) {
+            stars.push({
+                x: Math.random(),
+                y: Math.random(),
+                size: Math.random() * 1.5 + 0.5,
+                speed: Math.random() * 0.1 + 0.05
+            });
+        }
+    }
+
+    function drawBackgroundAndGrid() {
+        const dpr = window.devicePixelRatio || 1;
+        ctx.save();
+        ctx.scale(1/dpr, 1/dpr);
+        ctx.fillStyle = '#010409';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        stars.forEach(star => {
+            star.x -= star.speed / 1000;
+            if (star.x < 0) star.x = 1;
+            ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1, star.size * 0.5)})`;
+            ctx.fillRect(star.x * canvas.width, star.y * canvas.height, star.size * dpr, star.size * dpr);
+        });
+        ctx.restore();
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(88, 166, 255, 0.1)';
+        ctx.lineWidth = 1 * dpr;
+        ctx.font = `${10 * dpr}px Roboto Mono`;
+        ctx.fillStyle = 'rgba(88, 166, 255, 0.4)';
+        
+        const worldWidth = view.maxX - view.minX;
+        const powerOf10 = Math.pow(10, Math.floor(Math.log10(worldWidth)));
+        const gridSize = powerOf10 / 5;
+
+        const startX = Math.floor(view.minX / gridSize) * gridSize;
+        for(let x = startX; x < view.maxX; x += gridSize) {
+            const coords = toCanvasCoords(x, 0);
+            if (!coords) continue;
+            const { x: cx } = coords;
+            ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, canvas.clientHeight); ctx.stroke();
+            if(gridSize * view.scale > 40 * dpr) {
+                ctx.textAlign = 'center';
+                ctx.fillText(x >= 1000 ? `${(x/1000).toFixed(0)}k` : `${x}`, cx, canvas.clientHeight - 5);
+            }
+        }
+        const startY = Math.floor(view.minY / gridSize) * gridSize;
+        for(let y = startY; y < view.maxY; y += gridSize) {
+            if (y < 0) continue;
+            const coords = toCanvasCoords(0, y);
+            if (!coords) continue;
+            const { y: cy } = coords;
+            ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(canvas.clientWidth, cy); ctx.stroke();
+            if (gridSize * view.scale > 30 * dpr) {
+              ctx.textAlign = 'left';
+              ctx.fillText(y >= 1000 ? `${(y/1000).toFixed(0)}k` : `${y}`, 5, cy - 5);
+            }
+        }
+        ctx.restore();
+    }
+    
+    function drawRadarEffect() {
+        const baseX = parseFloat(baseXSlider.value);
+        const coords = toCanvasCoords(baseX, 0);
+        if (!coords || !isFinite(coords.x) || !isFinite(coords.y)) return;
+        const {x: canvasBaseX, y: canvasGroundY} = coords;
+
+        const maxRadius = Math.max(canvas.clientWidth, canvas.clientHeight) * 1.2;
+        if (!isFinite(maxRadius) || maxRadius <= 0) return;
+        const angle = (performance.now() / 3000) % (Math.PI * 2);
+        
+        const gradient = ctx.createRadialGradient(canvasBaseX, canvasGroundY, 0, canvasBaseX, canvasGroundY, maxRadius);
+        gradient.addColorStop(0, 'rgba(0, 255, 0, 0.2)');
+        gradient.addColorStop(0.1, 'rgba(0, 255, 0, 0.1)');
+        gradient.addColorStop(0.4, 'rgba(0, 255, 0, 0)');
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(canvasBaseX, canvasGroundY);
+        ctx.arc(canvasBaseX, canvasGroundY, maxRadius, angle - 0.2, angle);
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        ctx.restore();
+
+        ctx.strokeStyle = "rgba(0, 255, 0, 0.2)";
+        ctx.lineWidth = 1;
+        for(let i=1; i < 5; i++) {
+            ctx.beginPath();
+            ctx.arc(canvasBaseX, canvasGroundY, (maxRadius/5) * i, 0, Math.PI*2);
+            ctx.stroke();
+        }
+    }
+    
+    function drawSceneElements() {
+        const baseX = parseFloat(baseXSlider.value);
+        const coords = toCanvasCoords(baseX, 0);
+        if (!coords) return;
+        const {x: canvasBaseX, y: canvasGroundY} = coords;
+
+        ctx.fillStyle = '#30363d';
+        ctx.fillRect(canvasBaseX - 10, canvasGroundY - 15, 20, 15);
+        ctx.fillStyle = '#c9d1d9';
+        ctx.beginPath();
+        ctx.arc(canvasBaseX, canvasGroundY - 15, 10, Math.PI, 0);
+        ctx.fill();
+
+        if (predictedImpactX !== null && !isSimulating && !isPostSim) {
+            const cepCoords = toCanvasCoords(predictedImpactX, 0);
+            if (!cepCoords) return;
+            const {x: cepX} = cepCoords;
+            ctx.strokeStyle = '#da3633';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cepX - 10, canvasGroundY - 30); ctx.lineTo(cepX + 10, canvasGroundY - 10);
+            ctx.moveTo(cepX + 10, canvasGroundY - 30); ctx.lineTo(cepX - 10, canvasGroundY - 10);
+            ctx.stroke();
+        }
+    }
+
+    function drawPredictedPath(missileParams, color) {
+        if (!missileParams) return;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 3]);
+        ctx.beginPath();
+        const { x0, y0, vx0, vy0 } = missileParams;
+        const startCoords = toCanvasCoords(x0, y0);
+        if (!startCoords) return;
+        ctx.moveTo(startCoords.x, startCoords.y);
+        for(let t = 0.1; t < 100; t += 0.2) {
+            const x = x0 + vx0 * t;
+            const y = y0 + vy0 * t - 0.5 * g * t * t;
+            if (y < 0) break;
+            const pathCoords = toCanvasCoords(x, y);
+            if(pathCoords) ctx.lineTo(pathCoords.x, pathCoords.y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    function drawTargetLock(missile) {
+        const coords = toCanvasCoords(missile.x, missile.y);
+        if (!coords) return;
+        const {x, y} = coords;
+        ctx.strokeStyle = '#f0c674';
+        ctx.lineWidth = 2;
+        const size = 15;
+        const angle = performance.now() / 200;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(-size, -size); ctx.lineTo(-size/2, -size);
+        ctx.moveTo(size/2, -size); ctx.lineTo(size, -size);
+        ctx.moveTo(size, -size/2); ctx.lineTo(size, size/2);
+        ctx.moveTo(size, size); ctx.lineTo(size/2, size);
+        ctx.moveTo(-size/2, size); ctx.lineTo(-size, size);
+        ctx.moveTo(-size, size/2); ctx.lineTo(-size, -size/2);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function createBoosterParticles(missile) {
+        if (!missile || isNaN(missile.x) || isNaN(missile.y)) return;
+        const angle = Math.atan2(missile.vy, missile.vx) + Math.PI;
+        for(let i = 0; i < 5; i++) {
+            const speed = Math.random() * 200 + 100;
+            const life = Math.random() * 30 + 30;
+            const offsetAngle = angle + (Math.random() - 0.5) * 0.5;
+            particles.push({
+                x: missile.x, y: missile.y,
+                vx: Math.cos(offsetAngle) * speed / view.scale,
+                vy: Math.sin(offsetAngle) * speed / view.scale,
+                life: life, initialLife: life,
+                color: Math.random() > 0.5 ? 'rgba(255, 165, 0, 0.8)' : 'rgba(255, 215, 0, 0.8)'
+            });
+        }
+    }
+
+    function updateAndDrawParticles() {
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            const pos = toCanvasCoords(p.x, p.y);
+            if (!pos) continue;
+            ctx.globalAlpha = p.life / p.initialLife;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(pos.x, pos.y, 2, 2);
+            ctx.globalAlpha = 1;
+        }
+
+        if (explosionData && explosionData.life > 0) {
+            const { x, y, radius, life, initialLife } = explosionData;
+            const pos = toCanvasCoords(x, y);
+            if (!pos || !isFinite(pos.x) || !isFinite(pos.y)) return;
+            const currentRadius = (1 - (life / initialLife) ** 2) * radius * view.scale;
+            if (!isFinite(currentRadius) || currentRadius < 0) return;
+            const gradient = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, currentRadius);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+            gradient.addColorStop(0.5, 'rgba(240, 198, 116, 0.5)');
+            gradient.addColorStop(1, 'rgba(218, 54, 51, 0)');
+            ctx.globalAlpha = life / initialLife;
+            ctx.fillStyle = gradient;
+            ctx.beginPath(); ctx.arc(pos.x, pos.y, currentRadius, 0, Math.PI * 2); ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+    }
+    
+    function addTrail(missile, id) {
+        if (!missile || isNaN(missile.x) || isNaN(missile.y)) return;
+        if (!state.trails[id]) state.trails[id] = [];
+        state.trails[id].push({x: missile.x, y: missile.y});
+    }
+    
+    function drawTrails() {
+        if (!state.trails) return;
+        Object.entries(state.trails).forEach(([id, trail]) => {
+            if (trail.length < 2) return;
+            ctx.strokeStyle = id === 'enemy' ? 'rgba(218, 54, 51, 0.8)' : 'rgba(56, 139, 253, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            const startPos = toCanvasCoords(trail[0].x, trail[0].y);
+            if (!startPos) return;
+            ctx.moveTo(startPos.x, startPos.y);
+            for (let i = 1; i < trail.length; i++) {
+                const pos = toCanvasCoords(trail[i].x, trail[i].y);
+                if (pos) ctx.lineTo(pos.x, pos.y);
+            }
+            ctx.stroke();
+        });
+    }
+
+    function drawMissile(missile, color) {
+        if (!missile || isNaN(missile.x) || isNaN(missile.y)) return;
+        const pos = toCanvasCoords(missile.x, missile.y);
+        if (!pos) return;
+        ctx.fillStyle = color;
+        ctx.save();
+        ctx.translate(pos.x, pos.y);
+        const angle = Math.atan2(missile.vy, missile.vx);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(5, 0); ctx.lineTo(-5, -3); ctx.lineTo(-5, 3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        if (performance.now() % 500 < 250) { // Blinking effect
+            ctx.fillStyle = 'rgba(255, 100, 100, 0.8)';
+            ctx.beginPath(); ctx.arc(pos.x, pos.y, 5, 0, Math.PI * 2); ctx.fill();
+        }
+    }
+    
+    function updateAnalysisChart(time, distance) {
+        if (!analysisChart || distance === Infinity) return;
+        analysisData.push({x: time, y: distance});
+        analysisChart.data.datasets[0].data = analysisData;
+        analysisChart.update('none');
+    }
+
+    // --- MAIN RENDER LOOP ---
+    function mainRenderLoop() {
+        updateState();
+        draw2DScene();
+        requestAnimationFrame(mainRenderLoop);
+    }
+
+    function draw2DScene() {
+        const dpr = window.devicePixelRatio || 1;
+        ctx.save();
+        if (isPostSim && state.effects && state.effects.shake > 0) {
+            const magnitude = 8 * dpr;
+            const dx = (Math.random() - 0.5) * magnitude;
+            const dy = (Math.random() - 0.5) * magnitude;
+            ctx.translate(dx, dy);
+        }
+
+        drawBackgroundAndGrid();
+        ctx.scale(dpr, dpr);
+        drawSceneElements();
+        
+        if (!isSimulating && !isPostSim) {
+            drawRadarEffect();
+        }
+
+        if (targetLocked && state.enemy) { 
+            drawTargetLock(state.enemy);
+        }
+        
+        drawTrails();
+
+        if (state.enemy && state.enemy.launched) drawMissile(state.enemy, '#da3633');
+        if (state.defender && state.defender.launched) drawMissile(state.defender, '#388bfd');
+        
+        updateAndDrawParticles();
+
+        if (isPostSim && state.effects && state.effects.flash > 0) {
+            const alpha = state.effects.flash / 15.0;
+            ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+            ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+        }
+        if (impactSummary && impactSummary.life > 0) {
+            drawImpactSummary();
+        }
+        ctx.restore();
+    }
+    
+    function drawImpactSummary() {
+        const { x, y, lines, life, initialLife } = impactSummary;
+        const pos = toCanvasCoords(x, y);
+        if (!pos) return;
+
+        const alpha = Math.min(1, life / (initialLife / 2));
+
+        ctx.font = 'bold 12px Orbitron';
+        let maxWidth = 0;
+        lines.forEach(line => {
+            const width = ctx.measureText(line).width;
+            if (width > maxWidth) maxWidth = width;
+        });
+
+        const boxWidth = maxWidth + 20;
+        const boxHeight = lines.length * 16 + 10;
+        const boxX = pos.x - boxWidth / 2;
+        const boxY = pos.y - boxHeight - 10;
+
+        ctx.fillStyle = `rgba(0, 0, 0, ${0.6 * alpha})`;
+        ctx.strokeStyle = `rgba(88, 166, 255, ${alpha})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.rect(boxX, boxY, boxWidth, boxHeight);
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.textAlign = 'left';
+        lines.forEach((line, index) => {
+             ctx.fillText(line, boxX + 10, boxY + 18 + index * 16);
+        });
+    }
+
+    // --- STATE UPDATE LOGIC ---
+    function updateState() {
+        if (isSimulating) {
+            simulationTime += 1 / 60;
+            const enemy = state.enemy;
+            const defender = state.defender;
+
+            enemy.x = enemy.x0 + enemy.vx0 * simulationTime;
+            enemy.y = enemy.y0 + enemy.vy0 * simulationTime - 0.5 * g * simulationTime * simulationTime;
+            enemy.vx = enemy.vx0;
+            enemy.vy = enemy.vy0 - g * simulationTime;
+            addTrail(enemy, 'enemy');
+
+            if (defender.launched) {
+                defender.x = defender.x0 + defender.vx0 * simulationTime + 0.5 * defender.ax * simulationTime ** 2;
+                defender.y = defender.y0 + defender.vy0 * simulationTime - 0.5 * g * simulationTime ** 2 + 0.5 * defender.ay * simulationTime ** 2;
+                defender.vx = defender.vx0 + defender.ax * simulationTime;
+                defender.vy = defender.vy0 - g * simulationTime + defender.ay * simulationTime;
+                addTrail(defender, 'defender');
+                if(defender.ax || defender.ay) createBoosterParticles(defender);
+            }
+
+            if (defender.launched) {
+                const dist = Math.hypot(enemy.x - defender.x, enemy.y - defender.y);
+                updateAnalysisChart(simulationTime, dist);
+            }
+
+            const t_intercept = optimalSolution.t;
+            if (defender.launched && simulationTime >= t_intercept) {
+                handleDetonation();
+            } else if (enemy.y < -10) {
+                handleGroundImpact();
+            }
+        }
+        
+        if (isPostSim) {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx / 60; p.y += p.vy / 60; p.life--;
+                if (p.life <= 0) { particles.splice(i, 1); }
+            }
+            if (explosionData && explosionData.life > 0) {
+                explosionData.life--;
+            } else {
+                explosionData = null;
+            }
+            if (state.effects) {
+                if (state.effects.shake > 0) state.effects.shake--;
+                if (state.effects.flash > 0) state.effects.flash--;
+            }
+            if(impactSummary && impactSummary.life > 0) {
+                impactSummary.life--;
+            }
+            if (particles.length === 0 && !explosionData) {
+                isPostSim = false;
+            }
+        }
+    }
+    
+    function handleDetonation() {
+        isSimulating = false;
+        isPostSim = true;
+        const finalMissDistance = Math.hypot(state.enemy.x - state.defender.x, state.enemy.y - state.defender.y);
+        const blastRadius = parseFloat(blastRadiusSlider.value);
+        const pk = Math.max(0, 1 - (finalMissDistance / blastRadius));
+        const isKill = Math.random() < pk;
+        
+        lastMissionData = { ...lastMissionData, detonationPoint: {x: state.defender.x, y: state.defender.y}, missDistance: finalMissDistance, blastRadius, pk, isKill };
+        explosionData = {x: state.defender.x, y: state.defender.y, radius: blastRadius, life: 120, initialLife: 120};
+        state.effects = { shake: 30, flash: 15 };
+        
+        const summaryLines = [
+            `RESULTADO: ${isKill ? 'NEUTRALIZADO' : 'FALLO'}`,
+            `COORD: (${state.defender.x.toFixed(0)}, ${state.defender.y.toFixed(0)})`,
+            `DISTANCIA: ${finalMissDistance.toFixed(1)}m`,
+            `PK: ${(pk * 100).toFixed(1)}%`
+        ];
+        impactSummary = {x: state.defender.x, y: state.defender.y, lines: summaryLines, life: 240, initialLife: 240};
+
+        if(isKill) { setStatus('¡BLANCO DESTRUIDO!', 'intercepted'); logMessage(`Éxito. Pk: ${(pk*100).toFixed(1)}%. Distancia: ${finalMissDistance.toFixed(1)}m`, 'success'); }
+        else { setStatus('FALLO: OBJETIVO SOBREVIVIÓ', 'missed'); logMessage(`Fallo. Pk: ${(pk*100).toFixed(1)}%. Distancia: ${finalMissDistance.toFixed(1)}m`, 'fail'); }
+
+        reportTxtBtn.classList.remove('hidden');
+        reportPdfBtn.classList.remove('hidden');
+    }
+
+    function handleGroundImpact() {
+        isSimulating = false;
+        isPostSim = true;
+        setStatus('FALLO: IMPACTO ENEMIGO', 'missed'); logMessage(`Amenaza impactó en ${state.enemy.x.toFixed(0)}m.`, 'fail');
+        lastMissionData = { ...lastMissionData, isKill: false, detonationPoint: {x: state.enemy.x, y: 0}, missDistance: Infinity, pk: 0 };
+        explosionData = {x: state.enemy.x, y: 0, radius: 150, life: 120, initialLife: 120};
+        state.effects = { shake: 30, flash: 15 };
+        impactSummary = {x: state.enemy.x, y: 500, lines: ["IMPACTO EN TIERRA"], life: 180, initialLife: 180};
+        reportTxtBtn.classList.remove('hidden');
+        reportPdfBtn.classList.remove('hidden');
+    }
+    
+    // --- INTERCEPTION CALCULATIONS ---
+    function calculatePredictedImpact(enemyParams) {
+        if (!enemyParams) return null;
+        const { x0, y0, vx0, vy0 } = enemyParams;
+        const discriminant = vy0 * vy0 + 2 * g * y0;
+        if (discriminant < 0) return null;
+        const t_impact = (vy0 + Math.sqrt(discriminant)) / g;
+        return x0 + vx0 * t_impact;
+    }
+    
+    function calculateInterception() {
+        const enemyParams = getParamsFromSliders();
+        if (!enemyParams) return null;
+
+        if (forceBoosterCheckbox.checked) {
+             const solution = calculateBoosterSolution(enemyParams);
+             if (!solution) return null;
+             return { type: 'booster', ...solution };
+        }
+        
+        const MAX_DEFENDER_SPEED = 1200;
+        for (let t = 0.1; t < 100; t += 0.1) {
+            const xe_t = enemyParams.x0 + enemyParams.vx0 * t;
+            const ye_t = enemyParams.y0 + enemyParams.vy0 * t - 0.5 * g * t * t;
+            if (ye_t < 0) break;
+            const req_vdx = (xe_t - parseFloat(baseXSlider.value)) / t;
+            const req_vdy = (ye_t + 0.5 * g * t * t) / t;
+            const req_speed = Math.hypot(req_vdx, req_vdy);
+
+            if (req_speed <= MAX_DEFENDER_SPEED) {
+                if (ye_t < 200) break;
+                return { type: 'parabolic', t, x: xe_t, y: ye_t, vdx: req_vdx, vdy: req_vdy };
+            }
+        }
+        
+        const solution = calculateBoosterSolution(enemyParams);
+        if (!solution) return null;
+        return { type: 'booster', ...solution };
+    }
+
+    function calculateBoosterSolution(enemyParams) {
+        const discriminant = enemyParams.vy0 * enemyParams.vy0 + 2 * g * enemyParams.y0;
+        if (!enemyParams || discriminant < 0) return null;
+        const timeToGround = (enemyParams.vy0 + Math.sqrt(discriminant)) / g;
+        const t_int = Math.max(5, timeToGround * 0.7);
+        const x_int = enemyParams.x0 + enemyParams.vx0 * t_int;
+        const y_int = enemyParams.y0 + enemyParams.vy0 * t_int - 0.5 * g * t_int * t_int;
+        const baseX = parseFloat(baseXSlider.value);
+        const vdx_init = 100; const vdy_init = 600;
+        const ax = (2 * (x_int - baseX - vdx_init * t_int)) / (t_int**2);
+        const ay = (2 * (y_int - vdy_init * t_int)) / (t_int**2) + g;
+        return { t: t_int, x: x_int, y: y_int, vdx: vdx_init, vdy: vdy_init, ax, ay };
+    }
+
+    // --- EVENT HANDLERS ---
+    function getParamsFromSliders() {
+        if (!posXSlider || !posYSlider || !velocitySlider || !angleSlider) return null;
+        const v0 = parseFloat(velocitySlider.value);
+        const theta = parseFloat(angleSlider.value) * Math.PI / 180;
+        return { x0: parseFloat(posXSlider.value), y0: parseFloat(posYSlider.value), v0, theta, vx0: v0 * Math.cos(theta), vy0: v0 * Math.sin(theta) };
+    }
+    
+    function updateUIFromSliders() {
+        posXValue.textContent = `${posXSlider.value} m`;
+        posYValue.textContent = `${posYSlider.value} m`;
+        velocityValue.textContent = `${velocitySlider.value} m/s`;
+        angleValue.textContent = `${angleSlider.value} °`;
+        baseXValue.textContent = `${baseXSlider.value} m`;
+        blastRadiusValue.textContent = `${blastRadiusSlider.value} m`;
+        if (!isSimulating) {
+            targetLocked = true;
+            optimalSolution = null;
+            solutionDisplayEl.innerHTML = `<p>Solución de Tiro: <span class="text-white font-semibold">Pendiente...</span></p>`;
+            reportTxtBtn.classList.add('hidden');
+            reportPdfBtn.classList.add('hidden');
+            const params = getParamsFromSliders();
+            if (!params) return; 
+            state.enemy = {...params, x: params.x0, y: params.y0};
+            predictedImpactX = calculatePredictedImpact(params);
+            if (predictedImpactX !== null) {
+                logMessage(`Amenaza detectada. CEP: ${predictedImpactX.toFixed(0)}m.`, 'threat');
+            } else {
+                logMessage(`Amenaza detectada. Sin impacto en rango.`, 'threat');
+            }
+            initializeAudio(); playSound('lock');
+            setStatus('AMENAZA DETECTADA', 'locked');
+            calculateAndSetViewBounds();
+        }
+    }
+    
+    function setupEventListeners() {
+        [posXSlider,posYSlider,velocitySlider,angleSlider,baseXSlider,blastRadiusSlider].forEach(s=>{
+            if(s) s.addEventListener('input',updateUIFromSliders)
+        });
+        randomBtn.addEventListener('click', () => {
+            isSimulating = false;
+            isPostSim = false;
+            state = { enemy: {}, defender: {}, trails: {enemy: [], defender:[]}};
+            posXSlider.value = Math.floor(Math.random() * 4000) + 10000;
+            posYSlider.value = Math.floor(Math.random() * 3000) + 6000;
+            velocitySlider.value = Math.floor(Math.random() * 500) + 300;
+            angleSlider.value = Math.floor(Math.random() * 70) + 95;
+            updateUIFromSliders();
+        });
+        solveBtn.addEventListener('click', () => { 
+            if (isSimulating) return;
+            logMessage('Calculando solución...', 'info');
+            optimalSolution = calculateInterception();
+            if (!optimalSolution) { 
+                logMessage('Solución inviable.', 'fail');
+                solutionDisplayEl.innerHTML = `<p>Solución de Tiro: <span class="text-red-400 font-semibold">Inviable</span></p>`;
+                optimalSolution = null; return; 
+            }
+            const vel = Math.hypot(optimalSolution.vdx, optimalSolution.vdy);
+            const angle = Math.atan2(optimalSolution.vdy, optimalSolution.vdx) * 180 / Math.PI;
+            solutionDisplayEl.innerHTML = `
+                <p>Ángulo: <span class="text-white font-semibold">${angle.toFixed(1)}°</span></p>
+                <p>Velocidad: <span class="text-white font-semibold">${vel.toFixed(0)} m/s</span></p>
+                <p>Propulsores: <span class="font-semibold ${optimalSolution.type === 'booster' ? 'text-yellow-400' : 'text-gray-500'}">${optimalSolution.type === 'booster' ? 'SÍ' : 'NO'}</span></p>
+            `;
+            logMessage('Solución calculada. Listo para interceptar.', 'success');
+        });
+        interceptBtn.addEventListener('click', () => {
+            if (!optimalSolution) { logMessage('Calcule una solución antes.', 'fail'); return; }
+            initializeAudio();
+            
+            lastMissionData.enemyParams = getParamsFromSliders();
+            const enemyParams = lastMissionData.enemyParams;
+            const baseX = parseFloat(baseXSlider.value);
+            
+            analysisData = [];
+            if(analysisChart) {
+                analysisChart.data.datasets[0].data = [];
+                analysisChart.update('none');
+            }
+
+            state = {
+                enemy: { ...enemyParams, launched: true, x: enemyParams.x0, y: enemyParams.y0, vx: enemyParams.vx0, vy: enemyParams.vy0 },
+                defender: {
+                    ...optimalSolution,
+                    launched: true, x0: baseX, y0: 0, x: baseX, y: 0, 
+                    vx0: optimalSolution.vdx, vy0: optimalSolution.vdy,
+                    ax: optimalSolution.ax || 0, ay: optimalSolution.ay || 0
+                },
+                trails: {enemy:[], defender:[]},
+                effects: { shake: 0, flash: 0 }
+            };
+            
+            simulationTime = 0;
+            particles = [];
+            explosionData = null;
+            targetLocked = false;
+            predictedImpactX = null;
+            impactSummary = null;
+            
+            isSimulating = true;
+            isPostSim = false;
+            
+            if (optimalSolution.type === 'booster') playSound('booster');
+            setStatus('LANZAMIENTO... EN CURSO', 'running');
+            logMessage('¡Lanzamiento autorizado!', 'info');
+            playSound('launch');
+        });
+
+        reportTxtBtn.addEventListener('click', () => {
+            const textReport = generateTextReport();
+            downloadFile(textReport, `ATHENA_Analysis_${Date.now()}.txt`, 'text/plain');
+        });
+
+        reportPdfBtn.addEventListener('click', () => {
+            generatePdfReport();
+        });
+    }
+    
+    function updateClock(operatorName) { 
+        const now = new Date();
+        const dateString = `08 SEP 2025`;
+        const timeString = now.toTimeString().split(' ')[0];
+        operatorInfoEl.innerHTML = `<span>OPERADOR: ${operatorName}</span><span class="ml-4">INTERCEPTOR: Guardian-1</span><span class="ml-4">FECHA/HORA: ${dateString} ${timeString}</span>`;
+    }
+
+    function generateTextReport() {
+        const { enemyParams, isKill, detonationPoint, missDistance, pk } = lastMissionData;
+        const sol = optimalSolution;
+
+        let content = `
+[ INFORME DE MISIÓN ATHENA ]
+--------------------------------------------------
+ID de Misión: ${Date.now()}
+Fecha/Hora: ${new Date().toLocaleString('es-CO')}
+Resultado: ${isKill ? 'AMENAZA NEUTRALIZADA' : 'FALLO EN LA MISIÓN'}
+--------------------------------------------------
+
+1. DATOS DE LA AMENAZA
+   - Posición Inicial: (${enemyParams.x0} m, ${enemyParams.y0} m)
+   - Velocidad Inicial: ${enemyParams.v0.toFixed(1)} m/s
+   - Ángulo de Entrada: ${(enemyParams.theta * 180 / Math.PI).toFixed(1)}°
+   - CEP Previsto: ${calculatePredictedImpact(enemyParams).toFixed(0)} m
+
+2. SOLUCIÓN DE INTERCEPCIÓN
+   - Tipo de Lanzamiento: ${sol.type === 'booster' ? 'PROPULSADO' : 'BALÍSTICO'}
+   - Punto de Intercepción (x, y): (${sol.x.toFixed(0)} m, ${sol.y.toFixed(0)} m)
+   - Tiempo para Interceptar: ${sol.t.toFixed(2)} s
+   - Vector de Lanzamiento (Vx, Vy): (${sol.vdx.toFixed(1)} m/s, ${sol.vdy.toFixed(1)} m/s)
+   ${sol.type === 'booster' ? `- Aceleración Extra (Ax, Ay): (${sol.ax.toFixed(1)} m/s², ${sol.ay.toFixed(1)} m/s²)` : ''}
+
+3. ANÁLISIS DE RESULTADOS
+   - Punto de Detonación (x, y): (${detonationPoint.x.toFixed(0)} m, ${detonationPoint.y.toFixed(0)} m)
+   - Distancia Final al Objetivo: ${missDistance.toFixed(2)} m
+   - Probabilidad de Derribo (Pk): ${(pk * 100).toFixed(1)} %
+
+--------------------------------------------------
+[ FIN DEL INFORME ]
+`;
+        return content.trim();
+    }
+
+    function downloadFile(content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function generatePdfReport() {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF();
+        
+        const mapImg = canvas.toDataURL('image/png', 1.0);
+        const chartImg = analysisChart.toBase64Image();
+        const { enemyParams, isKill, detonationPoint, missDistance, pk } = lastMissionData;
+        const sol = optimalSolution;
+
+        // Header
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(18);
+        pdf.text("ATHENA - REPORTE DE MISIÓN", 105, 15, null, null, "center");
+
+        // Mission Summary
+        pdf.setFontSize(12);
+        pdf.text("Resumen de la Misión", 14, 30);
+        pdf.setLineWidth(0.5);
+        pdf.line(14, 32, 200, 32);
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10);
+        pdf.text(`ID de Misión: ${Date.now()}`, 14, 40);
+        pdf.text(`Fecha/Hora: ${new Date().toLocaleString('es-CO')}`, 14, 45);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(isKill ? '#2ea043' : '#da3633');
+        pdf.text(`Resultado: ${isKill ? 'AMENAZA NEUTRALIZADA' : 'FALLO EN LA MISIÓN'}`, 14, 50);
+        pdf.setTextColor(0, 0, 0);
+
+        // Threat Data
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(12);
+        pdf.text("Datos de la Amenaza", 14, 65);
+        pdf.line(14, 67, 200, 67);
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10);
+        pdf.text(`Posición Inicial: (${enemyParams.x0} m, ${enemyParams.y0} m)`, 14, 75);
+        pdf.text(`Velocidad/Ángulo: ${enemyParams.v0.toFixed(1)} m/s at ${(enemyParams.theta * 180 / Math.PI).toFixed(1)}°`, 14, 80);
+        
+        // Interception Data
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(12);
+        pdf.text("Solución de Intercepción", 14, 95);
+        pdf.line(14, 97, 200, 97);
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10);
+        pdf.text(`Tipo de Lanzamiento: ${sol.type === 'booster' ? 'PROPULSADO' : 'BALÍSTICO'}`, 14, 105);
+        pdf.text(`Tiempo para Interceptar: ${sol.t.toFixed(2)} s`, 14, 110);
+        pdf.text(`Punto de Intercepción (x,y): (${sol.x.toFixed(0)}, ${sol.y.toFixed(0)}) m`, 14, 115);
+        
+        // Outcome
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(12);
+        pdf.text("Análisis de Resultados", 14, 130);
+        pdf.line(14, 132, 200, 132);
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10);
+        pdf.text(`Distancia Final al Objetivo: ${missDistance.toFixed(2)} m`, 14, 140);
+        pdf.text(`Probabilidad de Derribo (Pk): ${(pk * 100).toFixed(1)} %`, 14, 145);
+        
+        // Images
+        pdf.addPage();
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(16);
+        pdf.text("Mapa Táctico de la Misión", 105, 15, null, null, "center");
+        pdf.addImage(mapImg, 'PNG', 15, 25, 180, 101);
+        
+        pdf.text("Análisis de Distancia vs. Tiempo", 105, 140, null, null, "center");
+        pdf.addImage(chartImg, 'PNG', 15, 150, 180, 80);
+
+        pdf.save(`ATHENA_Report_${Date.now()}.pdf`);
+    }
+    
+    // --- STARTUP ---
+    let operatorName = "ATHENA-1";
+    window.addEventListener('resize', resizeCanvas);
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll(".katex-container").forEach(el => {
+          katex.render(el.textContent.trim(), el, { throwOnError: false, displayMode: true });
+      });
+      
+      const analysisCtx = document.getElementById('analysisChart').getContext('2d');
+      const gradient = analysisCtx.createLinearGradient(0, 0, 0, 250);
+      gradient.addColorStop(0,'rgba(88,166,255,0.5)');gradient.addColorStop(1,'rgba(88,166,255,0)');
+      analysisChart = new Chart(analysisCtx,{type:'line',data:{datasets:[{label:'Distancia',data:[],borderColor:'#58a6ff',backgroundColor:gradient,fill:true,pointRadius:0,tension:0.4}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{type:'linear',title:{display:true,text:'Tiempo(s)',color:'#c9d1d9'},ticks:{color:'#8a9cb1'},grid:{color:'rgba(255,255,255,0.1)'}},y:{title:{display:true,text:'Distancia(m)',color:'#c9d1d9'},ticks:{color:'#8a9cb1'},grid:{color:'rgba(255,255,255,0.1)'},min:0}},plugins:{legend:{display:false}}}});
+      
+      createStars(200);
+      setupEventListeners();
+      randomBtn.click();
+      mainRenderLoop();
+    });
+
+    // Welcome & Tutorial modal logic
+    document.addEventListener('DOMContentLoaded', () => {
+        const welcomeModal = document.getElementById('welcomeModal');
+        const closeWelcome = document.getElementById('closeWelcome');
+        const dontShowWelcome = document.getElementById('dontShowWelcome');
+        
+        const tutorialModal = document.getElementById('tutorialModal');
+        const tutorialContent = document.getElementById('tutorialContent');
+        const tutorialPrev = document.getElementById('tutorialPrev');
+        const tutorialNext = document.getElementById('tutorialNext');
+        const tutorialStepEl = document.getElementById('tutorialStep');
+        let currentStep = 0;
+
+        const tutorialSteps = [
+            { title: "Paso 1: La Interfaz", content: "Bienvenido al simulador ATHENA. La pantalla principal es el <strong>Mapa Táctico</strong>. A la derecha, tienes los paneles de <strong>Configuración</strong>, <strong>Acciones</strong> y <strong>Registro</strong>." },
+            { title: "Paso 2: Configurar la Misión", content: "En <strong>CONFIGURACIÓN DE MISIÓN</strong>, puedes ajustar los parámetros de la amenaza (posición, velocidad, ángulo) y de tu defensa (posición de la base, radio de explosión) usando los deslizadores." },
+            { title: "Paso 3: Calcular y Lanzar", content: "En <strong>ACCIONES DE COMANDO</strong>, presiona <strong>Generar</strong> para un nuevo escenario aleatorio. Luego, presiona <strong>Calcular</strong> para que el sistema encuentre una solución de tiro. Finalmente, presiona <strong>¡INTERCEPTAR!</strong> para lanzar." },
+            { title: "Paso 4: Forzar Propulsor", content: "Puedes marcar la casilla <strong>Forzar Propulsor</strong> antes de calcular para forzar una trayectoria con aceleración extra, útil para intercepciones difíciles." },
+            { title: "Paso 5: Analizar Resultados", content: "El panel de <strong>REGISTRO</strong> te dará información en tiempo real. Después de la misión, el gráfico de <strong>Análisis de Intercepción</strong> mostrará la distancia al objetivo durante el vuelo. ¡Ya estás listo para comenzar!" }
+        ];
+
+        function showTutorialStep(step) {
+            tutorialContent.innerHTML = `<h3>${tutorialSteps[step].title}</h3><p>${tutorialSteps[step].content}</p>`;
+            tutorialStepEl.textContent = `Paso ${step + 1} de ${tutorialSteps.length}`;
+            tutorialPrev.disabled = step === 0;
+            if (step === tutorialSteps.length - 1) {
+                tutorialNext.textContent = "Finalizar";
+            } else {
+                tutorialNext.textContent = "Siguiente";
+            }
+        }
+        
+        if (!localStorage.getItem('hideWelcome')) {
+            welcomeModal.classList.remove('hidden');
+        }
+
+        closeWelcome.addEventListener('click', () => {
+            if (dontShowWelcome.checked) {
+                 localStorage.setItem('hideWelcome','1');
+            }
+            welcomeModal.classList.add('hidden');
+            if (!localStorage.getItem('hideTutorial')) {
+                tutorialModal.classList.remove('hidden');
+                currentStep = 0;
+                showTutorialStep(currentStep);
+            }
+        });
+        
+        tutorialNext.addEventListener('click', () => {
+            currentStep++;
+            if (currentStep >= tutorialSteps.length) {
+                tutorialModal.classList.add('hidden');
+                localStorage.setItem('hideTutorial', '1');
+            } else {
+                showTutorialStep(currentStep);
+            }
+        });
+
+        tutorialPrev.addEventListener('click', () => {
+            currentStep--;
+            if (currentStep < 0) currentStep = 0;
+            showTutorialStep(currentStep);
+        });
+
+    });
+</script>
+</body>
+</html>
+

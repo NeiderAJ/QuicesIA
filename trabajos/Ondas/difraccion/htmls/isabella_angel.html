@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Difracción de Fraunhofer</title>
+    <style>
+        /* Estilos Generales */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Contenedor Principal */
+        .main-container {
+            width: 100%;
+            max-width: 900px;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        /* Título y Descripción */
+        h1 { color: #2c3e50; margin-bottom: 10px; }
+        .description { font-size: 0.95em; color: #555; margin-bottom: 25px; max-width: 700px; margin-left: auto; margin-right: auto; }
+        
+        /* Contenedor de la animación cualitativa */
+        .animation-container { margin: 25px 0; }
+        .animation-container h3 { margin-bottom: 10px; color: #34495e; font-weight: 600; }
+        #animationCanvas { width: 100%; max-width: 800px; height: auto; background-color: #1a1a1a; border-radius: 8px; border: 1px solid #ddd; margin: 0 auto; }
+
+        /* Canvas Principal */
+        #diffractionCanvas { width: 100%; height: auto; border: 1px solid #ccc; border-radius: 8px; margin-top: 20px; }
+
+        /* Paneles */
+        .panel-container, .math-panel, .applications-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .control-panel, .results-panel, .math-panel, .applications-panel {
+            background-color: #fdfdff;
+            border: 1px solid #e0e0e6;
+            border-radius: 8px;
+            padding: 20px;
+            flex: 1;
+        }
+        .math-panel, .applications-panel { flex-basis: 100%; }
+
+        h2 { margin-top: 0; color: #34495e; border-bottom: 2px solid #e0e0e6; padding-bottom: 10px; margin-bottom: 20px; }
+
+        /* Controles (Sliders) */
+        .control-group { margin-bottom: 20px; text-align: left; }
+        .control-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .slider { width: 100%; cursor: pointer; }
+        .value-display { font-weight: bold; color: #2980b9; }
+        
+        /* Resultados y Ecuaciones */
+        .results-panel { min-width: 300px; }
+        .results-panel .equation-display { text-align: left; margin-bottom: 25px; }
+        .results-panel .equation-formula { font-style: italic; color: #555; margin-bottom: 8px; display: block; }
+        .results-panel .equation-calculation { font-family: 'Courier New', Courier, monospace; font-size: 1.1em; color: #333; }
+        .results-panel .value { background-color: #ecf0f1; padding: 3px 6px; border-radius: 4px; color: #c0392b; font-weight: bold; }
+
+        /* Paneles de texto (Matemáticas y Aplicaciones) */
+        .math-panel p, .applications-panel p { line-height: 1.6; text-align: left;}
+        .math-panel strong, .applications-panel strong { color: #2c3e50; }
+        .math-panel code, .applications-panel code { background-color: #ecf0f1; padding: 2px 5px; border-radius: 4px; font-family: 'Courier New', Courier, monospace; color: #c0392b; }
+        .derivation-step, .app-item { margin-top: 15px; }
+        .applications-panel h3 { color: #34495e; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 10px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <h1>Difracción de Fraunhofer por una rendija única</h1>
+        <p class="description">
+            Este simulador permite encontrar el ángulo de dispersión que corresponde a la mitad del máximo central del patrón de difracción de Fraunhofer. Este fenómeno se describe con la ecuación de intensidad: 
+            <i>I(θ) = I<sub>max</sub> (sin(β)/β)<sup>2</sup></i>.
+        </p>
+        
+        <div class="animation-container">
+            <h3>Visualización del Experimento</h3>
+            <canvas id="animationCanvas" width="800" height="250"></canvas>
+        </div>
+
+        <canvas id="diffractionCanvas" width="800" height="400"></canvas>
+
+        <div class="panel-container">
+            <div class="control-panel">
+                <h2>Panel de Controles</h2>
+                <div class="control-group">
+                    <label for="lambdaSlider">Longitud de onda (λ): <span id="lambdaValue" class="value-display">600</span> nm</label>
+                    <input type="range" min="400" max="800" value="600" class="slider" id="lambdaSlider">
+                </div>
+                <div class="control-group">
+                    <label for="aSlider">Ancho de la rendija (a): <span id="aValue" class="value-display">10</span> µm</label>
+                    <input type="range" min="1" max="100" value="10" class="slider" id="aSlider">
+                </div>
+            </div>
+
+            <div class="results-panel">
+                <h2>Resultados Dinámicos</h2>
+                <div class="equation-display">
+                    <span class="equation-formula">1. Ángulo de intersección (θ<sub>0.5</sub>)</span>
+                    <p class="equation-calculation">
+                        θ<sub>0.5</sub> = <span id="angleRad" class="value">0.000</span> rad (<span id="angleDeg" class="value">0.000</span>°)
+                    </p>
+                </div>
+                <div class="equation-display">
+                    <span class="equation-formula">2. Aproximación teórica (medio ancho)</span>
+                    <p class="equation-calculation">
+                        θ<sub>aprox</sub> ≈ 0.443 * (λ / a) <br>
+                        θ<sub>aprox</sub> ≈ <span id="approx" class="value">0.000</span> rad
+                    </p>
+                </div>
+                <div class="equation-display">
+                    <span class="equation-formula">3. Error Relativo Porcentual</span>
+                    <p class="equation-calculation">
+                         Error % = <span id="error" class="value">0.00</span> %
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="math-panel">
+            <h2>Desarrollo Matemático del Problema</h2>
+            <p>El objetivo es encontrar el <strong>ancho angular total a la mitad del máximo (FWHM)</strong> del patrón de difracción. Este ancho se define como <code>Δθ = 2θ<sub>0.5</sub></code>, donde <code>θ<sub>0.5</sub></code> es el ángulo en el que la intensidad <code>I</code> es el 50% de la intensidad máxima <code>I<sub>máx</sub></code>.</p>
+            <div class="derivation-step">
+                <strong>a) Demostración de la condición de intersección:</strong>
+                <p>La intensidad está dada por <code>I(θ) = I<sub>máx</sub> [sin(β)/β]<sup>2</sup></code>, donde <code>β = (πa sinθ)/λ</code>. Buscamos el punto donde <code>I = 0.5 * I<sub>máx</sub></code>. Simplificando, obtenemos <code>0.5 = [sin(β)/β]<sup>2</sup></code>, lo que nos lleva a la condición trascendental: <code>sin(β) / β = 1 / √2</code>.</p>
+            </div>
+            <div class="derivation-step">
+                <strong>b) Determinación del valor de β:</strong>
+                <p>Resolviendo numéricamente la ecuación anterior (como lo hace esta simulación), se encuentra que el valor de <code>β</code> en la intersección es <code>β<sub>0.5</sub> ≈ 1.39155 rad</code>.</p>
+            </div>
+            <div class="derivation-step">
+                <strong>c) Demostración del ancho angular:</strong>
+                <p>Usando <code>β<sub>0.5</sub> = (π a sin(θ<sub>0.5</sub>)) / λ</code> y la aproximación de ángulo pequeño <code>sin(θ) ≈ θ</code>, se despeja <code>θ<sub>0.5</sub></code> para obtener <code>θ<sub>0.5</sub> ≈ 0.443 * (λ / a)</code>. El ancho total es el doble de este valor: <code>Δθ ≈ 0.886 * (λ / a)</code>.</p>
+            </div>
+        </div>
+
+        <div class="applications-panel">
+            <h2>Aplicaciones en el Mundo Real: La Importancia del Ancho a Media Altura (FWHM)</h2>
+            <p>La FWHM es una métrica crucial para cuantificar la <strong>resolución</strong> de un sistema de medida. Un FWHM más pequeño casi siempre es mejor, ya que implica una mayor capacidad para distinguir señales cercanas. Aquí hay tres ejemplos:</p>
+            
+            <div class="app-item">
+                <h3>1. Espectroscopía y Poder de Resolución</h3>
+                <p>
+                    En química y astrofísica, la espectroscopía se usa para identificar elementos analizando la luz que emiten o absorben. Cada elemento tiene una "huella" de líneas espectrales. El FWHM de estas líneas, producidas por un espectrómetro (que usa una rejilla de difracción), define su <strong>poder de resolución</strong>. Un FWHM pequeño permite al instrumento distinguir dos longitudes de onda muy cercanas, como el famoso doblete del sodio (589.0 y 589.6 nm). Si el FWHM es muy grande, las dos líneas se ven como una sola mancha amarilla, haciendo imposible la identificación precisa.
+                </p>
+            </div>
+
+            <div class="app-item">
+                <h3>2. Microscopía y el Límite de Difracción</h3>
+                <p>
+                    Cuando se observa un objeto puntual muy pequeño con un microscopio (p. ej., una molécula fluorescente en una célula), su imagen no es un punto, sino un patrón de difracción borroso llamado Disco de Airy. El FWHM de este disco determina la resolución máxima del microscopio (el <strong>límite de difracción</strong>). El <strong>Criterio de Rayleigh</strong> establece que dos puntos son apenas distinguibles si el centro del máximo de uno coincide con el primer mínimo del otro. En esencia, para ver dos objetos como separados, su distancia debe ser mayor que el FWHM de su patrón de difracción. Reducir este FWHM es el objetivo de las técnicas de super-resolución.
+                </p>
+            </div>
+
+            <div class="app-item">
+                <h3>3. Calidad de Haces Láser y Telecomunicaciones</h3>
+                <p>
+                    Un haz láser se propaga y se ensancha debido a la difracción que ocurre en su apertura de salida. El FWHM del perfil de intensidad del haz se usa para cuantificar su <strong>divergencia</strong>. En aplicaciones como las comunicaciones por fibra óptica o satélite, se necesita un FWHM mínimo para que el haz no se disperse y pierda potencia a largas distancias. En cirugía láser o litografía, un FWHM pequeño permite concentrar toda la energía en un punto extremadamente preciso para cortar o grabar con alta definición.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Todo el JavaScript de las versiones anteriores se mantiene aquí sin cambios.
+    // Esta sección está colapsada para brevedad, pero está presente en el bloque de código.
+    document.addEventListener('DOMContentLoaded', function() {
+        const lambdaSlider = document.getElementById('lambdaSlider');
+        const aSlider = document.getElementById('aSlider');
+        const lambdaValueSpan = document.getElementById('lambdaValue');
+        const aValueSpan = document.getElementById('aValue');
+        const angleRadSpan = document.getElementById('angleRad');
+        const angleDegSpan = document.getElementById('angleDeg');
+        const approxSpan = document.getElementById('approx');
+        const errorSpan = document.getElementById('error');
+        const canvas = document.getElementById('diffractionCanvas');
+        const ctx = canvas.getContext('2d');
+        const animCanvas = document.getElementById('animationCanvas');
+        const animCtx = animCanvas.getContext('2d');
+        const Y_TARGET = 1 / Math.sqrt(2); 
+        const THETA_MAX = Math.PI / 4; 
+        const SAMPLES = 1000;      
+        let animState = 'VARYING_A_UP';
+        let currentA = 10;
+        let currentL = 400;
+        let wavefrontOffset = 0;
+        
+        function simulate() {
+            const lambda = parseFloat(lambdaSlider.value) * 1e-9;
+            const a = parseFloat(aSlider.value) * 1e-6;          
+            lambdaValueSpan.textContent = lambdaSlider.value;
+            aValueSpan.textContent = aSlider.value;
+            let theta_intersect = 0;
+            let min_diff = Infinity;
+            const plotData = [];
+            for (let i = 0; i <= SAMPLES; i++) {
+                const theta = (i / SAMPLES) * THETA_MAX;
+                const beta = (Math.PI * a * Math.sin(theta)) / lambda;
+                const y = (beta === 0) ? 1.0 : Math.sin(beta) / beta;
+                plotData.push({ theta: theta, y: y });
+                const diff = Math.abs(y - Y_TARGET);
+                if (diff < min_diff) {
+                    min_diff = diff;
+                    theta_intersect = theta;
+                }
+            }
+            const theta_approx = 0.443 * (lambda / a);
+            const relative_error = (theta_approx !== 0) ? (Math.abs(theta_intersect - theta_approx) / theta_approx) * 100 : 0;
+            angleRadSpan.textContent = theta_intersect.toFixed(5);
+            angleDegSpan.textContent = (theta_intersect * 180 / Math.PI).toFixed(3);
+            approxSpan.textContent = theta_approx.toFixed(5);
+            errorSpan.textContent = relative_error.toFixed(2);
+            drawMainCanvas(plotData, theta_intersect);
+        }
+
+        function drawMainCanvas(data, theta_intersect) {
+            const w = canvas.width, h = canvas.height, padding = 50;
+            ctx.clearRect(0, 0, w, h);
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, w, h);
+            ctx.strokeStyle = "#333";
+            ctx.fillStyle = "#333";
+            ctx.font = "14px Arial";
+            ctx.beginPath(); ctx.moveTo(padding, padding); ctx.lineTo(padding, h - padding); ctx.stroke();
+            ctx.fillText("y=sin(β)/β", padding - 45, padding - 10);
+            ctx.beginPath(); ctx.moveTo(padding, h - padding); ctx.lineTo(w - padding, h - padding); ctx.stroke();
+            ctx.fillText("Ángulo θ (rad)", w / 2 - 30, h - padding + 30);
+            for (let i = 0; i <= 10; i++) {
+                const y_val = i / 10, y_pos = h - padding - y_val * (h - 2 * padding);
+                ctx.fillText(y_val.toFixed(1), padding - 30, y_pos + 4);
+                ctx.beginPath(); ctx.moveTo(padding - 5, y_pos); ctx.lineTo(padding, y_pos); ctx.stroke();
+                const x_val = (i / 10) * THETA_MAX, x_pos = padding + (i / 10) * (w - 2 * padding);
+                ctx.fillText(x_val.toFixed(2), x_pos - 15, h - padding + 20);
+                ctx.beginPath(); ctx.moveTo(x_pos, h-padding); ctx.lineTo(x_pos, h-padding+5); ctx.stroke();
+            }
+            const toX = (theta) => padding + (theta / THETA_MAX) * (w - 2 * padding);
+            const toY = (y) => h - padding - y * (h - 2 * padding);
+            ctx.beginPath(); ctx.strokeStyle = "#2980b9"; ctx.lineWidth = 2;
+            data.forEach((point, index) => {
+                if(point.theta <= THETA_MAX){
+                    const x_pos = toX(point.theta), y_pos = toY(point.y);
+                    if (index === 0) ctx.moveTo(x_pos, y_pos); else ctx.lineTo(x_pos, y_pos);
+                }
+            });
+            ctx.stroke();
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.strokeStyle = "#c0392b"; ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
+            const y_line_pos = toY(Y_TARGET);
+            ctx.moveTo(padding, y_line_pos); ctx.lineTo(toX(THETA_MAX), y_line_pos); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillText(`y = 1/√2 ≈ ${Y_TARGET.toFixed(3)}`, w - padding - 120, y_line_pos - 8);
+            if(theta_intersect <= THETA_MAX){
+                const intersect_x = toX(theta_intersect), intersect_y = toY(Y_TARGET);
+                ctx.beginPath(); ctx.fillStyle = "#e67e22"; ctx.arc(intersect_x, intersect_y, 6, 0, 2 * Math.PI); ctx.fill();
+                ctx.strokeStyle = "#fff"; ctx.stroke();
+                ctx.beginPath(); ctx.strokeStyle = "#e67e22"; ctx.setLineDash([4, 4]);
+                ctx.moveTo(intersect_x, intersect_y); ctx.lineTo(intersect_x, h - padding); ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+        
+        function wavelengthToColor(lambda, alpha = 1) {
+            let R, G, B;
+            if (lambda >= 380 && lambda < 440) { R = -(lambda - 440) / (440 - 380); G = 0.0; B = 1.0; }
+            else if (lambda >= 440 && lambda < 490) { R = 0.0; G = (lambda - 440) / (490 - 440); B = 1.0; }
+            else if (lambda >= 490 && lambda < 510) { R = 0.0; G = 1.0; B = -(lambda - 510) / (510 - 490); }
+            else if (lambda >= 510 && lambda < 580) { R = (lambda - 510) / (580 - 510); G = 1.0; B = 0.0; }
+            else if (lambda >= 580 && lambda < 645) { R = 1.0; G = -(lambda - 645) / (645 - 580); B = 0.0; }
+            else if (lambda >= 645 && lambda <= 780) { R = 1.0; G = 0.0; B = 0.0; }
+            else { R = 0.0; G = 0.0; B = 0.0; }
+            let factor = (lambda >= 380 && lambda < 420) ? 0.3 + 0.7 * (lambda - 380) / (420 - 380) : (lambda >= 420 && lambda < 645) ? 1.0 : (lambda >= 645 && lambda <= 780) ? 0.3 + 0.7 * (780 - lambda) / (780 - 645) : 0.0;
+            return `rgba(${Math.round(255*R*factor)}, ${Math.round(255*G*factor)}, ${Math.round(255*B*factor)}, ${alpha})`;
+        }
+        
+        function drawAnimationScene() {
+            const w = animCanvas.width, h = animCanvas.height;
+            animCtx.clearRect(0, 0, w, h);
+            const speedA = 0.15, speedL = 1.0, minA = 5, maxA = 40, minL = 400, maxL = 700;
+            if (animState === 'VARYING_A_UP') { currentA += speedA; if (currentA >= maxA) animState = 'VARYING_A_DOWN'; }
+            else if (animState === 'VARYING_A_DOWN') { currentA -= speedA; if (currentA <= minA) {animState = 'VARYING_L_UP'; currentA = (minA+maxA)/2; } }
+            else if (animState === 'VARYING_L_UP') { currentL += speedL; if (currentL >= maxL) animState = 'VARYING_L_DOWN'; }
+            else if (animState === 'VARYING_L_DOWN') { currentL -= speedL; if (currentL <= minL) {animState = 'VARYING_A_UP'; currentL = 550; } }
+            const slitX = w * 0.4, screenX = w * 0.95;
+            wavefrontOffset = (wavefrontOffset + 0.5) % 20;
+            const incidentColor = animState.includes('VARYING_A') ? 'white' : wavelengthToColor(currentL);
+            animCtx.strokeStyle = incidentColor; animCtx.lineWidth = 1.5;
+            for (let x = wavefrontOffset; x < slitX - 10; x += 20) { animCtx.beginPath(); animCtx.moveTo(x, 0); animCtx.lineTo(x, h); animCtx.stroke(); }
+            animCtx.fillStyle = '#888';
+            animCtx.fillRect(slitX, 0, 10, h/2 - currentA/2); animCtx.fillRect(slitX, h/2 + currentA/2, 10, h/2 - currentA/2);
+            animCtx.fillStyle = '#333';
+            animCtx.fillRect(screenX, 0, 10, h);
+            for (let i = 0; i < 200; i++) {
+                const y = (i / 200) * h, angle = Math.atan((y - h/2) / (screenX - slitX)), a_scaled = currentA * 5e-7;
+                if (animState.includes('VARYING_A')) {
+                    const lambdas = { r: 650e-9, g: 550e-9, b: 450e-9 };
+                    const beta_r = (Math.PI*a_scaled*Math.sin(angle))/lambdas.r, I_r = Math.pow(Math.sin(beta_r)/beta_r,2);
+                    const beta_g = (Math.PI*a_scaled*Math.sin(angle))/lambdas.g, I_g = Math.pow(Math.sin(beta_g)/beta_g,2);
+                    const beta_b = (Math.PI*a_scaled*Math.sin(angle))/lambdas.b, I_b = Math.pow(Math.sin(beta_b)/beta_b,2);
+                    animCtx.strokeStyle = `rgb(${I_r*255},${I_g*255},${I_b*255})`;
+                } else {
+                    const lambda_scaled = currentL * 1e-9, beta = (Math.PI*a_scaled*Math.sin(angle))/lambda_scaled, intensity = Math.pow(Math.sin(beta)/beta,2);
+                    animCtx.strokeStyle = wavelengthToColor(currentL, intensity);
+                }
+                animCtx.beginPath(); animCtx.moveTo(screenX + 2, y); animCtx.lineTo(screenX + 8, y); animCtx.stroke();
+            }
+            requestAnimationFrame(drawAnimationScene);
+        }
+
+        lambdaSlider.addEventListener('input', simulate);
+        aSlider.addEventListener('input', simulate);
+        simulate(); 
+        drawAnimationScene();
+    });
+    </script>
+</body>
+</html>

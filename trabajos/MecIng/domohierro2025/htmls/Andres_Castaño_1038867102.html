@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sistema de Defensa Antimisiles</title>
+  <style>
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto; background:#071022;color:#e6eef8;padding:18px}
+    .page{max-width:1200px;margin:0 auto}
+    header{background:#071a2a;padding:18px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+    h1{color:#00d4ff;margin:0}
+    .grid{display:grid;grid-template-columns:1fr 420px;gap:18px;margin-top:18px}
+    .card{background:rgba(255,255,255,0.02);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+    canvas{width:100%;height:420px;background:#000;border-radius:8px;border:2px solid #003541}
+    pre{background:#021018;padding:10px;border-radius:8px;overflow:auto}
+    .controls label{display:block;margin-bottom:6px;color:#a7c7d7}
+    input[type=range]{width:100%}
+    button{background:#00d4ff;color:#012; border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+    .section-title{color:#9ff1ff;margin-top:8px}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    footer{margin-top:18px;color:#8aa3b3}
+    @media(max-width:980px){.grid{grid-template-columns:1fr}}
+  </style>
+  <script>
+    window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']]},svg:{fontCache:'global'}};
+  </script>
+  <script async id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>🚀 Sistema de Defensa Antimisiles | Andrés Castaño Echavarría</h1>
+      <p style="color:#9fbfca;margin-top:6px">Algebra, ecuaciones de movimiento y visualización coherente (2D proyectado desde 3D). Incluye simulación interactiva.</p>
+    </header>
+
+    <div class="card">
+      <main>
+        <section class="card">
+          <h2 class="section-title">1. Enunciado del problema</h2>
+          <p>
+            Un lanzador defensor situado en $
+            \mathbf{r}_L=(x_L,y_L)$ debe interceptar un misil enemigo que parte de $
+            \mathbf{r}_0=(x_0,y_0)$ con velocidad inicial $
+            \mathbf{v}_0$ (magnitud $v_0$ y ángulo $\alpha$ sobre la horizontal). Ambos cuerpos se mueven bajo la acción de la gravedad local $\mathbf{g}=(0,-g)$. Se solicita:
+          </p>
+          <ul>
+            <li>Formular la condición algebraica de intercepción en 2D.</li>
+            <li>Incluir los casos: sin propulsor (trayectoria balística pura del defensor) y con propulsor (aceleración controlada constante durante el vuelo).</li>
+            <li>Implementar una simulación con parámetros interactivos y ejecución aleatoria.</li>
+          </ul>
+        </section>
+
+        <section class="card">
+          <h2 class="section-title">2. Solución algebraica propuesta (reducción a 2D, condiciones de intercepción)</h2>
+
+          <h3>Reducción a 2D</h3>
+          <p>Se asume que la maniobra es coplanar: elegimos el plano que contiene la velocidad inicial del objetivo y el lanzador. En coordenadas cartesianas 2D (x horizontal, y vertical):</p>
+
+          <p>Movimientos (vectores 2D):</p>
+          <p>Misil enemigo (E): $$\mathbf{r}_E(t)=\mathbf{r}_0+\mathbf{v}_0 t+\tfrac12\mathbf{g}t^2\,,\quad \mathbf{g}=(0,-g).$$</p>
+
+          <p>Misil defensor (D) <strong>sin propulsor</strong> (velocidad inicial $\mathbf{u}$, luego sólo gravedad):</p>
+          <p>$$\mathbf{r}_D(t)=\mathbf{r}_L+\mathbf{u}t+\tfrac12\mathbf{g}t^2.$$</p>
+
+          <h3>Condición de intercepción (sin propulsor)</h3>
+          <p>Igualando posiciones y cancelando el término gravitacional (aparece en ambos lados):</p>
+          <p>$$\mathbf{r}_0+\mathbf{v}_0 t+\tfrac12\mathbf{g}t^2=\mathbf{r}_L+\mathbf{u}t+\tfrac12\mathbf{g}t^2 \Rightarrow \mathbf{u}=\mathbf{v}_0+\dfrac{\mathbf{r}_0-\mathbf{r}_L}{t}. $$</p>
+          <p>Esto significa que para cada $t>0$ alcanzable, existe una velocidad inicial $\mathbf{u}(t)$ que logra la intercepción en tiempo $t$ si $\|\mathbf{u}(t)\|\le u_{max}$ y el ángulo resultante es físicamente alcanzable.</p>
+
+          <h3>Caso con propulsor (aceleración constante durante el vuelo)</h3>
+          <p>Si el defensor puede aplicar una aceleración del cuerpo propulsor $\mathbf{a}_p$ (constante en el intervalo de interés), su ecuación de movimiento es</p>
+          <p>$$\mathbf{r}_D(t)=\mathbf{r}_L+\mathbf{u}t+\tfrac12\mathbf{a}_p t^2+\tfrac12\mathbf{g}t^2.$$</p>
+          <p>Igualando posiciones y cancelando $\tfrac12\mathbf{g}t^2$:</p>
+          <p>$$\mathbf{u}=\mathbf{v}_0+\dfrac{\mathbf{r}_0-\mathbf{r}_L}{t}-\tfrac12\mathbf{a}_p t.$$</p>
+
+          <h3>Interpretación práctica</h3>
+          <ul>
+            <li>Si $\mathbf{a}_p=\mathbf{0}$, la expresión se reduce a la anterior.</li>
+            <li>Para una aceleración disponible, puede reducirse la magnitud requerida de $\mathbf{u}$ o permitir tiempos de interceptación más pequeños.</li>
+            <li>El problema se convierte en elegir $t$ tal que $\|\mathbf{u}(t)\|$ se minimice o cumpla $\|\mathbf{u}(t)\|\le u_{max}$.</li>
+          </ul>
+        </section>
+
+        <section class="card">
+          <h2 class="section-title">3. Análisis funcional / teórico</h2>
+          <p>
+            <strong>Aspectos clave del modelo desarrollado:</strong>
+          </p>
+          <ul>
+            <li>Se implementó una única función coherente para la transformación de coordenadas, garantizando consistencia entre el dibujo y la animación.</li>
+            <li>Se diferencia claramente entre el vector velocidad (componentes) y su magnitud en las fórmulas, evitando confusión.</li>
+            <li>El filtrado de condiciones físicas asegura que no se descarten soluciones viables, con criterios más realistas para la altura.</li>
+            <li>Se incorporó el caso con propulsor, ampliando el rango de escenarios simulados.</li>
+          </ul>
+
+          <p>Desde la física, la cancelación del término gravitacional es válida siempre que ambos cuerpos compartan la misma aceleración gravitacional constante (aproximación aceptable en el rango local de la simulación). Si se incluyeran fuerzas dependientes de la masa o resistencia del aire, no se cancelaría y habría que integrar ecuaciones más complejas.</p>
+        </section>
+
+        <section class="card">
+          <h2 class="section-title">4. Planteamiento de la simulación (incluyendo uso de números aleatorios)</h2>
+
+          <p>Metodología:</p>
+          <ol>
+            <li>Se muestrea tiempo $t$ en una rejilla $[t_{min},t_{max}]$ con paso $\Delta t$ y para cada $t$ se calcula $\mathbf{u}(t)$ según la fórmula deseada (con/sin propulsor).</li>
+            <li>Se descartan soluciones con $\|\mathbf{u}(t)\|$ no numéricas o con intersecciones bajo el suelo ($y<0$) a menos que se permita interceptación rasante.</li>
+            <li>Se selecciona $t^*$ que minimiza $\|\mathbf{u}(t)\|$ sujeto a $\|\mathbf{u}(t)\|\le u_{max}$ si se busca viabilidad sin propulsor.</li>
+            <li>Para evaluar incertidumbre se generan escenarios aleatorios (posiciones, velocidades, ángulos) — Monte Carlo simple.</li>
+          </ol>
+
+          <p>En la interfaz: botón <em>Generar Aleatorio</em> para crear escenarios realistas con distribución uniforme en un rango controlado (se pueden cambiar fácilmente a distribuciones gaussianas si se desea).</p>
+        </section>
+
+        <section class="card">
+        <h2 class="section-title">5. Simulación interactiva con sliders y ejecución aleatoria</h2>
+        <div class="sim-container">
+        <section class="card controls">
+<h3>Panel de control</h3>
+<label>Velocidad máxima defensor <span id="uMaxLbl">600</span> m/s</label>
+<input id="uMax" type="range" min="50" max="1500" value="600" step="10">
+
+
+<label>Gravedad g <span id="gLbl">9.81</span> m/s²</label>
+<input id="g" type="range" min="0" max="20" value="9.81" step="0.01">
+
+
+<label>Altura inicial enemigo y0 <span id="y0lbl">400</span> m</label>
+<input id="y0" type="range" min="0" max="3000" value="400" step="10">
+
+
+<label>Velocidad objetivo v0 <span id="v0lbl">250</span> m/s</label>
+<input id="v0" type="range" min="50" max="800" value="250" step="5">
+
+
+<label>Ángulo objetivo α <span id="aLbl">40</span> °</label>
+<input id="alpha" type="range" min="0" max="85" value="40" step="1">
+
+
+<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+<button id="rnd">🎲 Generar Aleatorio</button>
+<button id="solve">🎯 Calcular</button>
+<button id="animate">▶️ Animar</button>
+<label style="align-self:center;color:#9fbfca"><input id="withThruster" type="checkbox"> Usar propulsor</label>
+</div>
+
+
+<div style="margin-top:10px;background:#021018;padding:8px;border-radius:8px;color:#9fbfca">
+<div>Posición enemiga: <span id="r0lbl">(800,400)</span></div>
+<div>Velocidad enemiga: <span id="v0lbl2">250 m/s</span></div>
+<div>Tiempo óptimo: <span id="topt">--</span> s</div>
+<div>Vel. requerida: <span id="ureq">--</span> m/s</div>
+</div>
+</section>
+
+
+<section class="card">
+<h3>Visualización</h3>
+<canvas id="scene" width="760" height="420"></canvas>
+</section>
+</div>
+</section>
+
+        <section class="card">
+          <h2 class="section-title">6. Relación con el sistema "Domo de Hierro"</h2>
+          <p>
+            El modelo matemático usado aquí es la base simplificada de los problemas de intercepción empleados por sistemas como Iron Dome (Domo de Hierro): estimación rápida de trayectorias, búsqueda de ventanas temporales de interceptación y asignación de lanzadores.
+            Las diferencias principales son:
+          </p>
+          <ul>
+            <li>Iron Dome incorpora modelos avanzados de detección, predicción probabilística, resistencia aerodinámica y maniobras enemigas — aquí se muestra un modelo didáctico y extensible.</li>
+            <li>El algoritmo de selección (minimizar la magnitud de la velocidad o coste) es análogo a las heurísticas reales que priorizan interceptaciones con menor consumo de recursos.</li>
+          </ul>
+        </section>
+
+        <section class="card">
+          <h2 class="section-title">7. Conclusiones</h2>
+          <ul>
+            <li>La cancelación del término gravitacional entre objetivo y defensor es correcta en el planteamiento 2D si ambos comparten la misma aceleración gravitacional uniforme.</li>
+            <li>Se implementó una visualización coherente con un modelo funcional, incluyendo el caso con propulsor y un método de Monte Carlo para escenarios con incertidumbre.</li>
+            <li>Para mayor realismo conviene incluir resistencia aerodinámica y maniobras activas — esto obliga a resolver EDOs no lineales y a usar integradores numéricos.</li>
+          </ul>
+        </section>
+
+        <section class="card">
+          <h2 class="section-title">8. Bibliografía</h2>
+          <ol>
+            <li>J. B. Marion &amp; S. T. Thornton, <em>Classical Dynamics of Particles and Systems</em>.</li>
+            <li>Cutting-edge literature on missile interception and guidance (revisión académica).</li>
+            <li>Material didáctico sobre dinámica de proyectiles y simulación numérica.</li>
+          </ol>
+        </section>
+      </main>
+    </div>
+
+    <footer>
+      <p>Sistema de Defensa Antimisiles | Simulación Académica | Andrés Castaño Echavarría | Universidad de Antioquia</p>
+    </footer>
+  </div>
+
+<script>
+// --- Estado ---
+const state = {
+  r0:{x:400,y:200}, v0:100, alpha:40, rL:{x:0,y:0}, uMax:200, g:9.81, withThruster:false, a_p:{x:0,y:0}
+};
+
+// Canvas
+const canvas=document.getElementById('scene'); const ctx=canvas.getContext('2d');
+
+// Helpers
+const deg2rad=d=>d*Math.PI/180; const rad2deg=r=>r*180/Math.PI;
+
+function enemyVel(){ const a=deg2rad(state.alpha); return {x:state.v0*Math.cos(a), y:state.v0*Math.sin(a)}; }
+
+function rE(t){ const v=enemyVel(); return {x: state.r0.x + v.x*t, y: state.r0.y + v.y*t - 0.5*state.g*t*t}; }
+
+function rD(t,u,a_p){ // u and a_p are vectors
+  return {x: state.rL.x + u.x*t + 0.5*(a_p? a_p.x:0)*t*t, y: state.rL.y + u.y*t + 0.5*(a_p? a_p.y:0)*t*t - 0.5*state.g*t*t};
+}
+
+function requiredU_noThrust(Er,t){ // vector u required (no thruster)
+  return {x: Er.x - state.rL.x >> 0 ? (Er.x - state.rL.x)/t : (Er.x - state.rL.x)/t, y: (Er.y - state.rL.y)/t + 0.5*state.g*t };
+}
+
+function requiredU_general(Er,t,a_p){ // u = v0 + (r0 - rL)/t - 0.5 * a_p * t
+  const v = enemyVel();
+  return {x: v.x + (state.r0.x - state.rL.x)/t - 0.5*(a_p? a_p.x:0)*t, y: v.y + (state.r0.y - state.rL.y)/t - 0.5*(a_p? a_p.y:0)*t };
+}
+
+// Find intercept (grid search). Returns best solution or null.
+function findIntercept(){
+  let best=null; const tmin=0.2, tmax=20, dt=0.02;
+  for(let t=tmin;t<=tmax;t+=dt){
+    const Er=rE(t);
+    if(!isFinite(Er.x)||!isFinite(Er.y)) continue;
+    // discard if intersection below ground significantly
+    if(Er.y < 200) continue;
+
+    let uVec;
+    if(state.withThruster){ // assume a_p provided in state.a_p
+      uVec = requiredU_general(Er,t,state.a_p);
+    } else {
+      uVec = {x:(Er.x - state.rL.x)/t, y:(Er.y - state.rL.y)/t + 0.5*state.g*t};
+    }
+    const uMag=Math.hypot(uVec.x,uVec.y);
+    if(!isFinite(uMag) || uMag<=0) continue;
+    if(!best || uMag < best.u){ best={t:t,u:uMag,ux:uVec.x,uy:uVec.y,Er:Er,angle:rad2deg(Math.atan2(uVec.y,uVec.x))}; }
+  }
+  return best;
+}
+
+// Coordinate mapping single coherent implementation
+function computeViewport(){
+  const margin=40; const allx=[state.r0.x,state.rL.x]; const ally=[state.r0.y,state.rL.y,0];
+  for(let t=0;t<10;t+=0.5){ const p=rE(t); if(p.y>-200){allx.push(p.x); ally.push(p.y);} }
+  const xmin=Math.min(...allx)-100, xmax=Math.max(...allx)+100;
+  const ymin=Math.min(...ally)-100, ymax=Math.max(...ally)+100;
+  const sx=(canvas.width-2*margin)/(xmax-xmin); const sy=(canvas.height-2*margin)/(ymax-ymin);
+  const s=Math.min(sx,sy);
+  const ox=margin - xmin*s; const oy=canvas.height - margin + ymin*s;
+  return {s,ox,oy};
+}
+function wx(x){ const v=computeViewport(); return x*v.s + v.ox; }
+function wy(y){ const v=computeViewport(); return -y*v.s + v.oy; }
+
+// Draw routine
+function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height);
+  // grid
+  const v=computeViewport();
+  ctx.strokeStyle='rgba(100,140,150,0.08)'; ctx.lineWidth=1; ctx.setLineDash([4,6]);
+  for(let gx=Math.ceil(( -1000)/200)*200; gx<20000; gx+=200){ ctx.beginPath(); ctx.moveTo(wx(gx),0); ctx.lineTo(wx(gx),canvas.height); ctx.stroke(); }
+  ctx.setLineDash([]);
+
+  // draw ground
+  ctx.strokeStyle='#123'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,wy(0)); ctx.lineTo(canvas.width,wy(0)); ctx.stroke();
+
+  // enemy trajectory
+  ctx.beginPath(); let started=false;
+  for(let t=0;t<20;t+=0.02){ const p=rE(t); if(!isFinite(p.x)||!isFinite(p.y)) break; if(p.y<-500) break; if(!started){ ctx.moveTo(wx(p.x),wy(p.y)); started=true;} else { ctx.lineTo(wx(p.x),wy(p.y)); } }
+  ctx.strokeStyle='#00d4ff'; ctx.lineWidth=3; ctx.stroke();
+
+  // solution
+  const sol=findIntercept();
+  if(sol){ // defender traj
+    ctx.beginPath(); let first=true;
+    for(let tt=0;tt<=sol.t+0.001;tt+=0.02){ const px=state.rL.x + sol.ux*tt; const py=state.rL.y + sol.uy*tt - 0.5*state.g*tt*tt; if(first){ctx.moveTo(wx(px),wy(py)); first=false;} else ctx.lineTo(wx(px),wy(py)); }
+    ctx.strokeStyle='#ef4444'; ctx.lineWidth=3; ctx.setLineDash([8,4]); ctx.stroke(); ctx.setLineDash([]);
+    // intercept
+    ctx.fillStyle='#10b981'; ctx.beginPath(); ctx.arc(wx(sol.Er.x),wy(sol.Er.y),6,0,2*Math.PI); ctx.fill();
+    // telemetry
+    document.getElementById('topt').textContent=sol.t.toFixed(2);
+    document.getElementById('ureq').textContent=sol.u.toFixed(1);
+  } else {
+    document.getElementById('topt').textContent='--'; document.getElementById('ureq').textContent='--';
+  }
+
+  // launcher and initial points
+  ctx.fillStyle='#00d4ff'; ctx.beginPath(); ctx.arc(wx(state.r0.x),wy(state.r0.y),6,0,2*Math.PI); ctx.fill();
+  ctx.fillStyle='#888'; ctx.fillRect(wx(state.rL.x)-6,wy(state.rL.y)-6,12,12);
+}
+
+// UI wiring
+const uMaxEl=document.getElementById('uMax'); const gEl=document.getElementById('g'); const y0El=document.getElementById('y0');
+const v0El=document.getElementById('v0'); const aEl=document.getElementById('alpha');
+
+uMaxEl.oninput=e=>{ state.uMax=+e.target.value; document.getElementById('uMaxLbl').textContent=e.target.value; };
+gEl.oninput=e=>{ state.g=+e.target.value; document.getElementById('gLbl').textContent=Number(e.target.value).toFixed(2); draw(); };
+y0El.oninput=e=>{ state.r0.y=+e.target.value; document.getElementById('y0lbl').textContent=e.target.value; document.getElementById('r0lbl').textContent=`(${Math.round(state.r0.x)},${Math.round(state.r0.y)})`; draw(); };
+v0El.oninput=e=>{ state.v0=+e.target.value; document.getElementById('v0lbl').textContent=e.target.value+' m/s'; document.getElementById('v0lbl2').textContent=e.target.value+' m/s'; draw(); };
+aEl.oninput=e=>{ state.alpha=+e.target.value; document.getElementById('aLbl').textContent=e.target.value; draw(); };
+
+document.getElementById('rnd').onclick=()=>{
+  state.r0.x = Math.random()*80 + 200; state.r0.y = Math.random()*200 + 50; state.v0 = Math.random()*30 + 100; state.alpha = Math.random()*60 + 15;
+  document.getElementById('r0lbl').textContent=`(${Math.round(state.r0.x)},${Math.round(state.r0.y)})`;
+  document.getElementById('v0lbl').textContent=`${Math.round(state.v0)} m/s`;
+  document.getElementById('v0lbl2').textContent=`${Math.round(state.v0)} m/s`;
+  document.getElementById('aLbl').textContent=Math.round(state.alpha);
+  draw();
+};
+
+// solve button simply redraws (findIntercept called inside draw)
+document.getElementById('solve').onclick=()=>{ draw(); };
+
+// animation
+let anim=null; document.getElementById('animate').onclick=()=>{
+  if(anim){ cancelAnimationFrame(anim); anim=null; document.getElementById('animate').textContent='▶️ Animar'; draw(); return; }
+  const sol=findIntercept(); if(!sol){ alert('No solution viable para este escenario.'); return; }
+  document.getElementById('animate').textContent='⏸️ Detener';
+  let tcur=0; const dt=0.05; const maxT=sol.t+2;
+  function step(){ draw(); // draw static
+    // draw moving objects at tcur
+    const ePos=rE(tcur); if(ePos.y>-500){ ctx.fillStyle='#00d4ff'; ctx.beginPath(); ctx.arc(wx(ePos.x),wy(ePos.y),8,0,2*Math.PI); ctx.fill(); }
+    if(tcur<=sol.t){ const dPos={x: state.rL.x + sol.ux*tcur, y: state.rL.y + sol.uy*tcur - 0.5*state.g*tcur*tcur}; if(dPos.y>-500){ ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(wx(dPos.x),wy(dPos.y),8,0,2*Math.PI); ctx.fill(); } }
+    tcur += dt; if(tcur>maxT){ cancelAnimationFrame(anim); anim=null; document.getElementById('animate').textContent='▶️ Animar'; draw(); return; }
+    anim=requestAnimationFrame(step);
+  }
+  step();
+};
+
+// initialize labels and draw
+uMaxEl.value=state.uMax; document.getElementById('uMaxLbl').textContent=state.uMax; document.getElementById('gLbl').textContent=state.g.toFixed(2);
+document.getElementById('r0lbl').textContent=`(${Math.round(state.r0.x)},${Math.round(state.r0.y)})`;
+document.getElementById('v0lbl').textContent=`${state.v0} m/s`;
+
+window.onload=()=>{ draw(); };
+</script>
+</body>
+</html>

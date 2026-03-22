@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Intercepción de Proyectiles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos personalizados para los sliders */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+            border-radius: 5px;
+        }
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #0ea5e9; /* sky-500 */
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #0ea5e9; /* sky-500 */
+            cursor: pointer;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="container mx-auto p-4 md:p-8">
+
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800">Simulador de Intercepción de Misiles</h1>
+            <p class="text-gray-600 mt-2">Análisis y visualización de trayectorias 2D</p>
+            <p class="text-gray-600 mt-2">Miguel Angel Avendaño Parra</p>
+        </header>
+
+        <!-- Enunciado -->
+        <section class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-2xl font-bold text-blue-700 mb-3">1. Enunciado del Problema</h2>
+            <p class="text-gray-700">
+                Se requiere simular el lanzamiento de un proyectil enemigo en un plano 2D, considerando únicamente la fuerza de gravedad. Simultáneamente, se lanza un proyectil defensor desde una base para interceptarlo. El misil defensor puede operar en dos modos: balístico (solo bajo gravedad) o propulsado (gravedad más un empuje constante). El objetivo es desarrollar una herramienta interactiva que permita visualizar ambas trayectorias, ajustar los parámetros del misil defensor y determinar si ocurre una intercepción, mostrando el tiempo y el punto del evento.
+            </p>
+        </section>
+
+        <!-- Solución -->
+        <section class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-2xl font-bold text-blue-700 mb-3">2. Solución Propuesta</h2>
+            <p class="text-gray-700">
+                La solución se implementa como una aplicación web autocontenida. Se utilizan las ecuaciones del movimiento parabólico para el misil enemigo y el misil defensor en modo balístico. Para el modo propulsado, se añaden términos de aceleración constante a las ecuaciones del defensor.
+            </p>
+            <div class="mt-4 p-4 bg-gray-50 rounded-md border border-gray-200 text-sm">
+                <p class="font-mono text-gray-800">
+                    <strong>Proyectil Enemigo (y Defensor Balístico):</strong><br>
+                    x(t) = x₀ + v₀ₓ * t<br>
+                    y(t) = y₀ + v₀y * t - 0.5 * g * t²
+                </p>
+                <hr class="my-3">
+                <p class="font-mono text-gray-800">
+                    <strong>Proyectil Defensor (con Propulsor):</strong><br>
+                    x(t) = x₀ + v₀ₓ * t + 0.5 * aₓ * t²<br>
+                    y(t) = y₀ + v₀y * t - 0.5 * g * t² + 0.5 * aᵧ * t²
+                </p>
+            </div>
+            <p class="text-gray-700 mt-3">
+                La simulación calcula las posiciones de ambos proyectiles en pequeños intervalos de tiempo (Δt) y verifica la distancia entre ellos. Si la distancia es menor a un umbral de intercepción, se registra el evento. La interfaz gráfica permite al usuario controlar los parámetros iniciales y ver los resultados de forma inmediata.
+            </p>
+        </section>
+        
+        <!-- Simulación -->
+        <section class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-2xl font-bold text-blue-700 mb-3">3. Simulación Interactiva</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Columna de Controles -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- Controles Enemigo -->
+                    <div class="p-4 border rounded-lg bg-red-50 border-red-200">
+                        <h3 class="font-bold text-lg text-red-700 mb-3">Parámetros del Enemigo</h3>
+                        <div id="enemy-params-display" class="text-sm text-red-900 space-y-1">
+                            <p><strong>Posición X:</strong> <span id="enemy-x0"></span> m</p>
+                            <p><strong>Posición Y:</strong> <span id="enemy-y0"></span> m</p>
+                            <p><strong>Velocidad:</strong> <span id="enemy-v0"></span> m/s</p>
+                            <p><strong>Ángulo:</strong> <span id="enemy-angle"></span> °</p>
+                        </div>
+                        <button id="randomize-enemy-btn" class="mt-4 w-full bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition duration-200">
+                            Generar Amenaza Aleatoria
+                        </button>
+                    </div>
+
+                    <!-- Controles Defensor -->
+                    <div class="p-4 border rounded-lg bg-sky-50 border-sky-200">
+                        <h3 class="font-bold text-lg text-sky-700 mb-3">Parámetros del Defensor</h3>
+                        
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <label for="defender-x0" class="font-medium text-sky-900">Posición Base X (<span id="defender-x0-val">0</span> m)</label>
+                                <input type="range" id="defender-x0" min="-2000" max="2000" value="0" class="w-full">
+                            </div>
+                            <div>
+                                <label for="defender-v0" class="font-medium text-sky-900">Velocidad Inicial (<span id="defender-v0-val">350</span> m/s)</label>
+                                <input type="range" id="defender-v0" min="50" max="800" value="350" class="w-full">
+                            </div>
+                            <div>
+                                <label for="defender-angle" class="font-medium text-sky-900">Ángulo de Lanzamiento (<span id="defender-angle-val">45</span>°)</label>
+                                <input type="range" id="defender-angle" min="1" max="89" value="45" class="w-full">
+                            </div>
+
+                             <div class="pt-2">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="defender-thrust-toggle" class="form-checkbox h-5 w-5 text-sky-600 rounded">
+                                    <span class="font-medium text-sky-900">Activar Propulsor</span>
+                                </label>
+                            </div>
+
+                            <div id="thrust-controls" class="space-y-4 hidden">
+                                <div>
+                                    <label for="defender-thrust" class="font-medium text-sky-900">Empuje (<span id="defender-thrust-val">10</span> m/s²)</label>
+                                    <input type="range" id="defender-thrust" min="0" max="50" value="10" class="w-full">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Columna de Canvas y Resultados -->
+                <div class="lg:col-span-2">
+                    <canvas id="trajectory-canvas" class="w-full h-96 md:h-[500px] bg-gray-800 rounded-lg shadow-inner"></canvas>
+                    <div id="result-display" class="mt-4 text-center font-bold text-xl h-8"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conclusiones -->
+        <section class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-2xl font-bold text-blue-700 mb-3">4. Conclusiones</h2>
+            <p class="text-gray-700">
+                Esta simulación demuestra la complejidad de los problemas de intercepción. Se observa que pequeños cambios en los parámetros iniciales del misil defensor, como su velocidad o ángulo, pueden significar la diferencia entre una intercepción exitosa y un fallo. El uso de un propulsor aumenta significativamente la capacidad de maniobra y el alcance del misil defensor, permitiéndole corregir su trayectoria y alcanzar objetivos que serían imposibles en un vuelo puramente balístico. La herramienta sirve como un excelente recurso educativo para entender los principios de la cinemática y la dinámica de proyectiles.
+            </p>
+        </section>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- CONSTANTES Y REFERENCIAS AL DOM ---
+            const canvas = document.getElementById('trajectory-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Controles y Displays
+            const randomizeBtn = document.getElementById('randomize-enemy-btn');
+            const resultDisplay = document.getElementById('result-display');
+            const enemyDisplay = {
+                x0: document.getElementById('enemy-x0'),
+                y0: document.getElementById('enemy-y0'),
+                v0: document.getElementById('enemy-v0'),
+                angle: document.getElementById('enemy-angle'),
+            };
+            const defenderControls = {
+                x0: document.getElementById('defender-x0'),
+                v0: document.getElementById('defender-v0'),
+                angle: document.getElementById('defender-angle'),
+                thrustToggle: document.getElementById('defender-thrust-toggle'),
+                thrust: document.getElementById('defender-thrust'),
+                thrustControls: document.getElementById('thrust-controls'),
+            };
+            const defenderDisplays = {
+                x0: document.getElementById('defender-x0-val'),
+                v0: document.getElementById('defender-v0-val'),
+                angle: document.getElementById('defender-angle-val'),
+                thrust: document.getElementById('defender-thrust-val'),
+            };
+
+            const G = 9.81; // m/s^2
+            const DT = 0.05; // s (paso de tiempo para la simulación)
+            const INTERCEPTION_RADIUS = 20; // m
+
+            // --- CONSTANTES PARA ESCALA FIJA ---
+            const WORLD_WIDTH = 7500; // Ancho del mundo reducido para un efecto de "zoom"
+            const WORLD_HEIGHT = 3750; // Alto del mundo reducido para un efecto de "zoom"
+
+            // --- ESTADO DE LA SIMULACIÓN ---
+            let enemy = {};
+            let defender = {};
+            let animationFrameId = null;
+
+            // --- FUNCIONES DE UTILIDAD ---
+            const toRadians = (deg) => deg * Math.PI / 180;
+            const randomInRange = (min, max) => Math.random() * (max - min) + min;
+            
+            // --- LÓGICA PRINCIPAL ---
+
+            function randomizeEnemy() {
+                const side = Math.random() < 0.5 ? 1 : -1;
+                enemy = {
+                    x0: side * randomInRange(1000, (WORLD_WIDTH / 2) * 0.95),
+                    y0: 0, // El misil enemigo ahora siempre sale del suelo (eje x)
+                    v0: randomInRange(200, 500),
+                    angle: randomInRange(15, 75)
+                };
+                
+                // Asegurar que el lanzamiento es hacia el origen
+                if (enemy.x0 > 0) {
+                    enemy.angle = 180 - enemy.angle;
+                }
+
+                updateEnemyDisplay();
+                runSimulation();
+            }
+
+            function updateEnemyDisplay() {
+                enemyDisplay.x0.textContent = enemy.x0.toFixed(0);
+                enemyDisplay.y0.textContent = enemy.y0.toFixed(0);
+                enemyDisplay.v0.textContent = enemy.v0.toFixed(0);
+                enemyDisplay.angle.textContent = (enemy.angle > 90 ? 180 - enemy.angle : enemy.angle).toFixed(0);
+            }
+            
+            function updateDefenderParams() {
+                defender = {
+                    x0: parseFloat(defenderControls.x0.value),
+                    y0: 0,
+                    v0: parseFloat(defenderControls.v0.value),
+                    angle: parseFloat(defenderControls.angle.value),
+                    hasThrust: defenderControls.thrustToggle.checked,
+                    thrust: parseFloat(defenderControls.thrust.value)
+                };
+
+                defenderDisplays.x0.textContent = defender.x0.toFixed(0);
+                defenderDisplays.v0.textContent = defender.v0.toFixed(0);
+                defenderDisplays.angle.textContent = defender.angle.toFixed(0);
+                defenderDisplays.thrust.textContent = defender.thrust.toFixed(0);
+                
+                defenderControls.thrustControls.style.display = defender.hasThrust ? 'block' : 'none';
+
+                runSimulation();
+            }
+
+            function calculateTrajectories() {
+                const enemyV0x = enemy.v0 * Math.cos(toRadians(enemy.angle));
+                const enemyV0y = enemy.v0 * Math.sin(toRadians(enemy.angle));
+                
+                const defenderV0x = defender.v0 * Math.cos(toRadians(defender.angle));
+                const defenderV0y = defender.v0 * Math.sin(toRadians(defender.angle));
+
+                let ax_def = 0, ay_def = 0;
+                if(defender.hasThrust) {
+                    ax_def = defender.thrust * Math.cos(toRadians(defender.angle));
+                    ay_def = defender.thrust * Math.sin(toRadians(defender.angle));
+                }
+
+                const enemyPath = [];
+                const defenderPath = [];
+                let time = 0;
+                let interceptionData = null;
+
+                let enemyInAir = true;
+                let defenderInAir = true;
+
+                while ((enemyInAir || defenderInAir) && !interceptionData) {
+                    time += DT;
+
+                    // Posición del enemigo
+                    const ex = enemy.x0 + enemyV0x * time;
+                    const ey = enemy.y0 + enemyV0y * time - 0.5 * G * time * time;
+                    if(enemyInAir) enemyPath.push({ x: ex, y: ey });
+                    if(ey <= 0 && time > 0.1) enemyInAir = false;
+
+                    // Posición del defensor
+                    const dx = defender.x0 + defenderV0x * time + 0.5 * ax_def * time * time;
+                    const dy = defender.y0 + defenderV0y * time - 0.5 * G * time * time + 0.5 * ay_def * time * time;
+                    if(defenderInAir) defenderPath.push({ x: dx, y: dy });
+                    if(dy <= 0 && time > 0.1) defenderInAir = false;
+
+                    // Chequeo de intercepción
+                    if (enemyInAir && defenderInAir) {
+                        const distance = Math.sqrt(Math.pow(ex - dx, 2) + Math.pow(ey - dy, 2));
+                        if (distance < INTERCEPTION_RADIUS) {
+                            interceptionData = { x: ex, y: ey, time: time };
+                        }
+                    }
+                    if(time > 300) break; // Límite de tiempo para evitar bucles infinitos
+                }
+
+                return { enemyPath, defenderPath, interceptionData };
+            }
+            
+            function animateTrajectories(data) {
+                const { enemyPath, defenderPath, interceptionData } = data;
+                
+                const rect = canvas.parentElement.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+
+                const scaleX = canvas.width / WORLD_WIDTH;
+                const scaleY = canvas.height / WORLD_HEIGHT;
+                const scale = Math.min(scaleX, scaleY);
+                const originX = canvas.width / 2;
+                
+                const transformX = (worldX) => originX + worldX * scale;
+                const transformY = (worldY) => canvas.height - worldY * scale;
+
+                let frame = 0;
+                const maxFrames = Math.max(enemyPath.length, defenderPath.length);
+
+                function animationLoop() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.beginPath();
+                    ctx.moveTo(0, transformY(0));
+                    ctx.lineTo(canvas.width, transformY(0));
+                    ctx.strokeStyle = '#9ca3af'; // gray-400
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // --- Renderizar Enemigo ---
+                    const enemyCurrentFrame = Math.min(frame, enemyPath.length);
+                    if (enemyCurrentFrame > 0) {
+                        const enemyPathSegment = enemyPath.slice(0, enemyCurrentFrame);
+                        if (enemyPathSegment.length > 1) {
+                            ctx.beginPath();
+                            ctx.moveTo(transformX(enemyPathSegment[0].x), transformY(enemyPathSegment[0].y));
+                            for(let i = 1; i < enemyPathSegment.length; i++) {
+                                ctx.lineTo(transformX(enemyPathSegment[i].x), transformY(enemyPathSegment[i].y));
+                            }
+                            ctx.strokeStyle = '#ef4444'; // red-500
+                            ctx.lineWidth = 3;
+                            ctx.setLineDash([5, 5]);
+                            ctx.stroke();
+                            ctx.setLineDash([]);
+                        }
+                        const lastEnemyPoint = enemyPathSegment[enemyPathSegment.length - 1];
+                        ctx.beginPath();
+                        ctx.arc(transformX(lastEnemyPoint.x), transformY(lastEnemyPoint.y), 5, 0, 2 * Math.PI);
+                        ctx.fillStyle = '#ef4444';
+                        ctx.fill();
+                    }
+
+                    // --- Renderizar Defensor ---
+                    const defenderCurrentFrame = Math.min(frame, defenderPath.length);
+                    if (defenderCurrentFrame > 0) {
+                        const defenderPathSegment = defenderPath.slice(0, defenderCurrentFrame);
+                        if (defenderPathSegment.length > 1) {
+                            ctx.beginPath();
+                            ctx.moveTo(transformX(defenderPathSegment[0].x), transformY(defenderPathSegment[0].y));
+                            for(let i = 1; i < defenderPathSegment.length; i++) {
+                                ctx.lineTo(transformX(defenderPathSegment[i].x), transformY(defenderPathSegment[i].y));
+                            }
+                            ctx.strokeStyle = '#38bdf8'; // sky-400
+                            ctx.lineWidth = 3;
+                            ctx.stroke();
+                        }
+                        const lastDefenderPoint = defenderPathSegment[defenderPathSegment.length - 1];
+                        ctx.beginPath();
+                        ctx.arc(transformX(lastDefenderPoint.x), transformY(lastDefenderPoint.y), 5, 0, 2 * Math.PI);
+                        ctx.fillStyle = '#38bdf8';
+                        ctx.fill();
+                    }
+
+                    if (frame < maxFrames) {
+                        frame++;
+                        animationFrameId = requestAnimationFrame(animationLoop);
+                    } else {
+                        if (interceptionData) {
+                            ctx.beginPath();
+                            ctx.arc(transformX(interceptionData.x), transformY(interceptionData.y), 10, 0, 2 * Math.PI);
+                            ctx.fillStyle = '#facc15'; // yellow-400
+                            ctx.fill();
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+                        }
+                    }
+                }
+                
+                if (maxFrames > 0) {
+                    animationLoop();
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.beginPath();
+                    ctx.moveTo(0, transformY(0));
+                    ctx.lineTo(canvas.width, transformY(0));
+                    ctx.strokeStyle = '#9ca3af'; // gray-400
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+
+            function runSimulation() {
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                }
+                
+                const simulationData = calculateTrajectories();
+                
+                if (simulationData.interceptionData) {
+                    resultDisplay.textContent = `¡Intercepción Exitosa! Tiempo: ${simulationData.interceptionData.time.toFixed(2)} s`;
+                    resultDisplay.className = 'mt-4 text-center font-bold text-xl h-8 text-green-600';
+                } else {
+                    resultDisplay.textContent = 'Misión Fallida: No hubo intercepción.';
+                    resultDisplay.className = 'mt-4 text-center font-bold text-xl h-8 text-red-600';
+                }
+                
+                animateTrajectories(simulationData);
+            }
+
+            // --- INICIALIZACIÓN Y EVENTOS ---
+            randomizeBtn.addEventListener('click', randomizeEnemy);
+            Object.values(defenderControls).forEach(control => {
+                if(control.type === 'range' || control.type === 'checkbox') {
+                    control.addEventListener('input', updateDefenderParams);
+                }
+            });
+
+            // Iniciar simulación
+            randomizeEnemy();
+            updateDefenderParams();
+        });
+    </script>
+</body>
+</html>
+

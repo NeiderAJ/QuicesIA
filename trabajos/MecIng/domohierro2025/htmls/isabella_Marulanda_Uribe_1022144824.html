@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quiz 1 - Física mecánica - Isabella Marulanda Uribe</title>
+  <style>
+    /* Estilo simple y limpio para presentación */
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      line-height: 1.6;
+      margin: 32px;
+      color: #111;
+      background: #f7f8fb;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 28px 36px;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(20,30,60,0.08);
+    }
+    header {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    h1 { font-size: 1.6rem; margin: 6px 0; }
+    h2 { font-size: 1.15rem; margin: 18px 0 8px; color: #0b66c3; }
+    h3 { margin: 12px 0 6px; }
+    p { margin: 8px 0; }
+    .meta { font-size: 0.95rem; color: #444; margin-bottom: 16px; }
+    ol { margin-left: 18px; }
+    ul { margin-left: 18px; }
+    .equation { font-family: "Courier New", monospace; background:#f2f6ff; padding:8px; border-radius:6px; display:inline-block; }
+    footer { font-size: 0.9rem; color:#444; margin-top:20px; border-top:1px solid #eee; padding-top:12px; }
+    .bib a { color:#0b66c3; text-decoration:none; }
+    .cover {
+      text-align:left;
+      margin-bottom:18px;
+      border-left:4px solid #0b66c3;
+      padding-left:12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Quiz 1 — Física mecánica</h1>
+      <div class="meta">Isabella Marulanda Uribe — CC: 1022144824</div>
+    </header>
+
+    <section class="cover">
+      <h2>1. Enunciado del problema</h2>
+      <p>
+        Un radar ha detectado un misil enemigo en pleno vuelo. En el instante de la detección se conocen su posición inicial y su velocidad inicial, así como sus cosenos directores, que definen su trayectoria en un espacio tridimensional. El objetivo es analizar el movimiento del misil, considerando que este se encuentra bajo la única influencia de la gravedad terrestre. Este escenario nos lleva a un problema de cinemática de proyectiles en 3D: debemos determinar la posición y velocidad del misil en cualquier instante posterior a la detección.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. Reducción a 2D</h2>
+      <p>
+        El plano de la trayectoria del misil está definido por el vector de su velocidad inicial (v<sub>0</sub>) y el vector de la aceleración de la gravedad (g). Al trabajar en este plano 2D, podemos usar un sistema de coordenadas donde el eje <em>x</em> coincide con la componente horizontal de la velocidad y el eje <em>y</em> con la vertical.
+      </p>
+
+      <h3>Ecuaciones de movimiento (en el plano 2D)</h3>
+      <p class="equation">
+        x(t) = x<sub>0</sub> + v<sub>0x</sub> t
+      </p>
+      <p class="equation">
+        y(t) = y<sub>0</sub> + v<sub>0y</sub> t − &frac12; g t<sup>2</sup>
+      </p>
+      <p class="equation">
+        v<sub>x</sub>(t) = v<sub>0x</sub>
+      </p>
+      <p class="equation">
+        v<sub>y</sub>(t) = v<sub>0y</sub> − g t
+      </p>
+      <p>
+        Donde g ≈ 9.8 m/s<sup>2</sup>, y v<sub>0x</sub>, v<sub>0y</sub> son las componentes iniciales de la velocidad en el plano de trayectoria.
+      </p>
+
+      <h3>Condición de intercepción</h3>
+      <p>
+        Para que el misil defensor intercepte al enemigo, sus posiciones deben coincidir en el mismo instante t:
+      </p>
+      <p class="equation">r<sub>defensor</sub>(t) = r<sub>enemigo</sub>(t)</p>
+
+      <h3>Casos de intercepción</h3>
+      <ol>
+        <li>
+          <strong>Intercepción con tiro parabólico clásico (sin propulsores).</strong><br>
+          Las ecuaciones del defensor son análogas a las del enemigo (con sus propios valores iniciales):
+          <p class="equation">x<sub>def</sub>(t) = x<sub>def,0</sub> + v<sub>def,0x</sub> t</p>
+          <p class="equation">y<sub>def</sub>(t) = y<sub>def,0</sub> + v<sub>def,0y</sub> t − &frac12; g t<sup>2</sup></p>
+        </li>
+        <li>
+          <strong>Intercepción con propulsores adicionales.</strong><br>
+          Si la detección está cerca al suelo, el defensor puede necesitar aceleración adicional. Si a<sub>prop</sub> es la aceleración (proporcionada por propulsores), las ecuaciones se modifican:
+          <p class="equation">x<sub>def</sub>(t) = x<sub>def,0</sub> + v<sub>def,0x</sub> t + &frac12; a<sub>prop,x</sub> t<sup>2</sup></p>
+          <p class="equation">y<sub>def</sub>(t) = y<sub>def,0</sub> + v<sub>def,0y</sub> t + &frac12; (a<sub>prop,y</sub> − g) t<sup>2</sup></p>
+          <p>
+            El problema consiste en encontrar la magnitud y dirección de a<sub>prop</sub> y la velocidad inicial que permitan la intercepción en el tiempo deseado.
+          </p>
+        </li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>3. Análisis funcional o teórico</h2>
+      <p>
+        El análisis teórico se centra en las leyes físicas que rigen el movimiento de ambos misiles. Ignorando la resistencia del aire, la única fuerza que actúa es la gravedad: a = g. Para el defensor, a = g (sin propulsores) o a = g + a<sub>prop</sub> (con propulsores).
+      </p>
+
+      <p class="equation">v(t) = v<sub>0</sub> + a t</p>
+      <p class="equation">r(t) = r<sub>0</sub> + v<sub>0</sub> t + &frac12; a t<sup>2</sup></p>
+
+      <h3>Lógica de la intercepción</h3>
+      <p>
+        La condición r<sub>defensor</sub>(t<sub>int</sub>) = r<sub>enemigo</sub>(t<sub>int</sub>) produce tres ecuaciones escalares (x, y, z) que deben resolverse simultáneamente para encontrar las condiciones iniciales del defensor.
+      </p>
+
+      <h3>Elemento estocástico</h3>
+      <p>
+        Incluir variación aleatoria en las condiciones iniciales (posición, velocidad, cosenos directores) permite simular incertidumbre en detecciones reales. Rangos sugeridos:
+      </p>
+      <ul>
+        <li>Ángulos de lanzamiento: θ ∈ [15° , 75°], ϕ ∈ [0° , 360°]</li>
+        <li>Velocidades: v<sub>0</sub> ∈ [100, 400] m/s</li>
+        <li>Posiciones de detección: x<sub>0</sub>, z<sub>0</sub> ∈ [100,1000] m; y<sub>0</sub> ∈ [200,1500] m</li>
+      </ul>
+
+      <p>
+        De los ángulos se obtienen los cosenos directores:
+      </p>
+      <p class="equation">l = cos(θ) cos(ϕ) &nbsp; &nbsp; m = cos(θ) sin(ϕ) &nbsp; &nbsp; n = sin(θ)</p>
+      <p>
+        Y las componentes de la velocidad: v<sub>0</sub> = v<sub>0</sub> (l, n, m).
+      </p>
+    </section>
+
+    <section>
+      <h2>4. Planteamiento de la simulación</h2>
+      <p>
+        <strong>Generación de datos aleatorios:</strong> Para cada corrida se generan r<sub>0</sub>, v<sub>0</sub>, θ, ϕ dentro de los rangos realistas descritos arriba.
+      </p>
+      <p>
+        <strong>Determinación de estrategia:</strong> Si y<sub>0</sub> > 500 m → tiro parabólico clásico. Si y<sub>0</sub> ≤ 500 m → estrategia con propulsores adicionales.
+      </p>
+      <p>
+        <strong>Cálculo de trayectoria de intercepción:</strong> La simulación resuelve el sistema de ecuaciones para hallar tiempo y punto de intercepción y, a partir de allí, la velocidad y dirección inicial del defensor (y si es necesario, la aceleración de propulsores).
+      </p>
+    </section>
+
+    <section>
+      <h2>5. Relación con el sistema Domo de Hierro</h2>
+      <p>
+        <strong>Principios en común:</strong>
+      </p>
+      <ul>
+        <li>Detección y seguimiento por radar.</li>
+        <li>Análisis de trayectoria para determinar si el proyectil representa una amenaza.</li>
+        <li>Cálculo del punto óptimo de intercepción y lanzamiento del interceptor.</li>
+        <li>Uso de propulsores para maniobrar el interceptor.</li>
+      </ul>
+
+      <p>
+        <strong>Diferencias y simplificaciones:</strong> Nuestro modelo ignora aerodinámica, resistencia del aire, variaciones en la aceleración de los propulsores y el complejo sistema de guía real.
+      </p>
+    </section>
+
+    <section>
+      <h2>6. Conclusiones</h2>
+      <p>
+        El proyecto demuestra cómo aplicar cinemática y simulación para un problema de intercepción antimisiles, destacando:
+      </p>
+      <ul>
+        <li>Reducción 3D → 2D para simplificar el análisis sin perder lo esencial.</li>
+        <li>Condiciones algebraicas para intercepción en dos escenarios: gravedad únicamente y con propulsores.</li>
+        <li>Implementación de simulación con elementos aleatorios y controles interactivos como herramienta educativa.</li>
+        <li>Relación conceptual con sistemas reales como el Domo de Hierro, resaltando la importancia de detección temprana y cálculo preciso.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>7. Bibliografía</h2>
+      <ol class="bib">
+        <li><a href="https://es.wikipedia.org/wiki/C%C3%BApula_de_Hierro" target="_blank" rel="noopener">https://es.wikipedia.org/wiki/C%C3%BApula_de_Hierro</a></li>
+        <li><a href="https://www.youtube.com/watch?v=IkbEhJFeRVE&t=6" target="_blank" rel="noopener">Video de YouTube (link original provisto)</a></li>
+        <li><a href="https://concepto.de/cinematica/" target="_blank" rel="noopener">https://concepto.de/cinematica/</a></li>
+      </ol>
+    </section>
+
+    <footer>
+      <p>Entrega: Quiz 1 — Física mecánica. Documento generado automáticamente en formato HTML.</p>
+    </footer>
+  </div>
+</body>
+</html>

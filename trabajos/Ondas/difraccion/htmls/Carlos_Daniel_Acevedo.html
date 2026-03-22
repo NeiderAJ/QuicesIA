@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resolución Interactiva de Ecuación Trascendental en Óptica</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        code {
+            background-color: #e8eaed;
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 0.95em;
+            border-radius: 3px;
+            font-family: "Courier New", Courier, monospace;
+        }
+        .context-section {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+        .simulation-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .results {
+            flex: 1;
+            min-width: 320px;
+        }
+        .canvas-wrapper {
+            flex: 1.5;
+            min-width: 400px;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            max-width: 100%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        #summary {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #eaf6ff;
+            border-left: 5px solid #3498db;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        #controls {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+        #controls label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        #controls input[type="range"] {
+            vertical-align: middle;
+            width: 120px;
+        }
+        #controls input[type="text"] {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+        }
+        #controls button {
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s;
+        }
+        #controls button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Resolución Interactiva de Ecuación Trascendental en Óptica</h1>
+        <p>
+            Esta página resuelve numéricamente la ecuación trascendental <code>φ = √2 sin(φ)</code> y visualiza el proceso de convergencia.
+        </p>
+
+        <div class="context-section">
+            <h2>Contexto Físico: Difracción por una Rendija</h2>
+            <p>
+                Esta ecuación no es abstracta; tiene su origen en el campo de la <strong>óptica física</strong>, específicamente en el fenómeno de la <strong>difracción de Fraunhofer</strong> a través de una sola rendija.
+            </p>
+            <p>
+                Cuando la luz de una longitud de onda <code>λ</code> pasa a través de una rendija estrecha de ancho <code>a</code>, se difracta, creando un patrón de franjas brillantes y oscuras en una pantalla lejana. La intensidad de la luz <code>I</code> en un ángulo <code>θ</code> con respecto al centro está dada por la fórmula:
+            </p>
+            <p style="text-align: center; font-size: 1.2em;">
+                <code>I(θ) = I₀ [sin(φ)/φ]²</code>
+            </p>
+            <p>
+                Donde <code>I₀</code> es la intensidad del máximo central y <code>φ</code> es una fase que depende del ángulo: <code>φ = (πa/λ)sin(θ)</code>.
+            </p>
+            <p>
+                El problema que da lugar a nuestra ecuación es: <strong>¿En qué ángulos <code>θ</code> la intensidad de la luz es exactamente la mitad de la intensidad del máximo central?</strong>
+            </p>
+            <p>
+                Para resolverlo, igualamos <code>I(θ) = I₀ / 2</code>:
+                <br><code>I₀ [sin(φ)/φ]² = I₀ / 2</code>
+                <br><code>[sin(φ)/φ]² = 1/2</code>
+                <br><code>sin(φ)/φ = 1/√2</code>
+                <br>Reordenando para resolver para <code>φ</code>, obtenemos la ecuación que esta simulación resuelve:
+            </p>
+            <p style="text-align: center; font-size: 1.2em; font-weight: bold;">
+                <code>φ = √2 sin(φ)</code>
+            </p>
+        </div>
+
+        <h2 style="margin-top: 30px;">Simulación Interactiva</h2>
+        <p>
+            Utiliza los controles debajo del gráfico para cambiar el punto de partida (<code>φ₀</code>) y la precisión deseada (tolerancia). Presiona <strong>"Actualizar Simulación"</strong> para recalcular. Para una alta precisión (tolerancia de <code>1e-14</code>), el equilibrio se alcanza en <strong>13 iteraciones</strong>.
+        </p>
+
+        <div class="simulation-container">
+            <div class="results">
+                <h3>Proceso de Iteración</h3>
+                <div id="iteration-log">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Paso (n)</th>
+                                <th>Valor de φ (φ<sub>n</sub>)</th>
+                                <th>Diferencia |φ<sub>n</sub> - φ<sub>n-1</sub>|</th>
+                            </tr>
+                        </thead>
+                        <tbody id="iteration-table-body">
+                        </tbody>
+                    </table>
+                </div>
+                <div id="summary"></div>
+            </div>
+
+            <div class="canvas-wrapper">
+                <h3>Simulación Gráfica</h3>
+                <div id="controls">
+                    <div>
+                        <label for="initialPhiInput">Valor Inicial φ<sub>0</sub>:</label>
+                        <input type="range" id="initialPhiInput" min="0.1" max="3.0" step="0.05" value="1.5">
+                        <span id="phiValueSpan">1.50</span>
+                    </div>
+                    <div>
+                        <label for="toleranceInput">Tolerancia:</label>
+                        <input type="text" id="toleranceInput" value="1e-14">
+                    </div>
+                    <button id="updateBtn">Actualizar Simulación</button>
+                </div>
+                <canvas id="simulationCanvas" width="500" height="500"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sqrt2 = Math.sqrt(2);
+            const tableBody = document.getElementById('iteration-table-body');
+            const summaryDiv = document.getElementById('summary');
+            const canvas = document.getElementById('simulationCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            const initialPhiInput = document.getElementById('initialPhiInput');
+            const phiValueSpan = document.getElementById('phiValueSpan');
+            const toleranceInput = document.getElementById('toleranceInput');
+            const updateBtn = document.getElementById('updateBtn');
+
+            const width = canvas.width;
+            const height = canvas.height;
+            const range = Math.PI;
+            const scaleX = width / range;
+            const scaleY = height / range;
+            const originX = 0;
+            const originY = height;
+            
+            function runSimulation() {
+                const initialPhi = parseFloat(initialPhiInput.value);
+                const tolerance = parseFloat(toleranceInput.value);
+                const maxIterations = 50;
+
+                tableBody.innerHTML = '';
+                summaryDiv.innerHTML = 'Calculando...';
+                ctx.clearRect(0, 0, width, height);
+                
+                let phi = initialPhi;
+                let iterations = 0;
+                let difference = Infinity;
+                const phiHistory = [phi];
+                let statusMessage = '';
+
+                for (let i = 1; i <= maxIterations; i++) {
+                    iterations = i;
+                    const phi_prev = phi;
+                    phi = sqrt2 * Math.sin(phi_prev);
+                    
+                    if (isNaN(phi) || !isFinite(phi)) {
+                        statusMessage = `La iteración ${i} resultó en un valor no válido. La simulación se ha detenido.`;
+                        break;
+                    }
+
+                    phiHistory.push(phi);
+                    difference = Math.abs(phi - phi_prev);
+
+                    const row = tableBody.insertRow();
+                    row.innerHTML = `<td>${i}</td><td>${phi.toFixed(14)}</td><td>${difference.toExponential(3)}</td>`;
+
+                    if (difference < tolerance) {
+                        statusMessage = `Convergencia alcanzada.<br>
+                                       Solución φ ≈ ${phi.toFixed(14)}<br>
+                                       <strong>Número de iteraciones: ${iterations}</strong>`;
+                        break;
+                    }
+                }
+
+                if (iterations >= maxIterations && difference >= tolerance) {
+                    statusMessage = `Máximo de ${maxIterations} iteraciones alcanzado sin convergencia.<br>
+                                   Último valor φ ≈ ${phi.toFixed(14)}`;
+                }
+                
+                summaryDiv.innerHTML = statusMessage;
+
+                drawAxes();
+                plotFunction(x => x, '#2c3e50', 2); // y = phi
+                plotFunction(x => sqrt2 * Math.sin(x), '#3498db', 2); // y = sqrt(2)sin(phi)
+                drawCobweb(phiHistory, phi);
+            }
+
+            const transform = (x, y) => ({ px: originX + x * scaleX, py: originY - y * scaleY });
+
+            function drawAxes() {
+                ctx.beginPath();
+                ctx.strokeStyle = '#aaa';
+                ctx.lineWidth = 1;
+                ctx.moveTo(0, originY); ctx.lineTo(width, originY);
+                ctx.moveTo(originX, 0); ctx.lineTo(originX, height);
+                ctx.stroke();
+
+                ctx.fillStyle = '#555';
+                ctx.font = '12px Arial';
+                for (let i = 1; i * 0.5 < range; i++) {
+                    let val = i * 0.5;
+                    let pos_x = transform(val, 0);
+                    ctx.fillText(val.toFixed(1), pos_x.px - 10, pos_x.py - 5);
+                    ctx.beginPath(); ctx.moveTo(pos_x.px, pos_x.py - 3); ctx.lineTo(pos_x.px, pos_x.py + 3); ctx.stroke();
+                    let pos_y = transform(0, val);
+                     if (pos_y.py > 0) {
+                        ctx.fillText(val.toFixed(1), pos_y.px + 5, pos_y.py + 4);
+                        ctx.beginPath(); ctx.moveTo(pos_y.px - 3, pos_y.py); ctx.lineTo(pos_y.px + 3, pos_y.py); ctx.stroke();
+                     }
+                }
+                ctx.fillText("φ", width - 15, height - 15);
+                ctx.fillText("y", 10, 15);
+            }
+
+            function plotFunction(func, color, lineWidth) {
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = lineWidth;
+                const startPos = transform(0, func(0));
+                ctx.moveTo(startPos.px, startPos.py);
+                for (let px = 1; px < width; px++) {
+                    const x = px / scaleX;
+                    const y = func(x);
+                    const pos = transform(x, y);
+                    ctx.lineTo(pos.px, pos.py);
+                }
+                ctx.stroke();
+            }
+            
+            function drawCobweb(phiHistory, finalPhi) {
+                ctx.strokeStyle = '#e74c3c';
+                ctx.lineWidth = 1.5;
+                let p1 = transform(phiHistory[0], 0);
+                
+                for (let i = 0; i < phiHistory.length - 1; i++) {
+                    const currentPhi = phiHistory[i];
+                    const nextPhi = phiHistory[i+1];
+                    let p2 = transform(currentPhi, nextPhi);
+                    ctx.beginPath(); ctx.moveTo(p1.px, p1.py); ctx.lineTo(p2.px, p2.py); ctx.stroke();
+                    let p3 = transform(nextPhi, nextPhi);
+                    ctx.beginPath(); ctx.moveTo(p2.px, p2.py); ctx.lineTo(p3.px, p3.py); ctx.stroke();
+                    p1 = p3;
+                }
+                
+                ctx.fillStyle = '#e74c3c';
+                let startPoint = transform(phiHistory[0], 0);
+                ctx.beginPath(); ctx.arc(startPoint.px, startPoint.py, 4, 0, 2 * Math.PI); ctx.fill();
+
+                ctx.fillStyle = '#2980b9';
+                let endPoint = transform(finalPhi, finalPhi);
+                ctx.beginPath(); ctx.arc(endPoint.px, endPoint.py, 6, 0, 2 * Math.PI); ctx.fill();
+            }
+
+            initialPhiInput.addEventListener('input', function() {
+                phiValueSpan.textContent = parseFloat(this.value).toFixed(2);
+            });
+
+            updateBtn.addEventListener('click', runSimulation);
+
+            runSimulation();
+        });
+    </script>
+
+</body>
+</html>

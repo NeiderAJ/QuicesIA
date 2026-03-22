@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz: Intercepción de Misiles - Salomón Castaño</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+/* Estilos para el nuevo panel de resultados */
+    #results-panel {
+        background-color: #eef2f5; /* Color gris claro de tus controles */
+        border: 1px solid #dfe6ec;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 20px;
+    }
+    #results-panel h4 {
+        margin: 0 0 10px 0;
+        color: #000000; /* Color azul de tus títulos */
+        font-weight: 600;
+        border-bottom: 1px solid #dfe6ec;
+        padding-bottom: 8px;
+    }
+    .results-grid {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 8px 15px;
+        font-size: 0.9em;
+    }
+    .result-value {
+        font-weight: bold;
+        font-family: monospace;
+        background-color: #ffffff;
+        padding: 2px 6px;
+        border-radius: 4px;
+        border: 1px solid #dfe6ec;
+        justify-self: start;
+    }
+    /* Estilo General del Cuerpo */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+        background-color: #f4f7f9;
+        color: #333;
+        margin: 0;
+        padding: 20px;
+    }
+    /* Estilo específico para el TÍTULO PRINCIPAL */
+    body > h1 {
+        border-bottom: none;
+        font-size: 2.2em;
+        color: #333;
+        text-align: center;
+    }
+    /* Caja de Información del Estudiante */
+    .student-box {
+        max-width: 500px;
+        margin: 20px auto;
+        padding: 15px;
+        background-color: #ffffff;
+        border-left: 5px solid #0056b3;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .student-box p {
+        margin: 5px 0;
+        font-size: 0.9em;
+        color: #333;
+    }
+    /* Contenedor Principal */
+    main {
+        max-width: 1000px;
+        margin: auto;
+        background-color: #ffffff;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    /* Títulos dentro del Main */
+    main h1, main h2 {
+        color: #0056b3;
+        border-bottom: 2px solid #eef2f5;
+        padding-bottom: 10px;
+        text-align: center;
+    }
+    /* Secciones */
+    section {
+        margin-bottom: 20px;
+    }
+    /* Controles de la Simulación */
+    #controls {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 15px;
+        padding: 20px;
+        background-color: #eef2f5;
+        border-radius: 8px;
+    }
+    #controls > div {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    label {
+        font-weight: bold;
+        flex-basis: 250px;
+    }
+    input[type="range"] {
+        flex-grow: 1;
+    }
+    button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+        justify-self: start;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    /* PEGA ESTE NUEVO BLOQUE AQUÍ */
+    .button-group {
+        display: flex;      /* ¡La clave! Pone los elementos en fila */
+        flex-wrap: wrap;    /* Permite que bajen de línea si no caben */
+        gap: 10px;          /* Espacio entre los botones */
+    }
+    /* FIN DEL NUEVO BLOQUE */
+    /* Estilo del Canvas */
+    #simulationCanvas {
+        width: 100%;
+        height: auto;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+</style>
+</head>
+<body>
+    <h1>Física Mecánica</h1>
+    <div class="student-box">
+        <p><strong>Estudiante:</strong> Salomón Castaño Espitia</p>
+        <p><strong>CC:</strong> 1002210584</p>
+    </div>
+
+<main>
+    <h1>Quiz: Simulación de Intercepción de Misiles</h1>
+
+    <section id="enunciado">
+        <h2>1. Enunciado del Problema</h2>
+        <p>Un radar detecta un misil enemigo en vuelo. En el instante de detección, se conocen:</p>
+        <ul>
+            <li>La posición inicial \( \vec{r_0} \) del misil enemigo.</li>
+            <li>Su velocidad inicial \( \vec{v_0} \).</li>
+            <li>Sus cosenos directores (l, m, n), que determinan su dirección en 3D.</li>
+        </ul>
+        <p>El misil enemigo se mueve únicamente bajo la acción de la gravedad terrestre.</p>
+        <h3>Reducción al plano 2D</h3>
+        <p>Aunque el problema se plantea en 3D, siempre existe un plano que contiene la trayectoria del proyectil enemigo. Se identifica ese plano y se reduce el problema a un tiro parabólico en 2D, lo que simplifica el análisis algebraico y la simulación.</p>
+        <h3>Estrategia de defensa</h3>
+        <p>El sistema de defensa detecta al misil enemigo en un punto del espacio y, a partir de esta información, debe calcular:</p>
+        <ul>
+            <li>La dirección y velocidad inicial con la que debe lanzarse el <strong>misil defensor</strong>.</li>
+            <li>Si el enemigo está aún alto en el aire, el misil defensor puede bastar con seguir una trayectoria parabólica sin propulsores.</li>
+            <li>Si la detección ocurre demasiado cerca al suelo, el misil defensor debe activar <strong>propulsores adicionales</strong> que le proporcionen una aceleración extra además de la gravedad, para lograr interceptar al enemigo a tiempo.</li>
+        </ul>
+        <h3>Elemento estocástico</h3>
+        <p>Se implementa un generador de números aleatorios que asigna:</p>
+        <ul>
+            <li>La posición inicial \( \vec{r_0} \) del misil enemigo.</li>
+            <li>La velocidad inicial \( \vec{v_0} \).</li>
+            <li>Los cosenos directores (l, m, n).</li>
+        </ul>
+        <p>Estos valores están dentro de rangos razonables (por ejemplo: posiciones en cientos de metros, velocidades entre 100 m/s y 400 m/s, ángulos de lanzamiento típicos de 15° a 75°).</p>
+        <p>Según estos valores:</p>
+        <ul>
+            <li>Si el misil enemigo es detectado alto, el defensor se lanza con tiro parabólico clásico.</li>
+            <li>Si es detectado muy cerca al suelo, el defensor debe usar propulsores con aceleración adicional.</li>
+        </ul>
+    </section>
+
+    <section id="solucion-algebraica">
+        <h2>2. Solución Algebraica Propuesta</h2>
+        <p>En esta sección se desarrolla el modelo matemático completo para resolver el problema de intercepción. Se parte de una simplificación del escenario a un plano 2D, se establecen las ecuaciones de movimiento, se define la condición de intercepción y finalmente se calcula la velocidad requerida para el misil defensor.</p>
+        <h3>2.1. Reducción del Problema de 3D a 2D</h3>
+        <p>Un cuerpo lanzado en un campo gravitatorio uniforme siempre describe una trayectoria contenida en un plano. Este plano está definido por el vector de velocidad inicial \( \vec{v_0} \) y el vector de gravedad \( \vec{g} \). Para simplificar el análisis, transformamos el sistema de coordenadas 3D (X, Y, Z) a un nuevo sistema 2D (x', y') que yace sobre este plano.</p>
+        <p>Asumiendo que la gravedad actúa en la dirección -Z, las condiciones iniciales del misil enemigo en el nuevo sistema 2D son:</p>
+        <ul>
+            <li><b>Posición inicial 2D:</b> \( \vec{r'}_0 = (0, z_0) \)</li>
+            <li><b>Velocidad inicial 2D:</b> \( \vec{v'}_0 = (\sqrt{v_{0x}^2 + v_{0y}^2}, v_{0z}) \)</li>
+            <li><b>Aceleración 2D:</b> \( \vec{a'} = (0, -g) \)</li>
+        </ul>
+        <h3>2.2. Ecuaciones de Movimiento del Misil Enemigo</h3>
+        <p>En el sistema 2D simplificado (al que llamaremos (x,y)), la trayectoria del misil enemigo \( \vec{r}_e(t) \) se describe mediante las ecuaciones de movimiento parabólico:</p>
+        $$ x_e(t) = v_{0x,e} \cdot t $$
+        $$ y_e(t) = z_0 + v_{0y,e} \cdot t - \frac{1}{2}gt^2 $$
+        <h3>2.3. Condición de Intercepción</h3>
+        <p>La intercepción ocurre en un tiempo \( t_i \) si la posición del misil defensor \( \vec{r}_d \) es igual a la del enemigo \( \vec{r}_e \).</p>
+        $$ \vec{r}_d(t_i) = \vec{r}_e(t_i) $$
+        <p>Al igualar las componentes horizontales y verticales (asumiendo que el defensor se lanza desde el origen (0,0)), obtenemos dos condiciones fundamentales:</p>
+        <ol>
+            <li>La velocidad horizontal de ambos misiles debe ser idéntica: \( v_{0x,d} = v_{0x,e} \).</li>
+            <li>La velocidad vertical necesaria para el defensor se relaciona con la del enemigo y la altura inicial: \( v_{0y,d} \cdot t_i = z_0 + v_{0y,e} \cdot t_i \).</li>
+        </ol>
+        <h3>2.4. Estrategia de Defensa y Cálculo de Velocidad</h3>
+        <p>La estrategia se basa en la urgencia, medida por el tiempo de impacto del misil enemigo, \(t_{impacto}\). Este se calcula resolviendo \(y_e(t)=0\). Se define un <strong>parámetro estratégico</strong>, el tiempo crítico \(T_{critico}\), para decidir el modo de defensa. Para esta simulación, se ha elegido un valor de <strong>\(T_{critico} = 40s\)</strong>. Este valor, más elevado que un umbral de emergencia realista, se selecciona para poder demostrar de manera efectiva ambos modos de defensa (con y sin propulsor) dentro de los rangos de parámetros de la simulación.</p>
+        <h4>Caso 1: Defensa Normal (sin propulsor, si \(t_{impacto} \ge 40s\))</h4>
+        <p>Se elige un tiempo de intercepción \( t_i = t_{impacto} / 2 \). La velocidad inicial del defensor es:</p>
+        $$ v_{0x,d} = v_{0x_e} $$
+        $$ v_{0y,d} = v_{0y,e} + \frac{z_0}{t_i} $$
+        <h4>Caso 2: Defensa de Emergencia (con propulsor, si \(t_{impacto} < 40s\))</h4>
+        <p>Se elige un tiempo de intercepción corto y fijo (ej: \( t_i = 3s \)). El propulsor añade una aceleración vertical constante \( a_p \). La velocidad inicial requerida es:</p>
+        $$ v_{0x,d} = v_{0x,e} $$
+        $$ v_{0y,d} = v_{0y,e} + \frac{z_0}{t_i} - \frac{1}{2}a_p t_i $$
+    </section>
+
+    <section id="analisis">
+        <h2>3. Análisis Funcional y Teórico</h2>
+        <h3>Análisis Funcional</h3>
+        <p>El sistema de simulación opera siguiendo un flujo lógico claro y secuencial para cumplir su objetivo de intercepción:</p>
+        <ol>
+            <li><strong>Entrada de Datos:</strong> El sistema recibe como entrada los parámetros iniciales del misil enemigo (altura, velocidad y ángulo de lanzamiento). Estos datos pueden ser generados aleatoriamente o introducidos manualmente por el usuario a través de los controles interactivos.</li>
+            <li><strong>Procesamiento y Decisión:</strong> Con los datos de entrada, el script realiza los siguientes cálculos clave:
+                <ul>
+                    <li>Calcula la trayectoria completa del misil enemigo y determina su tiempo de impacto en el suelo (\(t_{impacto}\)).</li>
+                    <li>Toma una <strong>decisión estratégica</strong> al comparar el \(t_{impacto}\) con un umbral predefinido (\(T_{critico}\)). Esta decisión determina si la intercepción requiere propulsores adicionales por urgencia.</li>
+                    <li>Basado en la estrategia, calcula el vector de velocidad inicial \(\vec{v}_{0,d}\) exacto que el misil defensor necesita para garantizar una colisión.</li>
+                </ul>
+            </li>
+            <li><strong>Salida Gráfica:</strong> El resultado final es una visualización en un canvas HTML. El sistema dibuja ambas trayectorias (enemigo en rojo, defensor en azul) hasta el punto de intercepción, el cual se marca claramente, proveyendo una validación visual e inequívoca del éxito de la solución calculada.</li>
+        </ol>
+        <h3>Análisis Teórico</h3>
+        <p>La validez de la simulación se fundamenta en principios bien establecidos de la física mecánica:</p>
+        <ul>
+            <li><strong>Principio de Movimiento Parabólico:</strong> La base teórica es que todo objeto bajo una aceleración gravitatoria constante y sin otras fuerzas (como la resistencia del aire, que se desprecia en este modelo) describe una trayectoria parabólica.</li>
+            <li><strong>Condición de Intercepción:</strong> El núcleo de la solución algebraica reside en la condición de que, para una intercepción, ambos cuerpos deben ocupar la misma posición en el mismo instante de tiempo: <strong>\(\vec{r}_d(t_i) = \vec{r}_e(t_i)\)</strong>. La simplificación de esta ecuación vectorial es la que nos permite despejar las velocidades necesarias para el defensor. Un hallazgo teórico clave es la cancelación del término gravitacional en la ecuación vertical, lo que simplifica enormemente el cálculo.</li>
+        </ul>
+        <h3>Metodología de Desarrollo y Uso de IA</h3>
+        <p>Para la construcción de este proyecto, se empleó un modelo de desarrollo colaborativo con la asistencia de una Inteligencia Artificial (Gemini). La IA funcionó como un asistente de desarrollo y consultor teórico, facilitando el proceso en las siguientes áreas:</p>
+        <ul>
+            <li><strong>Desarrollo Algebraico Guiado:</strong> La IA ayudó a estructurar la derivación de las ecuaciones de movimiento, la reducción del problema de 3D a 2D y el establecimiento de las condiciones de intercepción.</li>
+            <li><strong>Generación de Código:</strong> Se utilizó la IA para traducir las ecuaciones matemáticas a código funcional en JavaScript, generar la estructura base (boilerplate) del archivo HTML y crear el código CSS para el diseño visual.</li>
+            <li><strong>Depuración y Lógica:</strong> La interacción permitió refinar la lógica de la simulación, como la implementación de la regla de decisión para el uso de propulsores.</li>
+            <li><strong>Documentación:</strong> La IA asistió en la redacción y el formateo de las secciones teóricas del proyecto, incluyendo el renderizado de ecuaciones matemáticas con MathJax.</li>
+        </ul>
+    </section>
+
+    <section id="planteamiento-simulacion">
+        <h2>4. Planteamiento de la Simulación</h2>
+        <p>La simulación se construirá utilizando JavaScript y el elemento <code>&lt;canvas&gt;</code> de HTML5 para la visualización gráfica. El proceso lógico será el siguiente:</p>
+        <ol>
+            <li><strong>Generación de Parámetros del Enemigo:</strong> Se implementará un generador de números aleatorios para asignar la posición inicial (\(z_0\)), la rapidez inicial (\(v_0\)) y el ángulo de lanzamiento (\(\theta_e\)) del misil enemigo, dentro de rangos físicos razonables.</li>
+            <li><strong>Control Interactivo:</strong> Se incluirán sliders que permitirán al usuario modificar manualmente estos parámetros para explorar diferentes escenarios. Un botón "Generar Escenario Aleatorio" activará el generador de números aleatorios.</li>
+            <li><strong>Cálculo y Decisión:</strong> Al iniciar la simulación (ya sea de forma aleatoria o manual), el script ejecutará la solución algebraica:
+                <ul>
+                    <li>Calculará el tiempo de impacto \(t_{impacto}\) del enemigo.</li>
+                    <li>Comparará \(t_{impacto}\) con el tiempo crítico \(T_{critico}\) para decidir si se deben usar los propulsores.</li>
+                    <li>Calculará el vector de velocidad inicial exacto \( \vec{v}_{0,d} \) para el misil defensor.</li>
+                </ul>
+            </li>
+            <li><strong>Visualización:</strong> El script dibujará en el canvas las dos trayectorias parabólicas (enemigo y defensor) hasta el punto de intercepción, mostrando claramente si la intercepción fue exitosa. Se diferenciarán visualmente las trayectorias y se marcará el punto de colisión.</li>
+        </ol>
+    </section>
+
+    <section id="simulacion">
+        <h2>5. Simulación Interactiva</h2>
+        <p>Ajusta los parámetros del misil enemigo o genera un escenario aleatorio.</p>
+        <div id="controls">
+            <div>
+                <label for="alturaInicial">Altura Inicial (z₀) [m]:</label>
+                <input type="range" id="alturaInicial" min="1000" max="10000" value="5000" step="100">
+                <span id="alturaInicialValue">5000</span> m
+            </div>
+            <div>
+                <label for="velocidadInicial">Velocidad Inicial (v₀) [m/s]:</label>
+                <input type="range" id="velocidadInicial" min="100" max="500" value="300" step="10">
+                <span id="velocidadInicialValue">300</span> m/s
+            </div>
+            <div>
+                <label for="anguloLanzamiento">Ángulo de Lanzamiento (θ) [°]:</label>
+                <input type="range" id="anguloLanzamiento" min="15" max="75" value="45" step="1">
+                <span id="anguloLanzamientoValue">45</span> °
+        </div>
+        
+        <div class="button-group">
+            <button id="randomButton">Generar Amenaza Aleatoria</button>
+            <button id="calculateButton">Calcular Intercepción</button>
+            <button id="animateButton">Simular Choque</button>
+            <button id="resetButton">Reiniciar</button>
+        </div>
+        </div>
+
+        <div id="results-panel">
+            <h4>Parámetros calculados del defensor</h4>
+    <div class="results-grid">
+        <span>\(v_{0,d}\) (m/s):</span><span id="vd0_val" class="result-value">—</span>
+        <span>Ángulo \(\phi\) (°):</span><span id="phi_val" class="result-value">—</span>
+        <span>Tiempo impacto (s):</span><span id="ti_val" class="result-value">—</span>
+        <span>Método:</span><span id="modo_val" class="result-value">—</span>
+    </div>
+</div>
+    <canvas id="simulationCanvas" width="800" height="600" style="border: 1px solid rgb(0, 0, 0); margin-top: 15px;"></canvas>
+    <section id="domo-de-hierro">
+        <h2>6. Relación con el Sistema Domo de Hierro</h2>
+        <p>Esta simulación está inspirada en sistemas de defensa antimisiles como el Domo de Hierro ("Iron Dome") de Israel. Aunque nuestro modelo es una simplificación, comparte principios fundamentales con el sistema real:</p>
+        <ul>
+            <li><strong>Detección y Seguimiento:</strong> Al igual que el Domo de Hierro utiliza un radar para detectar un proyectil enemigo y calcular su trayectoria, nuestra simulación parte de una "detección" que nos proporciona los parámetros iniciales (posición, velocidad, dirección).</li>
+            <li><strong>Cálculo del Punto de Intercepción:</strong> El sistema real calcula si el proyectil amenaza un área poblada y, de ser así, calcula un punto de intercepción óptimo. De forma análoga, nuestro script calcula la trayectoria enemiga y determina los parámetros de lanzamiento del defensor para una intercepción exitosa.</li>
+            <li><strong>Lanzamiento del Interceptor:</strong> El Domo de Hierro lanza un misil interceptor "Tamir". Nuestra simulación modela el lanzamiento de un misil defensor para cumplir la misma función.</li>
+        </ul>
+        <p>Las principales <strong>diferencias y simplificaciones</strong> en nuestro modelo incluyen:</p>
+        <ul>
+            <li><strong>Complejidad 2D vs. 3D:</strong> Nuestra simulación reduce el problema a un plano 2D, mientras que el sistema real opera en un complejo escenario tridimensional.</li>
+            <li><strong>Guiado del Interceptor:</strong> Los misiles "Tamir" tienen sistemas de guiado activo que les permiten corregir su rumbo en pleno vuelo. Nuestro misil defensor sigue una trayectoria puramente balística (o balística modificada por un propulsor constante), sin capacidad de corrección.</li>
+            <li><strong>Detonación por Proximidad:</strong> El interceptor real no necesita un impacto directo; explota por proximidad para destruir la amenaza. Nuestra simulación asume una colisión directa en el punto de intercepción.</li>
+        </ul>
+    </section>
+
+    <section id="conclusiones">
+        <h2>7. Conclusiones</h2>
+        <ul>
+            <li>Se desarrolló exitosamente un modelo matemático y una simulación computacional para el problema de intercepción de misiles, reduciendo un escenario 3D a un análisis de tiro parabólico en 2D.</li>
+            <li>La solución algebraica demostró ser efectiva para determinar las condiciones de velocidad inicial requeridas por el misil defensor, tanto en escenarios de defensa estándar como de emergencia con propulsión adicional.</li>
+            <li>La implementación en HTML y JavaScript permitió crear una herramienta interactiva funcional que no solo resuelve el problema, sino que también permite visualizar y explorar diferentes escenarios, validando así el modelo teórico.</li>
+            <li>El proyecto sirvió como una aplicación práctica de los principios de la física mecánica y como una introducción al uso de herramientas de desarrollo web (HTML, CSS, JS) y de IA (Gemini) para la solución de problemas de ingeniería complejos.</li>
+        </ul>
+    </section>
+
+    <section id="bibliografia">
+        <h2>8. Bibliografía</h2>
+        <ul>
+            <li>Serway, R. A., & Jewett, J. W. (2018). <em>Física para Ciencias e Ingeniería</em>. Cengage Learning.</li>
+            <li>How Iron Dome Works. (2021). Recuperado de https://es.wikipedia.org/wiki/C%C3%BApula_de_Hierro.</li>
+            <li>Documentación de Canvas API. MDN Web Docs. Recuperado de https://developer.mozilla.org/es/docs/Web/API/Canvas_API</li>
+        </ul>
+    </section>
+
+<script>
+// =====================================================================
+//                          CONFIGURACIÓN Y ESTADO
+// =====================================================================
+const g = 9.81;
+const T_CRITICO = 40;
+const A_PROPULSOR = 5;
+
+// Referencias a los elementos HTML
+const canvas = document.getElementById('simulationCanvas');
+const ctx = canvas.getContext('2d');
+// ... (sliders, values, botones)
+const alturaInicialSlider = document.getElementById('alturaInicial');
+const velocidadInicialSlider = document.getElementById('velocidadInicial');
+const anguloLanzamientoSlider = document.getElementById('anguloLanzamiento');
+const alturaInicialValue = document.getElementById('alturaInicialValue');
+const velocidadInicialValue = document.getElementById('velocidadInicialValue');
+const anguloLanzamientoValue = document.getElementById('anguloLanzamientoValue');
+const randomButton = document.getElementById('randomButton');
+const calculateButton = document.getElementById('calculateButton');
+const animateButton = document.getElementById('animateButton');
+const resetButton = document.getElementById('resetButton');
+const vd0_val = document.getElementById('vd0_val');
+const phi_val = document.getElementById('phi_val');
+const ti_val = document.getElementById('ti_val');
+const modo_val = document.getElementById('modo_val');
+
+// NUEVO: Cargar imágenes de los cohetes
+const misilEnemigoImg = new Image();
+misilEnemigoImg.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZWY0NDQ0IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTUgMTBMMjAgNSIvPjxwYXRoIGQ9Ik05IDJMMTUuNSAxMEwyMSA0TDE0IDJsLTMgN3oiLz48cGF0aCBkPSJNNCAyMEw3LjUgMTYuNU0xMCAxNGwtMS41IDEuNU0xNi41IDcuNUwxMy40MyA0LjQzIi8+PC9zdmc+'; // Cohete rojo simple
+const misilDefensorImg = new Image();
+misilDefensorImg.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM2I4MmY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTUgMTBMMjAgNSIvPjxwYXRoIGQ9Ik05IDJMMTUuNSAxMEwyMSA0TDE0IDJsLTMgN3oiLz48cGF0aCBkPSJNNCAyMEw3LjUgMTYuNU0xMCAxNGwtMS41IDEuNU0xNi41IDcuNUwxMy40MyA0LjQzIi8+PC9zdmc+'; // Cohete azul simple
+
+// Variables Globales
+let datosEnemigo = {};
+let datosDefensor = {};
+let estadoSimulacion = 'reposo';
+let frameId;
+let particles = []; // NUEVO: Array para las partículas de la explosión
+
+// =====================================================================
+//                      FUNCIONES DEL FLUJO
+// =====================================================================
+
+function generarEnemigo() {
+    cancelAnimationFrame(frameId);
+    const z0 = parseFloat(alturaInicialSlider.value);
+    const v0_mag = parseFloat(velocidadInicialSlider.value);
+    const angulo_deg = parseFloat(anguloLanzamientoSlider.value);
+    const angulo_rad = angulo_deg * Math.PI / 180;
+    const v0x_e = v0_mag * Math.cos(angulo_rad);
+    const v0y_e = v0_mag * Math.sin(angulo_rad);
+    
+    datosEnemigo = { z0, v0x_e, v0y_e };
+    datosDefensor = {};
+    estadoSimulacion = 'enemigo_mostrado';
+    draw();
+}
+
+function calcularIntercepcion() {
+    if (estadoSimulacion !== 'enemigo_mostrado') return;
+
+    const { z0, v0x_e, v0y_e } = datosEnemigo;
+    const tiempo_impacto_e = (v0y_e + Math.sqrt(v0y_e**2 + 2 * g * z0)) / g;
+    
+    let ti = 0, usaPropulsor = false;
+    if (tiempo_impacto_e < T_CRITICO) {
+        usaPropulsor = true;
+        ti = tiempo_impacto_e * 0.6;
+    } else {
+        usaPropulsor = false;
+        ti = tiempo_impacto_e / 2;
+    }
+    
+    const v0x_d = v0x_e;
+    let v0y_d = 0;
+    if (usaPropulsor) {
+        v0y_d = v0y_e + (z0 / ti) - 0.5 * A_PROPULSOR * ti;
+    } else {
+        v0y_d = v0y_e + (z0 / ti);
+    }
+
+    datosDefensor = { v0x_d, v0y_d, ti, usaPropulsor };
+    estadoSimulacion = 'solucion_mostrada';
+    
+    const v0_d_mag = Math.hypot(v0x_d, v0y_d);
+    const phi_d_rad = Math.atan2(v0y_d, v0x_d);
+    const phi_d_deg = phi_d_rad * 180 / Math.PI;
+
+    vd0_val.textContent = v0_d_mag.toFixed(2);
+    phi_val.textContent = phi_d_deg.toFixed(2);
+    ti_val.textContent = ti.toFixed(2);
+    modo_val.textContent = usaPropulsor ? 'Propulsor' : 'Balístico';
+    
+    draw();
+}
+
+function simularChoque() {
+    if (Object.keys(datosDefensor).length === 0) return;
+
+    let t_animacion = 0;
+    particles = []; // Limpia cualquier explosión anterior
+
+    function loopDeAnimacion() {
+        t_animacion += datosDefensor.ti / 240; // Ajusta la velocidad de la animación
+
+        if (t_animacion < datosDefensor.ti) {
+            draw(t_animacion); // Dibuja la animación con estelas y cohetes
+            frameId = requestAnimationFrame(loopDeAnimacion);
+        } else {
+            // Final de la animación: dibuja el estado final con la explosión
+            const x_i = datosEnemigo.v0x_e * datosDefensor.ti;
+            const y_i = datosEnemigo.z0 + datosEnemigo.v0y_e * datosDefensor.ti - 0.5 * g * datosDefensor.ti * datosDefensor.ti;
+            createExplosion(x_i, y_i, 50); // Crea la explosión al final
+            draw(datosDefensor.ti, true); // Dibuja el último frame con la explosión activa
+            // No llamamos más requestAnimationFrame, la animación de la explosión se maneja sola
+            // si la pides varias veces, tendrás varias explosiones
+            // Una forma es hacer un loop de explosión separado
+            let explosionFrameCount = 0;
+            function explosionLoop() {
+                if (particles.length > 0) {
+                    draw(datosDefensor.ti, false); // Dibuja el estado final sin cohetes pero con partículas
+                    requestAnimationFrame(explosionLoop);
+                } else {
+                    draw(null); // Vuelve al estado estático final sin partículas
+                }
+            }
+            explosionLoop();
+        }
+    }
+    loopDeAnimacion();
+}
+
+function reiniciar() {
+    cancelAnimationFrame(frameId);
+    datosEnemigo = {};
+    datosDefensor = {};
+    estadoSimulacion = 'reposo';
+    vd0_val.textContent = '—';
+    phi_val.textContent = '—';
+    ti_val.textContent = '—';
+    modo_val.textContent = '—';
+    particles = [];
+    draw();
+}
+
+// =====================================================================
+//                      NUEVO: LÓGICA DE EXPLOSIÓN
+// =====================================================================
+// =====================================================================
+//                      NUEVO: LÓGICA DE EXPLOSIÓN
+// =====================================================================
+function createExplosion(x, y, count) {
+    for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 2;
+        particles.push({
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 60, // Duración en frames
+            color: `hsl(${Math.random() * 60}, 100%, 50%)` // Tonos de amarillo a rojo
+        });
+    }
+}
+
+// =====================================================================
+//                          FUNCIÓN DE DIBUJO
+// =====================================================================
+function draw(t_animacion = null, initial_explosion = false) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const margin = 70;
+    const origen_x = margin;
+    const origen_y = canvas.height - margin;
+
+    // --- Dibujo de Ejes ---
+    ctx.strokeStyle = '#666'; ctx.lineWidth = 1; ctx.font = '12px Arial'; ctx.fillStyle = '#333';
+    ctx.beginPath(); ctx.moveTo(origen_x, origen_y); ctx.lineTo(origen_x, margin / 2); ctx.stroke(); ctx.fillText('Altura (m)', origen_x - 50, margin / 4);
+    ctx.beginPath(); ctx.moveTo(margin, margin / 2); ctx.lineTo(margin - 5, margin / 2 + 10); ctx.moveTo(margin, margin / 2); ctx.lineTo(margin + 5, margin / 2 + 10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(origen_x, origen_y); ctx.lineTo(canvas.width - margin / 2, origen_y); ctx.stroke(); ctx.fillText('Distancia Horizontal (m)', canvas.width - margin / 2 - 150, origen_y + 35);
+    ctx.beginPath(); ctx.moveTo(canvas.width - margin / 2, origen_y); ctx.lineTo(canvas.width - margin / 2 - 10, origen_y - 5); ctx.moveTo(canvas.width - margin / 2, origen_y); ctx.lineTo(canvas.width - margin / 2 - 10, origen_y + 5); ctx.stroke();
+
+    if (Object.keys(datosEnemigo).length === 0 && Object.keys(datosDefensor).length === 0 && particles.length === 0) {
+        return; // Si no hay datos ni partículas de explosión, solo dibujar ejes y salir
+    }
+
+    const { z0, v0x_e, v0y_e } = datosEnemigo;
+    const { v0x_d, v0y_d, ti, usaPropulsor } = datosDefensor;
+
+    // --- Lógica de Escala ---
+    const tiempo_impacto_e_total = (v0y_e + Math.sqrt(v0y_e**2 + 2 * g * z0)) / g;
+    const max_x_vista = Math.max(v0x_e * tiempo_impacto_e_total * 1.1, 5000);
+    const max_y_vista = Math.max((z0 + (v0y_e**2) / (2 * g)) * 1.2, 3000);
+    const scale = Math.min((canvas.width - 2 * margin) / max_x_vista, (canvas.height - 2 * margin) / max_y_vista);
+
+    // --- Dibujo de Marcas en Ejes ---
+    const num_marcas = 5;
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; const espacio_y_px = ((canvas.height - 2 * margin) / num_marcas); let marca_y_cada = espacio_y_px < 20 ? 2 : 1;
+    for (let i = 1; i <= num_marcas; i++) { if (i % marca_y_cada !== 0) continue; const valor_y = (max_y_vista / num_marcas) * i; const pos_y = origen_y - valor_y * scale; ctx.beginPath(); ctx.moveTo(origen_x - 5, pos_y); ctx.lineTo(origen_x + 5, pos_y); ctx.stroke(); ctx.fillText(Math.round(valor_y), origen_x - 15, pos_y); }
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    for (let i = 1; i <= num_marcas; i++) { const valor_x = (max_x_vista / num_marcas) * i; const pos_x = origen_x + valor_x * scale; ctx.beginPath(); ctx.moveTo(pos_x, origen_y - 5); ctx.lineTo(pos_x, origen_y + 5); ctx.stroke(); ctx.fillText(Math.round(valor_x), pos_x, origen_y + 20); }
+
+    const step = 0.1; // Paso para dibujar las líneas
+
+    // --- Dibujo de Estelas/Trayectorias ---
+    // Enemigo
+    ctx.beginPath(); ctx.strokeStyle = 'red'; ctx.lineWidth = 2;
+    ctx.moveTo(origen_x, origen_y - z0 * scale);
+    for (let t = 0; t <= (t_animacion !== null ? Math.min(t_animacion, tiempo_impacto_e_total) : tiempo_impacto_e_total); t += step) {
+        let y = z0 + v0y_e * t - 0.5 * g * t * t;
+        if (y < -10) break;
+        ctx.lineTo(origen_x + (v0x_e * t) * scale, origen_y - y * scale);
+    }
+    ctx.stroke();
+
+    // Defensor
+    if (Object.keys(datosDefensor).length > 0) {
+        ctx.beginPath(); ctx.strokeStyle = usaPropulsor ? 'purple' : 'blue'; ctx.lineWidth = usaPropulsor ? 3 : 2;
+        ctx.moveTo(origen_x, origen_y);
+        for (let t = 0; t <= (t_animacion !== null ? Math.min(t_animacion, ti) : ti); t += step) {
+            let y = v0y_d * t - 0.5 * g * t * t;
+            if (usaPropulsor) y += 0.5 * A_PROPULSOR * t * t;
+            if (y < -10) break;
+            ctx.lineTo(origen_x + (v0x_d * t) * scale, origen_y - y * scale);
+        }
+        ctx.stroke();
+    }
+
+    // --- Dibujo de Cohetes (solo durante la animación y antes del choque) ---
+    if (t_animacion !== null && t_animacion < ti) {
+        // Cohete Enemigo
+        const x_e = v0x_e * t_animacion; const y_e = z0 + v0y_e * t_animacion - 0.5 * g * t_animacion * t_animacion;
+        const vx_e = v0x_e; const vy_e = v0y_e - g * t_animacion;
+        const angle_e = Math.atan2(vy_e, vx_e);
+        ctx.save();
+        ctx.translate(origen_x + x_e * scale, origen_y - y_e * scale);
+        ctx.rotate(angle_e);
+        ctx.drawImage(misilEnemigoImg, -15, -15, 30, 30);
+        ctx.restore();
+
+        // Cohete Defensor
+        if (Object.keys(datosDefensor).length > 0) {
+            const x_d = v0x_d * t_animacion;
+            let y_d = v0y_d * t_animacion - 0.5 * g * t_animacion * t_animacion;
+            if (usaPropulsor) y_d += 0.5 * A_PROPULSOR * t_animacion * t_animacion;
+            const vx_d = v0x_d; let vy_d = v0y_d - g * t_animacion;
+            if(usaPropulsor) vy_d += A_PROPULSOR * t_animacion;
+            const angle_d = Math.atan2(vy_d, vx_d);
+            ctx.save();
+            ctx.translate(origen_x + x_d * scale, origen_y - y_d * scale);
+            ctx.rotate(angle_d);
+            misilDefensorImg.src = usaPropulsor ? 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzA4NGZjIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTUgMTBMMjAgNSIvPjxwYXRoIGQ9Ik05IDJMMTUuNSAxMEwyMSA0TDE0IDJsLTMgN3oiLz48cGF0aCBkPSJNNCAyMEw3LjUgMTYuNU0xMCAxNGwtMS41IDEuNU0xNi41IDcuNUwxMy40MyA0LjQzIi8+PC9zdmc+' : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM2I4MmY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTUgMTBMMjAgNSIvPjxwYXRoIGQ9Ik05IDJMMTUuNSAxMEwyMSA0TDE0IDJsLTMgN3oiLz48cGF0aCBkPSJNNCAyMEw3LjUgMTYuNU0xMCAxNGwtMS41IDEuNU0xNi41IDcuNUwxMy40MyA0LjQzIi8+PC9zdmc+';
+            ctx.drawImage(misilDefensorImg, -15, -15, 30, 30);
+            ctx.restore();
+        }
+    }
+
+    // --- Punto de Intercepción / Explosión ---
+    if (Object.keys(datosDefensor).length > 0 && t_animacion >= ti) { // Solo dibuja punto/explosión al final de la animación o en estado estático
+        const x_i = v0x_e * ti; const y_i = z0 + v0y_e * ti - 0.5 * g * ti * ti;
+        const ix = origen_x + x_i * scale;
+        const iy = origen_y - y_i * scale;
+
+        if (initial_explosion) { // Este es el primer frame de la explosión
+            // Ya no necesitamos crear partículas aquí, se crean en simularChoque
+            // Solo dibujar el "rayo" de la explosión
+            ctx.strokeStyle = '#f59e0b'; // Naranja para la explosión
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i < 8; i++) {
+                const angle = i * Math.PI / 4; // Ángulos cada 45 grados
+                ctx.moveTo(ix, iy);
+                ctx.lineTo(ix + 15 * Math.cos(angle), iy + 15 * Math.sin(angle)); // Rayos de 15px
+            }
+            ctx.stroke();
+            // Opcional: un pequeño círculo en el centro de la explosión
+            ctx.beginPath();
+            ctx.fillStyle = '#fde047'; // Amarillo claro
+            ctx.arc(ix, iy, 5, 0, 2 * Math.PI);
+            ctx.fill();
+        } else if (particles.length === 0) { // Si no hay partículas de explosión activas, dibuja el punto verde
+            ctx.beginPath(); ctx.fillStyle = '#34d399'; ctx.arc(ix, iy, 6, 0, 2 * Math.PI); ctx.fill();
+        }
+    }
+
+    // --- Dibujar partículas de la explosión (si existen) ---
+    particles.forEach((p, index) => {
+        p.x += p.vx; p.y += p.vy; p.life--;
+        if (p.life <= 0) { particles.splice(index, 1);
+        } else {
+            ctx.beginPath(); ctx.globalAlpha = p.life / 60; ctx.fillStyle = p.color;
+            ctx.arc(origen_x + p.x * scale, origen_y - p.y * scale, 2, 0, Math.PI * 2);
+            ctx.fill(); ctx.globalAlpha = 1;
+        }
+    });
+
+    // --- Leyenda ---
+    ctx.textAlign = 'left'; ctx.font = '12px Arial'; ctx.fillStyle = '#333';
+    ctx.fillText('Misil Enemigo', origen_x + 20, canvas.height - 15);
+    ctx.beginPath(); ctx.strokeStyle = 'red'; ctx.lineWidth = 2; ctx.moveTo(origen_x + 5, canvas.height - 18); ctx.lineTo(origen_x + 15, canvas.height - 18); ctx.stroke();
+    if (Object.keys(datosDefensor).length > 0) {
+        ctx.fillText('Misil Defensor', origen_x + 150, canvas.height - 15);
+        ctx.beginPath(); ctx.strokeStyle = usaPropulsor ? 'purple' : 'blue'; ctx.lineWidth = usaPropulsor ? 4 : 2; ctx.moveTo(origen_x + 135, canvas.height - 18); ctx.lineTo(origen_x + 145, canvas.height - 18); ctx.stroke();
+        if (usaPropulsor) { ctx.fillText('(Con Propulsor)', origen_x + 230, canvas.height - 15); } else { ctx.fillText('(Sin Propulsor)', origen_x + 230, canvas.height - 15); }
+    }
+}
+
+// =====================================================================
+//                       MANEJADORES DE EVENTOS
+// =====================================================================
+
+function updateSliderValues() {
+    alturaInicialValue.textContent = alturaInicialSlider.value;
+    velocidadInicialValue.textContent = velocidadInicialSlider.value;
+    anguloLanzamientoValue.textContent = anguloLanzamientoSlider.value;
+}
+
+function getRandom(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+randomButton.addEventListener('click', () => {
+    alturaInicialSlider.value = Math.round(getRandom(1000, 10000) / 100) * 100;
+    velocidadInicialSlider.value = Math.round(getRandom(100, 500) / 10) * 10;
+    anguloLanzamientoSlider.value = Math.round(getRandom(15, 75));
+    updateSliderValues();
+    generarEnemigo();
+});
+
+calculateButton.addEventListener('click', calcularIntercepcion);
+animateButton.addEventListener('click', simularChoque);
+resetButton.addEventListener('click', reiniciar);
+
+alturaInicialSlider.addEventListener('input', () => { updateSliderValues(); generarEnemigo(); });
+velocidadInicialSlider.addEventListener('input', () => { updateSliderValues(); generarEnemigo(); });
+anguloLanzamientoSlider.addEventListener('input', () => { updateSliderValues(); generarEnemigo(); });
+
+window.onload = () => {
+    updateSliderValues();
+    reiniciar();
+};
+</script>
+
+</body>
+</html>

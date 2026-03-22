@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulación de Intercepción de Proyectiles</title>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h2 {
+      margin-top: 40px;
+      padding: 10px;
+      background: #f0f0f0;
+      border-left: 5px solid #0074D9;
+    }
+    .control-group {
+      margin: 10px 0;
+    }
+    #canvas {
+      border: 1px solid #ccc;
+      margin-top: 20px;
+      background: #fff;
+    }
+    .info {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>1. Introducción</h2>
+  <p>
+    En esta simulación se modela la intercepción de un proyectil enemigo mediante un proyectil
+    defensor, como una analogía simplificada del sistema <i>Domo de Hierro</i>.
+  </p>
+
+  <h2>2. Marco Teórico</h2>
+  <p>
+    El movimiento de los proyectiles se describe con las ecuaciones de la cinemática bajo
+    aceleración constante:
+  </p>
+  <p>
+    \[
+    \vec{r}_e(t) = \vec{r}_{e0} + \vec{v}_{e0} t + \tfrac{1}{2} \vec{g} t^2
+    \]
+    \[
+    \vec{r}_d(t) = \vec{r}_{d0} + \vec{v}_{d0} t + \tfrac{1}{2} \vec{g} t^2
+    \]
+  </p>
+
+  <h2>3. Formulación Matemática</h2>
+  <p>
+    Para la intercepción se requiere que en un instante \(t\):
+  </p>
+  <p>
+    \[
+    (x_e(t), y_e(t)) = (x_d(t), y_d(t))
+    \]
+  </p>
+
+  <h2>4. Planteamiento de la Simulación</h2>
+  <p>
+    Se generan aleatoriamente parámetros del enemigo dentro de rangos razonables y se simulan
+    trayectorias para el enemigo y el defensor, verificando si ocurre intercepción.
+  </p>
+
+  <h2>5. Simulación Interactiva</h2>
+
+  <div class="control-group">
+    Velocidad enemigo (m/s):
+    <input type="range" id="velocidadEnemigo" min="10" max="100" value="50">
+    <span id="velocidadEnemigoValor">50</span>
+  </div>
+
+  <div class="control-group">
+    Ángulo enemigo (°):
+    <input type="range" id="anguloEnemigo" min="10" max="80" value="45">
+    <span id="anguloEnemigoValor">45</span>
+  </div>
+
+  <div class="control-group">
+    Velocidad defensor (m/s):
+    <input type="range" id="velocidadDefensor" min="10" max="100" value="60">
+    <span id="velocidadDefensorValor">60</span>
+  </div>
+
+  <div class="control-group">
+    Ángulo defensor (°):
+    <input type="range" id="anguloDefensor" min="10" max="80" value="60">
+    <span id="anguloDefensorValor">60</span>
+  </div>
+
+  <button onclick="ejecutarSimulacion()">Ejecutar simulación</button>
+  <button onclick="escenarioAleatorio()">Escenario Aleatorio</button>
+  <button onclick="resetear()">Reset</button>
+
+  <canvas id="canvas" width="800" height="400"></canvas>
+  <div id="info" class="info"></div>
+
+  <h2>6. Relación con el Sistema Domo de Hierro</h2>
+  <p>
+    El sistema "Domo de Hierro" (Iron Dome) de Israel es un análogo real a esta simulación. Detecta
+    trayectorias, decide si amenazan zonas pobladas y lanza interceptores maniobrables.
+  </p>
+
+  <h2>7. Conclusiones</h2>
+  <p>
+    El modelo muestra cómo parámetros iniciales (velocidad y ángulo) determinan la posibilidad de
+    intercepción. Aunque simplificado, ayuda a comprender los principios físicos involucrados.
+  </p>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const g = 9.8;
+
+const velE = document.getElementById("velocidadEnemigo");
+const angE = document.getElementById("anguloEnemigo");
+const velD = document.getElementById("velocidadDefensor");
+const angD = document.getElementById("anguloDefensor");
+
+const velEVal = document.getElementById("velocidadEnemigoValor");
+const angEVal = document.getElementById("anguloEnemigoValor");
+const velDVal = document.getElementById("velocidadDefensorValor");
+const angDVal = document.getElementById("anguloDefensorValor");
+
+const info = document.getElementById("info");
+
+function actualizarValores() {
+  velEVal.textContent = velE.value;
+  angEVal.textContent = angE.value;
+  velDVal.textContent = velD.value;
+  angDVal.textContent = angD.value;
+}
+
+[velE, angE, velD, angD].forEach(input =>
+  input.addEventListener("input", ejecutarSimulacion)
+);
+actualizarValores();
+
+function trayectoria(v0, angulo) {
+  const rad = angulo * Math.PI / 180;
+  const vx = v0 * Math.cos(rad);
+  const vy = v0 * Math.sin(rad);
+  let puntos = [];
+  for (let t = 0; t < 20; t += 0.05) {
+    const x = vx * t;
+    const y = vy * t - 0.5 * g * t * t;
+    if (y < 0) break;
+    puntos.push([x, y]);
+  }
+  return puntos;
+}
+
+function dibujarEjes(escala, margen, alturaMax) {
+  ctx.strokeStyle = "#eee";
+  ctx.lineWidth = 1;
+
+  for (let x = 0; x < canvas.width; x += 50) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+  for (let y = 0; y < canvas.height; y += 50) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = "#000";
+  ctx.beginPath();
+  ctx.moveTo(margen, canvas.height - margen);
+  ctx.lineTo(canvas.width, canvas.height - margen);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(margen, canvas.height - margen);
+  ctx.lineTo(margen, 0);
+  ctx.stroke();
+}
+
+function dibujar() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const puntosE = trayectoria(Number(velE.value), Number(angE.value));
+  const puntosD = trayectoria(Number(velD.value), Number(angD.value));
+  const todos = puntosE.concat(puntosD);
+  const maxX = Math.max(...todos.map(p => p[0]), 1);
+  const maxY = Math.max(...todos.map(p => p[1]), 1);
+
+  const margen = 40;
+  const escalaX = (canvas.width - 2 * margen) / maxX;
+  const escalaY = (canvas.height - 2 * margen) / maxY;
+  const escala = Math.min(escalaX, escalaY);
+
+  dibujarEjes(escala, margen, maxY);
+
+  function trazar(puntos, color) {
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    puntos.forEach(([x, y], i) => {
+      const X = margen + x * escala;
+      const Y = canvas.height - margen - y * escala;
+      if (i === 0) ctx.moveTo(X, Y);
+      else ctx.lineTo(X, Y);
+    });
+    ctx.stroke();
+  }
+
+  trazar(puntosE, "red");
+  trazar(puntosD, "blue");
+
+  let interseccion = null;
+  const tol = 5;
+  for (let i = 0; i < puntosE.length; i++) {
+    for (let j = 0; j < puntosD.length; j++) {
+      if (Math.abs(puntosE[i][0] - puntosD[j][0]) < tol &&
+          Math.abs(puntosE[i][1] - puntosD[j][1]) < tol) {
+        interseccion = puntosE[i];
+        break;
+      }
+    }
+    if (interseccion) break;
+  }
+
+  if (interseccion) {
+    const X = margen + interseccion[0] * escala;
+    const Y = canvas.height - margen - interseccion[1] * escala;
+    ctx.fillStyle = "green";
+    ctx.beginPath();
+    ctx.arc(X, Y, 5, 0, 2 * Math.PI);
+    ctx.fill();
+    info.textContent = `Intercepción en x=${interseccion[0].toFixed(1)} m, y=${interseccion[1].toFixed(1)} m | Origen = base (x=0). Tolerancia detección = ${tol} m`;
+  } else {
+    info.textContent = `Sin intercepción | Origen = base (x=0). Tolerancia detección = ${tol} m`;
+  }
+}
+
+function ejecutarSimulacion() {
+  actualizarValores();
+  dibujar();
+}
+
+function escenarioAleatorio() {
+  velE.value = Math.floor(20 + Math.random() * 60);
+  angE.value = Math.floor(20 + Math.random() * 60);
+  velD.value = Math.floor(20 + Math.random() * 60);
+  angD.value = Math.floor(20 + Math.random() * 60);
+  ejecutarSimulacion();
+}
+
+function resetear() {
+  velE.value = 50;
+  angE.value = 45;
+  velD.value = 60;
+  angD.value = 60;
+  ejecutarSimulacion();
+}
+
+ejecutarSimulacion();
+</script>
+
+</body>
+</html>
