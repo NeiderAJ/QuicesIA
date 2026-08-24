@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Problema P24.50 — Dos Láminas Infinitas de Carga</title>
+
+  <!-- MathJax for LaTeX rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']],
+        tags: 'ams'
+      },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── CSS Variables ─────────────────────────────────── */
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #1f2937;
+      --border:    #30363d;
+      --accent:    #e8a838;
+      --accent2:   #5ba3f5;
+      --accent3:   #58d68d;
+      --danger:    #e05c5c;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --heading:   #f0f6fc;
+      --eq-bg:     #0a0f16;
+    }
+
+    /* ── Reset & Base ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 17px;
+      line-height: 1.75;
+    }
+
+    /* ── Scrollbar ─────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+    /* ── Header / Hero ─────────────────────────────────── */
+    header {
+      position: relative;
+      overflow: hidden;
+      padding: 80px 40px 60px;
+      text-align: center;
+      background: linear-gradient(135deg, #0d1117 0%, #0f1923 50%, #0d1117 100%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 20% 40%, rgba(232,168,56,.08) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 60% at 80% 60%, rgba(91,163,245,.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* grid lines decoration */
+    header::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(232,168,56,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232,168,56,.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 4px 12px;
+      border-radius: 2px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(26px, 4vw, 46px);
+      font-weight: 900;
+      color: var(--heading);
+      line-height: 1.15;
+      position: relative;
+      max-width: 800px;
+      margin: 0 auto 16px;
+    }
+
+    header h1 span { color: var(--accent); }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 15px;
+      font-style: italic;
+      position: relative;
+    }
+
+    /* ── Nav ───────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,17,23,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+    }
+
+    nav a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      letter-spacing: .5px;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 14px 16px;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: color .2s, border-color .2s;
+    }
+
+    nav a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ── Layout ────────────────────────────────────────── */
+    main { max-width: 900px; margin: 0 auto; padding: 48px 28px 80px; }
+
+    section {
+      margin-bottom: 64px;
+      padding-top: 16px;
+      opacity: 0;
+      transform: translateY(24px);
+      animation: fadeUp .6s ease forwards;
+    }
+
+    section:nth-child(1)  { animation-delay: .05s; }
+    section:nth-child(2)  { animation-delay: .12s; }
+    section:nth-child(3)  { animation-delay: .19s; }
+    section:nth-child(4)  { animation-delay: .26s; }
+    section:nth-child(5)  { animation-delay: .33s; }
+    section:nth-child(6)  { animation-delay: .40s; }
+    section:nth-child(7)  { animation-delay: .47s; }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: none; }
+    }
+
+    /* ── Section Headings ──────────────────────────────── */
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(22px, 3vw, 30px);
+      font-weight: 700;
+      color: var(--heading);
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: var(--accent2);
+      margin: 28px 0 12px;
+    }
+
+    p { margin-bottom: 14px; }
+
+    /* ── Cards ─────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px 32px;
+      margin-bottom: 20px;
+    }
+
+    .card-accent { border-left: 3px solid var(--accent); }
+    .card-blue   { border-left: 3px solid var(--accent2); }
+    .card-green  { border-left: 3px solid var(--accent3); }
+    .card-red    { border-left: 3px solid var(--danger); }
+
+    /* ── Equation blocks ───────────────────────────────── */
+    .eq-block {
+      background: var(--eq-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px 28px;
+      margin: 20px 0;
+      overflow-x: auto;
+      font-size: 105%;
+    }
+
+    .eq-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      float: right;
+      margin-top: 2px;
+    }
+
+    /* ── Result highlight ──────────────────────────────── */
+    .result-box {
+      background: linear-gradient(135deg, rgba(232,168,56,.10), rgba(232,168,56,.04));
+      border: 1px solid rgba(232,168,56,.4);
+      border-radius: 8px;
+      padding: 22px 28px;
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .result-box .label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    /* ── Canvas simulation ─────────────────────────────── */
+    #sim-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    #sim-toolbar {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ctrl-group label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .ctrl-group span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--accent);
+      min-width: 50px;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 120px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+    }
+
+    .btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 7px 16px;
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      background: transparent;
+      color: var(--accent);
+      cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+
+    .btn:hover { background: var(--accent); color: var(--bg); }
+    .btn.active { background: var(--accent); color: var(--bg); }
+
+    #simCanvas {
+      display: block;
+      width: 100%;
+      cursor: crosshair;
+    }
+
+    #sim-legend {
+      padding: 14px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      border-top: 1px solid var(--border);
+      background: var(--surface2);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── Table ─────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+      margin: 16px 0;
+    }
+
+    th {
+      background: var(--surface2);
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 12px 16px;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+
+    td {
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) td { background: rgba(255,255,255,.02); }
+
+    /* ── Bibliography ──────────────────────────────────── */
+    .bib-item {
+      display: flex;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .bib-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--accent);
+      min-width: 28px;
+      padding-top: 2px;
+    }
+
+    /* ── Footer ────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 32px;
+      color: var(--muted);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Responsive ────────────────────────────────────── */
+    @media (max-width: 600px) {
+      header { padding: 50px 20px 40px; }
+      main { padding: 32px 16px 60px; }
+      .card { padding: 20px; }
+      .eq-block { padding: 14px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════════════ -->
+<header>
+  <div class="tag">Física II · Ley de Gauss · Problema P24.50</div>
+  <h1>Dos Láminas Infinitas de <span>Carga</span></h1>
+  <p class="subtitle">Serway &amp; Jewett — Physics for Scientists and Engineers, 8th ed., Cap. 24</p>
+</header>
+
+<!-- ══════════════════════════════════════════════════════
+     NAVIGATION
+══════════════════════════════════════════════════════ -->
+<nav>
+  <a href="#enunciado">01 · Enunciado</a>
+  <a href="#solucion">02 · Solución</a>
+  <a href="#analisis">03 · Análisis</a>
+  <a href="#planteamiento">04 · Planteamiento</a>
+  <a href="#simulacion">05 · Simulación</a>
+  <a href="#conclusiones">06 · Conclusiones</a>
+  <a href="#bibliografia">07 · Bibliografía</a>
+</nav>
+
+<main>
+
+  <!-- ══════════════════════════
+       §1 ENUNCIADO
+  ══════════════════════════ -->
+  <section id="enunciado">
+    <p class="section-label">// 01</p>
+    <h2>Enunciado del Problema</h2>
+
+    <div class="card card-accent">
+      <p>
+        Dos láminas infinitas de carga, <strong>no conductoras</strong>, se encuentran paralelas entre sí.
+        La lámina de la izquierda tiene una densidad de carga superficial uniforme
+        \(+\sigma\), y la de la derecha tiene una densidad de carga superficial uniforme
+        \(-\sigma\).
+      </p>
+      <p>
+        <strong>Calcule el campo eléctrico:</strong>
+      </p>
+      <ul style="margin-left:24px; margin-top:8px;">
+        <li>a) A la <strong>izquierda</strong> de las dos láminas.</li>
+        <li>b) <strong>Entre</strong> las dos láminas.</li>
+        <li>c) A la <strong>derecha</strong> de las dos láminas.</li>
+      </ul>
+    </div>
+
+    <h3>Diagrama esquemático del sistema</h3>
+    <div class="card" style="text-align:center; padding:36px 20px;">
+      <!-- SVG diagram of the two sheets -->
+      <svg viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg" style="max-width:500px;width:100%;">
+        <!-- background regions -->
+        <rect x="0"   y="0" width="165" height="200" fill="rgba(91,163,245,.06)" rx="0"/>
+        <rect x="165" y="0" width="190" height="200" fill="rgba(232,168,56,.06)"  rx="0"/>
+        <rect x="355" y="0" width="165" height="200" fill="rgba(91,163,245,.06)" rx="0"/>
+
+        <!-- left sheet (+σ) -->
+        <rect x="155" y="10" width="18" height="180" fill="#e8a838" opacity=".85" rx="2"/>
+        <!-- right sheet (−σ) -->
+        <rect x="347" y="10" width="18" height="180" fill="#5ba3f5" opacity=".85" rx="2"/>
+
+        <!-- region labels -->
+        <text x="82"  y="100" text-anchor="middle" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="12">Región I</text>
+        <text x="260" y="100" text-anchor="middle" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="12">Región II</text>
+        <text x="437" y="100" text-anchor="middle" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="12">Región III</text>
+
+        <!-- charge labels -->
+        <text x="164" y="195" text-anchor="middle" fill="#e8a838" font-family="Source Serif 4,serif" font-size="15" font-style="italic">+σ</text>
+        <text x="356" y="195" text-anchor="middle" fill="#5ba3f5" font-family="Source Serif 4,serif" font-size="15" font-style="italic">−σ</text>
+
+        <!-- Electric field arrows in each region (E=0 in I and III, E=σ/ε₀ in II) -->
+        <!-- Region I: E = 0 -->
+        <text x="82" y="118" text-anchor="middle" fill="#e05c5c" font-family="JetBrains Mono,monospace" font-size="11">E = 0</text>
+
+        <!-- Region II: arrow pointing right -->
+        <defs>
+          <marker id="arr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+            <polygon points="0 0, 7 3.5, 0 7" fill="#e8a838"/>
+          </marker>
+        </defs>
+        <line x1="190" y1="85" x2="330" y2="85" stroke="#e8a838" stroke-width="2" marker-end="url(#arr)"/>
+        <text x="260" y="76" text-anchor="middle" fill="#e8a838" font-family="JetBrains Mono,monospace" font-size="10">E = σ/ε₀  →</text>
+
+        <!-- Region III: E = 0 -->
+        <text x="437" y="118" text-anchor="middle" fill="#e05c5c" font-family="JetBrains Mono,monospace" font-size="11">E = 0</text>
+
+        <!-- x-axis label -->
+        <text x="500" y="170" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="12">x →</text>
+        <line x1="10" y1="165" x2="510" y2="165" stroke="#30363d" stroke-width="1" stroke-dasharray="4,4"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════
+       §2 SOLUCIÓN MATEMÁTICA
+  ══════════════════════════ -->
+  <section id="solucion">
+    <p class="section-label">// 02</p>
+    <h2>Solución Matemática Completa</h2>
+
+    <h3>Herramienta: Ley de Gauss</h3>
+    <p>
+      Para una distribución de carga con simetría plana, la Ley de Gauss establece que el flujo
+      eléctrico a través de una superficie cerrada es proporcional a la carga encerrada:
+    </p>
+    <div class="eq-block">
+      <span class="eq-label">(1)</span>
+      \[
+        \oint_{\mathcal{S}} \vec{E} \cdot d\vec{A} = \frac{Q_{\text{enc}}}{\varepsilon_0}
+      \]
+    </div>
+
+    <h3>Campo de una sola lámina infinita</h3>
+    <p>
+      Usando una superficie gaussiana cilíndrica (pillbox) de área de cara \(A\) perpendicular
+      a la lámina, y por la simetría del problema (el campo apunta simétricamente hacia ambos lados):
+    </p>
+    <div class="eq-block">
+      <span class="eq-label">(2)</span>
+      \[
+        E \cdot 2A = \frac{\sigma A}{\varepsilon_0}
+        \quad \Longrightarrow \quad
+        E_{\text{lámina}} = \frac{\sigma}{2\varepsilon_0}
+      \]
+    </div>
+    <p>
+      La dirección es <em>alejándose</em> de la lámina si \(\sigma > 0\), y <em>hacia</em>
+      la lámina si \(\sigma < 0\).
+    </p>
+
+    <h3>Superposición de los dos campos</h3>
+    <p>
+      Definimos el eje \(x\) positivo apuntando hacia la derecha. Los campos individuales de
+      cada lámina son:
+    </p>
+
+    <div class="card card-accent" style="margin-bottom:16px;">
+      <strong>Lámina izquierda (\(+\sigma\)):</strong>
+      <div class="eq-block" style="margin-top:10px;">
+        \[
+          \vec{E}_{+} =
+          \begin{cases}
+            -\dfrac{\sigma}{2\varepsilon_0}\,\hat{x} & \text{a la izquierda} \\[6pt]
+            +\dfrac{\sigma}{2\varepsilon_0}\,\hat{x} & \text{a la derecha}
+          \end{cases}
+        \]
+      </div>
+    </div>
+
+    <div class="card card-blue" style="margin-bottom:16px;">
+      <strong>Lámina derecha (\(-\sigma\)):</strong>
+      <div class="eq-block" style="margin-top:10px;">
+        \[
+          \vec{E}_{-} =
+          \begin{cases}
+            +\dfrac{\sigma}{2\varepsilon_0}\,\hat{x} & \text{a la izquierda} \\[6pt]
+            -\dfrac{\sigma}{2\varepsilon_0}\,\hat{x} & \text{a la derecha}
+          \end{cases}
+        \]
+      </div>
+    </div>
+
+    <p>
+      El campo total en cada región es la superposición vectorial
+      \(\vec{E}_{\text{total}} = \vec{E}_{+} + \vec{E}_{-}\):
+    </p>
+
+    <!-- RESULTADO a) -->
+    <h3>a) Región I — A la izquierda de ambas láminas</h3>
+    <div class="eq-block">
+      <span class="eq-label">(3)</span>
+      \[
+        \vec{E}_{\text{I}} =
+        \underbrace{\left(-\frac{\sigma}{2\varepsilon_0}\hat{x}\right)}_{\text{de }+\sigma}
+        +
+        \underbrace{\left(+\frac{\sigma}{2\varepsilon_0}\hat{x}\right)}_{\text{de }-\sigma}
+        = \vec{0}
+      \]
+    </div>
+    <div class="result-box">
+      <div class="label">Resultado — Región I</div>
+      \[
+        \boxed{\vec{E}_{\text{I}} = \vec{0}}
+      \]
+    </div>
+
+    <!-- RESULTADO b) -->
+    <h3>b) Región II — Entre las dos láminas</h3>
+    <div class="eq-block">
+      <span class="eq-label">(4)</span>
+      \[
+        \vec{E}_{\text{II}} =
+        \underbrace{\left(+\frac{\sigma}{2\varepsilon_0}\hat{x}\right)}_{\text{de }+\sigma}
+        +
+        \underbrace{\left(+\frac{\sigma}{2\varepsilon_0}\hat{x}\right)}_{\text{de }-\sigma}
+        = \frac{\sigma}{\varepsilon_0}\,\hat{x}
+      \]
+    </div>
+    <div class="result-box">
+      <div class="label">Resultado — Región II</div>
+      \[
+        \boxed{\vec{E}_{\text{II}} = \frac{\sigma}{\varepsilon_0}\,\hat{x}}
+      \]
+    </div>
+
+    <!-- RESULTADO c) -->
+    <h3>c) Región III — A la derecha de ambas láminas</h3>
+    <div class="eq-block">
+      <span class="eq-label">(5)</span>
+      \[
+        \vec{E}_{\text{III}} =
+        \underbrace{\left(+\frac{\sigma}{2\varepsilon_0}\hat{x}\right)}_{\text{de }+\sigma}
+        +
+        \underbrace{\left(-\frac{\sigma}{2\varepsilon_0}\hat{x}\right)}_{\text{de }-\sigma}
+        = \vec{0}
+      \]
+    </div>
+    <div class="result-box">
+      <div class="label">Resultado — Región III</div>
+      \[
+        \boxed{\vec{E}_{\text{III}} = \vec{0}}
+      \]
+    </div>
+
+    <!-- TABLA RESUMEN -->
+    <h3>Resumen de resultados</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Región</th>
+          <th>Ubicación</th>
+          <th>Campo eléctrico total</th>
+          <th>Interpretación</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>I</td>
+          <td>A la izquierda de \(+\sigma\)</td>
+          <td>\(\vec{E} = \vec{0}\)</td>
+          <td>Cancelación completa</td>
+        </tr>
+        <tr>
+          <td>II</td>
+          <td>Entre las láminas</td>
+          <td>\(\vec{E} = \dfrac{\sigma}{\varepsilon_0}\,\hat{x}\)</td>
+          <td>Refuerzo (suma constructiva)</td>
+        </tr>
+        <tr>
+          <td>III</td>
+          <td>A la derecha de \(-\sigma\)</td>
+          <td>\(\vec{E} = \vec{0}\)</td>
+          <td>Cancelación completa</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ══════════════════════════
+       §3 ANÁLISIS TEÓRICO
+  ══════════════════════════ -->
+  <section id="analisis">
+    <p class="section-label">// 03</p>
+    <h2>Análisis Funcional y Teórico</h2>
+
+    <div class="card card-green">
+      <h3 style="margin-top:0;">Principio de superposición</h3>
+      <p>
+        El campo eléctrico total en cualquier punto del espacio es la suma vectorial de los campos
+        producidos individualmente por cada distribución de carga. Esta linealidad de las ecuaciones
+        de Maxwell es fundamental y se aplica directamente aquí.
+      </p>
+    </div>
+
+    <div class="card card-blue" style="margin-top:16px;">
+      <h3 style="margin-top:0;">Confinamiento del campo — Efecto de blindaje</h3>
+      <p>
+        El resultado \(\vec{E} = \vec{0}\) en las regiones exteriores no es coincidencia: los campos
+        de la lámina \(+\sigma\) y de la lámina \(-\sigma\) se cancelan exactamente fuera del par.
+        Este comportamiento es análogo al de un <strong>condensador de placas paralelas</strong>,
+        donde el campo se confina entre las placas.
+      </p>
+    </div>
+
+    <div class="card card-accent" style="margin-top:16px;">
+      <h3 style="margin-top:0;">Relación con el condensador de placas paralelas</h3>
+      <p>
+        En un condensador ideal de placas paralelas conductoras con densidades de carga superficial
+        \(\pm\sigma\), el campo entre las placas también vale \(\sigma/\varepsilon_0\), y el campo
+        exterior es nulo. La diferencia es que en conductores la carga reside solo en la superficie
+        exterior, pero el resultado macroscópico del campo es idéntico.
+      </p>
+      <div class="eq-block" style="margin-top:12px;">
+        \[
+          E_{\text{condensador}} = \frac{\sigma}{\varepsilon_0}
+          \quad \Longleftrightarrow \quad
+          E_{\text{entre láminas}} = \frac{\sigma}{\varepsilon_0}
+        \]
+      </div>
+    </div>
+
+    <h3>Uniformidad e independencia de la posición</h3>
+    <p>
+      Notablemente, el campo \(\vec{E}_{\text{II}} = \sigma/\varepsilon_0\,\hat{x}\) es
+      <em>uniforme</em>: no depende de la coordenada \(x\) ni de \(y\) ni de \(z\). Esto es
+      una consecuencia directa de la simetría de traslación de las láminas infinitas. Una
+      partícula cargada colocada entre las láminas experimenta una fuerza constante:
+    </p>
+    <div class="eq-block">
+      \[
+        \vec{F} = q\vec{E} = \frac{q\sigma}{\varepsilon_0}\,\hat{x}
+      \]
+    </div>
+    <p>
+      Si la carga es positiva (\(q > 0\)), la fuerza empuja hacia la lámina negativa (derecha).
+      Si es negativa, la empuja hacia la lámina positiva (izquierda). En ambos casos la partícula
+      experimenta movimiento uniformemente acelerado entre las láminas, igual que en un campo
+      gravitacional uniforme.
+    </p>
+
+    <h3>Validez del modelo</h3>
+    <p>
+      El modelo de lámina infinita es válido cuando la separación entre láminas es mucho menor que
+      sus dimensiones laterales. En ese límite, los efectos de borde son despreciables y los
+      resultados obtenidos son excelentes aproximaciones al campo real.
+    </p>
+  </section>
+
+  <!-- ══════════════════════════
+       §4 PLANTEAMIENTO SIM.
+  ══════════════════════════ -->
+  <section id="planteamiento">
+    <p class="section-label">// 04</p>
+    <h2>Planteamiento de la Simulación</h2>
+
+    <p>
+      La simulación visualiza el sistema de dos láminas infinitas y permite explorar
+      el comportamiento del campo eléctrico de forma interactiva. Los elementos principales son:
+    </p>
+
+    <table>
+      <thead>
+        <tr><th>Elemento</th><th>Representación en la simulación</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Láminas de carga</td>
+          <td>Rectángulos verticales naranja (\(+\sigma\)) y azul (\(-\sigma\)) posicionados en el lienzo.</td>
+        </tr>
+        <tr>
+          <td>Líneas de campo</td>
+          <td>Flechas horizontales entre las láminas (región II) que muestran la dirección y magnitud de \(\vec{E}\).</td>
+        </tr>
+        <tr>
+          <td>Carga de prueba</td>
+          <td>Círculo arrastrable que muestra la fuerza que siente en cada región.</td>
+        </tr>
+        <tr>
+          <td>Densidad superficial \(\sigma\)</td>
+          <td>Control deslizante que escala la magnitud del campo \(E = \sigma/\varepsilon_0\) visualmente.</td>
+        </tr>
+        <tr>
+          <td>Mapa de calor</td>
+          <td>Coloreado de fondo según la magnitud del campo en cada región (azul = \(E=0\), naranja = \(E\) máximo).</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card card-green" style="margin-top:20px;">
+      <strong>Sentido físico:</strong> La simulación reproduce fielmente los tres resultados:
+      campo nulo en las regiones exteriores y campo uniforme \(\sigma/\varepsilon_0\) entre las láminas.
+      El usuario puede variar \(\sigma\) y observar cómo el campo entre las placas escala linealmente,
+      mientras las regiones exteriores permanecen siempre en cero.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════
+       §5 SIMULACIÓN
+  ══════════════════════════ -->
+  <section id="simulacion">
+    <p class="section-label">// 05</p>
+    <h2>Simulación Interactiva</h2>
+
+    <div id="sim-wrapper">
+      <!-- Toolbar -->
+      <div id="sim-toolbar">
+        <div class="ctrl-group">
+          <label>σ (relativo):</label>
+          <input type="range" id="sigmaSlider" min="0.1" max="3" step="0.05" value="1">
+          <span id="sigmaVal">1.00</span>
+        </div>
+        <div class="ctrl-group">
+          <label>Densidad de flechas:</label>
+          <input type="range" id="densitySlider" min="3" max="10" step="1" value="6">
+          <span id="densityVal">6</span>
+        </div>
+        <button class="btn active" id="btnHeatmap">Mapa de calor</button>
+        <button class="btn" id="btnProbe">Carga de prueba</button>
+        <button class="btn" id="btnReset">Reiniciar</button>
+      </div>
+
+      <!-- Canvas -->
+      <canvas id="simCanvas" height="400"></canvas>
+
+      <!-- Legend -->
+      <div id="sim-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#e8a838;"></div>
+          Lámina +σ
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#5ba3f5;"></div>
+          Lámina −σ
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#58d68d;"></div>
+          Líneas de campo (E ≠ 0)
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#e05c5c;"></div>
+          Carga de prueba positiva
+        </div>
+        <div class="legend-item" style="margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:12px; color:#8b949e;">
+          Arrastra la carga de prueba para ver la fuerza
+        </div>
+      </div>
+    </div>
+
+    <!-- Live readout -->
+    <div class="card card-accent" style="margin-top:20px; text-align:center;">
+      <p class="section-label" style="margin-bottom:8px;">CAMPO EN LA CARGA DE PRUEBA</p>
+      <div id="fieldReadout" style="font-family:'JetBrains Mono',monospace; font-size:18px; color:var(--accent);">
+        E = 0  (región exterior)
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════
+       §6 CONCLUSIONES
+  ══════════════════════════ -->
+  <section id="conclusiones">
+    <p class="section-label">// 06</p>
+    <h2>Conclusiones</h2>
+
+    <div class="card card-accent">
+      <p>
+        <strong>1. Confinamiento del campo eléctrico.</strong> El sistema de dos láminas
+        con densidades de carga opuestas \(+\sigma\) y \(-\sigma\) produce un campo
+        eléctrico estrictamente nulo en las regiones exteriores, independientemente de
+        la separación entre ellas. Esto se debe a la cancelación exacta de los campos
+        individuales por superposición vectorial.
+      </p>
+    </div>
+
+    <div class="card card-blue" style="margin-top:12px;">
+      <p>
+        <strong>2. Campo uniforme entre las láminas.</strong> En la región comprendida
+        entre las dos láminas, el campo es uniforme, perpendicular a ellas y de magnitud
+        \(E = \sigma/\varepsilon_0\). Ambas láminas contribuyen igualmente (\(\sigma/2\varepsilon_0\)
+        cada una) en la misma dirección: de la lámina positiva hacia la negativa.
+      </p>
+    </div>
+
+    <div class="card card-green" style="margin-top:12px;">
+      <p>
+        <strong>3. Analogía con el condensador de placas paralelas.</strong> Este sistema
+        es el modelo fundamental del condensador ideal. La energía almacenada por unidad
+        de volumen en el campo eléctrico entre las placas es:
+      </p>
+      <div class="eq-block" style="margin-top:10px;">
+        \[
+          u_E = \frac{1}{2}\varepsilon_0 E^2 = \frac{\sigma^2}{2\varepsilon_0}
+        \]
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px; border-left:3px solid var(--muted);">
+      <p>
+        <strong>4. Potencia del método de Gauss.</strong> La Ley de Gauss, combinada con
+        el principio de superposición, permite resolver este problema de forma elegante y
+        directa, sin necesidad de integración directa de contribuciones de carga, gracias
+        a la simetría plana del sistema.
+      </p>
+    </div>
+
+    <div class="card card-red" style="margin-top:12px;">
+      <p>
+        <strong>5. Aplicaciones prácticas.</strong> Este resultado es la base del funcionamiento
+        de condensadores en circuitos electrónicos, pantallas de cristal líquido (LCD),
+        actuadores electroestáticos MEMS y blindajes electromagnéticos en electrónica de
+        precisión.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════
+       §7 BIBLIOGRAFÍA
+  ══════════════════════════ -->
+  <section id="bibliografia">
+    <p class="section-label">// 07</p>
+    <h2>Bibliografía</h2>
+
+    <div class="bib-item">
+      <span class="bib-num">[1]</span>
+      <span>
+        Serway, R. A. &amp; Jewett, J. W. (2010). <em>Physics for Scientists and Engineers</em>,
+        8th edition. Brooks/Cole, Cengage Learning. Capítulo 24: Ley de Gauss, Problema P24.50.
+      </span>
+    </div>
+
+    <div class="bib-item">
+      <span class="bib-num">[2]</span>
+      <span>
+        Griffiths, D. J. (2013). <em>Introduction to Electrodynamics</em>, 4th edition.
+        Pearson. §2.5: Boundary Conditions and the Method of Images.
+      </span>
+    </div>
+
+    <div class="bib-item">
+      <span class="bib-num">[3]</span>
+      <span>
+        Hayt, W. H. &amp; Buck, J. A. (2012). <em>Engineering Electromagnetics</em>, 8th edition.
+        McGraw-Hill. Capítulo 2: Coulomb's Law and Electric Field Intensity.
+      </span>
+    </div>
+
+    <div class="bib-item">
+      <span class="bib-num">[4]</span>
+      <span>
+        Gauss, C. F. (1835). <em>Allgemeine Lehrsätze in Beziehung auf die im verkehrten
+        Verhältnisse des Quadrats der Entfernung wirkenden Anziehungs- und Abstoßungs-Kräfte</em>.
+        Resultate aus den Beobachtungen des Magnetischen Vereins, 4.
+      </span>
+    </div>
+
+    <div class="bib-item" style="border-bottom:none;">
+      <span class="bib-num">[5]</span>
+      <span>
+        MathJax Consortium. (2023). <em>MathJax: Beautiful math in all browsers</em>.
+        Recuperado de <a href="https://www.mathjax.org" style="color:var(--accent2);">https://www.mathjax.org</a>
+      </span>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Problema P24.50 · Física de Campos · Ley de Gauss y Principio de Superposición
+</footer>
+
+<!-- ══════════════════════════════════════════════════════
+     SIMULATION SCRIPT
+══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  "use strict";
+
+  const canvas  = document.getElementById('simCanvas');
+  const ctx     = canvas.getContext('2d');
+  const readout = document.getElementById('fieldReadout');
+
+  /* ── State ─────────────────────────────────────── */
+  let sigma       = 1.0;
+  let arrowDensity= 6;
+  let showHeatmap = true;
+  let showProbe   = false;
+  let probeX, probeY;
+  let dragging    = false;
+
+  /* ── Layout constants (fractions of canvas width) */
+  const LEFT_FRAC  = 0.33;   // x-fraction of left plate
+  const RIGHT_FRAC = 0.67;   // x-fraction of right plate
+  const PLATE_W    = 14;
+
+  /* ── Resize ─────────────────────────────────────── */
+  function resize() {
+    canvas.width  = canvas.offsetWidth;
+    canvas.height = 400;
+    if (probeX == null) {
+      probeX = canvas.width * 0.5;
+      probeY = canvas.height * 0.5;
+    }
+    draw();
+  }
+
+  /* ── Helpers ─────────────────────────────────────── */
+  function leftX()  { return canvas.width  * LEFT_FRAC;  }
+  function rightX() { return canvas.width  * RIGHT_FRAC; }
+
+  /**
+   * Returns the electric field direction and magnitude for a given x position.
+   * E is normalised so that sigma=1 → E=1 (displayed in arbitrary units).
+   */
+  function fieldAt(x) {
+    const lx = leftX();
+    const rx = rightX();
+    if (x < lx) {
+      // Region I: E = 0
+      return { ex: 0, ey: 0, region: 'I' };
+    } else if (x > rx) {
+      // Region III: E = 0
+      return { ex: 0, ey: 0, region: 'III' };
+    } else {
+      // Region II: E = sigma/ε₀ → rightward
+      return { ex: sigma, ey: 0, region: 'II' };
+    }
+  }
+
+  /* ── Draw heatmap ─────────────────────────────────── */
+  function drawHeatmap() {
+    if (!showHeatmap) {
+      ctx.fillStyle = '#0d1117';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      return;
+    }
+    const lx = leftX();
+    const rx = rightX();
+    const W  = canvas.width;
+    const H  = canvas.height;
+
+    // Exterior regions — dark blue tint (E=0)
+    const gradL = ctx.createLinearGradient(0, 0, lx, 0);
+    gradL.addColorStop(0,   'rgba(13,17,23,1)');
+    gradL.addColorStop(1,   'rgba(20,30,60,.8)');
+    ctx.fillStyle = gradL;
+    ctx.fillRect(0, 0, lx, H);
+
+    const gradR = ctx.createLinearGradient(rx, 0, W, 0);
+    gradR.addColorStop(0,   'rgba(20,30,60,.8)');
+    gradR.addColorStop(1,   'rgba(13,17,23,1)');
+    ctx.fillStyle = gradR;
+    ctx.fillRect(rx, 0, W - rx, H);
+
+    // Interior region — warm amber (E ≠ 0), intensity scales with sigma
+    const intensity = Math.min(sigma / 3, 1);
+    const r1 = Math.floor(30  + intensity * 80);
+    const g1 = Math.floor(20  + intensity * 60);
+    const b1 = 10;
+    const gradM = ctx.createLinearGradient(lx, 0, rx, 0);
+    gradM.addColorStop(0,   `rgba(${r1+20},${g1},${b1},.5)`);
+    gradM.addColorStop(0.5, `rgba(${r1+40},${g1+20},${b1},.4)`);
+    gradM.addColorStop(1,   `rgba(${r1+20},${g1},${b1},.5)`);
+    ctx.fillStyle = gradM;
+    ctx.fillRect(lx, 0, rx - lx, H);
+  }
+
+  /* ── Draw grid ─────────────────────────────────────── */
+  function drawGrid() {
+    ctx.strokeStyle = 'rgba(48,54,61,.5)';
+    ctx.lineWidth = 1;
+    const step = 40;
+    for (let x = 0; x < canvas.width; x += step) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += step) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    }
+  }
+
+  /* ── Draw plates ─────────────────────────────────── */
+  function drawPlates() {
+    const H  = canvas.height;
+    const lx = leftX();
+    const rx = rightX();
+    const pw = PLATE_W;
+    const margin = 10;
+
+    // Left plate (+σ) — amber
+    const gleft = ctx.createLinearGradient(lx - pw, 0, lx, 0);
+    gleft.addColorStop(0, '#b87d20');
+    gleft.addColorStop(1, '#f5c060');
+    ctx.fillStyle = gleft;
+    ctx.beginPath();
+    ctx.roundRect(lx - pw/2, margin, pw, H - margin*2, 3);
+    ctx.fill();
+
+    ctx.fillStyle = '#e8a838';
+    ctx.font = 'bold 16px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('+σ', lx, H - 8);
+
+    // Right plate (−σ) — blue
+    const gright = ctx.createLinearGradient(rx, 0, rx + pw, 0);
+    gright.addColorStop(0, '#3a78c9');
+    gright.addColorStop(1, '#2050a0');
+    ctx.fillStyle = gright;
+    ctx.beginPath();
+    ctx.roundRect(rx - pw/2, margin, pw, H - margin*2, 3);
+    ctx.fill();
+
+    ctx.fillStyle = '#5ba3f5';
+    ctx.fillText('−σ', rx, H - 8);
+  }
+
+  /* ── Draw arrow ─────────────────────────────────── */
+  function drawArrow(x1, y, x2, color, thickness) {
+    const headLen = 10 + thickness * 3;
+    ctx.strokeStyle = color;
+    ctx.fillStyle   = color;
+    ctx.lineWidth   = thickness;
+    ctx.lineCap     = 'round';
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y);
+    ctx.lineTo(x2 - headLen * 0.6, y);
+    ctx.stroke();
+
+    // arrowhead
+    ctx.beginPath();
+    ctx.moveTo(x2, y);
+    ctx.lineTo(x2 - headLen, y - headLen * 0.38);
+    ctx.lineTo(x2 - headLen, y + headLen * 0.38);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /* ── Draw field lines ─────────────────────────────── */
+  function drawFieldLines() {
+    const lx = leftX();
+    const rx = rightX();
+    const H  = canvas.height;
+    const n  = arrowDensity;
+    const spacing = H / (n + 1);
+    const arrowLen = (rx - lx) * 0.55;
+    const startX = lx + (rx - lx) * 0.18;
+    const endX   = startX + arrowLen;
+
+    for (let i = 1; i <= n; i++) {
+      const y = i * spacing;
+      const alpha = 0.55 + (sigma / 3) * 0.45;
+      const col = `rgba(88,214,141,${Math.min(alpha,1)})`;
+      const thick = 1.2 + sigma * 0.7;
+      drawArrow(startX, y, endX, col, thick);
+    }
+  }
+
+  /* ── Draw region labels ───────────────────────────── */
+  function drawLabels() {
+    const lx = leftX();
+    const rx = rightX();
+    const W  = canvas.width;
+    const H  = canvas.height;
+
+    ctx.font = '13px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+
+    // Region I
+    ctx.fillStyle = '#3a5a8a';
+    ctx.fillText('REGIÓN I', lx / 2, 28);
+    ctx.fillStyle = '#e05c5c';
+    ctx.fillText('E = 0', lx / 2, 46);
+
+    // Region II
+    ctx.fillStyle = '#c8922a';
+    ctx.fillText('REGIÓN II', (lx + rx) / 2, 28);
+    ctx.fillStyle = '#e8a838';
+    const eVal = sigma.toFixed(2);
+    ctx.fillText(`E = ${eVal}σ/ε₀  →`, (lx + rx) / 2, 46);
+
+    // Region III
+    ctx.fillStyle = '#3a5a8a';
+    ctx.fillText('REGIÓN III', (rx + W) / 2, 28);
+    ctx.fillStyle = '#e05c5c';
+    ctx.fillText('E = 0', (rx + W) / 2, 46);
+  }
+
+  /* ── Draw probe charge ─────────────────────────────── */
+  function drawProbe() {
+    if (!showProbe) return;
+    const field = fieldAt(probeX);
+    const r = 14;
+
+    // glow
+    const grd = ctx.createRadialGradient(probeX, probeY, 0, probeX, probeY, r * 2.5);
+    grd.addColorStop(0, 'rgba(224,92,92,.5)');
+    grd.addColorStop(1, 'rgba(224,92,92,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(probeX, probeY, r * 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // body
+    ctx.fillStyle   = '#e05c5c';
+    ctx.strokeStyle = '#ff8888';
+    ctx.lineWidth   = 2;
+    ctx.beginPath();
+    ctx.arc(probeX, probeY, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // + label
+    ctx.fillStyle  = '#fff';
+    ctx.font       = 'bold 14px serif';
+    ctx.textAlign  = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('+q', probeX, probeY);
+    ctx.textBaseline = 'alphabetic';
+
+    // Force arrow if in region II
+    if (field.ex !== 0) {
+      const forceLen = 50 + sigma * 25;
+      drawArrow(probeX + r + 4, probeY, probeX + r + 4 + forceLen, '#ff9944', 2.5);
+      ctx.fillStyle = '#ff9944';
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('F', probeX + r + 4 + forceLen / 2, probeY - 12);
+    }
+
+    // Update readout
+    if (field.region === 'II') {
+      readout.textContent = `E = ${sigma.toFixed(2)} σ/ε₀  →  (Región II — entre láminas)`;
+      readout.style.color = '#e8a838';
+    } else {
+      readout.textContent = `E = 0  (${field.region === 'I' ? 'Región I — izquierda exterior' : 'Región III — derecha exterior'})`;
+      readout.style.color = '#e05c5c';
+    }
+  }
+
+  /* ── Main draw ─────────────────────────────────────── */
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawHeatmap();
+    drawGrid();
+    drawFieldLines();
+    drawPlates();
+    drawLabels();
+    drawProbe();
+  }
+
+  /* ── Controls ──────────────────────────────────────── */
+  document.getElementById('sigmaSlider').addEventListener('input', function() {
+    sigma = parseFloat(this.value);
+    document.getElementById('sigmaVal').textContent = sigma.toFixed(2);
+    draw();
+  });
+
+  document.getElementById('densitySlider').addEventListener('input', function() {
+    arrowDensity = parseInt(this.value);
+    document.getElementById('densityVal').textContent = arrowDensity;
+    draw();
+  });
+
+  document.getElementById('btnHeatmap').addEventListener('click', function() {
+    showHeatmap = !showHeatmap;
+    this.classList.toggle('active', showHeatmap);
+    draw();
+  });
+
+  document.getElementById('btnProbe').addEventListener('click', function() {
+    showProbe = !showProbe;
+    this.classList.toggle('active', showProbe);
+    if (!showProbe) {
+      readout.textContent = 'Activa la carga de prueba para ver el campo en ese punto.';
+      readout.style.color = '#8b949e';
+    }
+    draw();
+  });
+
+  document.getElementById('btnReset').addEventListener('click', function() {
+    sigma = 1;
+    arrowDensity = 6;
+    showHeatmap  = true;
+    showProbe    = false;
+    document.getElementById('sigmaSlider').value = 1;
+    document.getElementById('sigmaVal').textContent = '1.00';
+    document.getElementById('densitySlider').value = 6;
+    document.getElementById('densityVal').textContent = '6';
+    document.getElementById('btnHeatmap').classList.add('active');
+    document.getElementById('btnProbe').classList.remove('active');
+    probeX = canvas.width  * 0.5;
+    probeY = canvas.height * 0.5;
+    readout.textContent = 'E = 0  (región exterior)';
+    readout.style.color = '#e8a838';
+    draw();
+  });
+
+  /* ── Drag probe ─────────────────────────────────────── */
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if (e.touches) {
+      return {
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top)  * scaleY
+      };
+    }
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top)  * scaleY
+    };
+  }
+
+  function onDown(e) {
+    if (!showProbe) return;
+    const pos = getPos(e);
+    const dx  = pos.x - probeX;
+    const dy  = pos.y - probeY;
+    if (Math.sqrt(dx*dx + dy*dy) < 24) {
+      dragging = true;
+      e.preventDefault();
+    }
+  }
+
+  function onMove(e) {
+    if (!dragging) return;
+    const pos = getPos(e);
+    probeX = Math.max(16, Math.min(canvas.width  - 16, pos.x));
+    probeY = Math.max(16, Math.min(canvas.height - 16, pos.y));
+    draw();
+    e.preventDefault();
+  }
+
+  function onUp() { dragging = false; }
+
+  canvas.addEventListener('mousedown',  onDown);
+  canvas.addEventListener('mousemove',  onMove);
+  canvas.addEventListener('mouseup',    onUp);
+  canvas.addEventListener('touchstart', onDown, { passive: false });
+  canvas.addEventListener('touchmove',  onMove, { passive: false });
+  canvas.addEventListener('touchend',   onUp);
+
+  /* ── Init ─────────────────────────────────────────── */
+  window.addEventListener('resize', resize);
+  resize();
+})();
+</script>
+
+</body>
+</html>

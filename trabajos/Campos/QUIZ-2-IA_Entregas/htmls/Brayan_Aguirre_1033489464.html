@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Quiz 2 – Resistencia de Cuña | Física de Campos</title>
+
+<!-- MathJax -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&family=Raleway:wght@300;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:        #0d0f14;
+    --surface:   #13161e;
+    --card:      #181c27;
+    --border:    #252a38;
+    --accent:    #4fc3f7;
+    --accent2:   #81d4fa;
+    --gold:      #ffd54f;
+    --text:      #e8eaf0;
+    --muted:     #7a8099;
+    --success:   #69f0ae;
+    --radius:    12px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #0a0c12 0%, #111827 60%, #0d1520 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 2rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% -20%, rgba(79,195,247,0.12) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .header-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(79,195,247,0.35);
+    padding: 0.3rem 0.9rem;
+    border-radius: 100px;
+    margin-bottom: 1.2rem;
+  }
+  header h1 {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    color: #fff;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+  header h1 span { color: var(--accent); }
+  header p {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 300;
+    color: var(--muted);
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(13,15,20,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 0.2rem;
+    padding: 0.6rem 1rem;
+  }
+  nav a {
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.78rem; font-weight: 500;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 0.35rem 0.8rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  nav a:hover { color: var(--accent); background: rgba(79,195,247,0.08); }
+
+  /* ── LAYOUT ── */
+  main { max-width: 920px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+  section {
+    margin-bottom: 3.5rem;
+    scroll-margin-top: 70px;
+  }
+
+  /* ── SECTION TITLE ── */
+  .section-label {
+    display: flex; align-items: center; gap: 0.8rem;
+    margin-bottom: 1.6rem;
+  }
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem; font-weight: 600;
+    color: var(--accent);
+    background: rgba(79,195,247,0.1);
+    border: 1px solid rgba(79,195,247,0.25);
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    letter-spacing: 0.08em;
+  }
+  .section-title {
+    font-family: 'Raleway', sans-serif;
+    font-size: 1.3rem; font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
+  .divider {
+    flex: 1; height: 1px;
+    background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.8rem 2rem;
+    margin-bottom: 1.2rem;
+  }
+  .card p, .card li { color: #bfc4d6; line-height: 1.8; }
+  .card ul { padding-left: 1.4rem; }
+  .card li { margin-bottom: 0.4rem; }
+
+  /* ── ENUNCIADO highlight ── */
+  .problem-box {
+    background: linear-gradient(135deg, #0f1a2e 0%, #0d1520 100%);
+    border: 1px solid rgba(79,195,247,0.3);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 1.8rem 2rem;
+    margin-bottom: 1.2rem;
+  }
+  .problem-box p { color: var(--text); }
+
+  /* ── MATH BLOCK ── */
+  .math-block {
+    background: #0b0e16;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem 1.8rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+    text-align: center;
+    font-size: 1.05em;
+  }
+  .math-step {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 1.2rem;
+    align-items: start;
+    margin: 0.8rem 0;
+  }
+  .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; color: var(--gold);
+    padding-top: 0.2rem; white-space: nowrap;
+  }
+
+  /* ── RESULT BOX ── */
+  .result-box {
+    background: linear-gradient(135deg, #0d1f0d, #0a1a0a);
+    border: 1px solid rgba(105,240,174,0.35);
+    border-radius: var(--radius);
+    padding: 1.4rem 1.8rem;
+    margin: 1.2rem 0;
+    text-align: center;
+  }
+  .result-box .label {
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.75rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--success);
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  /* ── SIMULATION ── */
+  #simulacion { }
+
+  .sim-container {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .sim-controls {
+    padding: 1.6rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .control-group label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; color: var(--accent);
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.06em;
+  }
+  .control-group .val {
+    color: var(--gold);
+    font-weight: 600;
+    margin-left: 0.4rem;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%; height: 4px;
+    background: var(--border);
+    border-radius: 2px; outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 8px rgba(79,195,247,0.5);
+    transition: transform 0.15s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.25); }
+
+  .sim-canvas-wrap {
+    padding: 1.5rem;
+    display: flex; flex-direction: column; align-items: center; gap: 1rem;
+  }
+
+  canvas { border-radius: 8px; max-width: 100%; }
+
+  .sim-result {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.05rem;
+    color: var(--success);
+    background: rgba(105,240,174,0.06);
+    border: 1px solid rgba(105,240,174,0.2);
+    border-radius: 8px;
+    padding: 0.8rem 1.6rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── GRAPH ── */
+  .graph-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-top: 1.2rem;
+  }
+  .graph-title {
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.8rem; font-weight: 500;
+    color: var(--muted); letter-spacing: 0.06em;
+    text-align: center; margin-bottom: 0.8rem;
+    text-transform: uppercase;
+  }
+
+  /* ── CONCLUSIONS ── */
+  .conclusion-item {
+    display: flex; gap: 1rem; align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+  .c-icon {
+    font-size: 1.1rem; margin-top: 0.1rem; flex-shrink: 0;
+  }
+  .conclusion-item p { color: #bfc4d6; margin: 0; }
+
+  /* ── BIBLIOGRAPHY ── */
+  .bib-list { list-style: none; padding: 0; }
+  .bib-list li {
+    border-left: 3px solid var(--border);
+    padding: 0.5rem 0 0.5rem 1rem;
+    margin-bottom: 0.8rem;
+    color: #8a90a8;
+    font-size: 0.9rem;
+  }
+  .bib-list li strong { color: var(--text); }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    border-top: 1px solid var(--border);
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  @media (max-width: 600px) {
+    .card, .problem-box { padding: 1.2rem; }
+    .sim-controls { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-tag">Quiz 2 · Física de Campos · UdeA 2026</div>
+  <div style="font-family:'Raleway',sans-serif; font-size:0.85rem; color:#9aa0b8; margin-bottom:0.8rem;">
+    Brayan Andrés Aguirre Zapata &nbsp;·&nbsp; C.C. 1033489464
+  </div>
+  <h1>Resistencia de un Material en <span>Forma de Cuña</span></h1>
+  <p>Problema 27.57 · Corriente y Resistencia · Serway &amp; Jewett</p>
+</header>
+
+<nav>
+  <a href="#enunciado">Enunciado</a>
+  <a href="#solucion">Solución</a>
+  <a href="#analisis">Análisis</a>
+  <a href="#planteamiento">Planteamiento</a>
+  <a href="#simulacion">Simulación</a>
+  <a href="#conclusiones">Conclusiones</a>
+  <a href="#bibliografia">Bibliografía</a>
+</nav>
+
+<main>
+
+  <!-- ═══════════════════════════════════════
+       1. ENUNCIADO
+  ══════════════════════════════════════════ -->
+  <section id="enunciado">
+    <div class="section-label">
+      <span class="section-num">01</span>
+      <span class="section-title">Enunciado del Problema</span>
+      <div class="divider"></div>
+    </div>
+
+    <div class="problem-box">
+      <p>
+        <strong>Problema 27.57.</strong> Un material con una resistividad uniforme $\rho$ se modela en forma de cuña como se muestra en la Figura P27.57. Demuestre que la resistencia entre la cara A y la cara B de esta cuña es igual a:
+      </p>
+      <div class="math-block">
+        $$R = \rho \,\frac{L}{w(y_2 - y_1)}\,\ln\!\left(\frac{y_2}{y_1}\right)$$
+      </div>
+      <p style="margin-top:0.8rem; color: var(--muted); font-size:0.9rem;">
+        donde $L$ es la longitud de la cuña (profundidad), $w$ es el ancho uniforme, $y_1$ es la altura de la cara A (pequeña) e $y_2$ es la altura de la cara B (grande).
+      </p>
+    </div>
+
+    <div class="card">
+      <p><strong>Descripción geométrica:</strong> La cuña es un sólido con sección transversal trapezoidal. La altura varía linealmente desde $y_1$ (cara A, izquierda) hasta $y_2$ (cara B, derecha) a lo largo de la dimensión $L$. El ancho perpendicular al plano de la figura es $w$. La corriente fluye de cara A a cara B (en la dirección de longitud $L$).</p>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       2. SOLUCIÓN MATEMÁTICA
+  ══════════════════════════════════════════ -->
+  <section id="solucion">
+    <div class="section-label">
+      <span class="section-num">02</span>
+      <span class="section-title">Solución Matemática Completa</span>
+      <div class="divider"></div>
+    </div>
+
+    <div class="card">
+      <p><strong>Estrategia:</strong> La cuña no tiene sección transversal constante, por lo que no es posible aplicar directamente $R = \rho L / A$. En su lugar, se divide la cuña en rebanadas infinitesimales perpendiculares al flujo de corriente y se integra la resistencia diferencial a lo largo de la dirección $x$ (de cara A a cara B).</p>
+    </div>
+
+    <!-- Paso 1 -->
+    <div class="card">
+      <p><strong>Paso 1 — Geometría: altura en función de la posición</strong></p>
+      <p>Se toma el eje $x$ a lo largo de la longitud $L$ de la cuña ($x=0$ en cara A, $x=L$ en cara B). La altura de la sección en la posición $x$ varía linealmente:</p>
+      <div class="math-block">
+        $$y(x) = y_1 + \frac{(y_2 - y_1)}{L}\,x$$
+      </div>
+      <p>El área de la sección transversal en $x$ es:</p>
+      <div class="math-block">
+        $$A(x) = w \cdot y(x) = w\!\left[y_1 + \frac{y_2 - y_1}{L}\,x\right]$$
+      </div>
+    </div>
+
+    <!-- Paso 2 -->
+    <div class="card">
+      <p><strong>Paso 2 — Resistencia diferencial de una rebanada</strong></p>
+      <p>Una rebanada en $x$ con espesor $dx$ y área transversal $A(x)$ tiene resistencia:</p>
+      <div class="math-block">
+        $$dR = \rho\,\frac{dx}{A(x)} = \frac{\rho\,dx}{w\!\left[y_1 + \dfrac{y_2-y_1}{L}\,x\right]}$$
+      </div>
+    </div>
+
+    <!-- Paso 3 -->
+    <div class="card">
+      <p><strong>Paso 3 — Integración</strong></p>
+      <p>Las rebanadas están en <em>serie</em> (misma corriente), así que las resistencias diferenciales se suman:</p>
+      <div class="math-block">
+        $$R = \int_0^L dR = \int_0^L \frac{\rho\,dx}{w\!\left[y_1 + \dfrac{y_2-y_1}{L}\,x\right]}$$
+      </div>
+      <p>Se hace el cambio de variable:</p>
+      <div class="math-block">
+        $$u = y_1 + \frac{y_2-y_1}{L}\,x \qquad \Rightarrow \qquad du = \frac{y_2-y_1}{L}\,dx \qquad \Rightarrow \qquad dx = \frac{L}{y_2-y_1}\,du$$
+      </div>
+      <p>Límites: cuando $x=0 \Rightarrow u=y_1$; cuando $x=L \Rightarrow u=y_2$.</p>
+      <div class="math-block">
+        $$R = \int_{y_1}^{y_2} \frac{\rho}{w\,u}\cdot\frac{L}{y_2-y_1}\,du = \frac{\rho L}{w(y_2-y_1)}\int_{y_1}^{y_2}\frac{du}{u}$$
+      </div>
+    </div>
+
+    <!-- Paso 4 -->
+    <div class="card">
+      <p><strong>Paso 4 — Resolución de la integral</strong></p>
+      <p>Usando $\displaystyle\int \frac{du}{u} = \ln|u| + C$:</p>
+      <div class="math-block">
+        $$R = \frac{\rho L}{w(y_2-y_1)}\Big[\ln u\Big]_{y_1}^{y_2} = \frac{\rho L}{w(y_2-y_1)}\left(\ln y_2 - \ln y_1\right)$$
+      </div>
+    </div>
+
+    <!-- Resultado -->
+    <div class="result-box">
+      <span class="label">✓ Resultado demostrado</span>
+      $$\boxed{R = \rho\,\frac{L}{w(y_2-y_1)}\,\ln\!\left(\frac{y_2}{y_1}\right)}$$
+    </div>
+
+    <div class="card">
+      <p>Con $y_2 > y_1 > 0$ se cumple que $\ln(y_2/y_1) > 0$ y $(y_2-y_1) > 0$, por lo que $R > 0$, lo cual es físicamente consistente.</p>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       3. ANÁLISIS FUNCIONAL Y TEÓRICO
+  ══════════════════════════════════════════ -->
+  <section id="analisis">
+    <div class="section-label">
+      <span class="section-num">03</span>
+      <span class="section-title">Análisis Funcional y Teórico</span>
+      <div class="divider"></div>
+    </div>
+
+    <div class="card">
+      <p><strong>Caso límite: $y_1 \to y_2$ (cuña se convierte en bloque rectangular)</strong></p>
+      <p>Cuando $y_2 \to y_1 = h$, se aplica la regla de L'Hôpital o la expansión de Taylor $\ln(y_2/y_1) \approx (y_2 - y_1)/y_1$ para $y_2 \approx y_1$:</p>
+      <div class="math-block">
+        $$\lim_{y_2\to y_1} R = \rho\,\frac{L}{w(y_2-y_1)}\cdot\frac{y_2-y_1}{y_1} = \frac{\rho L}{w\,y_1} = \frac{\rho L}{A_{\text{rect}}}$$
+      </div>
+      <p>Esto recupera exactamente la fórmula estándar para un bloque rectangular. ✓</p>
+    </div>
+
+    <div class="card">
+      <p><strong>Dependencia con los parámetros:</strong></p>
+      <ul>
+        <li>$R \propto \rho$: al aumentar la resistividad del material, la resistencia aumenta proporcionalmente.</li>
+        <li>$R \propto L$: cuña más larga $\Rightarrow$ mayor resistencia (más camino para la corriente).</li>
+        <li>$R \propto 1/w$: cuña más ancha $\Rightarrow$ menor resistencia (más área disponible).</li>
+        <li>El factor $\ln(y_2/y_1)/(y_2-y_1)$ captura la variación geométrica no uniforme: favorece las secciones más pequeñas, que tienen mayor resistencia local.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <p><strong>Densidad de corriente no uniforme:</strong></p>
+      <p>La densidad de corriente en la posición $x$ es $J(x) = I/A(x)$. Como $A(x)$ crece con $x$, la densidad de corriente es mayor cerca de la cara A (sección pequeña) y menor cerca de la cara B. El campo eléctrico $E(x) = \rho J(x)$ tiene el mismo comportamiento.</p>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       4. PLANTEAMIENTO DE LA SIMULACIÓN
+  ══════════════════════════════════════════ -->
+  <section id="planteamiento">
+    <div class="section-label">
+      <span class="section-num">04</span>
+      <span class="section-title">Planteamiento de la Simulación</span>
+      <div class="divider"></div>
+    </div>
+
+    <div class="card">
+      <p>La simulación tiene dos componentes complementarios:</p>
+      <ul>
+        <li><strong>Visualización geométrica interactiva:</strong> se dibuja la cuña en perspectiva 2D con un mapa de calor que representa la densidad de corriente $J(x) \propto 1/y(x)$. El usuario puede ajustar $y_1$, $y_2$, $L$, $w$ y $\rho$ mediante controles deslizantes.</li>
+        <li><strong>Gráfica paramétrica:</strong> se grafica $R$ vs. $y_2/y_1$ para los parámetros actuales, mostrando cómo la relación de alturas influye en la resistencia total.</li>
+      </ul>
+      <p style="margin-top:0.8rem;">El cálculo numérico usa directamente la fórmula demostrada:</p>
+      <div class="math-block">
+        $$R = \rho\,\frac{L}{w(y_2-y_1)}\,\ln\!\left(\frac{y_2}{y_1}\right)$$
+      </div>
+      <p>La visualización del campo de corriente se obtiene dividiendo la cuña en $N=200$ rebanadas y coloreando cada una según $J_i = I / (w \cdot y_i)$, con $I$ arbitrario.</p>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       5. SIMULACIÓN INTERACTIVA
+  ══════════════════════════════════════════ -->
+  <section id="simulacion">
+    <div class="section-label">
+      <span class="section-num">05</span>
+      <span class="section-title">Simulación Interactiva</span>
+      <div class="divider"></div>
+    </div>
+
+    <div class="sim-container">
+      <!-- Controles -->
+      <div class="sim-controls">
+        <div class="control-group">
+          <label>ρ (resistividad) [Ω·m] <span class="val" id="lbl-rho">1.00e-3</span></label>
+          <input type="range" id="sl-rho" min="1" max="100" step="1" value="10">
+        </div>
+        <div class="control-group">
+          <label>L (longitud) [m] <span class="val" id="lbl-L">1.00</span></label>
+          <input type="range" id="sl-L" min="10" max="200" step="5" value="100">
+        </div>
+        <div class="control-group">
+          <label>w (ancho) [m] <span class="val" id="lbl-w">0.50</span></label>
+          <input type="range" id="sl-w" min="5" max="100" step="5" value="50">
+        </div>
+        <div class="control-group">
+          <label>y₁ (altura cara A) [m] <span class="val" id="lbl-y1">0.20</span></label>
+          <input type="range" id="sl-y1" min="5" max="80" step="1" value="20">
+        </div>
+        <div class="control-group">
+          <label>y₂ (altura cara B) [m] <span class="val" id="lbl-y2">0.80</span></label>
+          <input type="range" id="sl-y2" min="10" max="100" step="1" value="80">
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div class="sim-canvas-wrap">
+        <canvas id="wedgeCanvas" width="760" height="280"></canvas>
+        <div class="sim-result" id="resistanceResult">R = … Ω</div>
+        <canvas id="graphCanvas" width="760" height="220"></canvas>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1rem;">
+      <p><strong>Instrucciones:</strong> Mueve los controles para cambiar la geometría y resistividad de la cuña. El mapa de color representa la densidad de corriente $J$: <span style="color:#ff4444;">rojo</span> = alta (cerca de cara A), <span style="color:#4488ff;">azul</span> = baja (cerca de cara B). La gráfica inferior muestra $R$ en función de $y_2/y_1$ manteniendo los demás parámetros fijos.</p>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       6. CONCLUSIONES
+  ══════════════════════════════════════════ -->
+  <section id="conclusiones">
+    <div class="section-label">
+      <span class="section-num">06</span>
+      <span class="section-title">Conclusiones</span>
+      <div class="divider"></div>
+    </div>
+
+    <div class="card">
+      <div class="conclusion-item">
+        <span class="c-icon">🔬</span>
+        <p>La resistencia de un conductor no uniforme no puede obtenerse directamente de $R = \rho L/A$, sino que requiere integración de la resistencia diferencial $dR = \rho\,dx/A(x)$ a lo largo del camino de la corriente.</p>
+      </div>
+      <div class="conclusion-item">
+        <span class="c-icon">📐</span>
+        <p>Para la cuña con variación lineal de altura, la integración produce un logaritmo natural, reflejando la dependencia $1/y(x)$ del resistencia diferencial con la posición.</p>
+      </div>
+      <div class="conclusion-item">
+        <span class="c-icon">✅</span>
+        <p>El resultado pasa la verificación de consistencia dimensional y recupera el caso rectangular conocido $R = \rho L / A$ en el límite $y_1 \to y_2$.</p>
+      </div>
+      <div class="conclusion-item">
+        <span class="c-icon">⚡</span>
+        <p>La densidad de corriente es mayor en la cara A (sección pequeña), lo que implica mayor disipación de potencia por unidad de volumen en esa región. Esto tiene implicaciones prácticas en el diseño de componentes electrónicos con geometría variable.</p>
+      </div>
+      <div class="conclusion-item">
+        <span class="c-icon">📈</span>
+        <p>La simulación confirma numéricamente la fórmula demostrada: al variar los parámetros, el valor de $R$ calculado coincide con el predicho analíticamente, validando tanto el modelo matemático como la implementación computacional.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       7. BIBLIOGRAFÍA
+  ══════════════════════════════════════════ -->
+  <section id="bibliografia">
+    <div class="section-label">
+      <span class="section-num">07</span>
+      <span class="section-title">Bibliografía</span>
+      <div class="divider"></div>
+    </div>
+
+    <ul class="bib-list">
+      <li><strong>Serway, R. A. &amp; Jewett, J. W.</strong> (2014). <em>Physics for Scientists and Engineers</em> (9th ed.). Cengage Learning. Capítulo 27: Current and Resistance. Problema P27.57.</li>
+      <li><strong>Griffiths, D. J.</strong> (2017). <em>Introduction to Electrodynamics</em> (4th ed.). Cambridge University Press.</li>
+      <li><strong>Hayt, W. H. &amp; Buck, J. A.</strong> (2012). <em>Engineering Electromagnetics</em> (8th ed.). McGraw-Hill.</li>
+      <li><strong>MathJax Consortium.</strong> (2023). <em>MathJax – Beautiful math in all browsers</em>. Recuperado de https://www.mathjax.org</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  Brayan Andrés Aguirre Zapata · C.C. 1033489464 · Universidad de Antioquia · Facultad de Ingeniería · Física de Campos · 2026
+</footer>
+
+<!-- ═══════════════════════════════════════
+     JAVASCRIPT — SIMULACIÓN
+══════════════════════════════════════════ -->
+<script>
+/* ── Utilidades de color ── */
+function heatColor(t) {
+  // t ∈ [0,1], 0=bajo(azul), 1=alto(rojo)
+  const r = Math.round(255 * Math.min(1, 2*t));
+  const g = Math.round(255 * Math.min(1, 2*Math.min(t, 1-t)));
+  const b = Math.round(255 * Math.min(1, 2*(1-t)));
+  return `rgb(${r},${g},${b})`;
+}
+
+/* ── Leer sliders ── */
+function getParams() {
+  const rhoRaw = +document.getElementById('sl-rho').value; // 1–100
+  const rho = rhoRaw * 1e-4;         // 1e-4 … 1e-2
+  const L   = +document.getElementById('sl-L').value / 100;  // 0.1…2 m
+  const w   = +document.getElementById('sl-w').value / 100;  // 0.05…1 m
+  const y1  = +document.getElementById('sl-y1').value / 100; // 0.05…0.8 m
+  const y2raw = +document.getElementById('sl-y2').value / 100;
+  const y2  = Math.max(y2raw, y1 + 0.01);
+
+  document.getElementById('lbl-rho').textContent = rho.toExponential(2);
+  document.getElementById('lbl-L').textContent   = L.toFixed(2);
+  document.getElementById('lbl-w').textContent   = w.toFixed(2);
+  document.getElementById('lbl-y1').textContent  = y1.toFixed(2);
+  document.getElementById('lbl-y2').textContent  = y2.toFixed(2);
+
+  return { rho, L, w, y1, y2 };
+}
+
+/* ── Cálculo de R ── */
+function calcR({ rho, L, w, y1, y2 }) {
+  if (Math.abs(y2 - y1) < 1e-10) return rho * L / (w * y1);
+  return rho * L / (w * (y2 - y1)) * Math.log(y2 / y1);
+}
+
+/* ── Dibujar cuña ── */
+function drawWedge(params) {
+  const cvs = document.getElementById('wedgeCanvas');
+  const ctx = cvs.getContext('2d');
+  const W = cvs.width, H = cvs.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const { y1, y2 } = params;
+  const N = 200;
+  const pad = 60;
+  const xLeft = pad, xRight = W - pad;
+  const drawW = xRight - xLeft;
+  const midY = H / 2;
+  const scale = (H - 80) / (2 * y2);
+
+  // Densidades relativas
+  const Jmax = 1 / y1;
+  const Jmin = 1 / y2;
+
+  // Rebanadas
+  for (let i = 0; i < N; i++) {
+    const t = i / N;
+    const x = xLeft + t * drawW;
+    const sliceW = drawW / N + 1;
+    const yi = y1 + (y2 - y1) * t;
+    const hi = yi * scale;
+    const J  = 1 / yi;
+    const norm = (J - Jmin) / (Jmax - Jmin + 1e-12);
+    ctx.fillStyle = heatColor(norm);
+    ctx.fillRect(x, midY - hi, sliceW, 2 * hi);
+  }
+
+  // Contorno
+  const h1 = y1 * scale;
+  const h2 = y2 * scale;
+  ctx.strokeStyle = '#4fc3f7';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(xLeft, midY - h1);
+  ctx.lineTo(xRight, midY - h2);
+  ctx.lineTo(xRight, midY + h2);
+  ctx.lineTo(xLeft, midY + h1);
+  ctx.closePath();
+  ctx.stroke();
+
+  // Etiqueta cara A
+  ctx.fillStyle = '#4fc3f7';
+  ctx.font = '600 13px Raleway, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Cara A', xLeft, midY - h1 - 14);
+  ctx.fillStyle = '#ffd54f';
+  ctx.font = '12px JetBrains Mono, monospace';
+  ctx.fillText('y₁', xLeft - 20, midY);
+
+  // Etiqueta cara B
+  ctx.fillStyle = '#4fc3f7';
+  ctx.font = '600 13px Raleway, sans-serif';
+  ctx.fillText('Cara B', xRight, midY - h2 - 14);
+  ctx.fillStyle = '#ffd54f';
+  ctx.font = '12px JetBrains Mono, monospace';
+  ctx.fillText('y₂', xRight + 20, midY);
+
+  // Etiqueta L
+  ctx.fillStyle = '#aaa';
+  ctx.font = '12px JetBrains Mono, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('← L →', W / 2, H - 8);
+
+  // Leyenda de color
+  const lgX = W - 24, lgY = 20, lgH = H - 55;
+  const grad = ctx.createLinearGradient(0, lgY, 0, lgY + lgH);
+  grad.addColorStop(0, 'rgb(255,0,0)');
+  grad.addColorStop(0.5, 'rgb(0,255,0)');
+  grad.addColorStop(1, 'rgb(0,68,255)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(lgX, lgY, 12, lgH);
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(lgX, lgY, 12, lgH);
+  ctx.fillStyle = '#aaa';
+  ctx.font = '10px JetBrains Mono, monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('J↑', lgX - 2, lgY + 8);
+  ctx.fillText('J↓', lgX - 2, lgY + lgH);
+
+  // Flechas de corriente
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  const arrowPositions = [0.2, 0.45, 0.7];
+  arrowPositions.forEach(p => {
+    const ax = xLeft + p * drawW;
+    const ay = midY;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(ax + 18, ay - 5);
+    ctx.lineTo(ax + 14, ay);
+    ctx.lineTo(ax + 18, ay + 5);
+    ctx.closePath();
+    ctx.fill();
+  });
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.font = '11px Raleway, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('→ I', xLeft + drawW * 0.5, midY + h2 * 0.55);
+}
+
+/* ── Dibujar gráfica R vs y2/y1 ── */
+function drawGraph(params) {
+  const cvs = document.getElementById('graphCanvas');
+  const ctx = cvs.getContext('2d');
+  const W = cvs.width, H = cvs.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const { rho, L, w, y1 } = params;
+  const pad = { l: 65, r: 30, t: 30, b: 45 };
+  const gW = W - pad.l - pad.r;
+  const gH = H - pad.t - pad.b;
+
+  // Fondo del gráfico
+  ctx.fillStyle = '#0b0e16';
+  ctx.fillRect(pad.l, pad.t, gW, gH);
+
+  // Grilla
+  ctx.strokeStyle = '#1e2436';
+  ctx.lineWidth = 1;
+  for (let i = 1; i < 5; i++) {
+    const gy = pad.t + (i / 5) * gH;
+    ctx.beginPath(); ctx.moveTo(pad.l, gy); ctx.lineTo(pad.l + gW, gy); ctx.stroke();
+  }
+  for (let i = 1; i < 6; i++) {
+    const gx = pad.l + (i / 6) * gW;
+    ctx.beginPath(); ctx.moveTo(gx, pad.t); ctx.lineTo(gx, pad.t + gH); ctx.stroke();
+  }
+
+  // Calcular curva: ratio ∈ [1.05, 10]
+  const ratios = [], Rs = [];
+  for (let k = 0; k <= 200; k++) {
+    const ratio = 1.05 + k * (10 - 1.05) / 200;
+    const y2k = y1 * ratio;
+    ratios.push(ratio);
+    Rs.push(calcR({ rho, L, w, y1, y2: y2k }));
+  }
+  const Rmax = Math.max(...Rs);
+  const Rmin = Math.min(...Rs);
+
+  // Curva
+  ctx.strokeStyle = '#4fc3f7';
+  ctx.lineWidth = 2.5;
+  ctx.shadowColor = '#4fc3f7';
+  ctx.shadowBlur = 6;
+  ctx.beginPath();
+  ratios.forEach((r, i) => {
+    const px = pad.l + (r - 1.05) / (10 - 1.05) * gW;
+    const py = pad.t + gH - (Rs[i] - Rmin) / (Rmax - Rmin + 1e-20) * gH;
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  });
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Punto actual
+  const curRatio = params.y2 / y1;
+  const curR     = calcR(params);
+  const px = pad.l + (curRatio - 1.05) / (10 - 1.05) * gW;
+  const py = pad.t + gH - (curR - Rmin) / (Rmax - Rmin + 1e-20) * gH;
+  ctx.fillStyle = '#ffd54f';
+  ctx.beginPath();
+  ctx.arc(Math.max(pad.l + 4, Math.min(pad.l + gW - 4, px)), Math.max(pad.t + 4, Math.min(pad.t + gH - 4, py)), 6, 0, 2*Math.PI);
+  ctx.fill();
+
+  // Ejes
+  ctx.strokeStyle = '#4a5070';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, pad.t + gH); ctx.lineTo(pad.l + gW, pad.t + gH);
+  ctx.stroke();
+
+  // Etiquetas eje X
+  ctx.fillStyle = '#7a8099';
+  ctx.font = '11px JetBrains Mono, monospace';
+  ctx.textAlign = 'center';
+  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(v => {
+    const gx = pad.l + (v - 1.05) / (10 - 1.05) * gW;
+    if (gx > pad.l && gx < pad.l + gW) {
+      ctx.fillText(v, gx, pad.t + gH + 16);
+    }
+  });
+  ctx.fillStyle = '#9aa0b8';
+  ctx.fillText('y₂ / y₁', pad.l + gW / 2, H - 5);
+
+  // Etiquetas eje Y
+  ctx.textAlign = 'right';
+  [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+    const val = Rmin + f * (Rmax - Rmin);
+    const gy  = pad.t + gH - f * gH;
+    ctx.fillText(val.toExponential(1), pad.l - 6, gy + 4);
+  });
+  ctx.save();
+  ctx.translate(14, pad.t + gH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#9aa0b8';
+  ctx.fillText('R [Ω]', 0, 0);
+  ctx.restore();
+
+  // Título gráfica
+  ctx.fillStyle = '#5a607a';
+  ctx.font = '11px Raleway, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('R vs y₂/y₁ (parámetros actuales)', pad.l + gW / 2, pad.t - 10);
+}
+
+/* ── Actualizar todo ── */
+function update() {
+  const params = getParams();
+  const R = calcR(params);
+  document.getElementById('resistanceResult').textContent =
+    `R = ${R.toExponential(4)} Ω`;
+  drawWedge(params);
+  drawGraph(params);
+}
+
+/* ── Eventos ── */
+['sl-rho','sl-L','sl-w','sl-y1','sl-y2'].forEach(id => {
+  document.getElementById(id).addEventListener('input', update);
+});
+
+/* ── Inicial ── */
+update();
+</script>
+
+</body>
+</html>

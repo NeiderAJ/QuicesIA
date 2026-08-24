@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ejercicio 58 — Envolvente Esférica | Resistencia Radial</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600&display=swap');
+
+  :root {
+    --bg: #0e0f11;
+    --bg2: #14161a;
+    --bg3: #1c1f25;
+    --panel: #1f2229;
+    --border: #2e323c;
+    --accent: #c8a96e;
+    --accent2: #7eb8d4;
+    --accent3: #a3c99a;
+    --text: #e8e4dc;
+    --muted: #8a8880;
+    --dim: #5a5856;
+    --red: #d9735a;
+    --serif: 'Source Serif 4', Georgia, serif;
+    --display: 'Playfair Display', Georgia, serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 17px;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 0 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%; transform: translateX(-50%);
+    width: 500px; height: 200px;
+    background: radial-gradient(ellipse, rgba(200,169,110,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+  header h1 {
+    font-family: var(--display);
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.15;
+    margin-bottom: 0.6rem;
+  }
+  header h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  header p {
+    color: var(--muted);
+    font-size: 15px;
+    font-family: var(--mono);
+  }
+
+  /* ─── NAVIGATION ─── */
+  nav {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 0;
+    justify-content: center;
+    overflow-x: auto;
+  }
+  nav a {
+    display: block;
+    padding: 0.9rem 1.2rem;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+  }
+  nav a:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ─── MAIN LAYOUT ─── */
+  main { max-width: 860px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+  /* ─── SECTIONS ─── */
+  .section {
+    padding: 3.5rem 0 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .section:last-of-type { border-bottom: none; }
+
+  .section-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .section-tag::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  h2 {
+    font-family: var(--display);
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    line-height: 1.25;
+  }
+  h3 {
+    font-family: var(--display);
+    font-size: 1.2rem;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--accent);
+    margin: 2rem 0 0.8rem;
+  }
+
+  p { margin-bottom: 1.2rem; color: var(--text); }
+
+  /* ─── PROBLEM BOX ─── */
+  .problem-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 1.8rem 2rem;
+    margin: 1.5rem 0;
+    font-size: 16px;
+    line-height: 1.8;
+  }
+  .problem-number {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  /* ─── MATH BLOCKS ─── */
+  .math-block {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.5rem 2rem;
+    margin: 1.2rem 0;
+    overflow-x: auto;
+    text-align: center;
+  }
+  .math-block .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    text-align: right;
+    margin-top: 0.5rem;
+    letter-spacing: 0.1em;
+  }
+
+  /* ─── DERIVATION STEPS ─── */
+  .step {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    gap: 0 1.2rem;
+    align-items: start;
+    margin: 1.5rem 0;
+  }
+  .step-num {
+    width: 2rem; height: 2rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 0.2rem;
+  }
+  .step-content p { margin-bottom: 0.5rem; }
+
+  /* ─── RESULT BOX ─── */
+  .result-box {
+    background: linear-gradient(135deg, rgba(200,169,110,0.06), rgba(126,184,212,0.04));
+    border: 1px solid rgba(200,169,110,0.35);
+    border-radius: 6px;
+    padding: 2rem 2.5rem;
+    margin: 2rem 0;
+    text-align: center;
+  }
+  .result-box .result-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  /* ─── ANALYSIS TABLE ─── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+    margin: 1.5rem 0;
+  }
+  th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 1rem;
+    text-align: left;
+  }
+  td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid rgba(46,50,60,0.5);
+    color: var(--text);
+    font-size: 15px;
+  }
+  tr:last-child td { border-bottom: none; }
+  .mono { font-family: var(--mono); font-size: 13px; color: var(--accent2); }
+
+  /* ─── SIMULATION ─── */
+  .sim-wrapper {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+  .sim-header {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 0.9rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .sim-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .sim-title { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em; }
+
+  .sim-controls {
+    padding: 1.2rem 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  @media(max-width:600px){ .sim-controls { grid-template-columns: 1fr; } }
+
+  .ctrl-group label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+  }
+  .ctrl-row { display: flex; align-items: center; gap: 0.8rem; }
+  .ctrl-row input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+  .ctrl-row input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .ctrl-row input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+  .ctrl-val {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    min-width: 3.5rem;
+    text-align: right;
+  }
+
+  .sim-canvas-wrap {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+  }
+
+  canvas { display: block; max-width: 100%; }
+
+  .readout-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+  .readout {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.7rem 1.2rem;
+    text-align: center;
+    min-width: 140px;
+    flex: 1;
+  }
+  .readout-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 0.3rem;
+  }
+  .readout-val {
+    font-family: var(--mono);
+    font-size: 16px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* ─── GRAPH ─── */
+  .graph-canvas-wrap {
+    padding: 1rem 1.5rem 1.5rem;
+  }
+
+  /* ─── TIP BUTTON ─── */
+  .tip {
+    display:inline-flex;align-items:center;justify-content:center;
+    width:14px;height:14px;border-radius:50%;
+    background:var(--border);color:var(--muted);
+    font-size:9px;font-family:var(--mono);font-weight:500;
+    cursor:pointer;margin-left:4px;vertical-align:middle;
+    border:1px solid var(--dim);transition:background 0.15s;
+  }
+  .tip:hover{background:var(--accent);color:var(--bg);}
+
+  /* ─── READOUT FORMULA ─── */
+  .readout-formula {
+    font-family:var(--mono);font-size:9px;color:var(--dim);
+    margin-bottom:0.3rem;line-height:1.3;
+  }
+
+  /* ─── SIM RESPONSIVE ─── */
+  @media(max-width:560px){
+    #sim-row { grid-template-columns:1fr !important; }
+    .readouts-grid { grid-template-columns:1fr 1fr !important; }
+  }
+
+  /* ─── CONCLUSIONS ─── */
+  .conclusion-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+  }
+  .conclusion-list li {
+    padding: 0.8rem 0 0.8rem 1.8rem;
+    border-bottom: 1px solid rgba(46,50,60,0.5);
+    position: relative;
+    font-size: 16px;
+    color: var(--text);
+  }
+  .conclusion-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-family: var(--mono);
+  }
+  .conclusion-list li:last-child { border-bottom: none; }
+
+  /* ─── BIBLIOGRAPHY ─── */
+  .bib-item {
+    padding: 0.6rem 0 0.6rem 2rem;
+    border-bottom: 1px solid rgba(46,50,60,0.4);
+    font-size: 15px;
+    color: var(--muted);
+    position: relative;
+  }
+  .bib-item::before {
+    content: attr(data-n);
+    position: absolute;
+    left: 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+  }
+  .bib-item:last-child { border-bottom: none; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    text-align: center;
+    padding: 2rem;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 0.1em;
+  }
+
+  /* ─── MathJax override ─── */
+  .MathJax { color: var(--text) !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">Física de Campos · Quiz 2 · Universidad de Antioquia</div>
+  <h1>Envolvente <em>Esférica</em><br>con Corriente Radial</h1>
+  <p>Ejercicio 58 — Demostración de la Resistencia de una Cáscara Esférica</p>
+  <p style="margin-top:0.8rem; font-family:var(--display); font-style:italic; font-size:1.1rem; color:var(--accent); letter-spacing:0.03em;">Isabella Valencia Ramírez</p>
+</header>
+
+<nav>
+  <ul>
+    <li><a href="#enunciado">Enunciado</a></li>
+    <li><a href="#solucion">Solución</a></li>
+    <li><a href="#analisis">Análisis</a></li>
+    <li><a href="#simulacion">Simulación</a></li>
+    <li><a href="#conclusiones">Conclusiones</a></li>
+    <li><a href="#bibliografia">Bibliografía</a></li>
+  </ul>
+</nav>
+
+<main>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!--  1. ENUNCIADO                                           -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="enunciado">
+  <div class="section-tag">01 &nbsp; Enunciado del problema</div>
+  <h2>Cáscara esférica conductora</h2>
+
+  <div class="problem-box">
+    <div class="problem-number">Problema 58 — Capítulo: Corriente y Resistencia</div>
+    <p>
+      Una envolvente esférica, con radio interior \(r_a\) y radio exterior \(r_b\), se forma a partir
+      de un material de resistividad \(\rho\). Porta corriente radialmente, con densidad uniforme
+      en todas las direcciones.
+    </p>
+    <p>Demuestre que su resistencia es:</p>
+    <div class="math-block">
+      $$R \;=\; \frac{\rho}{4\pi}\!\left(\frac{1}{r_a} - \frac{1}{r_b}\right)$$
+    </div>
+  </div>
+
+  <h3>Hipótesis y contexto físico</h3>
+  <p>
+    La cáscara está formada por material óhmico con resistividad \(\rho\) uniforme.
+    La corriente fluye en dirección puramente radial —desde la superficie interior de radio \(r_a\)
+    hacia la superficie exterior de radio \(r_b\) (o viceversa)— con simetría esférica completa.
+    Esto implica que las superficies equipotenciales son esferas concéntricas.
+  </p>
+  <p>
+    El problema es equivalente a conectar en serie infinitas cáscaras esféricas delgadas, cada una
+    con resistencia diferencial \(dR\). La resistencia total es la integral de estas contribuciones
+    entre \(r_a\) y \(r_b\).
+  </p>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!--  2. SOLUCIÓN MATEMÁTICA                                 -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="solucion">
+  <div class="section-tag">02 &nbsp; Solución matemática completa</div>
+  <h2>Derivación paso a paso</h2>
+
+  <!-- PASO 1 -->
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <h3>Resistencia de un elemento diferencial esférico</h3>
+      <p>
+        Consideremos una capa delgada de material a radio \(r\), con espesor infinitesimal \(dr\).
+        Esta capa es una cáscara esférica de área superficial:
+      </p>
+      <div class="math-block">
+        $$A(r) = 4\pi r^2$$
+        <div class="label">Área de la esfera de radio r</div>
+      </div>
+      <p>
+        Usando la definición estándar de resistencia para un tramo conductor de longitud \(dr\),
+        sección transversal \(A\) y resistividad \(\rho\):
+      </p>
+      <div class="math-block">
+        $$dR = \rho\,\frac{dr}{A(r)} = \rho\,\frac{dr}{4\pi r^2} = \frac{\rho}{4\pi}\,\frac{dr}{r^2}$$
+        <div class="label">Resistencia del elemento diferencial de cáscara a radio r</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 2 -->
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <h3>Integración a lo largo de la dirección radial</h3>
+      <p>
+        Dado que la corriente fluye radialmente y la estructura tiene simetría esférica,
+        todas las capas diferenciales se encuentran en <em>serie</em>. La resistencia total
+        es la integral de \(dR\) desde \(r_a\) hasta \(r_b\):
+      </p>
+      <div class="math-block">
+        $$R \;=\; \int_{r_a}^{r_b} dR \;=\; \int_{r_a}^{r_b} \frac{\rho}{4\pi}\,\frac{dr}{r^2}$$
+        <div class="label">Resistencia total = suma en serie de las capas diferenciales</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 3 -->
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <h3>Evaluación de la integral</h3>
+      <p>La constante \(\dfrac{\rho}{4\pi}\) se extrae de la integral:</p>
+      <div class="math-block">
+        $$R \;=\; \frac{\rho}{4\pi} \int_{r_a}^{r_b} r^{-2}\,dr$$
+        <div class="label">Factor constante extraído</div>
+      </div>
+      <p>Integrando \(r^{-2}\):</p>
+      <div class="math-block">
+        $$\int r^{-2}\,dr = -r^{-1} + C = -\frac{1}{r} + C$$
+        <div class="label">Antiderivada de r⁻²</div>
+      </div>
+      <p>Evaluando entre los límites:</p>
+      <div class="math-block">
+        $$R \;=\; \frac{\rho}{4\pi}\left[-\frac{1}{r}\right]_{r_a}^{r_b} \;=\; \frac{\rho}{4\pi}\!\left(-\frac{1}{r_b} + \frac{1}{r_a}\right)$$
+        <div class="label">Aplicación del Teorema Fundamental del Cálculo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 4 -->
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+      <h3>Resultado final</h3>
+      <p>Reordenando los términos:</p>
+      <div class="result-box">
+        <div class="result-label">✦ Resultado demostrado</div>
+        $$R \;=\; \frac{\rho}{4\pi}\!\left(\frac{1}{r_a} - \frac{1}{r_b}\right)$$
+      </div>
+      <p>
+        Este resultado es positivo ya que \(r_a < r_b\), lo que garantiza \(\dfrac{1}{r_a} > \dfrac{1}{r_b}\).
+        La resistencia es proporcional a la resistividad del material y disminuye cuando los radios
+        son grandes (mayor área disponible para el flujo de corriente).
+      </p>
+    </div>
+  </div>
+
+  <!-- VERIFICACIÓN DIMENSIONAL -->
+  <h3>Verificación dimensional</h3>
+  <p>Verificamos que las unidades son consistentes:</p>
+  <div class="math-block">
+    $$[\,R\,] = \frac{[\Omega\cdot\text{m}]}{[\text{adim}]} \cdot \frac{1}{[\text{m}]} = \Omega \quad\checkmark$$
+  </div>
+  <p>
+    \([\rho] = \Omega\cdot\text{m}\), \([4\pi] = \text{adimensional}\), \(\left[\dfrac{1}{r}\right] = \text{m}^{-1}\).
+    El producto da efectivamente ohmios. ✓
+  </p>
+
+  <!-- CASO LÍMITE -->
+  <h3>Caso límite: \(r_b \to \infty\)</h3>
+  <p>
+    Si la cáscara exterior se extiende al infinito (\(r_b \to \infty\)), el término \(1/r_b \to 0\) y la expresión se reduce a:
+  </p>
+  <div class="math-block">
+    $$R_{\text{media esfera}} = \frac{\rho}{4\pi\, r_a}$$
+    <div class="label">Resistencia de contacto hemisférico — usado en ingeniería de puesta a tierra</div>
+  </div>
+  <p>
+    Este caso se aplica en la práctica para calcular la resistencia de puesta a tierra de electrodos
+    hemisféricos enterrados en el suelo.
+  </p>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!--  3. ANÁLISIS FUNCIONAL                                  -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="analisis">
+  <div class="section-tag">03 &nbsp; Análisis funcional y teórico</div>
+  <h2>Comportamiento de la resistencia</h2>
+
+  <p>
+    La expresión \(R = \dfrac{\rho}{4\pi}\!\left(\dfrac{1}{r_a} - \dfrac{1}{r_b}\right)\) revela
+    varias propiedades físicas importantes:
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Parámetro</th>
+        <th>Efecto sobre R</th>
+        <th>Interpretación física</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Aumentar \(\rho\)</td>
+        <td class="mono">R ↑ proporcional</td>
+        <td>Material más resistivo → mayor oposición al flujo</td>
+      </tr>
+      <tr>
+        <td>Aumentar \(r_a\) (manteniendo \(r_b\))</td>
+        <td class="mono">R ↓</td>
+        <td>La entrada es más grande → menor resistencia de acceso</td>
+      </tr>
+      <tr>
+        <td>Aumentar \(r_b\) (manteniendo \(r_a\))</td>
+        <td class="mono">R ↓ (asintótico)</td>
+        <td>La salida crece → término 1/r_b se vuelve despreciable</td>
+      </tr>
+      <tr>
+        <td>\(r_b \gg r_a\)</td>
+        <td class="mono">R ≈ ρ/(4πr_a)</td>
+        <td>Resistencia controlada sólo por el radio interior</td>
+      </tr>
+      <tr>
+        <td>\(r_b \to r_a\) (cáscara delgada)</td>
+        <td class="mono">R → 0</td>
+        <td>Espesor nulo implica resistencia nula (trivialmente)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Analogía con condensadores esféricos</h3>
+  <p>
+    La capacitancia de un condensador esférico con los mismos radios es:
+    \(C = 4\pi\varepsilon_0\!\left(\dfrac{r_a r_b}{r_b - r_a}\right)\).
+    La resistencia y la capacitancia del mismo medio satisfacen:
+  </p>
+  <div class="math-block">
+    $$R \cdot C \;=\; \frac{\rho\,\varepsilon}{\varepsilon_0} \;=\; \frac{\varepsilon}{\sigma}$$
+    <div class="label">Relación RC para geometría esférica (σ = conductividad = 1/ρ)</div>
+  </div>
+  <p>
+    Esta relación, conocida como la <em>relación de dualidad RC</em>, es independiente de la geometría
+    específica y se aplica a cualquier par de electrodos en un medio homogéneo.
+  </p>
+
+  <h3>Fundamento: Ley de Ohm local y continuidad de corriente</h3>
+  <p>
+    La derivación anterior está respaldada por dos leyes fundamentales. En forma diferencial,
+    la Ley de Ohm es \(\vec{J} = \sigma\vec{E}\), donde \(\sigma = 1/\rho\).
+    Con simetría esférica y corriente total \(I\):
+  </p>
+  <div class="math-block">
+    $$J(r) = \frac{I}{4\pi r^2}, \qquad E(r) = \rho\, J(r) = \frac{\rho\, I}{4\pi r^2}$$
+  </div>
+  <p>La diferencia de potencial entre las superficies es:</p>
+  <div class="math-block">
+    $$V = \int_{r_a}^{r_b} E(r)\,dr = \frac{\rho\,I}{4\pi}\int_{r_a}^{r_b}\frac{dr}{r^2} = \frac{\rho\,I}{4\pi}\!\left(\frac{1}{r_a}-\frac{1}{r_b}\right)$$
+  </div>
+  <p>Y por la Ley de Ohm macroscópica \(V = IR\), se recupera el mismo resultado. ✓</p>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!--  4. PLANTEAMIENTO DE LA SIMULACIÓN                      -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="sim-plan">
+  <div class="section-tag">04 &nbsp; Planteamiento de la simulación</div>
+  <h2>Diseño de la herramienta interactiva</h2>
+
+  <p>
+    La simulación tiene tres vistas complementarias que permiten entender el fenómeno desde ángulos distintos:
+  </p>
+
+  <ul style="padding-left:1.5rem; margin:1rem 0; color:var(--text); font-size:16px; line-height:2.2;">
+    <li><strong style="color:var(--accent)">Corte transversal animado:</strong> muestra la geometría de la cáscara con gradiente de color que codifica |E(r)| ∝ 1/r² (ámbar intenso cerca de r_a, azul tenue en r_b), líneas de campo radiales, superficies equipotenciales y partículas de carga que se mueven radialmente con velocidad proporcional a J(r), disminuyendo al alejarse del centro.</li>
+    <li><strong style="color:var(--accent2)">Perfil E(r) y J(r):</strong> gráfica en tiempo real de los campos como función del radio. El área sombreada bajo E(r) representa la integral V = ∫E·dr, es decir, la diferencia de potencial.</li>
+    <li><strong style="color:var(--accent3)">Contribución diferencial dR(r):</strong> diagrama de barras que muestra cuánto aporta cada capa al total de R. Las capas internas aportan mucho más que las externas — ilustración directa de por qué el radio interior domina.</li>
+  </ul>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!--  5. SIMULACIÓN INTERACTIVA                              -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="simulacion">
+  <div class="section-tag">05 &nbsp; Simulación interactiva</div>
+  <h2>Exploración paramétrica</h2>
+
+  <p style="color:var(--muted);font-size:15px;margin-bottom:1.5rem;">
+    Mueve los controles y observa cómo cambian simultáneamente la geometría, el campo eléctrico,
+    la densidad de corriente y la contribución de cada capa a la resistencia total.
+  </p>
+
+  <div class="sim-wrapper">
+
+    <!-- ── Cabecera ── -->
+    <div class="sim-header">
+      <div class="sim-dot"></div>
+      <span class="sim-title">SIMULACIÓN EN TIEMPO REAL — CÁSCARA ESFÉRICA CONDUCTORA</span>
+    </div>
+
+    <!-- ── Controles ── -->
+    <div class="sim-controls">
+      <div class="ctrl-group">
+        <label>Radio interior <strong style="color:var(--accent)">r<sub>a</sub></strong> (m)
+          <span class="tip" data-tip="Superficie interna por donde entra la corriente. Es el parámetro que MÁS afecta R: al disminuirlo, el área 4πr² se reduce y la resistencia sube rápidamente.">?</span>
+        </label>
+        <div class="ctrl-row">
+          <input type="range" id="ra" min="0.02" max="0.14" step="0.002" value="0.05">
+          <span class="ctrl-val" id="ra-val">0.050 m</span>
+        </div>
+      </div>
+      <div class="ctrl-group">
+        <label>Radio exterior <strong style="color:var(--accent2)">r<sub>b</sub></strong> (m)
+          <span class="tip" data-tip="Superficie externa. Aumentarlo incrementa R, pero con rendimiento decreciente: cuando r_b ≫ r_a, R se satura en ρ/(4π·r_a). Las capas externas contribuyen muy poco.">?</span>
+        </label>
+        <div class="ctrl-row">
+          <input type="range" id="rb" min="0.06" max="0.38" step="0.002" value="0.15">
+          <span class="ctrl-val" id="rb-val">0.150 m</span>
+        </div>
+      </div>
+      <div class="ctrl-group">
+        <label>Resistividad <strong style="color:var(--accent3)">ρ</strong> (Ω·m)
+          <span class="tip" data-tip="Propiedad intrínseca del material. R es directamente proporcional a ρ. Ejemplo: cobre ρ≈1.7×10⁻⁸, silicio ρ≈640, goma ρ≈10¹³ Ω·m.">?</span>
+        </label>
+        <div class="ctrl-row">
+          <input type="range" id="rho" min="0.1" max="50" step="0.1" value="1.0">
+          <span class="ctrl-val" id="rho-val">1.00 Ω·m</span>
+        </div>
+      </div>
+      <div class="ctrl-group">
+        <label>Corriente total <strong style="color:var(--red)">I</strong> (A)
+          <span class="tip" data-tip="Corriente que atraviesa la cáscara. Afecta V = I·R y la velocidad de las partículas, pero NO cambia la resistencia R (propiedad geométrica del material).">?</span>
+        </label>
+        <div class="ctrl-row">
+          <input type="range" id="cur" min="0.1" max="10" step="0.1" value="1.0">
+          <span class="ctrl-val" id="cur-val">1.0 A</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Fila superior: corte + gráfica E(r) ── -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border);" id="sim-top-row">
+      <div style="border-right:1px solid var(--border);padding:1rem 0.8rem 0.6rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem;">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:0.15em;text-transform:uppercase;">Corte transversal — campo y partículas</div>
+        <canvas id="sphereCanvas"></canvas>
+      </div>
+      <div style="padding:1rem 0.8rem 0.6rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem;">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:0.15em;text-transform:uppercase;">Perfil E(r) y J(r) — área = voltaje V</div>
+        <canvas id="graphCanvas"></canvas>
+      </div>
+    </div>
+
+    <!-- ── Fila inferior: dR por capa ── -->
+    <div style="border-top:1px solid var(--border);padding:1rem 0.8rem 0.6rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem;">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:0.15em;text-transform:uppercase;">Contribución dR de cada capa — las capas internas dominan</div>
+      <canvas id="drCanvas"></canvas>
+    </div>
+
+    <!-- ── Readouts ── -->
+    <div style="border-top:1px solid var(--border);padding:1rem 1.2rem;display:grid;grid-template-columns:repeat(4,1fr);gap:0.6rem;" class="readouts-grid">
+      <div class="readout" style="border-color:rgba(200,169,110,0.4);">
+        <div class="readout-label">Resistencia R</div>
+        <div class="readout-formula">ρ/(4π)·(1/r<sub>a</sub>−1/r<sub>b</sub>)</div>
+        <div class="readout-val" id="out-R">—</div>
+      </div>
+      <div class="readout" style="border-color:rgba(217,115,90,0.4);">
+        <div class="readout-label">Voltaje V = IR</div>
+        <div class="readout-formula">diferencia de potencial</div>
+        <div class="readout-val" id="out-V" style="color:var(--red);">—</div>
+      </div>
+      <div class="readout" style="border-color:rgba(126,184,212,0.4);">
+        <div class="readout-label">Campo E(r<sub>a</sub>)</div>
+        <div class="readout-formula">ρ·I / (4π·r<sub>a</sub>²)</div>
+        <div class="readout-val" id="out-E" style="color:var(--accent2);">—</div>
+      </div>
+      <div class="readout" style="border-color:rgba(163,201,154,0.4);">
+        <div class="readout-label">Densidad J(r<sub>a</sub>)</div>
+        <div class="readout-formula">I / (4π·r<sub>a</sub>²)</div>
+        <div class="readout-val" id="out-J" style="color:var(--accent3);">—</div>
+      </div>
+    </div>
+
+    <!-- ── Barra asíntota ── -->
+    <div style="border-top:1px solid var(--border);padding:0.8rem 1.5rem 1rem;">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.4rem;">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap;">R / R<sub>∞</sub></span>
+        <div style="flex:1;height:7px;background:var(--bg3);border-radius:4px;overflow:hidden;border:1px solid var(--border);">
+          <div id="r-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent3),var(--accent),var(--red));border-radius:4px;transition:width 0.25s;"></div>
+        </div>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap;">100 %</span>
+      </div>
+      <div id="r-bar-note" style="font-family:var(--mono);font-size:10px;color:var(--dim);text-align:center;"></div>
+    </div>
+
+  </div>
+
+  <div id="tooltip" style="position:fixed;display:none;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:0.5rem 0.8rem;font-size:13px;color:var(--text);max-width:260px;line-height:1.5;z-index:999;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,0.5);"></div>
+
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!--  6. CONCLUSIONES                                        -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="conclusiones">
+  <div class="section-tag">06 &nbsp; Conclusiones</div>
+  <h2>Síntesis y aprendizajes</h2>
+
+  <ul class="conclusion-list">
+    <li>
+      La demostración se sustenta en dos pilares: la <strong>simetría esférica</strong> del problema —que
+      convierte las superficies equipotenciales en esferas concéntricas— y el principio de que los
+      elementos diferenciales de la cáscara están conectados <strong>en serie</strong> para el flujo radial.
+    </li>
+    <li>
+      La resistencia total resulta de la integral \(\int_{r_a}^{r_b} \rho\,dr\,/\,(4\pi r^2)\),
+      que da directamente \(\dfrac{\rho}{4\pi}\!\left(\dfrac{1}{r_a}-\dfrac{1}{r_b}\right)\),
+      confirmando el enunciado.
+    </li>
+    <li>
+      El resultado tiene <strong>asimetría respecto a los radios</strong>: el radio interior domina la
+      resistencia. Cuando \(r_b \gg r_a\), la resistencia converge a \(\rho/(4\pi r_a)\),
+      independientemente del radio exterior.
+    </li>
+    <li>
+      La geometría esférica explica por qué el área crece como \(r^2\): a medida que la corriente
+      se aleja del centro, dispone de mayor área, por lo que la densidad de corriente disminuye
+      y las capas externas contribuyen menos a la resistencia total.
+    </li>
+    <li>
+      El resultado tiene aplicación directa en <strong>ingeniería eléctrica</strong> (puesta a tierra de
+      electrodos esféricos), <strong>bioelectromagnetismo</strong> (resistencia de tejidos concéntricos)
+      y diseño de sensores de conductividad eléctrica en fluidos.
+    </li>
+    <li>
+      La relación de dualidad \(R \cdot C = \varepsilon/\sigma\) pone de manifiesto la profunda
+      conexión entre la electrostática (condensadores) y la electrodinámica de estado estacionario
+      (resistencias) en medios continuos.
+    </li>
+  </ul>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!--  7. BIBLIOGRAFÍA                                        -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="section" id="bibliografia">
+  <div class="section-tag">07 &nbsp; Bibliografía</div>
+  <h2>Referencias</h2>
+
+  <div class="bib-item" data-n="[1]">
+    Griffiths, D. J. (2017). <em>Introduction to Electrodynamics</em> (4th ed.). Cambridge University Press.
+    §7.1 — Ohm's Law; pp. 285–295.
+  </div>
+  <div class="bib-item" data-n="[2]">
+    Serway, R. A., &amp; Jewett, J. W. (2019). <em>Physics for Scientists and Engineers</em> (10th ed.).
+    Cengage Learning. Capítulo 27 — Current and Resistance.
+  </div>
+  <div class="bib-item" data-n="[3]">
+    Hayt, W. H., &amp; Buck, J. A. (2019). <em>Engineering Electromagnetics</em> (9th ed.).
+    McGraw-Hill. §5.5 — Resistance calculations.
+  </div>
+  <div class="bib-item" data-n="[4]">
+    Sadiku, M. N. O. (2015). <em>Elements of Electromagnetics</em> (6th ed.). Oxford University Press.
+    §5.7 — Resistance and Capacitance.
+  </div>
+  <div class="bib-item" data-n="[5]">
+    Griffiths, D. J. (2017). Problema 7.1(b): Resistance between concentric shells, <em>op. cit.</em>, p. 297.
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Física de Campos &nbsp;·&nbsp; Universidad de Antioquia &nbsp;·&nbsp; 2026
+</footer>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!--  JAVASCRIPT DE SIMULACIÓN                               -->
+<!-- ════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  /* ── DOM ── */
+  const raSlider  = document.getElementById('ra');
+  const rbSlider  = document.getElementById('rb');
+  const rhoSlider = document.getElementById('rho');
+  const curSlider = document.getElementById('cur');
+  const raVal  = document.getElementById('ra-val');
+  const rbVal  = document.getElementById('rb-val');
+  const rhoVal = document.getElementById('rho-val');
+  const curVal = document.getElementById('cur-val');
+  const outR   = document.getElementById('out-R');
+  const outV   = document.getElementById('out-V');
+  const outE   = document.getElementById('out-E');
+  const outJ   = document.getElementById('out-J');
+  const rBar   = document.getElementById('r-bar');
+  const rNote  = document.getElementById('r-bar-note');
+  const sc     = document.getElementById('sphereCanvas');
+  const gc     = document.getElementById('graphCanvas');
+  const dc     = document.getElementById('drCanvas');
+  const sctx   = sc.getContext('2d');
+  const gctx   = gc.getContext('2d');
+  const dctx   = dc.getContext('2d');
+  const tooltip= document.getElementById('tooltip');
+
+  /* ── Paleta ── */
+  const C = {
+    bg:'#0e0f11', bg2:'#14161a', bg3:'#1c1f25',
+    border:'#2e323c', accent:'#c8a96e', a2:'#7eb8d4',
+    a3:'#a3c99a', text:'#e8e4dc', muted:'#8a8880',
+    dim:'#5a5856', red:'#d9735a',
+  };
+
+  /* ── Tooltips ── */
+  document.querySelectorAll('.tip').forEach(btn => {
+    btn.addEventListener('mouseenter', e => { tooltip.textContent=btn.dataset.tip; tooltip.style.display='block'; posTT(e); });
+    btn.addEventListener('mousemove', posTT);
+    btn.addEventListener('mouseleave', ()=>{ tooltip.style.display='none'; });
+  });
+  function posTT(e){
+    tooltip.style.left = Math.min(e.clientX+14, window.innerWidth-280)+'px';
+    tooltip.style.top  = (e.clientY+18)+'px';
+  }
+
+  /* ── Tamaño de canvas ── */
+  function sizeAll(){
+    const avail = Math.min(sc.parentElement.clientWidth - 16, 360);
+    const S = avail;
+    [sc, gc].forEach(c => {
+      c.width = S; c.height = S;
+      c.style.width = S+'px'; c.style.height = S+'px';
+    });
+    const dW = dc.parentElement.clientWidth - 16;
+    dc.width  = Math.max(dW, 200);
+    dc.height = 140;
+    dc.style.width  = dc.width+'px';
+    dc.style.height = dc.height+'px';
+  }
+
+  /* ── Fórmulas ── */
+  const PI4 = 4*Math.PI;
+  function calcR(rho,ra,rb){ return (rho/PI4)*(1/ra - 1/rb); }
+  function calcE(rho,I,r)  { return (rho*I)/(PI4*r*r); }
+  function calcJ(I,r)      { return I/(PI4*r*r); }
+  function fmt(x,d,u){
+    if(Math.abs(x)>=1e4||Math.abs(x)<0.001) return x.toExponential(2)+' '+u;
+    return x.toFixed(d)+' '+u;
+  }
+
+  /* ── Partículas de carga ── */
+  const NPART = 32;
+  const parts = [];
+  function initParts(ra,rb){
+    parts.length=0;
+    for(let i=0;i<NPART;i++){
+      parts.push({
+        ang: Math.random()*2*Math.PI,
+        r:   ra + Math.random()*(rb-ra),
+        trail:[]
+      });
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     CANVAS 1 — CORTE TRANSVERSAL ANIMADO
+  ═══════════════════════════════════════════════════════ */
+  function drawSphere(p){
+    const W=sc.width, H=sc.height;
+    const cx=W/2, cy=H/2;
+    sctx.clearRect(0,0,W,H);
+
+    /* fondo */
+    sctx.fillStyle=C.bg3;
+    sctx.fillRect(0,0,W,H);
+
+    const maxPx = Math.min(W,H)*0.40;
+    const scale = maxPx/p.rb;
+    const Ra=p.ra*scale, Rb=p.rb*scale;
+
+    /* ── gradiente de campo E(r) ∝ 1/r² ──
+       Color: ámbar intenso (ra) → azul suave (rb)                */
+    const NSTEPS=70;
+    for(let i=NSTEPS;i>=0;i--){
+      const t   = i/NSTEPS;
+      const rPx = Ra + t*(Rb-Ra);
+      const rPh = p.ra + t*(p.rb-p.ra);
+      const k   = Math.pow(p.ra/rPh, 2);   // 1 en ra, pequeño en rb
+      const r_c = Math.round(200*k + 30*(1-k));
+      const g_c = Math.round(100*k + 55*(1-k));
+      const b_c = Math.round( 60*k +185*(1-k));
+      sctx.beginPath();
+      sctx.arc(cx,cy,rPx,0,2*Math.PI);
+      sctx.fillStyle=`rgba(${r_c},${g_c},${b_c},0.24)`;
+      sctx.fill();
+    }
+
+    /* ── superficies equipotenciales (V = cte → esferas) ──
+       Las equipotenciales están igualmente espaciadas en 1/r        */
+    sctx.setLineDash([3,6]);
+    sctx.lineWidth=0.8;
+    const NEQ=7;
+    for(let k=1;k<=NEQ;k++){
+      const t   = k/(NEQ+1);
+      const invR= (1/p.ra) - t*((1/p.ra)-(1/p.rb));
+      const rPx = scale/invR;
+      sctx.beginPath();
+      sctx.arc(cx,cy,rPx,0,2*Math.PI);
+      sctx.strokeStyle='rgba(126,184,212,0.28)';
+      sctx.stroke();
+    }
+    sctx.setLineDash([]);
+
+    /* ── líneas de campo radiales con flechas ── */
+    const NL=20;
+    for(let i=0;i<NL;i++){
+      const ang=2*Math.PI*i/NL;
+      const x0=cx+Ra*Math.cos(ang), y0=cy+Ra*Math.sin(ang);
+      const x1=cx+Rb*Math.cos(ang), y1=cy+Rb*Math.sin(ang);
+      const grad=sctx.createLinearGradient(x0,y0,x1,y1);
+      grad.addColorStop(0,'rgba(200,169,110,0.80)');
+      grad.addColorStop(1,'rgba(126,184,212,0.08)');
+      sctx.beginPath(); sctx.moveTo(x0,y0); sctx.lineTo(x1,y1);
+      sctx.strokeStyle=grad; sctx.lineWidth=0.85; sctx.stroke();
+      /* flecha a 58% */
+      const tf=0.58;
+      const ax=cx+(Ra+tf*(Rb-Ra))*Math.cos(ang);
+      const ay=cy+(Ra+tf*(Rb-Ra))*Math.sin(ang);
+      const aL=4.5;
+      sctx.beginPath();
+      sctx.moveTo(ax+aL*Math.cos(ang+Math.PI-0.48), ay+aL*Math.sin(ang+Math.PI-0.48));
+      sctx.lineTo(ax+aL*0.45*Math.cos(ang),          ay+aL*0.45*Math.sin(ang));
+      sctx.lineTo(ax+aL*Math.cos(ang+Math.PI+0.48),  ay+aL*Math.sin(ang+Math.PI+0.48));
+      sctx.strokeStyle='rgba(200,169,110,0.6)';
+      sctx.lineWidth=0.9; sctx.stroke();
+    }
+
+    /* ── partículas de carga: se mueven radialmente hacia afuera ──
+       Velocidad ∝ J(r) ∝ 1/r² → más rápidas cerca de ra            */
+    parts.forEach(pt=>{
+      const Jrel = Math.pow(p.ra/pt.r, 2);             // J normalizada
+      const speed= (0.0006 + p.I*0.0006) * Jrel * p.rb;
+      pt.r += speed;
+      if(pt.r > p.rb){ pt.r=p.ra; pt.ang=Math.random()*2*Math.PI; pt.trail=[]; }
+
+      const px=cx+pt.r*scale*Math.cos(pt.ang);
+      const py=cy+pt.r*scale*Math.sin(pt.ang);
+      pt.trail.push({x:px,y:py});
+      if(pt.trail.length>10) pt.trail.shift();
+
+      /* estela */
+      for(let t=1;t<pt.trail.length;t++){
+        const al=t/pt.trail.length*0.4;
+        sctx.beginPath();
+        sctx.moveTo(pt.trail[t-1].x, pt.trail[t-1].y);
+        sctx.lineTo(pt.trail[t].x,   pt.trail[t].y);
+        sctx.strokeStyle=`rgba(217,115,90,${al})`;
+        sctx.lineWidth=1.4; sctx.stroke();
+      }
+      /* partícula — tamaño según 1/r² */
+      const k2=Math.pow(p.ra/pt.r,2);
+      const pr2=Math.round(217*k2+100*(1-k2));
+      const pg2=Math.round(115*k2+180*(1-k2));
+      const pb2=Math.round( 90*k2+212*(1-k2));
+      const sz=1.8+k2*2;
+      sctx.beginPath();
+      sctx.arc(px,py,sz,0,2*Math.PI);
+      sctx.fillStyle=`rgb(${pr2},${pg2},${pb2})`;
+      sctx.fill();
+    });
+
+    /* ── bordes de la cáscara ── */
+    sctx.beginPath(); sctx.arc(cx,cy,Rb,0,2*Math.PI);
+    sctx.strokeStyle=C.a2; sctx.lineWidth=2.5; sctx.stroke();
+    sctx.beginPath(); sctx.arc(cx,cy,Ra,0,2*Math.PI);
+    sctx.strokeStyle=C.accent; sctx.lineWidth=3; sctx.stroke();
+    /* relleno hueco central */
+    sctx.beginPath(); sctx.arc(cx,cy,Ra,0,2*Math.PI);
+    sctx.fillStyle='rgba(14,15,17,0.85)'; sctx.fill();
+
+    /* ── etiquetas con flechas indicadoras ── */
+    sctx.font='bold 11px IBM Plex Mono,monospace';
+    /* ra */
+    const ax1=cx+Ra*0.707, ay1=cy-Ra*0.707;
+    sctx.strokeStyle='rgba(200,169,110,0.45)'; sctx.lineWidth=0.8;
+    sctx.beginPath(); sctx.moveTo(cx,cy); sctx.lineTo(ax1,ay1); sctx.stroke();
+    sctx.fillStyle=C.accent; sctx.textAlign='left';
+    sctx.fillText('rₐ='+p.ra.toFixed(3)+'m', ax1+5, ay1-5);
+    /* rb */
+    const bx1=cx-Rb*0.5, by1=cy-Rb*0.866;
+    sctx.strokeStyle='rgba(126,184,212,0.45)'; sctx.lineWidth=0.8;
+    sctx.beginPath(); sctx.moveTo(cx,cy); sctx.lineTo(bx1,by1); sctx.stroke();
+    sctx.fillStyle=C.a2; sctx.textAlign='right';
+    sctx.fillText('r_b='+p.rb.toFixed(3)+'m', bx1-4, by1-5);
+
+    /* ── anotación zona caliente ── */
+    sctx.font='10px IBM Plex Mono,monospace';
+    sctx.fillStyle='rgba(200,169,110,0.65)';
+    sctx.textAlign='center';
+    sctx.fillText('E,J máx → r=rₐ', cx, cy+Ra*0.45+5);
+
+    /* ── leyenda ── */
+    const ly=H-10; sctx.font='9px IBM Plex Mono,monospace'; sctx.textAlign='left';
+    sctx.fillStyle='rgba(200,169,110,0.65)'; sctx.fillText('▶ E radial', 6, ly);
+    sctx.fillStyle='rgba(126,184,212,0.55)'; sctx.fillText('- - Equipot.', 76, ly);
+    sctx.fillStyle='rgba(217,115,90,0.85)';  sctx.fillText('● carga q', 165, ly);
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     CANVAS 2 — PERFIL E(r) y J(r)
+  ═══════════════════════════════════════════════════════ */
+  function drawGraph(p){
+    const W=gc.width, H=gc.height;
+    gctx.clearRect(0,0,W,H);
+    gctx.fillStyle=C.bg3; gctx.fillRect(0,0,W,H);
+
+    const pad={top:32,right:18,bottom:44,left:60};
+    const w=W-pad.left-pad.right, h=H-pad.top-pad.bottom;
+
+    const N=400;
+    const Emax=calcE(p.rho,p.I,p.ra)*1.1;
+
+    function xPx(r){ return pad.left+(r-p.ra)/(p.rb-p.ra)*w; }
+    function yPx(v){ return pad.top + h - Math.min(v/Emax,1)*h; }
+
+    /* ── grid horizontal ── */
+    for(let i=0;i<=4;i++){
+      const y=pad.top+(i/4)*h;
+      gctx.strokeStyle=C.border; gctx.lineWidth=0.5;
+      gctx.beginPath(); gctx.moveTo(pad.left,y); gctx.lineTo(pad.left+w,y); gctx.stroke();
+      const val=Emax*(1-i/4);
+      gctx.fillStyle=C.dim; gctx.font='9px IBM Plex Mono,monospace'; gctx.textAlign='right';
+      gctx.fillText(val.toExponential(1), pad.left-4, y+3.5);
+    }
+
+    /* ── área sombreada bajo E(r) = voltaje V ── */
+    gctx.beginPath();
+    gctx.moveTo(xPx(p.ra), pad.top+h);
+    for(let i=0;i<=N;i++){
+      const r=p.ra+(i/N)*(p.rb-p.ra);
+      gctx.lineTo(xPx(r), yPx(calcE(p.rho,p.I,r)));
+    }
+    gctx.lineTo(xPx(p.rb), pad.top+h);
+    gctx.closePath();
+    gctx.fillStyle='rgba(200,169,110,0.09)'; gctx.fill();
+
+    /* ── curva E(r) en ámbar ── */
+    gctx.beginPath();
+    for(let i=0;i<=N;i++){
+      const r=p.ra+(i/N)*(p.rb-p.ra);
+      const E=calcE(p.rho,p.I,r);
+      i===0 ? gctx.moveTo(xPx(r),yPx(E)) : gctx.lineTo(xPx(r),yPx(E));
+    }
+    gctx.strokeStyle=C.accent; gctx.lineWidth=2.5; gctx.lineJoin='round'; gctx.stroke();
+
+    /* ── curva J(r) en verde punteado (escalada igual que E para comparar forma) ── */
+    const Jmax=calcJ(p.I,p.ra)*1.1;
+    gctx.beginPath();
+    for(let i=0;i<=N;i++){
+      const r=p.ra+(i/N)*(p.rb-p.ra);
+      const J=calcJ(p.I,r);
+      const yj=pad.top+h-Math.min(J/Jmax,1)*h;
+      i===0 ? gctx.moveTo(xPx(r),yj) : gctx.lineTo(xPx(r),yj);
+    }
+    gctx.strokeStyle=C.a3; gctx.lineWidth=1.8;
+    gctx.setLineDash([4,5]); gctx.stroke(); gctx.setLineDash([]);
+
+    /* ── marcadores verticales ra y rb ── */
+    [[p.ra,C.accent,'rₐ'],[p.rb,C.a2,'r_b']].forEach(([r,col,lbl])=>{
+      const x=xPx(r);
+      gctx.strokeStyle=col; gctx.lineWidth=1; gctx.setLineDash([2,4]);
+      gctx.beginPath(); gctx.moveTo(x,pad.top); gctx.lineTo(x,pad.top+h); gctx.stroke();
+      gctx.setLineDash([]);
+      gctx.fillStyle=col; gctx.font='bold 9px IBM Plex Mono,monospace'; gctx.textAlign='center';
+      gctx.fillText(lbl, x, pad.top-6);
+    });
+
+    /* ── punto en E(ra) con anotación ── */
+    const xRa=xPx(p.ra), yRa=yPx(calcE(p.rho,p.I,p.ra));
+    gctx.beginPath(); gctx.arc(xRa,yRa,4,0,2*Math.PI);
+    gctx.fillStyle=C.accent; gctx.fill();
+    /* ── punto en E(rb) ── */
+    const xRb=xPx(p.rb), yRb=yPx(calcE(p.rho,p.I,p.rb));
+    gctx.beginPath(); gctx.arc(xRb,yRb,4,0,2*Math.PI);
+    gctx.fillStyle=C.a2; gctx.fill();
+
+    /* ── ejes ── */
+    gctx.strokeStyle='rgba(90,88,86,0.8)'; gctx.lineWidth=1;
+    gctx.beginPath();
+    gctx.moveTo(pad.left,pad.top); gctx.lineTo(pad.left,pad.top+h);
+    gctx.lineTo(pad.left+w,pad.top+h); gctx.stroke();
+
+    /* ── ticks X ── */
+    [0,0.25,0.5,0.75,1].forEach(t=>{
+      const r=p.ra+t*(p.rb-p.ra);
+      const x=xPx(r);
+      gctx.strokeStyle='rgba(90,88,86,0.4)'; gctx.lineWidth=0.5;
+      gctx.beginPath(); gctx.moveTo(x,pad.top+h); gctx.lineTo(x,pad.top+h+4); gctx.stroke();
+      gctx.fillStyle=C.dim; gctx.font='8px IBM Plex Mono,monospace'; gctx.textAlign='center';
+      gctx.fillText(r.toFixed(3), x, pad.top+h+15);
+    });
+
+    /* ── etiquetas de ejes ── */
+    gctx.save(); gctx.translate(11,pad.top+h/2); gctx.rotate(-Math.PI/2);
+    gctx.fillStyle=C.muted; gctx.font='9px IBM Plex Mono,monospace'; gctx.textAlign='center';
+    gctx.fillText('E (V/m)', 0, 0); gctx.restore();
+    gctx.fillStyle=C.muted; gctx.font='9px IBM Plex Mono,monospace'; gctx.textAlign='center';
+    gctx.fillText('r  (m)', pad.left+w/2, H-4);
+
+    /* ── leyenda ── */
+    const LY=pad.top+14;
+    gctx.font='9px IBM Plex Mono,monospace';
+    gctx.fillStyle=C.accent; gctx.textAlign='left';
+    gctx.fillText('── E(r) = ρI/4πr²', pad.left+6, LY);
+    gctx.fillStyle=C.a3;
+    gctx.fillText('- - J(r) = I/4πr²', pad.left+6, LY+14);
+    /* etiqueta área */
+    gctx.fillStyle='rgba(200,169,110,0.45)';
+    gctx.font='8px IBM Plex Mono,monospace'; gctx.textAlign='center';
+    gctx.fillText('▓ área = V = ∫E·dr', pad.left+w/2, pad.top+h-9);
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     CANVAS 3 — dR POR CAPA: diagrama de barras didáctico
+     Cada barra representa dR = ρ·dr/(4πr²) para una capa
+     delgada. Muestra por qué las capas internas dominan R.
+  ═══════════════════════════════════════════════════════ */
+  function drawDR(p){
+    const W=dc.width, H=dc.height;
+    dctx.clearRect(0,0,W,H);
+    dctx.fillStyle=C.bg3; dctx.fillRect(0,0,W,H);
+
+    const NBARS=30;
+    const pad={top:22,right:16,bottom:38,left:60};
+    const w=W-pad.left-pad.right, h=H-pad.top-pad.bottom;
+
+    /* calcular dR para cada barra */
+    const dr=(p.rb-p.ra)/NBARS;
+    const dRvals=[];
+    for(let i=0;i<NBARS;i++){
+      const r=p.ra+(i+0.5)*dr;
+      dRvals.push(p.rho*dr/(PI4*r*r));
+    }
+    const dRmax=dRvals[0]*1.08;
+
+    function xBar(i){ return pad.left + i*(w/NBARS); }
+    function barH(dR){ return Math.min(dR/dRmax,1)*h; }
+
+    /* ── barras coloreadas: ámbar→verde según contribución ── */
+    const bW=(w/NBARS)-1;
+    dRvals.forEach((dR,i)=>{
+      const t=i/NBARS;
+      const bh=barH(dR);
+      const x=xBar(i);
+      /* color: ámbar (i=0, alta contribución) → verde tenue (i=NBARS, baja) */
+      const r2=Math.round(200*(1-t)+163*t);
+      const g2=Math.round(169*(1-t)+201*t);
+      const b2=Math.round(110*(1-t)+154*t);
+      dctx.fillStyle=`rgba(${r2},${g2},${b2},0.75)`;
+      dctx.fillRect(x, pad.top+h-bh, bW, bh);
+      /* borde superior */
+      dctx.fillStyle=`rgba(${r2},${g2},${b2},0.95)`;
+      dctx.fillRect(x, pad.top+h-bh, bW, 1.5);
+    });
+
+    /* ── curva continua encima de las barras (dR teórico) ── */
+    dctx.beginPath();
+    for(let i=0;i<=200;i++){
+      const t=i/200;
+      const r=p.ra+t*(p.rb-p.ra);
+      const dRc=p.rho/(PI4*r*r);   // dR/dr (sin el dr)
+      const x=pad.left+t*w;
+      const y=pad.top+h-Math.min(dRc/(dRmax/dr),1)*h;
+      i===0 ? dctx.moveTo(x,y) : dctx.lineTo(x,y);
+    }
+    dctx.strokeStyle='rgba(200,169,110,0.4)'; dctx.lineWidth=1.2;
+    dctx.setLineDash([3,4]); dctx.stroke(); dctx.setLineDash([]);
+
+    /* ── anotaciones clave ── */
+    /* flecha "mayor dR" en la primera barra */
+    const x0=xBar(0)+bW/2;
+    const y0=pad.top+h-barH(dRvals[0]);
+    dctx.fillStyle=C.accent; dctx.font='8px IBM Plex Mono,monospace'; dctx.textAlign='center';
+    dctx.fillText('dR máx', x0+18, y0-6);
+    dctx.beginPath();
+    dctx.moveTo(x0+10,y0-4); dctx.lineTo(x0+2,y0-1);
+    dctx.strokeStyle=C.accent; dctx.lineWidth=0.8; dctx.stroke();
+
+    /* flecha "contribución pequeña" en la última barra */
+    const xN=xBar(NBARS-1)+bW/2;
+    const yN=pad.top+h-barH(dRvals[NBARS-1]);
+    dctx.fillStyle=C.a3; dctx.textAlign='center';
+    dctx.fillText('dR mín', xN-14, yN-6);
+    dctx.beginPath();
+    dctx.moveTo(xN-8,yN-4); dctx.lineTo(xN-2,yN-1);
+    dctx.strokeStyle=C.a3; dctx.lineWidth=0.8; dctx.stroke();
+
+    /* ── ejes ── */
+    dctx.strokeStyle='rgba(90,88,86,0.8)'; dctx.lineWidth=1;
+    dctx.beginPath();
+    dctx.moveTo(pad.left,pad.top); dctx.lineTo(pad.left,pad.top+h);
+    dctx.lineTo(pad.left+w,pad.top+h); dctx.stroke();
+
+    /* ── ticks X: ra, mid, rb ── */
+    [[0,'rₐ'],[0.5,'(rₐ+r_b)/2'],[1,'r_b']].forEach(([t,lbl])=>{
+      const x=pad.left+t*w;
+      dctx.strokeStyle='rgba(90,88,86,0.4)'; dctx.lineWidth=0.5;
+      dctx.beginPath(); dctx.moveTo(x,pad.top+h); dctx.lineTo(x,pad.top+h+4); dctx.stroke();
+      dctx.fillStyle=t===0?C.accent:t===1?C.a2:C.dim;
+      dctx.font='8px IBM Plex Mono,monospace'; dctx.textAlign='center';
+      dctx.fillText(lbl, x, pad.top+h+14);
+    });
+
+    /* ── ticks Y ── */
+    dctx.fillStyle=C.dim; dctx.font='8px IBM Plex Mono,monospace'; dctx.textAlign='right';
+    dctx.fillText('dR', pad.left-4, pad.top+4);
+
+    /* ── etiqueta eje X ── */
+    dctx.fillStyle=C.muted; dctx.font='9px IBM Plex Mono,monospace'; dctx.textAlign='center';
+    dctx.fillText('radio r  (m)', pad.left+w/2, H-4);
+
+    /* ── eje Y rotado ── */
+    dctx.save(); dctx.translate(11,pad.top+h/2); dctx.rotate(-Math.PI/2);
+    dctx.fillStyle=C.muted; dctx.font='9px IBM Plex Mono,monospace'; dctx.textAlign='center';
+    dctx.fillText('dR = ρdr/4πr²', 0, 0); dctx.restore();
+
+    /* ── texto explicativo ── */
+    const Rtotal=calcR(p.rho,p.ra,p.rb);
+    const Rfirsthalf=calcR(p.rho,p.ra,p.ra+(p.rb-p.ra)/2);
+    const pct=(Rfirsthalf/Rtotal*100).toFixed(1);
+    dctx.fillStyle='rgba(200,169,110,0.55)';
+    dctx.font='8px IBM Plex Mono,monospace'; dctx.textAlign='right';
+    dctx.fillText('Mitad interna aporta '+pct+'% de R total', pad.left+w-2, pad.top+8);
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     ANIMACIÓN Y UPDATE
+  ═══════════════════════════════════════════════════════ */
+  let animId;
+  function loop(){
+    drawSphere(getParams());
+    animId=requestAnimationFrame(loop);
+  }
+
+  function update(){
+    const p=getParams();
+    if(p.ra>=p.rb-0.005){
+      rbSlider.value=(p.ra+0.012).toFixed(3);
+      p.rb=p.ra+0.012;
+    }
+    raVal.textContent  = p.ra.toFixed(3)+' m';
+    rbVal.textContent  = p.rb.toFixed(3)+' m';
+    rhoVal.textContent = p.rho.toFixed(2)+' Ω·m';
+    curVal.textContent = p.I.toFixed(1)+' A';
+
+    const R    = calcR(p.rho,p.ra,p.rb);
+    const V    = R*p.I;
+    const E_ra = calcE(p.rho,p.I,p.ra);
+    const J_ra = calcJ(p.I,p.ra);
+    const Rinf = calcR(p.rho,p.ra,p.ra*40);
+
+    outR.textContent = fmt(R,4,'Ω');
+    outV.textContent = fmt(V,4,'V');
+    outE.textContent = fmt(E_ra,3,'V/m');
+    outJ.textContent = fmt(J_ra,3,'A/m²');
+
+    const pct=Math.min(R/Rinf*100,100);
+    rBar.style.width=pct.toFixed(1)+'%';
+    rNote.textContent = 'R = '+fmt(R,4,'Ω')
+      +'   ·   R∞ = ρ/(4π·rₐ) = '+fmt(Rinf,4,'Ω')
+      +'   ·   R/R∞ = '+pct.toFixed(1)+'%';
+
+    initParts(p.ra,p.rb);
+    drawGraph(p);
+    drawDR(p);
+  }
+
+  function getParams(){
+    return {
+      ra:  parseFloat(raSlider.value),
+      rb:  parseFloat(rbSlider.value),
+      rho: parseFloat(rhoSlider.value),
+      I:   parseFloat(curSlider.value),
+    };
+  }
+
+  /* ── arranque ── */
+  sizeAll();
+  initParts(parseFloat(raSlider.value), parseFloat(rbSlider.value));
+  update();
+  loop();
+
+  [raSlider,rbSlider,rhoSlider,curSlider].forEach(s=>s.addEventListener('input',update));
+  window.addEventListener('resize',()=>{ sizeAll(); update(); });
+
+})();
+</script>
+
+</body>
+</html>

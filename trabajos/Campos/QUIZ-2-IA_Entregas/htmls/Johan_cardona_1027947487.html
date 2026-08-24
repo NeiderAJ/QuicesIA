@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz 2 – Circuito de Capacitores | Johan Cardona</title>
+
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$','$'], ['\\(','\\)']],
+      displayMath: [['$$','$$'], ['\\[','\\]']],
+      tags: 'ams'
+    },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2236;
+    --surface3: #1f2d45;
+    --border: #2a3a55;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --text: #e2eaf5;
+    --muted: #6b82a3;
+    --green: #10b981;
+    --red: #f43f5e;
+    --amber: #f59e0b;
+    --radius: 14px;
+    --glow: 0 0 30px rgba(0,212,255,0.15);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 17px;
+    line-height: 1.8;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 20% -10%, rgba(0,212,255,0.08), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(124,58,237,0.08), transparent);
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    padding: 4rem 2rem 3rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 80% at 50% 0%, rgba(0,212,255,0.12), transparent);
+    pointer-events: none;
+  }
+  .badge {
+    display: inline-block;
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.35);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .7rem;
+    letter-spacing: .18em;
+    padding: .3rem 1.1rem;
+    border-radius: 100px;
+    margin-bottom: 1.4rem;
+    text-transform: uppercase;
+  }
+  header h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -.02em;
+  }
+  header h1 em {
+    color: var(--accent);
+    font-style: italic;
+  }
+  .header-sub {
+    margin-top: .7rem;
+    color: var(--muted);
+    font-size: 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+  }
+  .header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    margin-top: 2.2rem;
+  }
+  .meta-item {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .75rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .meta-item strong { color: var(--text); font-weight: 600; display: block; }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,14,26,.96);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: .1rem;
+    padding: .55rem 1rem;
+  }
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .8rem;
+    font-weight: 500;
+    padding: .3rem .85rem;
+    border-radius: 6px;
+    transition: background .2s, color .2s;
+  }
+  nav a:hover { background: var(--surface2); color: var(--text); }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 3.5rem 1.5rem 7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4.5rem;
+  }
+  section { scroll-margin-top: 70px; }
+
+  .sec-label {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .68rem;
+    color: var(--accent);
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.25);
+    padding: .2rem .7rem;
+    border-radius: 4px;
+    letter-spacing: .1em;
+    white-space: nowrap;
+  }
+  .sec-label h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+  }
+  .divider { flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.8rem 2rem;
+  }
+  .problem-box {
+    background: linear-gradient(135deg, rgba(0,212,255,.06), rgba(124,58,237,.04));
+    border: 1px solid rgba(0,212,255,.3);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 1.6rem 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .problem-num {
+    font-family: 'DM Sans', sans-serif;
+    font-size: .75rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: .5rem;
+  }
+  p { margin-bottom: .6rem; }
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 1.8rem 0 .7rem;
+  }
+  h3:first-child { margin-top: 0; }
+
+  .math-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    margin: 1.1rem 0;
+    overflow-x: auto;
+  }
+
+  /* ── RESULT CARDS ── */
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .rcard {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .rcard:hover { border-color: var(--accent); }
+  .rcard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .rcard.cyan::before { background: var(--accent); }
+  .rcard.violet::before { background: var(--accent2); }
+  .rcard.green::before { background: var(--green); }
+  .rcard.amber::before { background: var(--amber); }
+  .rlabel {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .66rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: .3rem;
+  }
+  .rval {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .rdesc { font-size: .84rem; color: var(--muted); margin-top: .2rem; }
+
+  /* ── SIMULATION ── */
+  .sim-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 1.8rem;
+  }
+  .ctrl-group label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: .4rem;
+  }
+  .ctrl-group input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+    cursor: pointer;
+    height: 4px;
+  }
+  .ctrl-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .88rem;
+    color: var(--accent);
+    margin-top: .25rem;
+  }
+
+  .sim-canvas-wrap {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem;
+    overflow-x: auto;
+  }
+  canvas { display: block; margin: 0 auto; border-radius: 6px; }
+
+  .sim-output {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: .8rem;
+    margin-top: 1.4rem;
+  }
+  .sim-out-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .85rem 1.1rem;
+    text-align: center;
+    transition: border-color .2s;
+  }
+  .sim-out-card:hover { border-color: var(--accent); }
+  .sim-out-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .66rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+  }
+  .sim-out-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.08rem;
+    font-weight: 600;
+    margin-top: .3rem;
+  }
+
+  .btn-calc {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: rgba(0,212,255,0.12);
+    border: 1px solid rgba(0,212,255,0.4);
+    color: var(--accent);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .9rem;
+    font-weight: 600;
+    padding: .6rem 1.6rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .2s, box-shadow .2s;
+    margin-top: 1.2rem;
+  }
+  .btn-calc:hover {
+    background: rgba(0,212,255,0.2);
+    box-shadow: 0 0 20px rgba(0,212,255,0.2);
+  }
+  .btn-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: rgba(107,130,163,0.1);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .88rem;
+    font-weight: 500;
+    padding: .55rem 1.3rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .2s;
+    margin-top: 1.2rem;
+    margin-left: .6rem;
+  }
+  .btn-reset:hover { background: rgba(107,130,163,0.18); color: var(--text); }
+
+  /* ── STEP ── */
+  .step {
+    display: flex;
+    gap: 1rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.4rem;
+    margin: .9rem 0;
+    align-items: flex-start;
+  }
+  .step-num {
+    background: var(--accent);
+    color: #000;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem;
+    font-weight: 700;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: .12rem;
+  }
+
+  .note {
+    background: rgba(16,185,129,.07);
+    border: 1px solid rgba(16,185,129,.28);
+    border-radius: 8px;
+    padding: .8rem 1.1rem;
+    margin: .8rem 0;
+    color: var(--green);
+    font-size: .95rem;
+  }
+  .note-warn {
+    background: rgba(245,158,11,.07);
+    border: 1px solid rgba(245,158,11,.28);
+    border-radius: 8px;
+    padding: .8rem 1.1rem;
+    margin: .8rem 0;
+    color: var(--amber);
+    font-size: .95rem;
+  }
+
+  /* ── CONCLUSIONS ── */
+  .conc-list { list-style: none; display: flex; flex-direction: column; gap: .9rem; }
+  .conc-list li {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .9rem 1.2rem;
+  }
+  .conc-list .icon { font-size: 1.1rem; flex-shrink: 0; }
+
+  /* ── BIB ── */
+  .bib-list { list-style: none; display: flex; flex-direction: column; gap: .7rem; }
+  .bib-list li {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: .75rem 1.2rem;
+    font-size: .95rem;
+  }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    height: 6px;
+    background: var(--surface3);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: .8rem;
+  }
+  .status-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width .4s ease, background .4s ease;
+  }
+
+  /* ── ENERGY BARS ── */
+  .energy-row {
+    display: flex;
+    align-items: flex-end;
+    gap: .5rem;
+    height: 80px;
+    margin-top: 1rem;
+    padding: 0 .5rem;
+  }
+  .energy-col { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end; }
+  .energy-bar-wrap { width: 100%; display: flex; justify-content: center; align-items: flex-end; flex: 1; }
+  .energy-bar {
+    width: 60%;
+    border-radius: 3px 3px 0 0;
+    transition: height .4s ease, background .4s ease;
+    min-height: 2px;
+  }
+  .energy-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .62rem;
+    color: var(--muted);
+    margin-top: .3rem;
+    text-align: center;
+  }
+  .energy-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .6rem;
+    color: var(--text);
+    text-align: center;
+  }
+
+  footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .73rem;
+    color: var(--muted);
+  }
+
+  #grafica { max-width: 100%; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ HEADER ══════════════ -->
+<header>
+  <div class="badge">Quiz 2 · Física de Campos · 2026</div>
+  <h1>Circuito de <em>Capacitores</em><br>con Simetría</h1>
+  <p class="header-sub">Capacitancia equivalente — Análisis nodal y simulación interactiva</p>
+  <div class="header-meta">
+    <span class="meta-item"><strong>Estudiante</strong>Johan Cardona</span>
+    <span class="meta-item"><strong>CC</strong>1027947487</span>
+    <span class="meta-item"><strong>Curso</strong>Física de Campos</span>
+    <span class="meta-item"><strong>Facultad</strong>Ingeniería – UdeA</span>
+    <span class="meta-item"><strong>Entrega</strong>22 de abril de 2026</span>
+  </div>
+</header>
+
+<!-- ══════════════ NAV ══════════════ -->
+<nav>
+  <a href="#enunciado">1. Enunciado</a>
+  <a href="#solucion">2. Solución</a>
+  <a href="#analisis">3. Análisis</a>
+  <a href="#planteamiento">4. Planteamiento</a>
+  <a href="#simulacion">5. Simulación</a>
+  <a href="#conclusiones">6. Conclusiones</a>
+  <a href="#bibliografia">7. Bibliografía</a>
+</nav>
+
+<main>
+
+<!-- ══ 1. ENUNCIADO ══ -->
+<section id="enunciado">
+  <div class="sec-label">
+    <span class="sec-num">01</span>
+    <h2>Enunciado del Problema</h2>
+    <div class="divider"></div>
+  </div>
+
+  <div class="problem-box">
+    <div class="problem-num">Problema — Capacitancia Equivalente</div>
+    <p>Determine la capacitancia equivalente del circuito mostrado, <strong>utilizando simetría</strong>. El circuito consta de cinco capacitores: C₁ = C, C₂ = 2C, C₃ = C, C₄ = 2C y un capacitor central C₅ conectado entre los nodos intermedios A y B.</p>
+  </div>
+
+  <div class="card" style="padding: 2rem;">
+    <h3 style="margin-bottom:1.2rem;">Diagrama del Circuito</h3>
+    <div style="display:flex; justify-content:center;">
+      <svg viewBox="0 0 520 320" width="100%" style="max-width:520px; font-family:'JetBrains Mono',monospace;">
+        <rect width="520" height="320" fill="#111827" rx="10"/>
+        <!-- Fuente de voltaje V -->
+        <line x1="40" y1="80" x2="40" y2="240" stroke="#7c3aed" stroke-width="2"/>
+        <circle cx="40" cy="160" r="20" fill="none" stroke="#7c3aed" stroke-width="2"/>
+        <text x="40" y="155" text-anchor="middle" fill="#7c3aed" font-size="11">+</text>
+        <text x="40" y="170" text-anchor="middle" fill="#7c3aed" font-size="11">V</text>
+        <text x="16" y="163" fill="#7c3aed" font-size="10">−</text>
+        <text x="55" y="163" fill="#7c3aed" font-size="10">+</text>
+        <!-- Rieles -->
+        <line x1="40" y1="80" x2="130" y2="80" stroke="#00d4ff" stroke-width="2"/>
+        <line x1="390" y1="80" x2="480" y2="80" stroke="#00d4ff" stroke-width="2"/>
+        <line x1="40" y1="240" x2="130" y2="240" stroke="#00d4ff" stroke-width="2"/>
+        <line x1="390" y1="240" x2="480" y2="240" stroke="#00d4ff" stroke-width="2"/>
+        <line x1="480" y1="80" x2="480" y2="240" stroke="#00d4ff" stroke-width="2"/>
+        <!-- C1 -->
+        <line x1="130" y1="80" x2="205" y2="80" stroke="#00d4ff" stroke-width="2"/>
+        <line x1="205" y1="68" x2="205" y2="92" stroke="#00d4ff" stroke-width="2.5"/>
+        <line x1="215" y1="68" x2="215" y2="92" stroke="#00d4ff" stroke-width="2.5"/>
+        <line x1="215" y1="80" x2="260" y2="80" stroke="#00d4ff" stroke-width="2"/>
+        <text x="210" y="58" text-anchor="middle" fill="#00d4ff" font-size="12">C₁=C</text>
+        <!-- C2 -->
+        <line x1="260" y1="80" x2="305" y2="80" stroke="#00d4ff" stroke-width="2"/>
+        <line x1="305" y1="68" x2="305" y2="92" stroke="#00d4ff" stroke-width="2.5"/>
+        <line x1="315" y1="68" x2="315" y2="92" stroke="#00d4ff" stroke-width="2.5"/>
+        <line x1="315" y1="80" x2="390" y2="80" stroke="#00d4ff" stroke-width="2"/>
+        <text x="310" y="58" text-anchor="middle" fill="#00d4ff" font-size="12">C₂=2C</text>
+        <!-- C3 -->
+        <line x1="130" y1="240" x2="205" y2="240" stroke="#10b981" stroke-width="2"/>
+        <line x1="205" y1="228" x2="205" y2="252" stroke="#10b981" stroke-width="2.5"/>
+        <line x1="215" y1="228" x2="215" y2="252" stroke="#10b981" stroke-width="2.5"/>
+        <line x1="215" y1="240" x2="260" y2="240" stroke="#10b981" stroke-width="2"/>
+        <text x="210" y="272" text-anchor="middle" fill="#10b981" font-size="12">C₃=C</text>
+        <!-- C4 -->
+        <line x1="260" y1="240" x2="305" y2="240" stroke="#10b981" stroke-width="2"/>
+        <line x1="305" y1="228" x2="305" y2="252" stroke="#10b981" stroke-width="2.5"/>
+        <line x1="315" y1="228" x2="315" y2="252" stroke="#10b981" stroke-width="2.5"/>
+        <line x1="315" y1="240" x2="390" y2="240" stroke="#10b981" stroke-width="2"/>
+        <text x="310" y="272" text-anchor="middle" fill="#10b981" font-size="12">C₄=2C</text>
+        <!-- C5 central -->
+        <line x1="260" y1="80" x2="260" y2="148" stroke="#f59e0b" stroke-width="2"/>
+        <line x1="248" y1="148" x2="272" y2="148" stroke="#f59e0b" stroke-width="2.5"/>
+        <line x1="248" y1="158" x2="272" y2="158" stroke="#f59e0b" stroke-width="2.5"/>
+        <line x1="260" y1="158" x2="260" y2="240" stroke="#f59e0b" stroke-width="2"/>
+        <text x="285" y="158" fill="#f59e0b" font-size="12">C₅</text>
+        <!-- Nodos -->
+        <circle cx="260" cy="80" r="5" fill="#00d4ff"/>
+        <circle cx="260" cy="240" r="5" fill="#10b981"/>
+        <circle cx="130" cy="80" r="4" fill="#e2eaf5"/>
+        <circle cx="390" cy="80" r="4" fill="#e2eaf5"/>
+        <circle cx="130" cy="240" r="4" fill="#e2eaf5"/>
+        <circle cx="390" cy="240" r="4" fill="#e2eaf5"/>
+        <text x="270" y="78" fill="#00d4ff" font-size="12" font-weight="bold">A</text>
+        <text x="270" y="244" fill="#10b981" font-size="12" font-weight="bold">B</text>
+        <text x="40" y="35" text-anchor="middle" fill="#7c3aed" font-size="11">V</text>
+        <text x="480" y="35" text-anchor="middle" fill="#e2eaf5" font-size="11">GND</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 2. SOLUCIÓN ══ -->
+<section id="solucion">
+  <div class="sec-label">
+    <span class="sec-num">02</span>
+    <h2>Solución Matemática</h2>
+    <div class="divider"></div>
+  </div>
+
+  <div class="card">
+    <h3>Argumento de Simetría</h3>
+    <p>El circuito posee simetría especular. Dado que <strong>C₁ = C₃ = C</strong> y <strong>C₂ = C₄ = 2C</strong>, los nodos A y B están al mismo potencial:</p>
+    <div class="math-block">$$V_A = V_B \implies \Delta V_{AB} = 0$$</div>
+    <p>El capacitor central <strong>no almacena carga</strong>:</p>
+    <div class="math-block">$$Q_5 = C_5 \cdot \Delta V_{AB} = 0$$</div>
+    <div class="note">⚡ C₅ puede eliminarse sin alterar el comportamiento eléctrico.</div>
+
+    <h3>Reducción del Circuito</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div>
+        <strong>Serie en cada rama:</strong>
+        <div class="math-block">$$C_{serie} = \frac{C \cdot 2C}{C + 2C} = \frac{2}{3}C$$</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div>
+        <strong>Paralelo de las dos ramas:</strong>
+        <div class="math-block">$$C_{eq} = \frac{2}{3}C + \frac{2}{3}C = \boxed{\frac{4}{3}C}$$</div>
+      </div>
+    </div>
+
+    <div class="result-grid">
+      <div class="rcard cyan">
+        <div class="rlabel">Capacitancia Eq.</div>
+        <div class="rval">4/3 · C</div>
+        <div class="rdesc">Resultado exacto por simetría</div>
+      </div>
+      <div class="rcard green">
+        <div class="rlabel">Q₅ (central)</div>
+        <div class="rval">≈ 0</div>
+        <div class="rdesc">No almacena carga</div>
+      </div>
+      <div class="rcard amber">
+        <div class="rlabel">ΔV nodos A–B</div>
+        <div class="rval">0 V</div>
+        <div class="rdesc">Simetría perfecta</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 3. ANÁLISIS ══ -->
+<section id="analisis">
+  <div class="sec-label">
+    <span class="sec-num">03</span>
+    <h2>Análisis Teórico</h2>
+    <div class="divider"></div>
+  </div>
+
+  <div class="card">
+    <h3>Principio de Simetría</h3>
+    <p>En un circuito simétrico, los nodos a igual distancia del origen comparten el mismo potencial. Si $f(x) = f(-x)$ bajo reflexión del circuito, entonces $V_A = V_B$.</p>
+
+    <h3>Ruptura de Simetría</h3>
+    <p>Si <strong>C₃ ≠ C₁</strong>, aparece $\Delta V_{AB} \neq 0$:</p>
+    <div class="math-block">$$Q_5 = C_5 \cdot (V_A - V_B) \neq 0$$</div>
+    <div class="note-warn">⚠️ La simulación usa C₃ = 1.05C para visualizar la ruptura de simetría. El resultado teórico ideal no cambia.</div>
+
+    <h3>Análisis Nodal Generalizado</h3>
+    <div class="math-block">$$\begin{pmatrix} C_1 + C_2 + C_5 & -C_5 \\ -C_5 & C_3 + C_4 + C_5 \end{pmatrix} \begin{pmatrix} V_A \\ V_B \end{pmatrix} = \begin{pmatrix} C_2 \cdot V \\ C_4 \cdot V \end{pmatrix}$$</div>
+  </div>
+</section>
+
+<!-- ══ 4. PLANTEAMIENTO ══ -->
+<section id="planteamiento">
+  <div class="sec-label">
+    <span class="sec-num">04</span>
+    <h2>Planteamiento de la Simulación</h2>
+    <div class="divider"></div>
+  </div>
+
+  <div class="card">
+    <p>Se resuelve el sistema mediante la <strong>regla de Cramer</strong> con análisis nodal completo.</p>
+    <div class="step"><div class="step-num">1</div><div>Construcción de la <strong>matriz de coeficientes</strong> (capacitancias) y vector fuente.</div></div>
+    <div class="step"><div class="step-num">2</div><div>Resolución de <strong>VA y VB</strong> usando el determinante de la matriz.</div></div>
+    <div class="step"><div class="step-num">3</div><div>Cálculo de Q₅, Ceq y <strong>energía almacenada</strong> en cada capacitor.</div></div>
+    <div class="step"><div class="step-num">4</div><div><strong>Sliders interactivos</strong> modifican C, V y factor de C₅ en tiempo real.</div></div>
+  </div>
+</section>
+
+<!-- ══ 5. SIMULACIÓN ══ -->
+<section id="simulacion">
+  <div class="sec-label">
+    <span class="sec-num">05</span>
+    <h2>Simulación Interactiva</h2>
+    <div class="divider"></div>
+  </div>
+
+  <div class="card">
+    <div class="sim-controls">
+      <div class="ctrl-group">
+        <label>Capacitancia base C</label>
+        <input type="range" id="slC" min="0.1" max="5" step="0.1" value="1" oninput="syncSlider('C','slC','valC',' μF')">
+        <div class="ctrl-val" id="valC">1.0 μF</div>
+      </div>
+      <div class="ctrl-group">
+        <label>Voltaje V</label>
+        <input type="range" id="slV" min="1" max="30" step="1" value="10" oninput="syncSlider('V','slV','valV',' V')">
+        <div class="ctrl-val" id="valV">10 V</div>
+      </div>
+      <div class="ctrl-group">
+        <label>Factor C₅ (múltiplo de C)</label>
+        <input type="range" id="slF" min="0.1" max="8" step="0.1" value="3" oninput="syncSlider('factor','slF','valF','×C')">
+        <div class="ctrl-val" id="valF">3.0×C</div>
+      </div>
+    </div>
+
+    <div>
+      <button class="btn-calc" onclick="calcular()">▶ Calcular y Animar</button>
+      <button class="btn-reset" onclick="resetDefaults()">↺ Valores por defecto</button>
+    </div>
+
+    <div class="sim-output" id="simOutput">
+      <div class="sim-out-card"><div class="sim-out-label">VA</div><div class="sim-out-val" style="color:var(--accent)">—</div></div>
+      <div class="sim-out-card"><div class="sim-out-label">VB</div><div class="sim-out-val" style="color:var(--green)">—</div></div>
+      <div class="sim-out-card"><div class="sim-out-label">ΔV (A–B)</div><div class="sim-out-val" style="color:var(--amber)">—</div></div>
+      <div class="sim-out-card"><div class="sim-out-label">Q₅</div><div class="sim-out-val" style="color:var(--red)">—</div></div>
+      <div class="sim-out-card"><div class="sim-out-label">C_eq</div><div class="sim-out-val" style="color:var(--accent2)">—</div></div>
+      <div class="sim-out-card"><div class="sim-out-label">Estado</div><div class="sim-out-val" id="estadoCard" style="color:var(--muted)">—</div></div>
+    </div>
+
+    <div style="margin-top:1.2rem;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:.4rem;">Intensidad de ruptura de simetría</div>
+      <div class="status-bar"><div class="status-fill" id="symBar" style="width:0%; background:var(--green);"></div></div>
+    </div>
+
+    <div class="sim-canvas-wrap" style="margin-top:1.5rem;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:.8rem;">Estado del Circuito (animado)</div>
+      <canvas id="circuito" width="560" height="320"></canvas>
+    </div>
+
+    <div style="margin-top:1.5rem;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:.4rem;">Energía almacenada por capacitor (U = Q²/2C)</div>
+      <div class="energy-row" id="energyBars">
+        <div class="energy-col"><div class="energy-bar-wrap"><div class="energy-bar" id="eC1" style="height:2px; background:var(--accent);"></div></div><div class="energy-label">C₁</div><div class="energy-val" id="eC1v">—</div></div>
+        <div class="energy-col"><div class="energy-bar-wrap"><div class="energy-bar" id="eC2" style="height:2px; background:var(--accent);"></div></div><div class="energy-label">C₂</div><div class="energy-val" id="eC2v">—</div></div>
+        <div class="energy-col"><div class="energy-bar-wrap"><div class="energy-bar" id="eC3" style="height:2px; background:var(--green);"></div></div><div class="energy-label">C₃</div><div class="energy-val" id="eC3v">—</div></div>
+        <div class="energy-col"><div class="energy-bar-wrap"><div class="energy-bar" id="eC4" style="height:2px; background:var(--green);"></div></div><div class="energy-label">C₄</div><div class="energy-val" id="eC4v">—</div></div>
+        <div class="energy-col"><div class="energy-bar-wrap"><div class="energy-bar" id="eC5" style="height:2px; background:var(--amber);"></div></div><div class="energy-label">C₅</div><div class="energy-val" id="eC5v">—</div></div>
+      </div>
+    </div>
+
+    <div class="sim-canvas-wrap" style="margin-top:1.5rem;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:.8rem;">Q₅ × 10¹⁵ vs Factor de C₅</div>
+      <canvas id="grafica" height="160"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 6. CONCLUSIONES ══ -->
+<section id="conclusiones">
+  <div class="sec-label">
+    <span class="sec-num">06</span>
+    <h2>Conclusiones</h2>
+    <div class="divider"></div>
+  </div>
+
+  <div class="card">
+    <ul class="conc-list">
+      <li><span class="icon">⚡</span><div>La capacitancia equivalente es $C_{eq} = \dfrac{4}{3}C$, independiente del valor de C₅ bajo simetría.</div></li>
+      <li><span class="icon">🔁</span><div>La simetría garantiza $V_A = V_B$, por tanto $Q_5 = 0$. C₅ no interviene en el circuito ideal.</div></li>
+      <li><span class="icon">📊</span><div>Las fluctuaciones de Q₅ del orden $10^{-15}$ son errores numéricos de punto flotante, no físicos.</div></li>
+      <li><span class="icon">🔬</span><div>Al romper la simetría (C₃ = 1.05C), aparece $\Delta V_{AB} \neq 0$ y C₅ comienza a almacenar carga.</div></li>
+      <li><span class="icon">🧮</span><div>El análisis nodal generalizado confirma los resultados analíticos para configuraciones asimétricas.</div></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══ 7. BIBLIOGRAFÍA ══ -->
+<section id="bibliografia">
+  <div class="sec-label">
+    <span class="sec-num">07</span>
+    <h2>Bibliografía</h2>
+    <div class="divider"></div>
+  </div>
+
+  <div class="card">
+    <ul class="bib-list">
+      <li>Young, H. D. & Freedman, R. A. (2014). <em>Física Universitaria</em> (13ª ed., Vol. 2). Pearson.</li>
+      <li>Hayt, W. H. & Kemmerly, J. E. (2012). <em>Análisis de Circuitos en Ingeniería</em> (8ª ed.). McGraw-Hill.</li>
+      <li>Apuntes del curso de Física de Campos — Universidad de Antioquia, 2026.</li>
+      <li>Griffiths, D. J. (2013). <em>Introduction to Electrodynamics</em> (4th ed.). Pearson.</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Johan Cardona · 1027947487 · Física de Campos · Universidad de Antioquia · 2026
+</footer>
+
+<script>
+const hiddenInputs = {};
+function syncSlider(id, slId, valId, suffix) {
+  const val = parseFloat(document.getElementById(slId).value);
+  hiddenInputs[id] = val;
+  document.getElementById(valId).textContent = val.toFixed(1) + suffix;
+}
+hiddenInputs['C'] = 1;
+hiddenInputs['V'] = 10;
+hiddenInputs['factor'] = 3;
+
+function getVal(id) {
+  return hiddenInputs[id] || parseFloat(document.getElementById(id)?.value) || 0;
+}
+
+function resolver(C, V, factor) {
+  let C1 = C, C2 = 2*C, C3 = C*1.05, C4 = 2*C, C5 = factor*C;
+  let a = C1+C2+C5, b = -C5, c = -C5, d = C3+C4+C5;
+  let e = C2*V, f = C4*V;
+  let det = a*d - b*c;
+  let VA = (e*d - b*f)/det;
+  let VB = (a*f - e*c)/det;
+  let Q5 = C5*(VA-VB);
+  let Ceq = (C2*(V-VA) + C4*(V-VB))/V;
+  let Q1=C1*VA, Q2=C2*(V-VA), Q3=C3*VB, Q4=C4*(V-VB);
+  let U1=Q1*Q1/(2*C1), U2=Q2*Q2/(2*C2), U3=Q3*Q3/(2*C3), U4=Q4*Q4/(2*C4);
+  let U5 = C5>0 ? Q5*Q5/(2*C5) : 0;
+  return {VA,VB,Q5,Ceq,Q1,Q2,Q3,Q4,U1,U2,U3,U4,U5};
+}
+
+let chart;
+function animarGrafica(C, V) {
+  let factores=[], Q5_vals=[];
+  for (let f=0.1; f<=8; f+=0.1) {
+    let r = resolver(C,V,f);
+    factores.push(f.toFixed(1));
+    Q5_vals.push(+(r.Q5*1e15).toFixed(4));
+  }
+  const ctx = document.getElementById('grafica').getContext('2d');
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels:[],
+      datasets:[
+        {label:'Q₅×10¹⁵',data:[],borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.08)',borderWidth:2,fill:true,tension:0.4,pointRadius:0},
+        {label:'Punto actual',data:[],pointRadius:7,pointBackgroundColor:'#00d4ff',showLine:false}
+      ]
+    },
+    options:{
+      animation:false,
+      plugins:{legend:{labels:{color:'#6b82a3',font:{family:'JetBrains Mono',size:11}}}},
+      scales:{
+        x:{title:{display:true,text:'Factor de C₅',color:'#6b82a3',font:{family:'JetBrains Mono',size:11}},ticks:{color:'#6b82a3',font:{size:10},maxTicksLimit:10},grid:{color:'rgba(42,58,85,0.6)'}},
+        y:{title:{display:true,text:'Q₅×10¹⁵',color:'#6b82a3',font:{family:'JetBrains Mono',size:11}},ticks:{color:'#6b82a3',font:{size:10}},grid:{color:'rgba(42,58,85,0.6)'}}
+      }
+    }
+  });
+  chart.canvas.parentNode.style.background='#111827';
+  let i=0;
+  const factor=getVal('factor');
+  function animar() {
+    if (i>=factores.length) return;
+    chart.data.labels.push(factores[i]);
+    chart.data.datasets[0].data.push(Q5_vals[i]);
+    if (Math.abs(parseFloat(factores[i])-factor)<0.15)
+      chart.data.datasets[1].data=[{x:factores[i],y:Q5_vals[i]}];
+    chart.update(); i++; setTimeout(animar,50);
+  }
+  animar();
+}
+
+let animFrame;
+function dibujarCircuito(VA,VB,deltaV,C,V,factor) {
+  const canvas=document.getElementById("circuito");
+  const ctx=canvas.getContext("2d");
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#111827'; ctx.fillRect(0,0,W,H);
+  const sym=Math.abs(deltaV)<1e-6;
+  const colA='#00d4ff', colB='#10b981', colC5=sym?'#6b82a3':'#f43f5e';
+  const lx=60,rx=500,ty=70,by=250,mx=(lx+rx)/2;
+
+  ctx.strokeStyle='#2a3a55'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(lx,ty); ctx.lineTo(rx,ty); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(lx,by); ctx.lineTo(rx,by); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(lx,ty); ctx.lineTo(lx,by); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(rx,ty); ctx.lineTo(rx,by); ctx.stroke();
+
+  function capH(x1,x2,y,col,label) {
+    const cm=(x1+x2)/2;
+    ctx.strokeStyle=col; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(x1,y); ctx.lineTo(cm-8,y); ctx.stroke();
+    ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(cm-8,y-12); ctx.lineTo(cm-8,y+12); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cm+8,y-12); ctx.lineTo(cm+8,y+12); ctx.stroke();
+    ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(cm+8,y); ctx.lineTo(x2,y); ctx.stroke();
+    ctx.fillStyle=col; ctx.font='11px JetBrains Mono'; ctx.textAlign='center';
+    ctx.fillText(label,cm,y-18);
+  }
+  function capV(x,y1,y2,col,label) {
+    const cm=(y1+y2)/2;
+    ctx.strokeStyle=col; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(x,y1); ctx.lineTo(x,cm-8); ctx.stroke();
+    ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(x-12,cm-8); ctx.lineTo(x+12,cm-8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x-12,cm+8); ctx.lineTo(x+12,cm+8); ctx.stroke();
+    ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(x,cm+8); ctx.lineTo(x,y2); ctx.stroke();
+    ctx.fillStyle=col; ctx.font='11px JetBrains Mono'; ctx.textAlign='left';
+    ctx.fillText(label,x+15,cm+4);
+  }
+
+  capH(lx,mx,ty,colA,'C₁=C');
+  capH(mx,rx,ty,colA,'C₂=2C');
+  capH(lx,mx,by,colB,'C₃=C');
+  capH(mx,rx,by,colB,'C₄=2C');
+  capV(mx,ty,by,colC5,`C₅=${factor.toFixed(1)}C`);
+
+  function dot(x,y,col){ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();}
+  dot(mx,ty,colA); dot(mx,by,colB);
+  dot(lx,ty,'#e2eaf5'); dot(rx,ty,'#e2eaf5');
+  dot(lx,by,'#e2eaf5'); dot(rx,by,'#e2eaf5');
+
+  ctx.fillStyle=colA; ctx.font='bold 12px JetBrains Mono'; ctx.textAlign='left';
+  ctx.fillText(`A  VA=${VA.toFixed(2)}V`,mx+8,ty-10);
+  ctx.fillStyle=colB;
+  ctx.fillText(`B  VB=${VB.toFixed(2)}V`,mx+8,by+18);
+  ctx.font='bold 11px DM Sans'; ctx.textAlign='center'; ctx.fillStyle=colC5;
+  ctx.fillText(sym?'✓ Simetría (Q₅≈0)':`✗ ΔV=${deltaV.toFixed(4)}V`,mx,H-12);
+
+  const t=(Date.now()/600)%1;
+  function particle(x1,y1,x2,y2,col,speed=1){
+    const tt=(t*speed)%1;
+    ctx.beginPath(); ctx.arc(x1+(x2-x1)*tt,y1+(y2-y1)*tt,3.5,0,Math.PI*2);
+    ctx.fillStyle=col; ctx.fill();
+  }
+  particle(lx,ty,mx,ty,'rgba(0,212,255,0.8)');
+  particle(mx,ty,rx,ty,'rgba(0,212,255,0.8)',0.7);
+  particle(lx,by,mx,by,'rgba(16,185,129,0.8)');
+  particle(mx,by,rx,by,'rgba(16,185,129,0.8)',0.7);
+  if (!sym) particle(mx,ty,mx,by,'rgba(244,63,94,0.9)',1.2);
+
+  animFrame=requestAnimationFrame(()=>dibujarCircuito(VA,VB,deltaV,C,V,factor));
+}
+
+function updateEnergy(r) {
+  const vals=[r.U1,r.U2,r.U3,r.U4,r.U5];
+  const ids=['eC1','eC2','eC3','eC4','eC5'];
+  const vids=['eC1v','eC2v','eC3v','eC4v','eC5v'];
+  const max=Math.max(...vals,1e-20);
+  vals.forEach((u,i)=>{
+    document.getElementById(ids[i]).style.height=Math.max((u/max)*66,2)+'px';
+    document.getElementById(vids[i]).textContent=(u*1e12).toFixed(1)+'pJ';
+  });
+}
+
+function updateCards(r,deltaV) {
+  const sym=Math.abs(deltaV)<1e-6;
+  document.getElementById('simOutput').innerHTML=[
+    {label:'VA',val:r.VA.toFixed(4)+' V',col:'var(--accent)'},
+    {label:'VB',val:r.VB.toFixed(4)+' V',col:'var(--green)'},
+    {label:'ΔV (A–B)',val:deltaV.toFixed(6)+' V',col:'var(--amber)'},
+    {label:'Q₅',val:r.Q5.toExponential(3),col:sym?'var(--green)':'var(--red)'},
+    {label:'C_eq',val:r.Ceq.toFixed(4)+' C',col:'var(--accent2)'},
+    {label:'Estado',val:sym?'✓ Simétrico':'✗ Asimétrico',col:sym?'var(--green)':'var(--red)'}
+  ].map(x=>`<div class="sim-out-card"><div class="sim-out-label">${x.label}</div><div class="sim-out-val" style="color:${x.col}">${x.val}</div></div>`).join('');
+  const intensity=Math.min(Math.abs(deltaV)*200,100);
+  const bar=document.getElementById('symBar');
+  bar.style.width=intensity+'%';
+  bar.style.background=sym?'var(--green)':`hsl(${Math.round(120-intensity*1.2)},80%,55%)`;
+}
+
+function calcular() {
+  const C=getVal('C'), V=getVal('V'), factor=getVal('factor');
+  const r=resolver(C,V,factor);
+  const deltaV=r.VA-r.VB;
+  if (animFrame) cancelAnimationFrame(animFrame);
+  updateCards(r,deltaV);
+  updateEnergy(r);
+  dibujarCircuito(r.VA,r.VB,deltaV,C,V,factor);
+  animarGrafica(C,V);
+}
+
+function resetDefaults() {
+  hiddenInputs['C']=1; hiddenInputs['V']=10; hiddenInputs['factor']=3;
+  document.getElementById('slC').value=1;
+  document.getElementById('slV').value=10;
+  document.getElementById('slF').value=3;
+  document.getElementById('valC').textContent='1.0 μF';
+  document.getElementById('valV').textContent='10 V';
+  document.getElementById('valF').textContent='3.0×C';
+  calcular();
+}
+
+window.addEventListener('load',()=>{ calcular(); });
+</script>
+
+</body>
+</html>

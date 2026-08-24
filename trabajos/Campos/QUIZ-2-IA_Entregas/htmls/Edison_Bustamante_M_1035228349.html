@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz 2: Simulación de Capacitores - Bastian Shneider</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
+        header { background-color: #004d40; color: white; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 30px; }
+        section { background: white; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { color: #004d40; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .simulation-container { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: center; background: #e0f2f1; padding: 20px; border-radius: 8px; }
+        .controls { flex: 1; min-width: 300px; }
+        .canvas-area { flex: 1; text-align: center; }
+        canvas { background: white; border: 1px solid #ccc; border-radius: 4px; max-width: 100%; }
+        .results { font-weight: bold; color: #00695c; font-size: 1.1em; margin-top: 15px; }
+        footer { text-align: center; font-size: 0.9em; color: #666; margin-top: 40px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Simulación Computacional: Capacitancia</h1>
+    <p>Curso de Física de Campos quiz 2 IA | Universidad de Antioquia</p>
+    <p><strong>Estudiante:</strong> Edison Bustamante M</p>
+</header>
+
+<section>
+    <h2>1. Enunciado del Problema</h2>
+    <p>Dos capacitores, \(C_1 = 25.0\,\mu\text{F}\) y \(C_2 = 5.00\,\mu\text{F}\), están conectados en paralelo y cargados mediante una fuente de energía de \(100\,\text{V}\). </p>
+    <ul>
+        <li><strong>a)</strong> Calcule la energía total almacenada en ambos capacitores.</li>
+        <li><strong>b)</strong> ¿Qué diferencia de potencial se requeriría en las terminales si se conectan en serie para almacenar la misma energía?</li>
+    </ul>
+</section>
+
+<section>
+    <h2>2. Solución Matemática</h2>
+    <h3>Parte A: Conexión en Paralelo</h3>
+    <p>La capacitancia equivalente es la suma directa:</p>
+    \[ C_{eq,p} = C_1 + C_2 = 25.0\,\mu\text{F} + 5.00\,\mu\text{F} = 30.0\,\mu\text{F} \]
+    <p>La energía almacenada (\(U\)) con \(V = 100\,\text{V}\):</p>
+    \[ U = \frac{1}{2} C_{eq,p} V^2 = \frac{1}{2} (30.0 \times 10^{-6}\,\text{F})(100\,\text{V})^2 = 0.150\,\text{J} \]
+
+    <h3>Parte B: Conexión en Serie</h3>
+    <p>Capacitancia equivalente en serie:</p>
+    \[ C_{eq,s} = \left( \frac{1}{C_1} + \frac{1}{C_2} \right)^{-1} = \frac{25 \cdot 5}{25 + 5} \approx 4.167\,\mu\text{F} \]
+    <p>Para igualar la energía (\(U = 0.150\,\text{J}\)), despejamos el voltaje (\(V_s\)):</p>
+    \[ V_s = \sqrt{\frac{2U}{C_{eq,s}}} = \sqrt{\frac{2(0.150)}{4.167 \times 10^{-6}}} \approx 268.33\,\text{V} \]
+</section>
+
+<section>
+    <h2>3. Simulación Interactiva</h2>
+    <div class="simulation-container">
+        <div class="controls">
+            <label>Capacitor 1 (\( \mu F \)): <span id="valC1">25</span></label><br>
+            <input type="range" id="c1Range" min="1" max="50" value="25" style="width:100%"><br><br>
+            
+            <label>Capacitor 2 (\( \mu F \ )): <span id="valC2">5</span></label><br>
+            <input type="range" id="c2Range" min="1" max="50" value="5" style="width:100%"><br><br>
+            
+            <label>Voltaje Inicial (V): <span id="valV">100</span></label><br>
+            <input type="range" id="vRange" min="10" max="200" value="100" style="width:100%"><br><br>
+            
+            <div class="results">
+                Energía Objetivo (U): <span id="resU">0.150</span> J<br>
+                Voltaje Necesario en Serie: <span id="resVs">268.33</span> V
+            </div>
+        </div>
+        <div class="canvas-area">
+            <canvas id="circuitCanvas" width="300" height="200"></canvas>
+            <p><small>Esquema representativo de la conexión</small></p>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2>4. Conclusiones</h2>
+    <ul>
+        <li>La conexión en paralelo maximiza la capacitancia equivalente, permitiendo almacenar más energía con un menor voltaje en comparación con la conexión en serie. Dado que la capacitancia, C, está relacionada con el área de las placas (  C = ε(A/d)  ), el valor de capacitancia de la combinación también aumentará. Por lo tanto, el valor total de capacitancia de los capacitores conectados en paralelo se calcula sumando las áreas de las placas.[cite: 36].</li>
+        <li>Para que una configuración en serie (de menor capacitancia) iguale la energía de una en paralelo, el voltaje aplicado debe aumentar significativamente de forma cuadrática. Al tener los capacitores en configuración en serie, el valor de la capacitancia equivalente será menor que el valor del capacitor más pequeño en la configuración.[cite: 36].</li>
+    </ul>
+</section>
+
+<footer>
+    <p>Bibliografía: Serway, R. A., & Jewett, J. W. (2018). Física para ciencias e ingeniería. Vol 2.</p>
+</footer>
+
+<script>
+    const c1Input = document.getElementById('c1Range');
+    const c2Input = document.getElementById('c2Range');
+    const vInput = document.getElementById('vRange');
+    const canvas = document.getElementById('circuitCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function updateSim() {
+        let c1 = parseFloat(c1Input.value);
+        let c2 = parseFloat(c2Input.value);
+        let v = parseFloat(vInput.value);
+
+        document.getElementById('valC1').innerText = c1;
+        document.getElementById('valC2').innerText = c2;
+        document.getElementById('valV').innerText = v;
+
+        // Cálculos
+        let ceqp = (c1 + c2) * 1e-6;
+        let u = 0.5 * ceqp * Math.pow(v, 2);
+        let ceqs = ((c1 * c2) / (c1 + c2)) * 1e-6;
+        let vs = Math.sqrt((2 * u) / ceqs);
+
+        document.getElementById('resU').innerText = u.toFixed(3);
+        document.getElementById('resVs').innerText = vs.toFixed(2);
+
+        drawCircuit();
+    }
+
+    function drawCircuit() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "#004d40";
+        ctx.lineWidth = 2;
+        
+        // Fuente
+        ctx.beginPath();
+        ctx.moveTo(50, 100); ctx.lineTo(100, 100);
+        ctx.stroke();
+        
+        // Capacitor 1
+        ctx.strokeRect(140, 70, 10, 60);
+        ctx.strokeRect(160, 70, 10, 60);
+        
+        // Líneas de conexión
+        ctx.beginPath();
+        ctx.moveTo(100, 100); ctx.lineTo(140, 100);
+        ctx.moveTo(170, 100); ctx.lineTo(220, 100);
+        ctx.stroke();
+        
+        ctx.fillText("V", 60, 90);
+        ctx.fillText("C1", 145, 60);
+    }
+
+    c1Input.oninput = updateSim;
+    c2Input.oninput = updateSim;
+    vInput.oninput = updateSim;
+    updateSim();
+</script>
+
+</body>
+</html>
