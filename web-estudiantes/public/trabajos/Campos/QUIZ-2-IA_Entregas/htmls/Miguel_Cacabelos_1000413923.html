@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz 2 - Física de Campos</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  body{
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    margin: 0;
+    line-height: 1.6;
+    background: linear-gradient(135deg, #0f172a, #1e3a8a);
+    color: #1e293b;
+  }
+
+  /* CONTENEDOR GENERAL */
+  body > *{
+    max-width: 1000px;
+    margin: auto;
+  }
+
+  /* HEADER */
+  h1{
+    text-align: center;
+    color: white;
+    padding: 30px 10px 10px;
+    font-size: 2.2em;
+    
+  }
+
+  p strong{
+    color: #0ea5e9;
+  }
+
+  /* INFO SUPERIOR */
+  body > p{
+    text-align: center;
+    color: #cbd5f5;
+    margin-bottom: 10px;
+  }
+
+  /* TARJETAS */
+  section{
+    background: rgba(255,255,255,0.95);
+    margin: 25px auto;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    transition: 0.3s;
+  }
+
+  section:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.35);
+  }
+
+  /* TITULOS */
+  h2{
+    color: #1e3a8a;
+    border-left: 6px solid #0ea5e9;
+    padding-left: 10px;
+  }
+
+  /* BOTONES */
+  button{
+    padding:10px 18px;
+    margin:5px;
+    border:none;
+    border-radius:8px;
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    color:white;
+    cursor:pointer;
+    font-size:14px;
+    transition:0.3s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
+
+  button:hover{
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #0284c7, #1d4ed8);
+  }
+
+  /* SIMULACIÓN */
+  .simulacion-box{
+    margin-top:20px;
+    padding:20px;
+    background: linear-gradient(135deg, #e0f2fe, #eef2ff);
+    border-left:6px solid #2563eb;
+    border-radius:10px;
+  }
+
+  /* SLIDERS */
+  input[type="range"]{
+    width: 100%;
+    margin-bottom: 15px;
+  }
+
+  label{
+    font-weight: bold;
+    display:block;
+    margin-top:10px;
+  }
+
+  /* RESULTADOS */
+  #resultados{
+    background:white;
+    padding:15px;
+    border-radius:8px;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+  }
+
+  /* CANVAS */
+  canvas{
+    margin-top:20px;
+    background:white;
+    border-radius:10px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+    width:100%;
+  }
+
+  /* LISTAS */
+  ul{
+    padding-left: 20px;
+  }
+
+  /* EFECTO SUAVE */
+  *{
+    transition: all 0.2s ease;
+  }
+
+</style>
+</head>
+<body>
+
+  <h1>Quiz 2 - Física de Campos</h1>
+  <div style="text-align:center; margin-bottom:20px;">
+  <img src="https://www.udea.edu.co/wps/wcm/connect/udea/99fc43e7-7a64-45bd-97fc-96639b70813d/logosimbolo-vertical.png?MOD=AJPERES&CVID=ljeLvHr" 
+       style="max-width:300px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+</div>
+  <p><strong>Estudiante:</strong> Miguel Ángel Cacabelos Giraldo</p>
+  <p><strong>Ejercicio asignado:</strong> 28.47</p>
+  
+
+  <section>
+    <h2>1. Enunciado del problema asignado</h2>
+    <p>
+      Cuando dos resistores desconocidos están conectados en serie con una batería,
+      la batería entrega 225 W y transporta una corriente de 5.00 A.
+      Para la misma corriente total, se entregan 50.0 W cuando los resistores
+      se conectan en paralelo. Determine los valores de los dos resistores.
+    </p>
+  </section>
+
+  <section>
+  <h2>2. Solución matemática completa</h2>
+
+  <p><strong>Datos del problema:</strong></p>
+  <ul>
+    <li>Potencia en serie: \(P_s = 225\,W\)</li>
+    <li>Potencia en paralelo: \(P_p = 50.0\,W\)</li>
+    <li>Corriente total: \(I = 5.00\,A\)</li>
+  </ul>
+
+  <p>
+    Dado que la corriente es la misma en ambos casos, se utiliza la relación de potencia eléctrica:
+  </p>
+
+  \[
+  P = I^2 R
+  \]
+
+  <p><strong>1. Caso en serie</strong></p>
+
+  \[
+  R_s = \frac{P_s}{I^2} = \frac{225}{(5)^2} = \frac{225}{25} = 9\,\Omega
+  \]
+
+  <p>
+    En una conexión en serie, la resistencia equivalente es:
+  </p>
+
+  \[
+  R_s = R_1 + R_2
+  \]
+
+  \[
+  R_1 + R_2 = 9 \quad (1)
+  \]
+
+  <p><strong>2. Caso en paralelo</strong></p>
+
+  \[
+  R_p = \frac{P_p}{I^2} = \frac{50}{25} = 2\,\Omega
+  \]
+
+  <p>
+    En paralelo, la resistencia equivalente está dada por:
+  </p>
+
+  \[
+  R_p = \frac{R_1 R_2}{R_1 + R_2}
+  \]
+
+  \[
+  2 = \frac{R_1 R_2}{9}
+  \]
+
+  \[
+  R_1 R_2 = 18 \quad (2)
+  \]
+
+  <p><strong>3. Resolución del sistema</strong></p>
+
+  <p>
+    Se obtiene el siguiente sistema de ecuaciones:
+  </p>
+
+  \[
+  R_1 + R_2 = 9
+  \]
+  \[
+  R_1 R_2 = 18
+  \]
+
+  <p>
+    Este sistema corresponde a las raíces de la ecuación cuadrática:
+  </p>
+
+  \[
+  x^2 - 9x + 18 = 0
+  \]
+
+  <p>Factorizando:</p>
+
+  \[
+  (x - 3)(x - 6) = 0
+  \]
+
+  \[
+  x = 3 \quad \text{o} \quad x = 6
+  \]
+
+  <p><strong>4. Resultado final</strong></p>
+
+  \[
+  \boxed{R_1 = 3\,\Omega \quad,\quad R_2 = 6\,\Omega}
+  \]
+
+  <p>
+    <strong>Verificación:</strong>
+  </p>
+
+  <ul>
+    <li>En serie: \(R_1 + R_2 = 3 + 6 = 9\,\Omega\)</li>
+    <li>En paralelo: \(\frac{3 \cdot 6}{3 + 6} = \frac{18}{9} = 2\,\Omega\)</li>
+  </ul>
+
+  <p>
+    Ambas condiciones coinciden con los valores obtenidos a partir de los datos del problema,
+    confirmando la validez de la solución.
+  </p>
+
+</section>
+
+<section>
+  <h2>3. Análisis funcional o teórico</h2>
+
+  <p>
+    El comportamiento del circuito está determinado por la forma en que se conectan los resistores,
+    lo cual modifica directamente la resistencia equivalente del sistema. Dado que la corriente
+    total se mantiene constante, la potencia entregada por la batería depende exclusivamente de la
+    resistencia equivalente según la relación:
+  </p>
+
+  \[
+  P = I^2 R
+  \]
+
+  <p>
+    En una conexión en serie, la resistencia equivalente se define como la suma de las resistencias:
+  </p>
+
+  \[
+  R_s = R_1 + R_2
+  \]
+
+  <p>
+    Esto implica que la resistencia total es mayor que cualquiera de las resistencias individuales,
+    lo que conduce a un incremento en la potencia disipada para una corriente fija.
+    Este comportamiento se observa en la simulación, donde la potencia crece linealmente con el valor de \(R_1\).
+  </p>
+
+  <p>
+    En contraste, en una conexión en paralelo, la resistencia equivalente se calcula mediante:
+  </p>
+
+  \[
+  R_p = \frac{R_1 R_2}{R_1 + R_2}
+  \]
+
+  <p>
+    En este caso, la resistencia equivalente es menor que cualquiera de las resistencias individuales,
+    lo que reduce la potencia total entregada por la batería. La relación entre la potencia y \(R_1\)
+    en este caso es no lineal, lo cual se evidencia en la gráfica obtenida en la simulación.
+  </p>
+
+  <p>
+    Desde un punto de vista físico, la conexión en paralelo proporciona múltiples caminos para el flujo
+    de corriente, disminuyendo la oposición total al paso de carga eléctrica. En cambio, la conexión en serie
+    obliga a la corriente a atravesar todos los elementos consecutivamente, aumentando la resistencia total.
+  </p>
+
+  <p>
+    La simulación desarrollada permite visualizar estas relaciones de manera dinámica, mostrando cómo la potencia
+    en serie crece proporcionalmente con la resistencia, mientras que en paralelo lo hace de manera más gradual.
+    Esto confirma el comportamiento teórico esperado y valida los resultados obtenidos analíticamente.
+  </p>
+
+</section>
+
+<section>
+  <h2>4. Planteamiento de la simulación</h2>
+
+  <p>
+    La simulación se diseñó con el objetivo de representar de manera interactiva el comportamiento
+    de un sistema compuesto por dos resistores conectados en serie y en paralelo, manteniendo una
+    corriente constante. El enfoque principal consiste en analizar cómo la variación de los valores
+    de las resistencias afecta la resistencia equivalente, el voltaje y la potencia del sistema.
+  </p>
+
+  <p>
+    Para ello, se implementaron controles deslizantes que permiten modificar dinámicamente los valores
+    de \(R_1\), \(R_2\) y la corriente \(I\). A partir de estos parámetros, el sistema calcula en tiempo real
+    las magnitudes eléctricas fundamentales utilizando las siguientes expresiones:
+  </p>
+
+  <p><strong>Conexión en serie:</strong></p>
+  \[
+  R_s = R_1 + R_2, \quad V_s = I R_s, \quad P_s = I^2 R_s
+  \]
+
+  <p><strong>Conexión en paralelo:</strong></p>
+  \[
+  R_p = \frac{R_1 R_2}{R_1 + R_2}, \quad V_p = I R_p, \quad P_p = I^2 R_p
+  \]
+
+  <p>
+    Adicionalmente, la simulación incorpora una representación gráfica de la potencia en función
+    de la resistencia \(R_1\), manteniendo constantes \(R_2\) e \(I\). En esta gráfica se comparan
+    simultáneamente los comportamientos en serie y en paralelo, lo que permite observar diferencias
+    fundamentales en la dependencia funcional de la potencia.
+  </p>
+
+  <p>
+    La curva correspondiente a la conexión en serie presenta un comportamiento lineal, lo cual es
+    consistente con la relación directa entre potencia y resistencia equivalente. Por otro lado,
+    la curva de la conexión en paralelo muestra un comportamiento no lineal, reflejando la naturaleza
+    racional de la expresión de la resistencia equivalente en este tipo de conexión.
+  </p>
+
+  <p>
+    Finalmente, se incluye un punto dinámico en la gráfica que indica el estado actual del sistema
+    según los valores seleccionados por el usuario. Esto permite relacionar de forma inmediata los
+    resultados numéricos con su representación gráfica, facilitando la interpretación física del problema.
+  </p>
+
+</section>
+
+<section>
+  <h2>5. Simulación interactiva o visualización dinámica</h2>
+
+  <p>
+    Modifique los valores de los resistores para analizar cómo cambian
+    la resistencia equivalente, el voltaje y la potencia en cada configuración.
+  </p>
+
+  <div class="simulacion-box">
+
+    <h3>Parámetros</h3>
+
+    <label>R1: <span id="valR1">3</span> Ω</label>
+    <input type="range" min="1" max="20" step="0.1" value="3" id="sliderR1">
+
+    <label>R2: <span id="valR2">6</span> Ω</label>
+    <input type="range" min="1" max="20" step="0.1" value="6" id="sliderR2">
+
+    <label>Corriente: <span id="valI">5</span> A</label>
+    <input type="range" min="1" max="10" step="0.1" value="5" id="sliderI">
+
+    <hr>
+
+    <h3>Resultados</h3>
+    <div id="resultados"></div>
+
+    <canvas id="grafica" width="500" height="250"></canvas>
+
+  </div>
+</section>
+
+<section>
+  <h2>6. Conclusiones</h2>
+
+  <p>
+    A partir del desarrollo analítico del problema y la implementación de la simulación interactiva,
+    fue posible determinar los valores de los resistores desconocidos, obteniendo \(R_1 = 3\,\Omega\)
+    y \(R_2 = 6\,\Omega\). Estos resultados satisfacen simultáneamente las condiciones de potencia
+    establecidas tanto para la conexión en serie como en paralelo, lo que valida la consistencia del modelo matemático utilizado.
+  </p>
+
+  <p>
+    Se comprobó que, para una corriente constante, la potencia entregada por la batería depende
+    directamente de la resistencia equivalente del circuito, de acuerdo con la relación \(P = I^2 R\).
+    En este sentido, la conexión en serie produce una mayor potencia debido a su mayor resistencia total,
+    mientras que la conexión en paralelo reduce significativamente dicha potencia al disminuir la resistencia equivalente.
+  </p>
+
+  <p>
+    La simulación permitió visualizar de manera clara estas diferencias, mostrando que la potencia
+    en serie presenta un comportamiento lineal con respecto a la resistencia, mientras que en paralelo
+    sigue una relación no lineal. Esta comparación gráfica facilitó la comprensión de las propiedades
+    eléctricas de cada configuración y su impacto en el comportamiento global del circuito.
+  </p>
+
+  <p>
+    Finalmente, el uso de herramientas interactivas demostró ser fundamental para reforzar la interpretación
+    física del problema, permitiendo relacionar las expresiones matemáticas con su representación visual.
+    Esto no solo valida los resultados obtenidos, sino que también contribuye a una comprensión más profunda
+    de los principios fundamentales de los circuitos eléctricos.
+  </p>
+
+</section>
+
+<section>
+  <h2>7. Bibliografía</h2>
+
+  <p>
+    Young, H. D., & Freedman, R. A. (2016).
+    <em>Física universitaria con física moderna</em> (14ª ed.).
+    Pearson Educación.
+  </p>
+
+  <p>
+    Serway, R. A., & Jewett, J. W. (2014).
+    <em>Física para ciencias e ingeniería</em> (9ª ed.).
+    Cengage Learning.
+  </p>
+
+  <p>
+    Apuntes del curso de Física de Campos.
+    Facultad de Ingeniería, Universidad de Antioquia.
+  </p>
+
+  <p>
+    Documentación oficial de MathJax.
+    Disponible en: https://www.mathjax.org/
+  </p>
+
+</section>
+
+<script>
+const sliderR1 = document.getElementById("sliderR1");
+const sliderR2 = document.getElementById("sliderR2");
+const sliderI  = document.getElementById("sliderI");
+
+const canvas = document.getElementById("grafica");
+const ctx = canvas.getContext("2d");
+
+// Márgenes internos de la gráfica
+const margin = { left: 50, right: 15, top: 20, bottom: 30 };
+
+function actualizar(){
+
+  let R1 = parseFloat(sliderR1.value);
+  let R2 = parseFloat(sliderR2.value);
+  let I  = parseFloat(sliderI.value);
+
+  valR1.innerText = R1.toFixed(1);
+  valR2.innerText = R2.toFixed(1);
+  valI.innerText  = I.toFixed(1);
+
+  // Serie
+  let ReqS = R1 + R2;
+  let VS = I * ReqS;
+  let PS = I * I * ReqS;
+
+  // Paralelo
+  let ReqP = (R1 * R2)/(R1 + R2);
+  let VP = I * ReqP;
+  let PP = I * I * ReqP;
+
+  resultados.innerHTML = `
+    <p><strong>Serie:</strong><br>
+    Req = ${ReqS.toFixed(2)} Ω | V = ${VS.toFixed(2)} V | P = ${PS.toFixed(2)} W</p>
+
+    <p><strong>Paralelo:</strong><br>
+    Req = ${ReqP.toFixed(2)} Ω | V = ${VP.toFixed(2)} V | P = ${PP.toFixed(2)} W</p>
+  `;
+
+  dibujarGrafica(R1, R2, I);
+}
+
+function dibujarGrafica(R1, R2, I){
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  let w = canvas.width;
+  let h = canvas.height;
+
+  // ====== GENERAR DATOS ======
+  let serie = [];
+  let paralelo = [];
+  let xVals = [];
+
+  for(let x=1; x<=20; x+=0.5){
+    xVals.push(x);
+    serie.push(I*I*(x + R2));
+    paralelo.push(I*I*((x * R2)/(x + R2)));
+  }
+
+  let max = Math.max(...serie, ...paralelo);
+
+  // Funciones de escala
+  const scaleX = (x) => margin.left + ((x-1)/19)*(w - margin.left - margin.right);
+  const scaleY = (y) => (h - margin.bottom) - (y/max)*(h - margin.top - margin.bottom);
+
+  // ====== EJES ======
+  ctx.beginPath();
+  ctx.moveTo(margin.left, margin.top);
+  ctx.lineTo(margin.left, h - margin.bottom);
+  ctx.lineTo(w - margin.right, h - margin.bottom);
+  ctx.stroke();
+
+  // ====== GRID SUAVE ======
+  ctx.globalAlpha = 0.2;
+  for(let j=0;j<=5;j++){
+    let y = margin.top + j*(h - margin.top - margin.bottom)/5;
+    ctx.beginPath();
+    ctx.moveTo(margin.left, y);
+    ctx.lineTo(w - margin.right, y);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  // ====== MARCAS Y ======
+  for(let j=0;j<=5;j++){
+    let yVal = max * j/5;
+    let y = scaleY(yVal);
+
+    ctx.fillText(yVal.toFixed(0), 10, y+3);
+
+    ctx.beginPath();
+    ctx.moveTo(margin.left-5, y);
+    ctx.lineTo(margin.left, y);
+    ctx.stroke();
+  }
+
+  // ====== MARCAS X ======
+  for(let j=0;j<=5;j++){
+    let xVal = 1 + j*(19/5);
+    let x = scaleX(xVal);
+
+    ctx.fillText(xVal.toFixed(0), x-8, h-5);
+
+    ctx.beginPath();
+    ctx.moveTo(x, h - margin.bottom);
+    ctx.lineTo(x, h - margin.bottom + 5);
+    ctx.stroke();
+  }
+
+  // ====== CURVA SERIE ======
+  ctx.beginPath();
+  for(let i=0;i<serie.length;i++){
+    let x = scaleX(xVals[i]);
+    let y = scaleY(serie[i]);
+    if(i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  // ====== CURVA PARALELO ======
+  ctx.setLineDash([6,4]);
+  ctx.beginPath();
+  for(let i=0;i<paralelo.length;i++){
+    let x = scaleX(xVals[i]);
+    let y = scaleY(paralelo[i]);
+    if(i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ====== PUNTO ACTUAL ======
+  let px = scaleX(R1);
+  let py = scaleY(I*I*(R1+R2));
+
+  ctx.beginPath();
+  ctx.arc(px, py, 5, 0, 2*Math.PI);
+  ctx.fill();
+
+  // ====== LEYENDA ======
+  ctx.fillText("Serie (línea continua)", margin.left + 10, margin.top + 10);
+  ctx.fillText("Paralelo (línea punteada)", margin.left + 10, margin.top + 25);
+
+  // ====== TÍTULOS ======
+  ctx.fillText("Potencia vs R1", w/2 - 40, 12);
+  ctx.fillText("R1 (Ω)", w - 50, h - 5);
+  ctx.fillText("P (W)", 5, 15);
+}
+
+sliderR1.oninput = actualizar;
+sliderR2.oninput = actualizar;
+sliderI.oninput  = actualizar;
+
+actualizar();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Capacitores - Juliana Monsalve </title>
+  
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg: #020617;
+      --card: #07111f;
+      --accent: #22d3ee;
+      --border: #164e63;
+      --text: #e5f6ff;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      padding: 32px;
+      line-height: 1.6;
+    }
+
+    .contenedor { max-width: 1100px; margin: auto; }
+
+    h1 { margin-bottom: 6px; color: #ffffff; border-left: 4px solid var(--accent); padding-left: 15px; }
+    h2 { color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+
+    .autor { color: var(--accent); font-weight: bold; margin-bottom: 25px; font-size: 1.1rem; }
+
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 25px;
+      margin-top: 25px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .imagen-circuito {
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      border-radius: 12px;
+      margin: 20px auto;
+      display: block;
+      padding: 5px;
+    }
+
+    .grid { display: grid; grid-template-columns: 350px 1fr; gap: 25px; }
+    .panel { background: #030712; border: 1px solid #1e293b; border-radius: 12px; padding: 20px; }
+    
+    input {
+      width: 100%;
+      padding: 12px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: white;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 12px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #020617;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .resultado { margin-top: 16px; padding: 15px; border-radius: 10px; font-weight: bold; font-family: monospace; }
+    .seguro { color: #34d399; background: rgba(52, 211, 153, 0.1); border: 1px solid #34d399; }
+    .medio { color: #fbbf24; background: rgba(251, 191, 36, 0.1); border: 1px solid #fbbf24; }
+    .peligro { color: #f87171; background: rgba(248, 113, 113, 0.1); border: 1px solid #f87171; }
+
+    .circuito-container { overflow-x: auto; background: #030712; border-radius: 12px; padding: 10px; }
+    svg { width: 100%; height: auto; min-width: 600px; }
+    .flujo { stroke-dasharray: 8; animation: mover 1s linear infinite; }
+    @keyframes mover { from { stroke-dashoffset: 16; } to { stroke-dashoffset: 0; } }
+
+    @media (max-width: 850px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="contenedor">
+  <header>
+    <h1>Simulador de Capacitores</h1>
+    <div class="autor">Elaborado por: Juliana Monsalve Mesa</div>
+    <div class="autor">Universidad de Antioquia</div>
+    <div class="autor">Física de campos</div>
+  </header>
+
+  <section>
+    <h2>1. Enunciado del Problema</h2>
+    <p>
+      <b>Problema 41:</b> Cada capacitor de la combinación que se muestra en la figura P26.41 tiene un voltaje de ruptura de <b>15.0 V</b>. ¿Cuál es el voltaje de ruptura de la combinación?
+    </p>
+    <img class="imagen-circuito" src="https://i.ibb.co/whvnc0cq/Captura-de-pantalla-2026-04-20-144241.png" alt="Figura P26.41">
+  </section>
+
+  <section>
+    <h2>2. Solución Matemática Completa</h2>
+    <p>Identificamos primero las capacitancias equivalentes de los bloques en paralelo:</p>
+    \[ C_{izq} = 20.0 \, \mu F + 20.0 \, \mu F = 40.0 \, \mu F \]
+    \[ C_{der} = 20.0 \, \mu F + 20.0 \, \mu F = 40.0 \, \mu F \]
+
+    <p>El circuito equivalente es una serie de: \( 40.0 \, \mu F \), \( 10.0 \, \mu F \) y \( 40.0 \, \mu F \). En serie, la carga \( Q \) es idéntica. El capacitor de \( 10.0 \, \mu F \) alcanza primero el voltaje de ruptura:</p>
+    \[ V_{ruptura} = \frac{Q}{C} \implies 15.0 \, V = \frac{Q}{10.0 \, \mu F} \implies Q = 150 \, \mu C \]
+
+    <p>El voltaje total de la combinación es:</p>
+    \[ V_{total} = \frac{150}{40} + \frac{150}{10} + \frac{150}{40} = 3.75 + 15 + 3.75 = 22.5 \, V \]
+  </section>
+
+  <section>
+    <h2>3. Análisis Funcional o Teórico</h2>
+    <p>
+      El análisis demuestra que en una configuración en serie, el capacitor con menor capacitancia experimenta la mayor caída de potencial. Por tanto, la integridad del sistema está limitada por el componente de \(10.0 \, \mu F\). Cuando este llega a su límite dieléctrico (\(15 \, V\)), el sistema alcanza su voltaje de ruptura global de \(22.5 \, V\).
+    </p>
+  </section>
+
+  <section>
+    <h2>4. Planteamiento de la Simulación</h2>
+    <p>
+      La simulación computacional utiliza la carga (\(Q\)) como entrada para calcular los voltajes en cada sección. Se implementa un modelo visual que representa el flujo de carga y un motor de cálculo que alerta mediante códigos de colores (verde, amarillo, rojo) cuando se aproxima o supera el límite de ruptura teórico.
+    </p>
+  </section>
+
+  <section class="grid">
+    <div class="panel">
+      <h2>Parámetros</h2>
+      <label for="carga">Carga Q (μC)</label>
+      <input type="number" id="carga" value="100" min="0" onchange="calcular()">
+      <button onclick="calcular()">Calcular</button>
+      <div id="resultado" class="resultado"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Diagrama Interactiva</h2>
+      <div class="circuito-container">
+        <svg viewBox="0 0 900 330">
+          <path d="M55 165 L120 165 L120 85 L330 85 L330 165 L405 165 M120 165 L120 245 L330 245 L330 165 M495 165 L570 165 L570 85 L780 85 L780 165 L845 165 M570 165 L570 245 L780 245 L780 165" fill="none" stroke="#475569" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path id="path-flujo" d="M55 165 L120 165 L120 85 L330 85 L330 165 L405 165 M120 165 L120 245 L330 245 L330 165 M495 165 L570 165 L570 85 L780 85 L780 165 L845 165 M570 165 L570 245 L780 245 L780 165" fill="none" stroke="#22d3ee" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flujo"/>
+          <circle cx="55" cy="165" r="9" fill="#22d3ee"/>
+          <circle cx="845" cy="165" r="9" fill="#22d3ee"/>
+          <g stroke="#22d3ee" stroke-width="5">
+            <line x1="226" y1="58" x2="226" y2="112" /> <line x1="244" y1="58" x2="244" y2="112" />
+            <line x1="226" y1="218" x2="226" y2="272" /> <line x1="244" y1="218" x2="244" y2="272" />
+            <line x1="441" y1="138" x2="441" y2="192" stroke="#fbbf24" /> <line x1="459" y1="138" x2="459" y2="192" stroke="#fbbf24" />
+            <line x1="656" y1="58" x2="656" y2="112" /> <line x1="674" y1="58" x2="674" y2="112" />
+            <line x1="656" y1="218" x2="656" y2="272" /> <line x1="674" y1="218" x2="674" y2="272" />
+          </g>
+          <text x="235" y="42" text-anchor="middle" fill="white" font-size="22">20.0 μF</text>
+          <text x="235" y="315" text-anchor="middle" fill="white" font-size="22">20.0 μF</text>
+          <text x="450" y="125" text-anchor="middle" fill="white" font-size="22">10.0 μF</text>
+          <text x="665" y="42" text-anchor="middle" fill="white" font-size="22">20.0 μF</text>
+          <text x="665" y="315" text-anchor="middle" fill="white" font-size="22">20.0 μF</text>
+        </svg>
+      </div>
+      <canvas id="grafica"></canvas>
+    </div>
+  </section>
+
+  <section>
+    <h2>6. Conclusiones</h2>
+    <ul>
+      <li>El voltaje de ruptura del sistema completo es de <b>22.5 V</b>.</li>
+      <li>La configuración en paralelo aumenta la capacitancia equivalente de los bloques laterales, protegiéndolos al reducir su caída de voltaje.</li>
+      <li>La simulación interactiva permite predecir el comportamiento del dieléctrico bajo diferentes cargas de operación.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>7. Bibliografía</h2>
+    <p>Serway, R. A., &amp; Jewett, J. W. (2018). <em>Física para ciencias e ingeniería</em> (10a ed., Vol. 2). Cengage Learning.</p>
+  </section>
+</div>
+
+<script>
+  let chart;
+
+  function riesgo(v) {
+    if (v < 8) return "seguro";
+    if (v < 15) return "medio";
+    return "peligro";
+  }
+
+  function calcular() {
+    const q = Number(document.getElementById("carga").value);
+    const vEje = q / 40;
+    const vCentro = q / 10;
+    const vTotal = vEje + vCentro + vEje;
+    const estado = riesgo(vCentro);
+    
+    const resultado = document.getElementById("resultado");
+    resultado.className = "resultado " + estado;
+    resultado.innerHTML = `V (40μF eq) = ${vEje.toFixed(2)} V<br>V (10μF) = ${vCentro.toFixed(2)} V<br>V Total = ${vTotal.toFixed(2)} V<br>Estado: ${estado.toUpperCase()}`;
+
+    const color = estado === "peligro" ? "#f87171" : (estado === "medio" ? "#fbbf24" : "#22d3ee");
+    document.getElementById("path-flujo").setAttribute("stroke", color);
+
+    graficar(q);
+  }
+
+  function graficar(cargaActual) {
+    const datos = [];
+    const limite = [];
+    for (let q = 0; q <= 250; q += 10) {
+      datos.push(q / 40 + q / 10 + q / 40);
+      limite.push(22.5);
+    }
+    if (chart) chart.destroy();
+    chart = new Chart(document.getElementById("grafica"), {
+      type: "line",
+      data: {
+        labels: Array.from({length: 26}, (_, i) => i * 10),
+        datasets: [{
+          label: "Voltaje total (V)",
+          data: datos,
+          borderColor: "#22d3ee",
+          tension: 0.3,
+          fill: true,
+          backgroundColor: "rgba(34, 211, 238, 0.1)"
+        }, {
+          label: "Límite Ruptura",
+          data: limite,
+          borderColor: "#f87171",
+          borderDash: [5, 5],
+          pointRadius: 0
+        }]
+      },
+      options: {
+        scales: {
+          x: { title: { display: true, text: "Carga (μC)", color: "#fff" }, ticks: {color: "#fff"} },
+          y: { title: { display: true, text: "Voltaje (V)", color: "#fff" }, ticks: {color: "#fff"} }
+        },
+        plugins: { legend: { labels: { color: "#fff" } } }
+      }
+    });
+  }
+
+  window.onload = calcular;
+</script>
+
+</body>
+</html>

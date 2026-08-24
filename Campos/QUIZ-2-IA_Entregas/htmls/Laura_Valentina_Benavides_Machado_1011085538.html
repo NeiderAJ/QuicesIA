@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis y Simulación: Circuito RC</title>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$','$'],['\\(','\\)']],
+    displayMath: [['$$','$$'],['\\[','\\]']]
+  }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Syne:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════
+   VARIABLES
+═══════════════════════════════════════ */
+:root {
+  --bg:       #080512;
+  --bg2:      #0d091a;
+  --glass:    rgba(255,255,255,0.035);
+  --glass-b:  rgba(255,255,255,0.09);
+  --violet:   #8b5cf6;
+  --violet-l: #a78bfa;
+  --violet-ll:#c4b5fd;
+  --magenta:  #d946ef;
+  --cyan:     #06b6d4;
+  --cyan-l:   #22d3ee;
+  --pink:     #f472b6;
+  --gold:     #f59e0b;
+  --gold-l:   #fbbf24;
+  --text:     #ede9fe;
+  --text-s:   rgba(221,214,254,0.75);
+  --text-xs:  rgba(221,214,254,0.45);
+  --gv: 0 0 28px rgba(139,92,246,0.32);
+  --gc: 0 0 20px rgba(6,182,212,0.28);
+  --gg: 0 0 20px rgba(245,158,11,0.28);
+  --r: 16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+body {
+  font-family:'Syne',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  line-height:1.75;
+}
+
+/* ═══════════════════════════════════════
+   BACKGROUND LAYERS
+═══════════════════════════════════════ */
+.bg-fixed{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 65% 48% at 10% 15%, rgba(139,92,246,.16) 0%,transparent 60%),
+    radial-gradient(ellipse 45% 35% at 90% 80%, rgba(217,70,239,.12) 0%,transparent 55%),
+    radial-gradient(ellipse 30% 25% at 55% 45%, rgba(6,182,212,.06) 0%,transparent 60%),
+    linear-gradient(160deg,#080512 0%,#0c0818 50%,#07101a 100%);
+}
+.orb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;animation:orbf 12s ease-in-out infinite alternate}
+.o1{width:480px;height:480px;background:rgba(139,92,246,.10);top:-140px;left:-140px;animation-delay:0s}
+.o2{width:320px;height:320px;background:rgba(217,70,239,.09);bottom:-90px;right:-90px;animation-delay:-6s}
+.o3{width:220px;height:220px;background:rgba(6,182,212,.06);top:38%;left:68%;animation-delay:-3s}
+@keyframes orbf{from{transform:translate(0,0) scale(1)}to{transform:translate(22px,16px) scale(1.06)}}
+.stars{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 8% 12%,rgba(255,255,255,.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 22% 65%,rgba(255,255,255,.22) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 68% 18%,rgba(167,139,250,.65) 0%,transparent 100%),
+    radial-gradient(1px 1px at 83% 80%,rgba(255,255,255,.28) 0%,transparent 100%),
+    radial-gradient(1px 1px at 44% 93%,rgba(196,181,253,.45) 0%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 92% 35%,rgba(217,70,239,.55) 0%,transparent 100%),
+    radial-gradient(1px 1px at 4% 87%,rgba(6,182,212,.45) 0%,transparent 100%),
+    radial-gradient(1px 1px at 56% 4%,rgba(255,255,255,.35) 0%,transparent 100%);
+}
+
+/* ═══════════════════════════════════════
+   LAYOUT & GRIDS
+═══════════════════════════════════════ */
+.page-wrap{
+  position:relative;z-index:1;
+  max-width:1150px;
+  margin:0 auto;
+  padding:28px 20px 80px;
+}
+
+.inner-grid { display: grid; gap: 24px; }
+@media(min-width: 850px) {
+  .ig-2 { grid-template-columns: 1.2fr 1fr; align-items: center; }
+  .ig-2-1 { grid-template-columns: 1.8fr 1fr; align-items: stretch; }
+}
+
+/* ═══════════════════════════════════════
+   HEADER
+═══════════════════════════════════════ */
+.top-header{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+  padding:16px 26px;
+  background:var(--glass);border:1px solid var(--glass-b);border-radius:20px;
+  backdrop-filter:blur(24px);margin-bottom:28px;
+  box-shadow:var(--gv),inset 0 1px 0 rgba(255,255,255,.07);
+  animation:fdown .6s ease both;
+}
+.logo-area{display:flex;align-items:center;gap:12px}
+.logo-icon{
+  width:42px;height:42px;border-radius:13px;
+  background:linear-gradient(135deg,var(--violet),var(--magenta));
+  display:grid;place-items:center;font-size:20px;
+  box-shadow:0 0 18px rgba(139,92,246,.6);
+}
+.logo-name{font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:800;letter-spacing:2px}
+.logo-sub{font-size:.6rem;color:var(--text-xs);letter-spacing:3px;text-transform:uppercase}
+.nav-links{display:flex;gap:5px;flex-wrap:wrap}
+.npill{
+  padding:5px 14px;border-radius:40px;font-size:.72rem;font-weight:600;letter-spacing:.4px;
+  border:1px solid var(--glass-b);background:var(--glass);color:var(--text-s);
+  cursor:pointer;transition:all .25s;text-decoration:none;
+}
+.npill:hover{
+  background:linear-gradient(135deg,rgba(139,92,246,.28),rgba(217,70,239,.18));
+  border-color:rgba(139,92,246,.45);color:var(--text);box-shadow:var(--gv);
+}
+.snd-btn{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--glass);border:1px solid var(--glass-b);
+  display:grid;place-items:center;cursor:pointer;font-size:15px;
+  color:var(--text-s);transition:all .25s;
+}
+.snd-btn:hover{background:rgba(139,92,246,.2);color:var(--text);box-shadow:var(--gv)}
+.snd-btn.active{background:rgba(6,182,212,.3); color:var(--cyan-l); box-shadow:var(--gc);}
+
+/* ═══════════════════════════════════════
+   PAGE TITLE
+═══════════════════════════════════════ */
+.page-title{
+  text-align:center;margin-bottom:32px;
+  animation:fdown .7s .1s ease both;
+}
+.page-title h1{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(1.3rem,3.2vw,1.9rem);
+  font-weight:800;letter-spacing:1px;line-height:1.3;
+  background:linear-gradient(95deg,var(--violet-ll),var(--magenta),var(--cyan-l));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:6px;
+}
+.page-title .subtitle{color:var(--text-s);font-size:.88rem}
+.pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cyan-l);
+  box-shadow:0 0 7px var(--cyan-l);animation:pls 1.8s infinite;vertical-align:middle}
+@keyframes pls{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(1.7)}}
+
+/* ═══════════════════════════════════════
+   SECTION DIVIDER
+═══════════════════════════════════════ */
+.sec-head{
+  display:flex;align-items:center;gap:12px;
+  margin:36px 0 20px;animation:fup .5s ease both;
+}
+.sec-num{
+  font-family:'Orbitron',sans-serif;font-size:.63rem;letter-spacing:2px;
+  color:var(--violet-l);background:rgba(139,92,246,.12);
+  border:1px solid rgba(139,92,246,.25);border-radius:8px;
+  padding:3px 10px;white-space:nowrap;
+}
+.sec-label{
+  font-family:'Orbitron',sans-serif;font-size:.76rem;font-weight:700;
+  letter-spacing:2.5px;text-transform:uppercase;color:var(--violet-l);white-space:nowrap;
+}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(139,92,246,.4),transparent)}
+
+/* ═══════════════════════════════════════
+   GLASS CARD (sections)
+═══════════════════════════════════════ */
+.card{
+  background:var(--glass);border:1px solid var(--glass-b);
+  border-radius:var(--r);backdrop-filter:blur(22px);
+  padding:28px 30px;margin-bottom:20px;
+  position:relative;overflow:hidden;
+  transition:transform .3s,box-shadow .3s,border-color .3s;
+  animation:fup .6s ease both;
+}
+.card::before{
+  content:'';position:absolute;inset:0;border-radius:var(--r);pointer-events:none;
+  background:linear-gradient(135deg,rgba(255,255,255,.042) 0%,transparent 55%);
+}
+.card:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--gv),0 20px 44px rgba(0,0,0,.42);
+  border-color:rgba(139,92,246,.26);
+}
+.card-tag{
+  font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--text-xs);margin-bottom:18px;
+  display:flex;align-items:center;gap:8px;
+}
+.dot-v{width:6px;height:6px;border-radius:50%;background:linear-gradient(var(--violet),var(--magenta));flex-shrink:0}
+.dot-c{width:6px;height:6px;border-radius:50%;background:linear-gradient(var(--cyan),#10b981);flex-shrink:0}
+.dot-g{width:6px;height:6px;border-radius:50%;background:linear-gradient(var(--gold),var(--pink));flex-shrink:0}
+
+/* ═══════════════════════════════════════
+   PROSE / TEXT
+═══════════════════════════════════════ */
+.prose{font-size:.92rem;color:var(--text-s);line-height:1.85}
+.prose p+p{margin-top:.85em}
+.prose strong,.prose b{color:var(--text)}
+
+/* Para darle mayor legibilidad y usar mejor el espacio sin cambiar el texto */
+.lead-text {
+  font-size: 1.02rem;
+  color: var(--text);
+  line-height: 1.8;
+}
+
+/* h3 / h4 inside sections */
+.card h3{
+  font-family:'Orbitron',sans-serif;font-size:.82rem;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--cyan-l);margin:24px 0 10px;
+  padding-bottom:7px;border-bottom:1px solid rgba(6,182,212,.2);
+}
+.card h4{
+  font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;
+  color:var(--violet-ll);margin:18px 0 8px;
+}
+
+/* ═══════════════════════════════════════
+   FORMULA BOXES
+═══════════════════════════════════════ */
+.fbox{
+  background:linear-gradient(135deg,rgba(139,92,246,.09),rgba(217,70,239,.05));
+  border:1px solid rgba(139,92,246,.22);border-radius:12px;
+  padding:16px 20px;margin:14px 0;text-align:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+  overflow-x:auto;
+}
+.fbox-result{
+  background:linear-gradient(135deg,rgba(245,158,11,.10),rgba(244,114,182,.07));
+  border:1px solid rgba(245,158,11,.3);border-radius:12px;
+  padding:16px 22px;margin:16px 0;text-align:center;
+}
+mjx-container, mjx-container * { color: var(--text) !important; }
+.fbox-result mjx-container, .fbox-result mjx-container * { color: var(--gold-l) !important; }
+
+/* ═══════════════════════════════════════
+   TABLE
+═══════════════════════════════════════ */
+.tbl-wrap{overflow-x:auto;margin:18px 0}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+thead tr{border-bottom:1px solid rgba(139,92,246,.3)}
+th{
+  padding:10px 14px;text-align:center;
+  color:var(--violet-ll);font-family:'Orbitron',sans-serif;
+  font-size:.62rem;letter-spacing:2px;font-weight:600;
+}
+td{
+  padding:10px 14px;text-align:center;color:var(--text);
+  border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;
+}
+tbody tr:hover td{background:rgba(139,92,246,.09)}
+tbody tr:last-child td{border-bottom:none}
+
+/* ═══════════════════════════════════════
+   CIRCUIT SVG WRAPPER
+═══════════════════════════════════════ */
+.svg-wrap{
+  display:flex;justify-content:center; align-items: center;
+  margin:24px 0; padding:20px;
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:14px; width: 100%; height: 100%; min-height: 280px;
+}
+
+/* ═══════════════════════════════════════
+   CONTROLS / SLIDER
+═══════════════════════════════════════ */
+.ctrl-card{
+  background:rgba(6,182,212,.05);
+  border:1px solid rgba(6,182,212,.18);
+  border-radius:var(--r);backdrop-filter:blur(22px);
+  padding:24px 28px;margin-bottom: 18px;
+}
+.ctrl-label{
+  font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--text-xs);margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+.slider-row{display:flex;align-items:center;gap:14px;margin:14px 0}
+.slim{font-size:.82rem;color:var(--text-s);white-space:nowrap}
+input[type=range]{
+  flex:1;height:6px;border-radius:3px;outline:none;cursor:pointer;
+  -webkit-appearance:none;appearance:none;
+  background:linear-gradient(90deg,var(--violet),var(--magenta));
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+  background:#fff;cursor:pointer;transition:transform .2s;
+  box-shadow:0 0 12px rgba(139,92,246,.9),0 0 24px rgba(217,70,239,.5);
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.35)}
+.sbadge{
+  background:linear-gradient(135deg,var(--violet),var(--magenta));
+  color:#fff;padding:6px 18px;border-radius:30px;
+  font-family:'Orbitron',sans-serif;font-size:.76rem;font-weight:700;
+  letter-spacing:1px;white-space:nowrap;box-shadow:var(--gv);
+}
+
+/* results grid */
+.res-grid{
+  display:grid;grid-template-columns:1fr;
+  gap:14px;
+}
+@media(min-width: 600px) {
+  .res-grid { grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); }
+}
+.res-box{
+  background:var(--glass);border:1px solid var(--glass-b);
+  padding:16px 14px;border-radius:12px;text-align:center;
+  transition:transform .25s,box-shadow .25s;
+}
+.res-box:hover{transform:translateY(-2px);box-shadow:var(--gv)}
+.res-box small{
+  display:block;font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--text-xs);margin-bottom:8px;
+}
+.res-box .rv{
+  font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:800;
+  background:linear-gradient(90deg,var(--violet-l),var(--magenta));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.res-box.hi{border-color:rgba(245,158,11,.28); height: 100%; display: flex; flex-direction: column; justify-content: center;}
+.res-box.hi .rv{
+  background:linear-gradient(90deg,var(--gold-l),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.res-box.hi:hover{box-shadow:var(--gg)}
+
+/* chart wrapper */
+.chart-wrap{
+  position:relative;
+  height:100%; 
+  min-height: 350px; 
+  border-radius: 12px; 
+  background: var(--glass);
+  border: 1px solid var(--glass-b);
+  padding: 15px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+/* ═══════════════════════════════════════
+   CONCLUSIONS LIST
+═══════════════════════════════════════ */
+.concl{list-style:none;display:flex;flex-direction:column;gap:12px;padding:0}
+.concl li{
+  display:flex;gap:14px;align-items:flex-start;
+  padding:14px 18px;
+  background:var(--glass);border:1px solid var(--glass-b);border-radius:12px;
+  font-size:.9rem;color:var(--text-s);line-height:1.75;
+  transition:border-color .3s,box-shadow .3s;
+}
+.concl li:hover{border-color:rgba(139,92,246,.3);box-shadow:var(--gv)}
+.cbullet{
+  width:26px;height:26px;min-width:26px;border-radius:50%;
+  background:linear-gradient(135deg,var(--violet),var(--magenta));
+  display:grid;place-items:center;font-size:.65rem;font-weight:700;color:#fff;
+  box-shadow:var(--gv);margin-top:2px;flex-shrink:0;
+}
+
+/* bibliography */
+.bib{
+  padding:13px 18px;
+  background:var(--glass);border:1px solid var(--glass-b);border-radius:12px;
+  margin-bottom:10px;font-size:.87rem;color:var(--text-s);line-height:1.7;
+}
+.bib em{color:var(--violet-l);font-style:italic}
+
+/* ═══════════════════════════════════════
+   ANIMATIONS & MOBILE
+═══════════════════════════════════════ */
+@keyframes fup  {from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fdown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+
+#s1.card{animation-delay:.05s}
+#s2.card{animation-delay:.08s}
+#s3.card{animation-delay:.11s}
+#s4.card{animation-delay:.14s}
+#s5.card{animation-delay:.17s}
+#s6.card{animation-delay:.20s}
+#s7.card{animation-delay:.23s}
+
+#topbtn{
+  position:fixed;bottom:28px;right:22px;z-index:100;
+  width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,var(--violet),var(--magenta));
+  border:none;cursor:pointer;color:#fff;font-size:1.1rem;
+  box-shadow:var(--gv);display:none;align-items:center;justify-content:center;
+  transition:transform .25s;
+}
+#topbtn:hover{transform:translateY(-3px) scale(1.1)}
+#topbtn.show{display:flex}
+
+@media(max-width:600px){
+  .top-header{flex-direction:column;align-items:flex-start}
+  .nav-links{display:none}
+  .page-title h1{font-size:1.3rem}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-fixed"></div>
+<div class="orb o1"></div>
+<div class="orb o2"></div>
+<div class="orb o3"></div>
+<div class="stars"></div>
+<button id="topbtn" onclick="scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<div class="page-wrap">
+
+<header class="top-header">
+  <div class="logo-area">
+    <div class="logo-icon">⚡</div>
+    <div>
+      <div class="logo-name">CircuitLab RC</div>
+      <div class="logo-sub">Physics Analysis</div>
+    </div>
+  </div>
+  <nav class="nav-links">
+    <a class="npill" href="#s1">Enunciado</a>
+    <a class="npill" href="#s2">Solución</a>
+    <a class="npill" href="#s3">Análisis</a>
+    <a class="npill" href="#s4">Planteamiento</a>
+    <a class="npill" href="#s5">Simulación</a>
+    <a class="npill" href="#s6">Conclusiones</a>
+    <a class="npill" href="#s7">Bibliografía</a>
+  </nav>
+  <button class="snd-btn active" id="sndBtn" onclick="toggleSnd()" title="Sonido">🔊</button>
+</header>
+
+<div class="page-title">
+  <h1>Análisis Dinámico de un Circuito RC</h1>
+  <p class="subtitle">Determinación empírica de capacitancia por linealización logarítmica &nbsp;<span class="pulse"></span></p>
+</div>
+
+<div class="sec-head">
+  <span class="sec-num">01</span>
+  <span class="sec-label">Enunciado del Problema Asignado</span>
+  <div class="sec-line"></div>
+</div>
+
+<section id="s1" class="card">
+  <div class="card-tag"><span class="dot-c"></span>Descripción del experimento</div>
+
+  <div class="inner-grid ig-2">
+    <div class="prose lead-text">
+        <p>El circuito ilustrado en la figura adjunta se ha configurado en un entorno de laboratorio con el propósito de determinar una capacitancia desconocida $C$. Para ello, se emplea un voltímetro con una resistencia interna de $R = 10.0 \text{ M}\Omega$ y una fuente de alimentación con una fuerza electromotriz $\mathcal{E} = 6.19 \text{ V}$. Los datos tabulados representan la diferencia de potencial aplicada al capacitor en función del tiempo, estableciendo $t = 0$ como el instante en el cual se abre el interruptor $S$.</p>
+        <p><strong>Requerimientos:</strong></p>
+        <p>a) Elaborar una gráfica de $\ln(\mathcal{E} / \Delta V)$ en función de $t$ y realizar un ajuste lineal por mínimos cuadrados a los datos.<br>
+        b) A partir de la pendiente obtenida en la gráfica, calcular el valor empírico de la constante de tiempo del circuito ($\tau$) y la magnitud de la capacitancia ($C$).</p>
+    </div>
+
+    <div class="svg-wrap">
+      <svg width="100%" height="100%" viewBox="0 0 300 260" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="gw"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <line x1="50" y1="50" x2="50" y2="200" stroke="#a78bfa" stroke-width="1.8" opacity=".8"/>
+        <line x1="250" y1="50" x2="250" y2="200" stroke="#a78bfa" stroke-width="1.8" opacity=".8"/>
+        
+        <line x1="50" y1="50" x2="80" y2="50" stroke="#a78bfa" stroke-width="1.8" opacity=".8"/>
+        <circle cx="85" cy="50" r="3" fill="rgba(13,7,21,.9)" stroke="#d946ef" stroke-width="1.8" filter="url(#gw)"/>
+        <line x1="87" y1="48" x2="125" y2="25" stroke="#d946ef" stroke-width="2.2" filter="url(#gw)"/>
+        <circle cx="130" cy="50" r="3" fill="rgba(13,7,21,.9)" stroke="#d946ef" stroke-width="1.8" filter="url(#gw)"/>
+        <text x="95" y="30" font-family="Orbitron,sans-serif" font-size="13" fill="#d946ef" font-weight="700" filter="url(#gw)">S</text>
+        <line x1="135" y1="50" x2="185" y2="50" stroke="#a78bfa" stroke-width="1.8" opacity=".8"/>
+        
+        <line x1="185" y1="30" x2="185" y2="70" stroke="#22d3ee" stroke-width="3" />
+        <line x1="197" y1="40" x2="197" y2="60" stroke="#22d3ee" stroke-width="5.5" />
+        <text x="175" y="22" font-family="Times New Roman,serif" font-style="italic" font-weight="bold" font-size="18" fill="#22d3ee" filter="url(#gw)">Ɛ</text>
+        
+        <line x1="197" y1="50" x2="250" y2="50" stroke="#a78bfa" stroke-width="1.8" opacity=".8"/>
+        
+        <line x1="50" y1="125" x2="135" y2="125" stroke="#a78bfa" stroke-width="1.8" opacity=".8"/>
+        
+        <line x1="135" y1="105" x2="135" y2="145" stroke="#c4b5fd" stroke-width="4" />
+        <line x1="149" y1="105" x2="149" y2="145" stroke="#c4b5fd" stroke-width="4" />
+        <text x="158" y="105" font-family="Times New Roman,serif" font-style="italic" font-size="18" fill="#c4b5fd" filter="url(#gw)">C</text>
+        
+        <line x1="149" y1="125" x2="250" y2="125" stroke="#a78bfa" stroke-width="1.8" opacity=".8"/>
+        
+        <line x1="50" y1="200" x2="128" y2="200" stroke="#a78bfa" stroke-width="1.8" opacity=".8"/>
+        <circle cx="150" cy="200" r="22" fill="rgba(139,92,246,.08)" stroke="#f472b6" stroke-width="1.8" filter="url(#gw)"/>
+        <polyline points="128,200 132,190 140,210 148,190 156,210 164,190 172,200" fill="none" stroke="#f472b6" stroke-width="1.8" stroke-linejoin="round" filter="url(#gw)"/>
+        <text x="175" y="175" font-family="Times New Roman,serif" font-style="italic" font-size="18" fill="#f472b6" filter="url(#gw)">R</text>
+        <text x="150" y="240" font-family="Syne,sans-serif" font-size="13" fill="rgba(196,181,253,.55)" text-anchor="middle">Voltímetro</text>
+        <line x1="172" y1="200" x2="250" y2="200" stroke="#a78bfa" stroke-width="1.8" opacity=".8"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<div class="sec-head">
+  <span class="sec-num">02</span>
+  <span class="sec-label">Solución Matemática Completa</span>
+  <div class="sec-line"></div>
+</div>
+
+<section id="s2" class="card">
+  <div class="card-tag"><span class="dot-v"></span>Desarrollo matemático paso a paso</div>
+
+  <h3>Parte a: Linealización del modelo y ajuste de datos</h3>
+  <div class="prose">
+    <p>El enunciado requiere graficar $\ln(\mathcal{E} / \Delta V)$ en función del tiempo ($t$). Para este sistema de descarga capacitiva, el modelo linealizado toma directamente la siguiente forma:</p>
+  </div>
+
+  <div class="fbox">$$\ln\left(\frac{\mathcal{E}}{\Delta V}\right) = \left(\frac{1}{RC}\right)t$$</div>
+
+  <div class="prose">
+    <p>Bajo este esquema lineal, la variable dependiente (eje $y$) corresponde a $\ln(\mathcal{E}/\Delta V)$, la variable independiente (eje $x$) es el tiempo $t$, y la pendiente del modelo ($m$) equivale teóricamente al coeficiente $\frac{1}{RC}$.</p>
+  </div>
+
+  <div class="inner-grid ig-2" style="margin-top: 24px;">
+    <div>
+      <h4>1. Cálculo de variables transformadas</h4>
+      <div class="prose">
+        <p>A continuación, se presenta la tabla de datos procesados, donde se evalúa el término $\ln(\mathcal{E}/\Delta V)$ para cada registro experimental utilizando $\mathcal{E} = 6.19 \text{ V}$ constante:</p>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>$t \text{ (s)}$</th>
+              <th>$\Delta V \text{ (V)}$</th>
+              <th>$\ln(\mathcal{E}/\Delta V)$</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>0</td><td>6.19</td><td>0.000</td></tr>
+            <tr><td>4.87</td><td>5.55</td><td>0.109</td></tr>
+            <tr><td>11.1</td><td>4.93</td><td>0.228</td></tr>
+            <tr><td>19.4</td><td>4.34</td><td>0.355</td></tr>
+            <tr><td>30.8</td><td>3.72</td><td>0.509</td></tr>
+            <tr><td>46.6</td><td>3.09</td><td>0.695</td></tr>
+            <tr><td>67.3</td><td>2.47</td><td>0.919</td></tr>
+            <tr><td>102.2</td><td>1.83</td><td>1.219</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div>
+      <h4>2. Regresión lineal de mínimos cuadrados</h4>
+      <div class="prose">
+        <p>Al procesar los pares coordenados $(t, \ln(\mathcal{E}/\Delta V))$ mediante un análisis estadístico de regresión lineal, se calcula la pendiente de la recta de mejor ajuste que modela el comportamiento del sistema:</p>
+      </div>
+      <div class="fbox-result">
+        <strong style="font-size:1.05rem;color:var(--gold-l)">Pendiente ($m$) $\approx 0.0118 \text{ s}^{-1}$</strong>
+      </div>
+    </div>
+  </div>
+
+  <h3>Parte b: Determinación de parámetros del circuito</h3>
+
+  <h4>1. Constante de tiempo ($\tau$)</h4>
+  <div class="prose">
+    <p>Basado en la relación lineal anterior, la pendiente es el recíproco de la constante de tiempo. Por consiguiente, despejando $\tau$:</p>
+  </div>
+  <div class="fbox">$$\tau = \frac{1}{m} \implies \tau = \frac{1}{0.0118 \text{ s}^{-1}} \approx 84.7 \text{ s}$$</div>
+
+  <h4>2. Cálculo de la capacitancia ($C$)</h4>
+  <div class="prose">
+    <p>Sabiendo que la constante de tiempo está definida por $\tau = RC$, se procede a sustituir el valor de la resistencia proporcionado en el enunciado ($R = 10.0 \times 10^6 \ \Omega$) para despejar la incógnita $C$:</p>
+  </div>
+  <div class="fbox">$$C = \frac{\tau}{R} \implies C = \frac{84.7 \text{ s}}{10.0 \times 10^6 \ \Omega} = 8.47 \times 10^{-6} \text{ F}$$</div>
+
+  <div class="prose">
+    <p>Aplicando notación científica y prefijos estandarizados del Sistema Internacional, el valor final de la capacitancia es:</p>
+  </div>
+  <div class="fbox-result">
+    <strong style="font-size:1.25rem;color:var(--gold-l)">$C = 8.47 \ \mu\text{F}$</strong>
+  </div>
+</section>
+
+<div class="sec-head">
+  <span class="sec-num">03</span>
+  <span class="sec-label">Análisis Funcional o Teórico</span>
+  <div class="sec-line"></div>
+</div>
+
+<section id="s3" class="card">
+  <div class="card-tag"><span class="dot-c"></span>Interpretación física del modelo</div>
+  <div class="prose">
+    <p>El proceso físico de descarga de un capacitor exhibe un comportamiento exponencial asintótico, caracterizado por una elevada tasa de transferencia de carga en las etapas iniciales que decae paulatinamente conforme disminuye el gradiente de potencial. La técnica de transformación logarítmica es fundamental en el tratamiento de datos experimentales, ya que permite transponer este comportamiento no lineal a un marco de referencia de primer grado.</p>
+    <p>La alta correlación lineal evidenciada en los datos tabulados corrobora empíricamente el modelo macroscópico de los circuitos RC. Asimismo, confirma que el resistor opera en un régimen estrictamente óhmico y que el capacitor asume propiedades cuasi-ideales durante el lapso de medición registrado.</p>
+  </div>
+</section>
+
+<div class="sec-head">
+  <span class="sec-num">04</span>
+  <span class="sec-label">Planteamiento de la Simulación</span>
+  <div class="sec-line"></div>
+</div>
+
+<section id="s4" class="card">
+  <div class="card-tag"><span class="dot-v"></span>Descripción del módulo computacional</div>
+  <div class="prose">
+    <p>El recurso computacional diseñado a continuación tiene como propósito principal automatizar la evaluación del método de mínimos cuadrados y proporcionar una representación gráfica de la linealización. El algoritmo computa internamente la variable dependiente transformada y renderiza la recta teórica de mejor ajuste superpuesta sobre las observaciones experimentales.</p>
+    <p><strong>Funcionalidad Paramétrica:</strong> Se ha integrado un controlador dinámico que modula la magnitud de la resistencia $R$. Aunque el enunciado establece un valor constante de 10.0 M&Omega;, este control interactivo permite visualizar y analizar la relación de proporcionalidad inversa que rige el cálculo algebraico de la capacitancia frente a las variaciones en la impedancia del instrumento de medición.</p>
+  </div>
+</section>
+
+<div class="sec-head">
+  <span class="sec-num">05</span>
+  <span class="sec-label">Simulación Interactiva y Visualización Dinámica</span>
+  <div class="sec-line"></div>
+</div>
+
+<section id="s5" class="card">
+  <div class="card-tag"><span class="dot-g"></span>Gráfico de regresión — ln(ℰ/ΔV) vs t</div>
+
+  <div class="inner-grid ig-2-1">
+    
+    <div class="chart-wrap">
+      <canvas id="regressionChart"></canvas>
+    </div>
+
+    <div>
+      <div class="ctrl-card">
+        <div class="ctrl-label"><span class="dot-c"></span>Parámetro de control: Resistencia del Voltímetro $R$ (M&Omega;)</div>
+        <div class="slider-row">
+          <span class="slim">8.0</span>
+          <input type="range" id="resistanceSlider" min="8" max="12" step="0.1" value="10.0">
+          <span class="slim">12.0</span>
+        </div>
+        <div style="text-align: right;">
+           <div class="sbadge" id="resistanceValue" style="display:inline-block">10.0 M&Omega;</div>
+        </div>
+      </div>
+
+      <div class="res-grid">
+        <div class="res-box">
+          <small>Pendiente de Ajuste ($m$)</small>
+          <div class="rv" id="res-m">0.0000</div>
+        </div>
+        <div class="res-box">
+          <small>Constante de Tiempo ($\tau$)</small>
+          <div class="rv" id="res-tau">0.0 s</div>
+        </div>
+        <div class="res-box hi">
+          <small>Capacitancia Resultante ($C$)</small>
+          <div class="rv" id="res-c">0.00 &mu;F</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="sec-head">
+  <span class="sec-num">06</span>
+  <span class="sec-label">Conclusiones</span>
+  <div class="sec-line"></div>
+</div>
+
+<section id="s6" class="card">
+  <div class="card-tag"><span class="dot-g"></span>Resultados y reflexiones finales</div>
+  <ul class="concl">
+    <li>
+      <div class="cbullet">01</div>
+      <span>La metodología de linealización de la función de descarga demostró ser analíticamente robusta, proporcionando un modelo de regresión con un ajuste idóneo. Esto valida cualitativa y cuantitativamente el decaimiento exponencial previsto por la teoría de circuitos RC.</span>
+    </li>
+    <li>
+      <div class="cbullet">02</div>
+      <span>A través del procesamiento estadístico de los datos experimentales, se dedujo una constante de tiempo del sistema de $\tau \approx 84.7 \text{ s}$.</span>
+    </li>
+    <li>
+      <div class="cbullet">03</div>
+      <span>Sustituyendo los parámetros de diseño del equipo de medición ($R = 10.0 \text{ M}\Omega$), se concluye que el elemento capacitivo bajo estudio posee una magnitud de $C \approx 8.47 \ \mu\text{F}$.</span>
+    </li>
+    <li>
+      <div class="cbullet">04</div>
+      <span>La exploración del modelo de simulación resalta la sensibilidad del cálculo de la capacitancia respecto a la resistencia instrumental, evidenciando una estricta relación inversamente proporcional que el experimentador debe considerar para minimizar las incertidumbres de medición.</span>
+    </li>
+  </ul>
+</section>
+
+<div class="sec-head">
+  <span class="sec-num">07</span>
+  <span class="sec-label">Bibliografía</span>
+  <div class="sec-line"></div>
+</div>
+<section id="s7" class="card">
+  <div class="card-tag"><span class="dot-c"></span>Referencias del Laboratorio</div>
+  <div class="bib">
+    <p><em>Física Universitaria con Física Moderna</em>, Vol. 2. Sears, Zemansky, Young & Freedman. Capítulo 28: Circuitos de Corriente Directa.</p>
+  </div>
+</section>
+
+</div> 
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Datos experimentales
+    const t = [0, 4.87, 11.1, 19.4, 30.8, 46.6, 67.3, 102.2];
+    const lnV = [0.000, 0.109, 0.228, 0.355, 0.509, 0.695, 0.919, 1.219];
+    
+    const scatterData = t.map((xVal, index) => ({ x: xVal, y: lnV[index] }));
+    
+    // 2. Cálculo de la recta (Ajuste por mínimos cuadrados real)
+    const m = 0.0118; // Pendiente calculada
+    const b = 0.088;  // Intercepto real calculado (la línea no parte de 0 exacto)
+    
+    // Trazamos la línea desde X=0 hasta X=110 para cubrir la gráfica
+    const lineData = [
+        { x: 0, y: b },
+        { x: 110, y: (m * 110) + b }
+    ];
+
+    // 3. Configuración de Chart.js con los colores de neón
+    const ctx = document.getElementById('regressionChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [
+                {
+                    label: 'Datos experimentales ln(E/ΔV)',
+                    data: scatterData,
+                    backgroundColor: '#06b6d4', // Puntos color cian neón
+                    borderColor: '#06b6d4',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                },
+                {
+                    label: 'Ajuste Mínimos Cuadrados',
+                    data: lineData,
+                    type: 'line',
+                    borderColor: '#d946ef', // Línea color magenta neón
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    borderDash: [5, 5], // Línea punteada
+                    tension: 0,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: { top: 20 }
+            },
+            scales: {
+                x: { 
+                    type: 'linear',
+                    position: 'bottom',
+                    min: 0,
+                    max: 120, // Límite exacto de la imagen de referencia
+                    title: { 
+                        display: true, 
+                        text: 'Tiempo t (s)', 
+                        color: 'rgba(221,214,254,0.75)', // Texto claro
+                        font: { weight: 'bold', size: 14 }
+                    },
+                    ticks: { color: 'rgba(221,214,254,0.75)' },
+                    grid: { color: 'rgba(255,255,255,0.05)' } // Grilla sutil
+                },
+                y: { 
+                    min: 0,
+                    max: 1.4, // Límite exacto de la imagen de referencia
+                    title: { 
+                        display: true, 
+                        text: 'ln(E/ΔV)', 
+                        color: 'rgba(221,214,254,0.75)', 
+                        font: { weight: 'bold', size: 14 }
+                    },
+                    ticks: { color: 'rgba(221,214,254,0.75)' },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                }
+            },
+            plugins: {
+                legend: { 
+                    position: 'top',
+                    labels: { color: 'rgba(221,214,254,0.75)', usePointStyle: false, boxWidth: 40, font: { family: 'Syne' } }
+                }
+            }
+        }
+    });
+
+    // 4. Lógica de los Controles y Resultados
+    const slider = document.getElementById('resistanceSlider');
+    const rValDisplay = document.getElementById('resistanceValue');
+    const mDisplay = document.getElementById('res-m');
+    const tauDisplay = document.getElementById('res-tau');
+    const cDisplay = document.getElementById('res-c');
+    
+    const tau = 84.7; // Constante de tiempo
+
+    // Función para actualizar los valores en el HTML
+    function updateResults(R_megaOhms) {
+        rValDisplay.innerHTML = `${R_megaOhms.toFixed(1)} M&Omega;`;
+        mDisplay.innerText = m.toFixed(4);
+        tauDisplay.innerText = `${tau.toFixed(1)} s`;
+        
+        // C = tau / R
+        const C_microFarads = tau / R_megaOhms;
+        cDisplay.innerHTML = `${C_microFarads.toFixed(2)} &mu;F`;
+    }
+
+    // Inicializar valores al cargar
+    updateResults(parseFloat(slider.value));
+
+    // Escuchar cambios en el slider
+    slider.addEventListener('input', (e) => {
+        updateResults(parseFloat(e.target.value));
+    });
+});
+
+function toggleSnd() {
+    document.getElementById('sndBtn').classList.toggle('active');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz 2 - Física de Campos - UdeA</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville&display=swap" rel="stylesheet">
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .paper-container {
+            background-color: white;
+            padding: 50px 70px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #003087;
+            padding-bottom: 20px;
+        }
+
+        h1 { font-size: 24px; margin-bottom: 5px; color: #003087; text-transform: uppercase; }
+        h2 { font-size: 19px; margin-bottom: 15px; font-weight: normal; font-style: italic; }
+
+        .problem-statement {
+            text-align: justify;
+            background-color: #fdfdfd;
+            padding: 20px;
+            border-left: 5px solid #003087;
+            margin: 25px 0;
+            font-style: italic;
+            border-right: 1px solid #eee;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+
+        .interactive-section {
+            text-align: center;
+            border: 1px solid #eee;
+            padding: 25px;
+            margin: 30px 0;
+            background-color: #fcfcfc;
+            border-radius: 5px;
+        }
+
+        #circuit-img {
+            max-width: 100%;
+            height: 280px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            transition: opacity 0.3s;
+        }
+
+        #state-description {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #d32f2f;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #003087;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        h3 {
+            color: #003087;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            text-transform: uppercase;
+            font-size: 17px;
+            margin-top: 35px;
+        }
+
+        .math-result {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .bib-item {
+            font-size: 0.9em;
+            margin-left: 20px;
+            text-indent: -20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="paper-container">
+    <header>
+        <h1>Universidad de Antioquia</h1>
+        <h2>Quiz 2 - Facultad de Ingeniería</h2>
+        <div class="author-info">
+            <strong>Juan David Suarez Morales</strong><br>
+            Cédula: 1043436656<br>
+            Materia: Física de campos<br>
+            Ejercicio: 28.27
+        </div>
+    </header>
+
+    <section>
+        <div class="problem-statement">
+            Considere un circuito RC en serie para el cual \( R = 1.00 \, M\Omega \), \( C = 5.00 \, \mu F \), y \( \varepsilon = 30.0 \, V \). 
+            Determine <strong>a)</strong> la constante de tiempo del circuito, <strong>b)</strong> la carga máxima en el capacitor después de que el interruptor se mueve hacia <em>a</em>, conectando el capacitor a la batería, y <strong>c)</strong> la corriente en el resistor \( 10.0 \, s \) después de haber puesto el interruptor en <em>a</em>.
+        </div>
+    </section>
+
+    <div class="interactive-section">
+        <img id="circuit-img" src="data:image/png;base64,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" alt="Estado del Circuito">
+        <p id="state-description">Estado 1: Circuito abierto (Estado Inicial)</p>
+        <button onclick="changeState()">Siguiente Fase</button>
+    </div>
+
+    <section>
+        <h3>Solución y Cálculos</h3>
+        <div class="math-result">
+            <strong>a) Constante de tiempo (\(\tau\)):</strong>
+            \[ \tau = R \cdot C = (1.00 \times 10^6 \, \Omega)(5.00 \times 10^{-6} \, F) = 5.00 \, s \]
+        </div>
+
+        <div class="math-result">
+            <strong>b) Carga máxima (\(Q_{max}\)):</strong>
+            \[ Q_{max} = C \cdot \varepsilon = (5.00 \times 10^{-6} \, F)(30.0 \, V) = 1.50 \times 10^{-4} \, C = 150 \, \mu C \]
+        </div>
+
+        <div class="math-result">
+            <strong>c) Corriente a los 10.0 s:</strong>
+            \[ I(t) = \frac{\varepsilon}{R} e^{-t/\tau} \implies I(10) = \frac{30.0}{1.0 \times 10^6} e^{-10.0/5.00} \]
+            \[ I(10) = (30.0 \, \mu A) e^{-2} \approx 4.06 \, \mu A \]
+        </div>
+    </section>
+
+    <section>
+        <h3>Conclusiones</h3>
+        <p>
+            El análisis de este circuito RC permite concluir que la constante de tiempo (\(\tau\)) es el factor determinante en la velocidad de respuesta del sistema. Se observa que al transcurrir un tiempo equivalente a \(2\tau\) (10 segundos), la corriente ha decaído significativamente hasta alcanzar aproximadamente un 13.5% de su valor inicial. Esto demuestra la naturaleza exponencial de la carga en un capacitor, donde el flujo de electrones disminuye a medida que la diferencia de potencial en las placas del componente se aproxima a la de la fuente de alimentación.
+        </p>
+    </section>
+
+    <section>
+        <h3>Bibliografía</h3>
+        <p class="bib-item">
+            Serway, R. A., & Jewett, J. W. (2015). <em>Física para ciencias e ingeniería</em> (Vol. 2, 9a ed.). Ciudad de México: Cengage Learning. Capítulo 28: Circuitos de corriente directa, pp. 838-842.
+        </p>
+    </section>
+</div>
+
+<script>
+    let currentState = 0;
+    
+    // Configura aquí tus enlaces directos
+    const states = [
+        { img: "data:image/png;base64,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", text: "Estado 1: Circuito abierto (Estado Inicial)." },
+        { img: "data:image/png;base64,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", text: "Estado 2: Interruptor en 'a' - Proceso de carga." },
+        { img: "data:image/png;base64,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", text: "Estado 3: Interruptor en 'b' - Proceso de descarga." }
+    ];
+
+    function changeState() {
+        currentState = (currentState + 1) % states.length;
+        const imgElement = document.getElementById("circuit-img");
+        const textElement = document.getElementById("state-description");
+        
+        imgElement.style.opacity = 0.4;
+        setTimeout(() => {
+            imgElement.src = states[currentState].img;
+            textElement.innerText = states[currentState].text;
+            imgElement.style.opacity = 1;
+        }, 200);
+    }
+</script>
+
+</body>
+</html>

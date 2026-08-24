@@ -1,6 +1,6 @@
 import os, json, shutil
 
-RUTA_BASE = "/mnt/Tierra/Agentes/QuicesIA_html_19Marzo_26"
+RUTA_BASE = "/mnt/Tierra/0QuicesIA"
 RUTA_PUBLIC = os.path.join(RUTA_BASE, "web-estudiantes", "public", "trabajos")
 
 # Agregamos la carpeta Ondas

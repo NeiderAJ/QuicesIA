@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ejercicio 24.42 - Física de Campo</title>
+
+<script>
+window.MathJax = {
+tex: { inlineMath: [['$','$'],['\\(','\\)']] },
+svg: { fontCache: 'global' }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+scroll-behavior:smooth;
+}
+
+body{
+font-family:Arial, Helvetica, sans-serif;
+background:linear-gradient(180deg,#edf8ef,#ffffff,#f8fffa);
+color:#222;
+overflow-x:hidden;
+}
+
+/* Fondo decorativo premium */
+body::before{
+content:"";
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:
+radial-gradient(circle at 20% 20%, rgba(0,120,60,.05), transparent 20%),
+radial-gradient(circle at 80% 30%, rgba(0,120,60,.04), transparent 20%),
+radial-gradient(circle at 40% 80%, rgba(0,120,60,.04), transparent 20%);
+z-index:-1;
+animation:fondo 12s infinite alternate;
+}
+
+@keyframes fondo{
+from{transform:translateY(0);}
+to{transform:translateY(-25px);}
+}
+
+header{
+background:linear-gradient(135deg,#005c2f,#00994d);
+color:white;
+padding:60px 20px;
+text-align:center;
+box-shadow:0 10px 24px rgba(0,0,0,.22);
+}
+
+.logo{
+width:90px;
+height:90px;
+border-radius:50%;
+background:white;
+color:#005c2f;
+font-size:40px;
+font-weight:bold;
+display:flex;
+align-items:center;
+justify-content:center;
+margin:0 auto 15px auto;
+box-shadow:0 8px 18px rgba(0,0,0,.2);
+}
+
+header h1{
+font-size:2.7rem;
+margin-bottom:8px;
+}
+
+header h2{
+font-size:1.15rem;
+font-weight:normal;
+margin:5px 0;
+}
+
+.linea{
+width:130px;
+height:3px;
+background:white;
+margin:18px auto;
+border-radius:5px;
+}
+
+nav{
+position:sticky;
+top:0;
+background:#ffffffef;
+backdrop-filter:blur(8px);
+padding:14px;
+display:flex;
+justify-content:center;
+flex-wrap:wrap;
+gap:10px;
+box-shadow:0 5px 14px rgba(0,0,0,.08);
+z-index:999;
+}
+
+nav a{
+text-decoration:none;
+padding:10px 16px;
+border-radius:8px;
+background:#00994d;
+color:white;
+font-size:14px;
+transition:.3s;
+}
+
+nav a:hover{
+background:#005c2f;
+transform:translateY(-2px);
+}
+
+.container{
+max-width:1250px;
+margin:auto;
+padding:30px;
+}
+
+section{
+background:white;
+padding:30px;
+margin-bottom:28px;
+border-radius:18px;
+box-shadow:0 12px 25px rgba(0,0,0,.07);
+animation:fade .8s ease;
+}
+
+@keyframes fade{
+from{opacity:0; transform:translateY(15px);}
+to{opacity:1; transform:translateY(0);}
+}
+
+h3{
+font-size:1.7rem;
+color:#006837;
+margin-bottom:16px;
+padding-bottom:10px;
+border-bottom:2px solid #d9f0df;
+}
+
+p{
+line-height:1.8;
+margin:12px 0;
+}
+
+.math{
+background:#f4fff6;
+padding:16px;
+border-left:5px solid #00994d;
+border-radius:8px;
+margin:16px 0;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+gap:18px;
+margin-top:20px;
+}
+
+.card{
+background:#f8fff9;
+padding:18px;
+border-radius:14px;
+border:1px solid #e1f4e4;
+box-shadow:0 6px 14px rgba(0,0,0,.04);
+}
+
+.controls{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:18px;
+margin-top:20px;
+}
+
+.box{
+background:#f6fff8;
+padding:15px;
+border-radius:12px;
+box-shadow:0 4px 10px rgba(0,0,0,.04);
+}
+
+label{
+font-weight:bold;
+display:block;
+margin-bottom:8px;
+}
+
+input[type=range]{
+width:100%;
+cursor:pointer;
+}
+
+canvas{
+display:block;
+margin:auto;
+margin-top:20px;
+background:white;
+border:2px solid #ddd;
+border-radius:14px;
+box-shadow:0 10px 22px rgba(0,0,0,.08);
+}
+
+button{
+padding:10px 14px;
+margin:5px;
+border:none;
+border-radius:8px;
+background:#00994d;
+color:white;
+cursor:pointer;
+transition:.3s;
+}
+
+button:hover{
+background:#005c2f;
+}
+
+.resultado{
+margin-top:20px;
+padding:18px;
+background:#e8f5e9;
+border-radius:12px;
+font-size:1.25rem;
+font-weight:bold;
+text-align:center;
+color:#1b5e20;
+}
+
+ul{
+margin-left:25px;
+line-height:1.8;
+}
+
+footer{
+text-align:center;
+padding:28px;
+font-size:14px;
+color:#444;
+background:white;
+box-shadow:0 -4px 12px rgba(0,0,0,.05);
+margin-top:30px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="logo">UdeA</div>
+<h1>Universidad de Antioquia</h1>
+<h2>Facultad de Ingeniería</h2>
+<h2>Física de Campo</h2>
+<div class="linea"></div>
+<h2>Trabajo Computacional – Ejercicio 24.42</h2>
+<h2>Juan David Arrieta</h2>
+<h2>CC 1104405980</h2>
+<h2>2026</h2>
+</header>
+
+<nav>
+<a href="#inicio">Inicio</a>
+<a href="#objetivo">Objetivo</a>
+<a href="#teoria">Marco Teórico</a>
+<a href="#enunciado">Enunciado</a>
+<a href="#solucion">Solución</a>
+<a href="#analisis">Análisis</a>
+<a href="#grafico">Esquema</a>
+<a href="#simulacion">Simulación</a>
+<a href="#conclusiones">Conclusiones</a>
+<a href="#bibliografia">Bibliografía</a>
+</nav>
+
+<div class="container">
+
+<section id="inicio">
+<h3>Introducción</h3>
+<p>
+En este trabajo se estudia el flujo eléctrico generado por un campo no uniforme sobre una superficie rectangular ubicada en el plano \(xy\). Se presenta la solución matemática completa y una simulación interactiva para interpretar visualmente el fenómeno físico.
+</p>
+</section>
+
+<section id="objetivo">
+<h3>Objetivo del trabajo</h3>
+<p>
+Aplicar el concepto de flujo eléctrico y el uso de integrales dobles para analizar un campo eléctrico no uniforme mediante herramientas computacionales e interpretación física de resultados.
+</p>
+</section>
+
+<section id="teoria">
+<h3>Marco Teórico</h3>
+
+<div class="card">
+<h4>Ley de Gauss</h4>
+<p>
+La Ley de Gauss establece que el flujo eléctrico neto a través de una superficie cerrada es proporcional a la carga encerrada dentro de dicha superficie:
+</p>
+<div class="math">
+$$ \oint \vec{E}\cdot d\vec{A}=\frac{Q_{int}}{\varepsilon_0} $$
+</div>
+</div>
+
+<br>
+
+<div class="card">
+<h4>Flujo eléctrico</h4>
+<p>
+El flujo eléctrico mide cuántas líneas de campo atraviesan una superficie. Si el campo es perpendicular a la superficie, el flujo es máximo.
+</p>
+<div class="math">
+$$ \Phi_E=\iint \vec{E}\cdot d\vec{A} $$
+</div>
+</div>
+
+<br>
+
+<div class="card">
+<h4>Superficie abierta vs cerrada</h4>
+<p>
+Una superficie abierta posee bordes (como un rectángulo o disco) y se analiza sobre una sola región. Una superficie cerrada encierra volumen, como una esfera o cubo, y se usa directamente en la Ley de Gauss.
+</p>
+</div>
+
+<br>
+
+<div class="card">
+<h4>Campo no uniforme</h4>
+<p>
+Un campo no uniforme cambia de magnitud o dirección con la posición. En este ejercicio, la componente \(cx\hat{k}\) aumenta conforme crece la coordenada \(x\).
+</p>
+</div>
+
+</section>
+
+<section id="enunciado">
+<h3>Enunciado</h3>
+
+<p>
+Un campo eléctrico no uniforme tiene la expresión:
+</p>
+
+<div class="math">
+$$ \vec{E}=ay\hat{i}+bz\hat{j}+cx\hat{k} $$
+</div>
+
+<p>
+donde \(a\), \(b\) y \(c\) son constantes. Determine el flujo eléctrico a través de una superficie rectangular en el plano \(xy\), que se extiende de \(x=0\) hasta \(x=w\) y de \(y=0\) hasta \(y=h\).
+</p>
+
+</section>
+
+<section id="solucion">
+<h3>Solución matemática completa</h3>
+
+<p>
+Para resolver el problema se debe calcular el flujo eléctrico del campo dado a través de una superficie rectangular ubicada en el plano \(xy\).
+</p>
+
+<div class="math">
+$$ \vec{E}=ay\hat{i}+bz\hat{j}+cx\hat{k} $$
+</div>
+
+<p>
+El flujo eléctrico se define como:
+</p>
+
+<div class="math">
+$$ \Phi_E=\iint_S \vec{E}\cdot d\vec{A} $$
+</div>
+
+<p>
+donde:
+</p>
+
+<ul>
+<li>\(\Phi_E\): flujo eléctrico total.</li>
+<li>\(\vec{E}\): campo eléctrico.</li>
+<li>d\vec{A}\): vector diferencial de área perpendicular a la superficie.</li>
+<li>\(\cdot\): producto punto.</li>
+</ul>
+
+<hr style="margin:25px 0;border:1px solid #e5f1e8;">
+
+<h4 style="color:#006837;">Paso 1. Identificación de la superficie</h4>
+
+<p>
+La superficie es un rectángulo situado en el plano \(xy\), por lo tanto todos sus puntos cumplen:
+</p>
+
+<div class="math">
+$$ z=0 $$
+</div>
+
+<p>
+Además, sus límites son:
+</p>
+
+<ul>
+<li>\(0 \le x \le w\)</li>
+<li>\(0 \le y \le h\)</li>
+</ul>
+
+<p>
+Como la superficie está en el plano \(xy\), el vector normal perpendicular apunta en dirección positiva del eje \(z\):
+</p>
+
+<div class="math">
+$$ d\vec{A}=\hat{k}\,dx\,dy $$
+</div>
+
+<hr style="margin:25px 0;border:1px solid #e5f1e8;">
+
+<h4 style="color:#006837;">Paso 2. Evaluar el campo sobre la superficie</h4>
+
+<p>
+El campo eléctrico general es:
+</p>
+
+<div class="math">
+$$ \vec{E}=ay\hat{i}+bz\hat{j}+cx\hat{k} $$
+</div>
+
+<p>
+Pero como en la superficie se cumple \(z=0\), entonces:
+</p>
+
+<div class="math">
+$$ \vec{E}=ay\hat{i}+b(0)\hat{j}+cx\hat{k} $$
+</div>
+
+<div class="math">
+$$ \vec{E}=ay\hat{i}+cx\hat{k} $$
+</div>
+
+<p>
+Esto significa que sobre la superficie desaparece la componente en dirección \(y\).
+</p>
+
+<hr style="margin:25px 0;border:1px solid #e5f1e8;">
+
+<h4 style="color:#006837;">Paso 3. Aplicar producto punto</h4>
+
+<p>
+Se sustituye en la ecuación del flujo:
+</p>
+
+<div class="math">
+$$ \vec{E}\cdot d\vec{A}=(ay\hat{i}+cx\hat{k})\cdot(\hat{k}\,dx\,dy) $$
+</div>
+
+<p>
+Usando las propiedades de vectores unitarios:
+</p>
+
+<div class="math">
+$$ \hat{i}\cdot\hat{k}=0 \qquad \hat{k}\cdot\hat{k}=1 $$
+</div>
+
+<p>
+Entonces:
+</p>
+
+<div class="math">
+$$ \vec{E}\cdot d\vec{A}=cx\,dx\,dy $$
+</div>
+
+<p>
+Esto demuestra que solamente la componente perpendicular al plano contribuye al flujo.
+</p>
+
+<hr style="margin:25px 0;border:1px solid #e5f1e8;">
+
+<h4 style="color:#006837;">Paso 4. Plantear la integral doble</h4>
+
+<p>
+Ahora se integra sobre toda el área rectangular:
+</p>
+
+<div class="math">
+$$ \Phi_E=\int_0^h \int_0^w cx\,dx\,dy $$
+</div>
+
+<hr style="margin:25px 0;border:1px solid #e5f1e8;">
+
+<h4 style="color:#006837;">Paso 5. Resolver la integral respecto a \(x\)</h4>
+
+<div class="math">
+$$ \int_0^w cx\,dx=c\int_0^w x\,dx $$
+</div>
+
+<div class="math">
+$$ =c\left[\frac{x^2}{2}\right]_0^w $$
+</div>
+
+<div class="math">
+$$ =c\left(\frac{w^2}{2}-0\right) $$
+</div>
+
+<div class="math">
+$$ =\frac{cw^2}{2} $$
+</div>
+
+<hr style="margin:25px 0;border:1px solid #e5f1e8;">
+
+<h4 style="color:#006837;">Paso 6. Resolver la integral respecto a \(y\)</h4>
+
+<div class="math">
+$$ \Phi_E=\int_0^h \frac{cw^2}{2}\,dy $$
+</div>
+
+<div class="math">
+$$ =\frac{cw^2}{2}\int_0^h dy $$
+</div>
+
+<div class="math">
+$$ =\frac{cw^2}{2}[y]_0^h $$
+</div>
+
+<div class="math">
+$$ =\frac{cw^2}{2}(h-0) $$
+</div>
+
+<hr style="margin:25px 0;border:1px solid #e5f1e8;">
+
+<h4 style="color:#006837;">Resultado final</h4>
+
+<div class="math">
+$$ \boxed{\Phi_E=\frac{cw^2h}{2}} $$
+</div>
+
+<p>
+Por lo tanto, el flujo eléctrico a través del rectángulo depende linealmente de la constante \(c\) y de la altura \(h\), mientras que depende cuadráticamente del ancho \(w\).
+</p>
+
+</section>
+
+<section id="grafico">
+<h3>Esquema explicativo</h3>
+<canvas id="canvas2" width="950" height="360"></canvas>
+</section>
+
+<section id="simulacion">
+<h3>Simulación interactiva</h3>
+
+<div class="controls">
+
+<div class="box">
+<label>c: <span id="cv">2</span></label>
+<input type="range" id="c" min="1" max="10" value="2">
+</div>
+
+<div class="box">
+<label>w: <span id="wv">4</span></label>
+<input type="range" id="w" min="1" max="10" value="4">
+</div>
+
+<div class="box">
+<label>h: <span id="hv">3</span></label>
+<input type="range" id="h" min="1" max="10" value="3">
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="card">
+<p>Área = <span id="area"></span></p>
+<p>Flujo = <span id="flujo"></span></p>
+<p>Campo máximo = <span id="maxE"></span></p>
+</div>
+
+<div class="card">
+<button onclick="animar=true">Iniciar</button>
+<button onclick="animar=false">Pausar</button>
+<button onclick="resetAnim()">Reiniciar</button>
+</div>
+
+</div>
+
+<canvas id="canvas" width="950" height="500"></canvas>
+
+<div class="resultado">
+Resultado actual: <span id="resultado"></span>
+</div>
+
+</section>
+
+<section id="conclusiones">
+<h3>Conclusiones</h3>
+
+<ul>
+<li>El flujo eléctrico depende únicamente de la componente perpendicular del campo.</li>
+<li>Solo la componente \(cx\hat{k}\) atraviesa la superficie rectangular.</li>
+<li>El ancho tiene mayor influencia debido a su dependencia cuadrática.</li>
+<li>La simulación confirma la solución analítica obtenida.</li>
+<li>El uso de herramientas visuales mejora la comprensión física del problema.</li>
+</ul>
+
+</section>
+
+<section id="bibliografia">
+<h3>Bibliografía</h3>
+
+<ul>
+<li>Serway & Jewett. Física para Ciencias e Ingeniería.</li>
+<li>Halliday, Resnick & Walker. Fundamentals of Physics.</li>
+<li>Tipler & Mosca. Física para la Ciencia y Tecnología.</li>
+</ul>
+
+</section>
+
+</div>
+
+<footer>
+Juan David Arrieta | Universidad de Antioquia | Facultad de Ingeniería | Física de Campo | 2026
+</footer>
+
+<script>
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+const canvas2=document.getElementById("canvas2");
+const ctx2=canvas2.getContext("2d");
+
+const c=document.getElementById("c");
+const w=document.getElementById("w");
+const h=document.getElementById("h");
+
+let animar=true;
+let t=0;
+
+function resetAnim(){t=0;}
+
+function drawStatic(){
+ctx2.clearRect(0,0,950,360);
+
+ctx2.beginPath();
+ctx2.moveTo(150,260);
+ctx2.lineTo(560,260);
+ctx2.lineTo(660,150);
+ctx2.lineTo(250,150);
+ctx2.closePath();
+
+ctx2.fillStyle="#e8f5e9";
+ctx2.fill();
+ctx2.strokeStyle="#006837";
+ctx2.stroke();
+
+for(let i=0;i<8;i++){
+for(let j=0;j<3;j++){
+
+let x=180+i*55+j*20;
+let y=240-j*45;
+let len=18+i*3;
+
+ctx2.beginPath();
+ctx2.moveTo(x,y);
+ctx2.lineTo(x,y-len);
+ctx2.strokeStyle="#00994d";
+ctx2.stroke();
+
+ctx2.beginPath();
+ctx2.moveTo(x,y-len);
+ctx2.lineTo(x-4,y-len+8);
+ctx2.lineTo(x+4,y-len+8);
+ctx2.fillStyle="#00994d";
+ctx2.fill();
+}
+}
+}
+
+function drawPremium(){
+
+let cv=+c.value;
+let wv=+w.value;
+let hv=+h.value;
+
+let area=(wv*hv).toFixed(2);
+let flujo=(0.5*cv*wv*wv*hv).toFixed(2);
+let maxE=(cv*wv).toFixed(2);
+
+document.getElementById("cv").textContent=cv;
+document.getElementById("wv").textContent=wv;
+document.getElementById("hv").textContent=hv;
+document.getElementById("area").textContent=area;
+document.getElementById("flujo").textContent=flujo;
+document.getElementById("maxE").textContent=maxE;
+document.getElementById("resultado").textContent=flujo;
+
+ctx.clearRect(0,0,950,500);
+
+let ox=180, oy=390, sx=60, sy=42;
+
+ctx.beginPath();
+ctx.moveTo(ox,oy);
+ctx.lineTo(ox+wv*sx,oy);
+ctx.lineTo(ox+wv*sx+90,oy-hv*sy);
+ctx.lineTo(ox+90,oy-hv*sy);
+ctx.closePath();
+
+ctx.fillStyle="#eef9f0";
+ctx.fill();
+ctx.strokeStyle="#006837";
+ctx.stroke();
+
+for(let i=0;i<=wv;i+=0.5){
+for(let j=0;j<=hv;j+=0.5){
+
+let px=ox+i*sx+22*j;
+let py=oy-j*sy;
+let Ez=cv*i;
+let len=12+Ez*4;
+let move=Math.sin(t+i+j)*5;
+
+ctx.strokeStyle="#00994d";
+ctx.fillStyle="#00994d";
+
+ctx.beginPath();
+ctx.moveTo(px,py);
+ctx.lineTo(px,py-len-move);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(px,py-len-move);
+ctx.lineTo(px-4,py-len+8-move);
+ctx.lineTo(px+4,py-len+8-move);
+ctx.closePath();
+ctx.fill();
+}
+}
+
+if(animar)t+=0.08;
+requestAnimationFrame(drawPremium);
+}
+
+c.oninput=drawPremium;
+w.oninput=drawPremium;
+h.oninput=drawPremium;
+
+drawStatic();
+drawPremium();
+</script>
+
+</body>
+</html>

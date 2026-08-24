@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Circuito Mixto — Problema 28.55 | S.H.I.E.L.D. Physics Lab</title>
+
+<!-- MathJax for LaTeX rendering -->
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)'],['$','$']], displayMath: [['\\[','\\]'],['$$','$$']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] },
+  startup: { typeset: true }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --cyan:       #00e5ff;
+  --cyan-dim:   #007d8a;
+  --cyan-faint: rgba(0,229,255,0.08);
+  --cyan-glow:  rgba(0,229,255,0.22);
+  --dark:       #03080f;
+  --panel:      rgba(4,18,32,0.95);
+  --border:     rgba(0,229,255,0.22);
+  --text:       #aed6e8;
+  --text-bright:#dff4fd;
+  --warn:       #ffab40;
+  --danger:     #ff5252;
+  --success:    #69f0ae;
+  --eq-bg:      rgba(0,40,65,0.7);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+html{scroll-behavior:smooth}
+
+body{
+  font-family:'Rajdhani',sans-serif;
+  font-weight:400;
+  background:var(--dark);
+  color:var(--text);
+  line-height:1.7;
+  overflow-x:hidden;
+}
+
+/* ── GRID BG ── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,229,255,0.04) 1px,transparent 1px);
+  background-size:48px 48px;
+  pointer-events:none;z-index:0;
+}
+
+/* ── SCANLINE ── */
+.scanline{
+  position:fixed;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+  opacity:.12;animation:scan 5s linear infinite;z-index:9999;pointer-events:none;
+}
+@keyframes scan{from{top:0}to{top:100vh}}
+
+/* ── NAV ── */
+.hud-nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(3,8,15,0.97);
+  border-bottom:1px solid var(--border);
+  padding:10px 32px;
+  display:flex;align-items:center;justify-content:space-between;
+  backdrop-filter:blur(8px);
+}
+.nav-logo{
+  font-family:'Orbitron',sans-serif;font-size:10px;
+  letter-spacing:3px;color:var(--cyan);
+}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap;}
+.nav-links a{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  letter-spacing:1.5px;color:var(--cyan-dim);text-decoration:none;
+  padding:4px 10px;border:1px solid rgba(0,229,255,0.15);border-radius:2px;
+  transition:all .2s;
+}
+.nav-links a:hover{color:var(--cyan);border-color:var(--cyan);background:var(--cyan-faint);}
+.nav-status{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--success);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── HERO ── */
+.hero{
+  text-align:center;padding:60px 32px 40px;position:relative;z-index:1;
+  border-bottom:1px solid var(--border);
+}
+.hero-tag{
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:4px;color:var(--cyan-dim);text-transform:uppercase;margin-bottom:16px;
+}
+.hero-title{
+  font-family:'Orbitron',sans-serif;font-size:clamp(20px,4vw,36px);
+  font-weight:900;color:var(--cyan);letter-spacing:2px;
+  text-shadow:0 0 30px rgba(0,229,255,.4);margin-bottom:10px;
+}
+.hero-sub{
+  font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:300;
+  color:var(--text);letter-spacing:1px;
+}
+
+/* ── WRAPPER ── */
+.wrap{max-width:1000px;margin:0 auto;padding:0 24px;}
+
+/* ── SECTION ── */
+section{
+  position:relative;z-index:1;
+  padding:48px 0 36px;
+  border-bottom:1px solid rgba(0,229,255,.1);
+}
+.sec-header{
+  display:flex;align-items:center;gap:14px;margin-bottom:28px;
+}
+.sec-num{
+  font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;
+  color:var(--dark);background:var(--cyan);
+  width:32px;height:32px;border-radius:2px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;letter-spacing:1px;
+}
+.sec-title{
+  font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;
+  color:var(--cyan);letter-spacing:2px;text-transform:uppercase;
+}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--cyan),transparent);}
+
+/* ── PROSE ── */
+.prose{font-size:16px;color:var(--text-bright);line-height:1.8;}
+.prose p{margin-bottom:14px;}
+.prose strong{color:var(--cyan);font-weight:600;}
+.prose ul{padding-left:20px;margin-bottom:14px;}
+.prose ul li{margin-bottom:8px;}
+.prose ul li::marker{color:var(--cyan);}
+
+/* ── ENUNCIADO BOX ── */
+.enunciado{
+  background:var(--eq-bg);
+  border:1px solid var(--border);
+  border-left:3px solid var(--cyan);
+  border-radius:4px;padding:20px 24px;margin:16px 0;
+  font-size:16px;color:var(--text-bright);line-height:1.8;
+}
+.enunciado p{margin-bottom:8px;}
+.enunciado ul{padding-left:20px;}
+.enunciado ul li{margin-bottom:6px;}
+.enunciado ul li::marker{color:var(--cyan);}
+.enunciado em{color:var(--cyan-dim);font-style:italic;}
+
+/* ── EQUATION BLOCK ── */
+.eq-block{
+  background:var(--eq-bg);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:18px 24px;
+  margin:14px 0;
+  overflow-x:auto;
+  text-align:center;
+}
+.eq-block .MathJax{font-size:1.1em !important;}
+
+/* ── STEP CARDS ── */
+.steps{display:flex;flex-direction:column;gap:16px;}
+.step{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:18px 22px;
+  position:relative;
+}
+.step::before{
+  content:'';position:absolute;
+  top:0;left:0;width:28px;height:28px;
+  border-top:2px solid var(--cyan);border-left:2px solid var(--cyan);
+  border-radius:4px 0 0 0;
+}
+.step-title{
+  font-family:'Orbitron',sans-serif;font-size:11px;
+  letter-spacing:2px;color:var(--cyan);text-transform:uppercase;
+  margin-bottom:12px;
+}
+.step-body{font-size:15px;color:var(--text-bright);line-height:1.8;}
+
+/* ── RESULT HIGHLIGHT ── */
+.result-box{
+  display:inline-flex;flex-wrap:wrap;gap:12px;
+  margin:16px 0;
+}
+.rcard{
+  background:rgba(0,229,255,0.06);
+  border:1px solid var(--border);
+  border-radius:4px;padding:14px 20px;text-align:center;min-width:130px;
+}
+.rcard-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--cyan-dim);text-transform:uppercase;margin-bottom:6px;}
+.rcard-val{font-family:'Orbitron',sans-serif;font-size:20px;color:var(--cyan);text-shadow:0 0 10px rgba(0,229,255,.4);}
+.rcard-unit{font-size:11px;color:var(--cyan-dim);}
+.rcard.warn .rcard-val{color:var(--warn);text-shadow:0 0 10px rgba(255,171,64,.4);}
+.rcard.hot  .rcard-val{color:var(--danger);text-shadow:0 0 10px rgba(255,82,82,.4);}
+
+/* ── ANALYSIS LIST ── */
+.analysis-list{display:flex;flex-direction:column;gap:12px;}
+.a-item{
+  display:flex;gap:14px;
+  background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px 18px;
+}
+.a-icon{
+  font-family:'Orbitron',sans-serif;font-size:13px;color:var(--cyan);
+  min-width:32px;padding-top:2px;
+}
+.a-body{font-size:15px;color:var(--text-bright);line-height:1.75;}
+.a-body strong{color:var(--cyan);}
+
+/* ── SIM PANEL ── */
+.sim-wrap{
+  display:grid;
+  grid-template-columns:250px 1fr;
+  gap:14px;
+}
+.sim-controls{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:4px;padding:16px;
+}
+.ctrl-group{margin-bottom:18px;}
+.ctrl-label{
+  display:flex;justify-content:space-between;
+  font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--text);letter-spacing:1px;margin-bottom:6px;
+}
+.ctrl-label span{color:var(--cyan);font-weight:bold;}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:4px;
+  background:rgba(0,229,255,.15);border-radius:2px;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--cyan);box-shadow:0 0 8px var(--cyan);cursor:pointer;
+}
+input[type=range]::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;border:none;
+  background:var(--cyan);box-shadow:0 0 8px var(--cyan);cursor:pointer;
+}
+.ctrl-title{
+  font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;
+  color:var(--cyan);text-transform:uppercase;margin-bottom:14px;
+}
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
+.mcard{
+  background:rgba(0,229,255,.05);border:1px solid var(--border);
+  border-radius:3px;padding:8px 10px;text-align:center;
+}
+.mcard-lbl{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1.5px;color:var(--cyan-dim);text-transform:uppercase;margin-bottom:4px;}
+.mcard-val{font-family:'Orbitron',monospace;font-size:14px;color:var(--cyan);text-shadow:0 0 8px rgba(0,229,255,.5);}
+.mcard-val.warn{color:var(--warn);text-shadow:0 0 8px rgba(255,171,64,.4);}
+.mcard-val.hot {color:var(--danger);text-shadow:0 0 8px rgba(255,82,82,.4);}
+.mcard-unit{font-size:9px;color:var(--cyan-dim);}
+.sound-btn{
+  font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;
+  color:var(--dark);background:var(--cyan);border:none;border-radius:2px;
+  padding:7px 12px;cursor:pointer;text-transform:uppercase;width:100%;margin-top:14px;
+  transition:opacity .2s;
+}
+.sound-btn:hover{opacity:.8;}
+
+.sim-right{display:flex;flex-direction:column;gap:12px;}
+.canvas-panel{
+  background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px;
+}
+.canvas-panel-title{
+  font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;
+  color:var(--cyan);text-transform:uppercase;margin-bottom:8px;
+}
+#circuitCanvas{width:100%;height:240px;display:block;}
+
+.gauges-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.gauge-box{
+  background:var(--panel);border:1px solid var(--border);border-radius:4px;
+  padding:10px 8px 8px;display:flex;flex-direction:column;align-items:center;
+}
+.gauge-lbl{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--cyan-dim);text-transform:uppercase;margin-bottom:4px;text-align:center;}
+.gauge-svg{width:100px;height:64px;}
+.gauge-num{font-family:'Orbitron',monospace;font-size:13px;color:var(--cyan);margin-top:4px;text-shadow:0 0 8px rgba(0,229,255,.5);}
+.gauge-u{font-size:9px;color:var(--cyan-dim);}
+
+/* ── CONCLUSIONES ── */
+.conc-list{display:flex;flex-direction:column;gap:10px;}
+.conc-item{
+  display:flex;gap:12px;align-items:flex-start;
+  background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px 16px;
+}
+.conc-num{
+  font-family:'Orbitron',sans-serif;font-size:12px;color:var(--dark);
+  background:var(--cyan);min-width:26px;height:26px;border-radius:2px;
+  display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;
+}
+.conc-text{font-size:15px;color:var(--text-bright);line-height:1.75;}
+.conc-text strong{color:var(--cyan);}
+
+/* ── BIBLIOGRAPHY ── */
+.bib-list{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.bib-list li{
+  background:var(--panel);border:1px solid var(--border);border-radius:4px;
+  padding:12px 18px;font-size:14px;color:var(--text);line-height:1.6;
+  padding-left:36px;position:relative;
+}
+.bib-list li::before{
+  content:'[' attr(data-n) ']';
+  font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cyan);
+  position:absolute;left:12px;top:14px;
+}
+.bib-list em{color:var(--text-bright);font-style:italic;}
+
+/* ── FOOTER ── */
+footer{
+  position:relative;z-index:1;
+  text-align:center;padding:28px;
+  border-top:1px solid var(--border);
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  letter-spacing:2px;color:rgba(0,229,255,.3);text-transform:uppercase;
+}
+
+@media(max-width:700px){
+  .sim-wrap{grid-template-columns:1fr;}
+  .gauges-row{grid-template-columns:1fr 1fr 1fr;}
+  .result-box{flex-direction:column;}
+}
+
+  .circuit-img-wrap {
+    margin: 22px 0 10px;
+    display: flex;
+    justify-content: center;
+  }
+  .circuit-fig {
+    background: rgba(0,20,36,0.7);
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 6px;
+    padding: 16px 20px 10px;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+  }
+  .circuit-img {
+    width: 100%;
+    max-width: 420px;
+    height: auto;
+    border-radius: 4px;
+    display: block;
+    margin: 0 auto;
+    filter: drop-shadow(0 0 12px rgba(0,229,255,0.18)) brightness(1.05) contrast(1.05);
+    mix-blend-mode: normal;
+  }
+  .circuit-caption {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: rgba(0,229,255,0.45);
+    text-transform: uppercase;
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+  .circuit-caption em { font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="scanline"></div>
+
+<!-- NAV -->
+<nav class="hud-nav">
+  <div class="nav-logo">S.H.I.E.L.D. Physics Lab</div>
+  <div class="nav-links">
+    <a href="#s1">Enunciado</a>
+    <a href="#s2">Solución</a>
+    <a href="#s3">Análisis</a>
+    <a href="#s4">Simulación</a>
+    <a href="#s5">Interactivo</a>
+    <a href="#s6">Conclusiones</a>
+    <a href="#s7">Bibliografía</a>
+  </div>
+  <div class="nav-status">● SISTEMA ACTIVO</div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">Trabajo Académico · Física II · Circuitos de Corriente Directa</div>
+  <div class="hero-title">⚡ CIRCUITO MIXTO DE FOCOS</div>
+  <div class="hero-sub">Problema 28.55 — Serway &amp; Jewett, 10.ª ed.</div>
+</div>
+
+<div class="wrap">
+
+<!-- ══════════════════════════════════════
+     SECCIÓN 1 — ENUNCIADO
+═══════════════════════════════════════ -->
+<section id="s1">
+  <div class="sec-header">
+    <div class="sec-num">01</div>
+    <div class="sec-title">Enunciado del Problema Asignado</div>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="enunciado">
+    <p><strong>Problema 55 (Capítulo 28):</strong> Tres focos de \(60{,}0\ \text{W}\) a \(120\ \text{V}\) están conectados a una fuente de potencia de \(120\ \text{V}\), como se muestra en la figura. Determine:</p>
+    <ul>
+      <li><strong>a)</strong> La potencia total entregada a los tres focos.</li>
+      <li><strong>b)</strong> La diferencia de potencial a través de cada uno.</li>
+    </ul>
+    <p><em>Suponga que la resistencia de cada foco es constante (aun cuando en realidad la resistencia puede aumentar considerablemente en función de la corriente).</em></p>
+  </div>
+  <div class="circuit-img-wrap">
+    <figure class="circuit-fig">
+      <img src="data:image/png;base64,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" alt="Diagrama del circuito mixto — Problema 28.55" class="circuit-img">
+      <figcaption class="circuit-caption">Fig. 1 &mdash; Configuración del circuito mixto (serie-paralelo).<br>Fuente: Serway &amp; Jewett, <em>Física para Ciencias e Ingeniería</em>, 10.ª ed.</figcaption>
+    </figure>
+  </div>
+
+  <div class="prose" style="margin-top:18px;">
+    <p>La topología del circuito es <strong>mixta (serie-paralelo)</strong>: el foco \(R_1\) se encuentra en <strong>serie</strong> con el conjunto formado por \(R_2\) y \(R_3\), los cuales están conectados en <strong>paralelo</strong> entre sí. La fuente provee \(V_s = 120\ \text{V}\).</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SECCIÓN 2 — SOLUCIÓN MATEMÁTICA
+═══════════════════════════════════════ -->
+<section id="s2">
+  <div class="sec-header">
+    <div class="sec-num">02</div>
+    <div class="sec-title">Solución Matemática Completa</div>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="steps">
+
+    <!-- PASO 1 -->
+    <div class="step">
+      <div class="step-title">Paso 1 — Resistencia de cada foco</div>
+      <div class="step-body">
+        <p>A partir de los valores nominales de potencia \(P_0\) y voltaje \(V_0\), se despeja la resistencia interna de cada foco:</p>
+      </div>
+      <div class="eq-block">
+        $$P_0 = \frac{V_0^2}{R} \quad\Longrightarrow\quad R = \frac{V_0^2}{P_0}$$
+      </div>
+      <div class="eq-block">
+        $$R = \frac{(120\ \text{V})^2}{60{,}0\ \text{W}} = \frac{14\,400}{60{,}0} = \boxed{240\ \Omega}$$
+      </div>
+      <div class="step-body">Los tres focos son idénticos: \(R_1 = R_2 = R_3 = 240\ \Omega\).</div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="step">
+      <div class="step-title">Paso 2 — Resistencia equivalente del paralelo \(R_2 \| R_3\)</div>
+      <div class="step-body">Los focos \(R_2\) y \(R_3\) están en paralelo. Su resistencia combinada es:</div>
+      <div class="eq-block">
+        $$R_{23} = \left(\frac{1}{R_2} + \frac{1}{R_3}\right)^{-1} = \frac{R_2\,R_3}{R_2+R_3} = \frac{240 \times 240}{240 + 240} = \boxed{120\ \Omega}$$
+      </div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="step">
+      <div class="step-title">Paso 3 — Resistencia total del circuito</div>
+      <div class="step-body">\(R_1\) está en serie con el bloque paralelo \(R_{23}\):</div>
+      <div class="eq-block">
+        $$R_{\text{eq}} = R_1 + R_{23} = 240\ \Omega + 120\ \Omega = \boxed{360\ \Omega}$$
+      </div>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="step">
+      <div class="step-title">Paso 4 — Corriente total de la fuente</div>
+      <div class="step-body">Aplicando la Ley de Ohm al circuito completo:</div>
+      <div class="eq-block">
+        $$I_{\text{tot}} = \frac{V_s}{R_{\text{eq}}} = \frac{120\ \text{V}}{360\ \Omega} = \frac{1}{3}\ \text{A} \approx \boxed{0{,}333\ \text{A}}$$
+      </div>
+    </div>
+
+    <!-- PASO 5 -->
+    <div class="step">
+      <div class="step-title">Paso 5 — Respuesta a): Potencia total entregada</div>
+      <div class="step-body">La potencia extraída de la fuente es:</div>
+      <div class="eq-block">
+        $$P_{\text{total}} = \frac{V_s^2}{R_{\text{eq}}} = \frac{(120\ \text{V})^2}{360\ \Omega} = \frac{14\,400}{360} = \boxed{40{,}0\ \text{W}}$$
+      </div>
+    </div>
+
+    <!-- PASO 6 -->
+    <div class="step">
+      <div class="step-title">Paso 6 — Respuesta b): Diferencia de potencial en cada foco</div>
+      <div class="step-body">Voltaje en el foco 1 (Ley de Ohm):</div>
+      <div class="eq-block">
+        $$V_1 = I_{\text{tot}}\cdot R_1 = \left(\frac{1}{3}\ \text{A}\right)\times 240\ \Omega = \boxed{80{,}0\ \text{V}}$$
+      </div>
+      <div class="step-body">Por la Ley de Kirchhoff de Voltajes (LKV), el voltaje restante cae sobre el bloque paralelo:</div>
+      <div class="eq-block">
+        $$V_2 = V_3 = V_s - V_1 = 120\ \text{V} - 80{,}0\ \text{V} = \boxed{40{,}0\ \text{V}}$$
+      </div>
+    </div>
+
+    <!-- PASO 7 -->
+    <div class="step">
+      <div class="step-title">Paso 7 — Potencia real disipada por cada foco</div>
+      <div class="eq-block">
+        $$P_1 = \frac{V_1^2}{R_1} = \frac{(80)^2}{240} = \frac{6400}{240} \approx \boxed{26{,}7\ \text{W}}$$
+      </div>
+      <div class="eq-block">
+        $$P_2 = P_3 = \frac{V_{2,3}^2}{R} = \frac{(40)^2}{240} = \frac{1600}{240} \approx \boxed{6{,}67\ \text{W}}$$
+      </div>
+      <div class="eq-block">
+        $$P_{\text{total}} = P_1 + P_2 + P_3 = 26{,}7 + 6{,}67 + 6{,}67 = \boxed{40{,}0\ \text{W}} \checkmark$$
+      </div>
+    </div>
+
+  </div><!-- /steps -->
+
+  <!-- RESULT SUMMARY -->
+  <div class="result-box" style="margin-top:24px;">
+    <div class="rcard">
+      <div class="rcard-label">P Total</div>
+      <div class="rcard-val hot">40.0</div>
+      <div class="rcard-unit">W</div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-label">V₁ (Foco 1)</div>
+      <div class="rcard-val warn">80.0</div>
+      <div class="rcard-unit">V</div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-label">V₂ = V₃</div>
+      <div class="rcard-val">40.0</div>
+      <div class="rcard-unit">V</div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-label">R equiv</div>
+      <div class="rcard-val">360</div>
+      <div class="rcard-unit">Ω</div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-label">I total</div>
+      <div class="rcard-val">0.333</div>
+      <div class="rcard-unit">A</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SECCIÓN 3 — ANÁLISIS FUNCIONAL
+═══════════════════════════════════════ -->
+<section id="s3">
+  <div class="sec-header">
+    <div class="sec-num">03</div>
+    <div class="sec-title">Análisis Funcional y Teórico</div>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="analysis-list">
+    <div class="a-item">
+      <div class="a-icon">⚡</div>
+      <div class="a-body">
+        <strong>División de voltaje:</strong> Al ser \(R_1 = 240\ \Omega\) el doble de \(R_{23} = 120\ \Omega\), el voltaje se divide en proporción \(2:1\). Por la regla del divisor de tensión: \(V_1 = V_s \cdot R_1/R_{\text{eq}} = 120 \cdot 240/360 = 80\ \text{V}\) y \(V_{23} = 120 \cdot 120/360 = 40\ \text{V}\).
+      </div>
+    </div>
+    <div class="a-item">
+      <div class="a-icon">💡</div>
+      <div class="a-body">
+        <strong>Luminosidad relativa:</strong> La potencia disipada (proporcional al brillo) es \(P \propto V^2/R\). El foco 1 disipa \(26{,}7\ \text{W}\) (cuatro veces más que cada uno de los focos 2 y 3, que disipan \(6{,}67\ \text{W}\)), por lo que brillará considerablemente más.
+      </div>
+    </div>
+    <div class="a-item">
+      <div class="a-icon">🔋</div>
+      <div class="a-body">
+        <strong>Paradoja de la potencia:</strong> Si los tres focos de \(60\ \text{W}\) estuvieran directamente en paralelo a la fuente, disiparían \(3 \times 60 = 180\ \text{W}\). La conexión mixta aumenta la resistencia equivalente, limitando la corriente y reduciendo la potencia total a solo \(40\ \text{W}\) — menos que la de un único foco operando en condiciones nominales.
+      </div>
+    </div>
+    <div class="a-item">
+      <div class="a-icon">📐</div>
+      <div class="a-body">
+        <strong>Ley de Kirchhoff de Corriente (LKC):</strong> En el nodo de bifurcación, la corriente que llega es \(I_{\text{tot}} = 1/3\ \text{A}\). Se divide equitativamente entre las dos ramas paralelas (ya que \(R_2 = R_3\)):
+        \[I_2 = I_3 = \frac{V_{23}}{R} = \frac{40}{240} = \frac{1}{6}\ \text{A} \approx 0{,}167\ \text{A}\]
+        Verificación: \(I_2 + I_3 = 1/6 + 1/6 = 1/3\ \text{A} = I_{\text{tot}}\ \checkmark\)
+      </div>
+    </div>
+    <div class="a-item">
+      <div class="a-icon">📈</div>
+      <div class="a-body">
+        <strong>Dependencia cuadrática con el voltaje:</strong> La relación \(P = V_s^2/R_{\text{eq}}\) implica que duplicar el voltaje de la fuente cuadruplica la potencia total. Esto es visible en la simulación al mover el control de \(V_s\).
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SECCIÓN 4 — PLANTEAMIENTO SIMULACIÓN
+═══════════════════════════════════════ -->
+<section id="s4">
+  <div class="sec-header">
+    <div class="sec-num">04</div>
+    <div class="sec-title">Planteamiento de la Simulación</div>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="prose">
+    <p>La simulación interactiva traduce la solución analítica en un motor de cálculo en tiempo real. Se parametrizan tres variables independientes:</p>
+    <ul>
+      <li><strong>Voltaje de la fuente \(V_s\):</strong> varía de \(0\) a \(240\ \text{V}\), permitiendo observar la dependencia cuadrática de la potencia.</li>
+      <li><strong>Potencia nominal por foco \(P_0\):</strong> cambia las características de fabricación y recalcula \(R = V_0^2/P_0\).</li>
+      <li><strong>Voltaje nominal por foco \(V_0\):</strong> permite estudiar focos de diferentes especificaciones.</li>
+    </ul>
+    <p>Para cada combinación de parámetros, el sistema aplica en tiempo real:</p>
+    <ul>
+      <li>Cálculo de \(R\), \(R_{23}\), \(R_{\text{eq}}\), \(I_{\text{tot}}\), \(V_1\), \(V_{23}\), \(P_i\).</li>
+      <li>Representación visual del diagrama de circuito con flechas de corriente animadas y halos de calor proporcionales a la potencia real disipada.</li>
+      <li>Tres medidores de aguja (gauges semicirculares) que muestran la diferencia de potencial \(\Delta V\) en cada foco.</li>
+      <li>Efectos de sonido mediante la <strong>Web Audio API</strong>: arranque tipo JARVIS, beeps al mover controles y alertas de sobretensión.</li>
+    </ul>
+    <p>La intensidad del halo luminoso de cada foco es proporcional a \(P_{\text{real}}/P_{\text{nom}}\), lo cual aporta retroalimentación física inmediata e intuitiva.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SECCIÓN 5 — SIMULACIÓN INTERACTIVA
+═══════════════════════════════════════ -->
+<section id="s5">
+  <div class="sec-header">
+    <div class="sec-num">05</div>
+    <div class="sec-title">Simulación Interactiva</div>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="sim-wrap">
+
+    <!-- CONTROLS -->
+    <div class="sim-controls">
+      <div class="ctrl-title">// Parámetros</div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-label">V<sub>s</sub> (Fuente) <span id="lVs">120</span> V</div>
+        <input type="range" id="sVs" min="0" max="240" step="10" value="120">
+      </div>
+      <div class="ctrl-group">
+        <div class="ctrl-label">P<sub>nom</sub> (Foco) <span id="lPn">60</span> W</div>
+        <input type="range" id="sPn" min="10" max="150" step="10" value="60">
+      </div>
+      <div class="ctrl-group">
+        <div class="ctrl-label">V<sub>nom</sub> (Foco) <span id="lVn">120</span> V</div>
+        <input type="range" id="sVn" min="12" max="240" step="12" value="120">
+      </div>
+
+      <button class="sound-btn" id="bootBtn" onclick="playBoot()">▶ Inicializar Audio</button>
+
+      <div class="metrics-grid">
+        <div class="mcard">
+          <div class="mcard-lbl">R foco</div>
+          <div class="mcard-val" id="mR">240</div>
+          <div class="mcard-unit">Ω</div>
+        </div>
+        <div class="mcard">
+          <div class="mcard-lbl">R equiv</div>
+          <div class="mcard-val" id="mReq">360</div>
+          <div class="mcard-unit">Ω</div>
+        </div>
+        <div class="mcard">
+          <div class="mcard-lbl">I total</div>
+          <div class="mcard-val warn" id="mI">0.333</div>
+          <div class="mcard-unit">A</div>
+        </div>
+        <div class="mcard">
+          <div class="mcard-lbl">P total</div>
+          <div class="mcard-val hot" id="mP">40.0</div>
+          <div class="mcard-unit">W</div>
+        </div>
+        <div class="mcard">
+          <div class="mcard-lbl">P foco 1</div>
+          <div class="mcard-val warn" id="mP1">26.7</div>
+          <div class="mcard-unit">W</div>
+        </div>
+        <div class="mcard">
+          <div class="mcard-lbl">P foco 2,3</div>
+          <div class="mcard-val" id="mP23">6.7</div>
+          <div class="mcard-unit">W</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="sim-right">
+      <!-- Circuit canvas -->
+      <div class="canvas-panel">
+        <div class="canvas-panel-title">// Diagrama de Circuito — Animación en tiempo real</div>
+        <canvas id="circuitCanvas"></canvas>
+      </div>
+
+      <!-- Gauges -->
+      <div class="gauges-row">
+        <div class="gauge-box">
+          <div class="gauge-lbl">ΔV — Foco 1</div>
+          <svg class="gauge-svg" id="g1" viewBox="0 0 100 64"></svg>
+          <div class="gauge-num" id="gv1">80.0 <span class="gauge-u">V</span></div>
+        </div>
+        <div class="gauge-box">
+          <div class="gauge-lbl">ΔV — Foco 2</div>
+          <svg class="gauge-svg" id="g2" viewBox="0 0 100 64"></svg>
+          <div class="gauge-num" id="gv2">40.0 <span class="gauge-u">V</span></div>
+        </div>
+        <div class="gauge-box">
+          <div class="gauge-lbl">ΔV — Foco 3</div>
+          <svg class="gauge-svg" id="g3" viewBox="0 0 100 64"></svg>
+          <div class="gauge-num" id="gv3">40.0 <span class="gauge-u">V</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SECCIÓN 6 — CONCLUSIONES
+═══════════════════════════════════════ -->
+<section id="s6">
+  <div class="sec-header">
+    <div class="sec-num">06</div>
+    <div class="sec-title">Conclusiones</div>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="conc-list">
+    <div class="conc-item">
+      <div class="conc-num">1</div>
+      <div class="conc-text">La conexión en serie de \(R_1\) con el bloque paralelo \(R_2\|R_3\) incrementa la resistencia equivalente a \(360\ \Omega\), limitando la corriente a solo \(1/3\ \text{A}\). En consecuencia, la potencia total \((40\ \text{W})\) es menor que la nominal de un solo foco operando correctamente \((60\ \text{W})\).</div>
+    </div>
+    <div class="conc-item">
+      <div class="conc-num">2</div>
+      <div class="conc-text">En un circuito mixto serie-paralelo con resistencias idénticas, el elemento en serie soporta siempre la <strong>mayor caída de voltaje</strong>: \(V_1 = 80\ \text{V}\) equivale a los \(2/3\) del voltaje total, mientras que cada foco paralelo solo recibe \(1/3\ (40\ \text{V})\).</div>
+    </div>
+    <div class="conc-item">
+      <div class="conc-num">3</div>
+      <div class="conc-text">La potencia real disipada es proporcional al cuadrado del voltaje aplicado (\(P = V^2/R\)). El foco 1 disipa \(26{,}7\ \text{W}\), exactamente <strong>cuatro veces</strong> más que cada foco paralelo \((6{,}67\ \text{W})\), ya que \(V_1/V_{23} = 2\) y \(P \propto V^2\).</div>
+    </div>
+    <div class="conc-item">
+      <div class="conc-num">4</div>
+      <div class="conc-text">La simulación confirma la dependencia <strong>cuadrática</strong> de la potencia total con el voltaje de la fuente: duplicar \(V_s\) cuadruplica \(P_{\text{total}}\), coherente con \(P = V_s^2/R_{\text{eq}}\). Esta no-linealidad es claramente observable al mover el slider de \(V_s\).</div>
+    </div>
+    <div class="conc-item">
+      <div class="conc-num">5</div>
+      <div class="conc-text">Las Leyes de Kirchhoff se verifican en todo instante: la LKV garantiza \(V_1 + V_{23} = V_s\), y la LKC garantiza \(I_2 + I_3 = I_{\text{tot}}\). Estos invariantes son la base del modelo computacional de la simulación.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     SECCIÓN 7 — BIBLIOGRAFÍA
+═══════════════════════════════════════ -->
+<section id="s7">
+  <div class="sec-header">
+    <div class="sec-num">07</div>
+    <div class="sec-title">Bibliografía</div>
+    <div class="sec-line"></div>
+  </div>
+
+  <ul class="bib-list">
+    <li data-n="1">Serway, R. A., &amp; Jewett, J. W. (2018). <em>Física para ciencias e ingeniería</em> (10.ª ed., Vol. 2). Cengage Learning. Capítulo 28: Circuitos de Corriente Directa.</li>
+    <li data-n="2">Boylestad, R. L. (2011). <em>Introducción al análisis de circuitos</em> (12.ª ed.). Pearson Educación.</li>
+    <li data-n="3">Hayt, W. H., Kemmerly, J. E., &amp; Durbin, S. M. (2012). <em>Análisis de circuitos en ingeniería</em> (8.ª ed.). McGraw-Hill.</li>
+    <li data-n="4">MathJax Consortium. (2024). <em>MathJax: Beautiful math in all browsers</em>. Recuperado de https://www.mathjax.org/</li>
+  </ul>
+</section>
+
+</div><!-- /wrap -->
+
+<footer>
+  Trabajo Académico · Física II · Circuitos DC · HTML5 / Canvas / Web Audio API / MathJax
+</footer>
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT: AUDIO + CIRCUIT + GAUGES
+═══════════════════════════════════════ -->
+<script>
+/* ─── WEB AUDIO ─── */
+let actx = null;
+function getCtx(){
+  if(!actx) actx = new(window.AudioContext||window.webkitAudioContext)();
+  return actx;
+}
+function beep(freq,dur,vol,type='sine'){
+  const ac=getCtx(), osc=ac.createOscillator(), g=ac.createGain();
+  osc.connect(g); g.connect(ac.destination);
+  osc.type=type; osc.frequency.setValueAtTime(freq,ac.currentTime);
+  g.gain.setValueAtTime(vol,ac.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+dur);
+  osc.start(); osc.stop(ac.currentTime+dur);
+}
+function playBoot(){
+  const ac=getCtx();
+  [200,320,480,700,1100,1600].forEach((f,i)=>setTimeout(()=>beep(f,0.18,0.13,'sawtooth'),i*90));
+  setTimeout(()=>beep(2000,0.5,0.1,'sine'),650);
+  document.getElementById('bootBtn').textContent='✔ Audio Activo';
+}
+function playSlider(){ beep(800+Math.random()*500,0.06,0.05,'square'); }
+let lastPtot=0;
+function maybeAlert(P,Pnom){
+  if(Math.abs(P-lastPtot)>6){
+    P>Pnom*2.5 ? beep(180,0.25,0.09,'sawtooth') : beep(660,0.1,0.05,'sine');
+    lastPtot=P;
+  }
+}
+
+/* ─── GAUGE ─── */
+function drawGauge(id,val,maxVal,color){
+  const svg=document.getElementById(id);
+  svg.innerHTML='';
+  const cx=50,cy=60,r=42;
+  const ratio=Math.min(1,Math.max(0,val/Math.max(1,maxVal)));
+  function px(a){return cx+r*Math.cos(a);}
+  function py(a){return cy+r*Math.sin(a);}
+  function arc(a1,a2,stroke,sw){
+    const laf=(a2-a1>Math.PI)?1:0;
+    const d=`M ${px(a1)} ${py(a1)} A ${r} ${r} 0 ${laf} 1 ${px(a2)} ${py(a2)}`;
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d',d); p.setAttribute('fill','none');
+    p.setAttribute('stroke',stroke); p.setAttribute('stroke-width',sw);
+    p.setAttribute('stroke-linecap','round'); svg.appendChild(p);
+  }
+  arc(Math.PI,Math.PI*2,'rgba(0,229,255,0.1)',6);
+  arc(Math.PI,Math.PI+Math.PI*ratio,color,6);
+  // ticks
+  for(let i=0;i<=10;i++){
+    const a=Math.PI+Math.PI*i/10;
+    const r1=r+2, r2=r+(i%5===0?8:5);
+    const t=document.createElementNS('http://www.w3.org/2000/svg','line');
+    t.setAttribute('x1',cx+r1*Math.cos(a)); t.setAttribute('y1',cy+r1*Math.sin(a));
+    t.setAttribute('x2',cx+r2*Math.cos(a)); t.setAttribute('y2',cy+r2*Math.sin(a));
+    t.setAttribute('stroke','rgba(0,229,255,0.3)'); t.setAttribute('stroke-width',1);
+    svg.appendChild(t);
+  }
+  // needle
+  const na=Math.PI+Math.PI*ratio;
+  const nl=document.createElementNS('http://www.w3.org/2000/svg','line');
+  nl.setAttribute('x1',cx); nl.setAttribute('y1',cy);
+  nl.setAttribute('x2',cx+(r-6)*Math.cos(na)); nl.setAttribute('y2',cy+(r-6)*Math.sin(na));
+  nl.setAttribute('stroke',color); nl.setAttribute('stroke-width',2);
+  nl.setAttribute('stroke-linecap','round'); svg.appendChild(nl);
+  const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  dot.setAttribute('cx',cx); dot.setAttribute('cy',cy); dot.setAttribute('r',4);
+  dot.setAttribute('fill',color); svg.appendChild(dot);
+}
+
+/* ─── CANVAS CIRCUIT ─── */
+const cvs=document.getElementById('circuitCanvas');
+const ctx2=cvs.getContext('2d');
+
+function resize(){
+  cvs.width=cvs.offsetWidth; cvs.height=240;
+}
+
+function line2(x1,y1,x2,y2,color,lw){
+  ctx2.beginPath(); ctx2.strokeStyle=color; ctx2.lineWidth=lw||1.5;
+  ctx2.moveTo(x1,y1); ctx2.lineTo(x2,y2); ctx2.stroke();
+}
+
+function arrow(x,y,dx,dy,color,alpha){
+  ctx2.save(); ctx2.globalAlpha=alpha;
+  ctx2.strokeStyle=color; ctx2.fillStyle=color; ctx2.lineWidth=1.5;
+  ctx2.beginPath(); ctx2.moveTo(x,y); ctx2.lineTo(x+dx,y+dy); ctx2.stroke();
+  const a=Math.atan2(dy,dx);
+  ctx2.beginPath();
+  ctx2.moveTo(x+dx,y+dy);
+  ctx2.lineTo(x+dx-7*Math.cos(a-0.4),y+dy-7*Math.sin(a-0.4));
+  ctx2.lineTo(x+dx-7*Math.cos(a+0.4),y+dy-7*Math.sin(a+0.4));
+  ctx2.closePath(); ctx2.fill(); ctx2.restore();
+}
+
+function bulb(x,y,Pr,Pn,V,label,halo){
+  const r=18, inten=Math.min(1,Pr/Math.max(1,Pn));
+  if(inten>0.02){
+    const hr=halo==='#ffd740'?[255,215,64]:[64,196,255];
+    const gr=ctx2.createRadialGradient(x,y,r,x,y,r+12+20*inten);
+    gr.addColorStop(0,`rgba(${hr},${0.55*inten})`);
+    gr.addColorStop(1,`rgba(${hr},0)`);
+    ctx2.beginPath(); ctx2.arc(x,y,r+12+20*inten,0,Math.PI*2);
+    ctx2.fillStyle=gr; ctx2.fill();
+  }
+  ctx2.beginPath(); ctx2.arc(x,y,r,0,Math.PI*2);
+  ctx2.fillStyle='rgba(5,18,32,0.92)'; ctx2.fill();
+  ctx2.strokeStyle=inten>0.1?halo:'rgba(0,229,255,0.28)'; ctx2.lineWidth=1.5; ctx2.stroke();
+  ctx2.strokeStyle=inten>0.05?`rgba(255,${Math.floor(150+105*inten)},0,${0.5+0.5*inten})`:'rgba(90,110,130,0.5)';
+  ctx2.lineWidth=1.5; ctx2.beginPath();
+  ctx2.moveTo(x-6,y+5); ctx2.lineTo(x-3,y-5); ctx2.lineTo(x+3,y-5); ctx2.lineTo(x+6,y+5); ctx2.stroke();
+  ctx2.strokeStyle='rgba(0,229,255,0.22)'; ctx2.lineWidth=1;
+  ctx2.beginPath(); ctx2.moveTo(x-8,y+r); ctx2.lineTo(x+8,y+r); ctx2.stroke();
+  ctx2.beginPath(); ctx2.moveTo(x-5,y+r+4); ctx2.lineTo(x+5,y+r+4); ctx2.stroke();
+  ctx2.textAlign='center';
+  ctx2.font='bold 11px "Share Tech Mono",monospace';
+  ctx2.fillStyle=inten>0.1?halo:'rgba(0,229,255,0.4)';
+  ctx2.fillText(label,x,y-r-6);
+  ctx2.font='10px "Share Tech Mono",monospace';
+  ctx2.fillStyle='rgba(0,229,255,0.6)';
+  ctx2.fillText(V.toFixed(1)+' V',x,y+r+18);
+  ctx2.textAlign='left';
+}
+
+function battery(x,y,Vs){
+  ctx2.fillStyle='rgba(4,16,28,0.95)'; ctx2.fillRect(x-18,y-26,36,52);
+  ctx2.strokeStyle='rgba(0,229,255,0.35)'; ctx2.lineWidth=1; ctx2.strokeRect(x-18,y-26,36,52);
+  [[y-16,20,'#ff5252'],[y-8,14,'#ff5252'],[y+2,20,'#69f0ae'],[y+12,14,'#69f0ae']].forEach(([py,pw,c])=>{
+    ctx2.beginPath(); ctx2.strokeStyle=c; ctx2.lineWidth=2.5;
+    ctx2.moveTo(x-pw/2,py); ctx2.lineTo(x+pw/2,py); ctx2.stroke();
+  });
+  ctx2.font='bold 10px "Share Tech Mono",monospace'; ctx2.textAlign='center';
+  ctx2.fillStyle='#ff5252'; ctx2.fillText('+',x-24,y-14);
+  ctx2.fillStyle='#69f0ae'; ctx2.fillText('−',x+24,y+16);
+  ctx2.fillStyle='rgba(0,229,255,0.55)';
+  ctx2.font='9px "Share Tech Mono",monospace';
+  ctx2.fillText(Vs.toFixed(0)+'V',x,y+32);
+  ctx2.textAlign='left';
+}
+
+function drawCircuit(Vs,V1,V23,P1,P23,Pn){
+  const W=cvs.width, H=cvs.height;
+  ctx2.clearRect(0,0,W,H);
+  const dim='rgba(0,229,255,0.28)';
+  const xL=60, xR=W-30, yT=44, yB=H-36;
+  const xB=xL+10, yM=(yT+yB)/2;
+  const xJ=xL+(xR-xL)*0.38;
+  const xR2=xL+(xR-xL)*0.65;
+  const xR1c=(xL+xJ)/2+15;
+
+  // wires
+  line2(xL,yT,xR,yT,dim);
+  line2(xL,yB,xR,yB,dim);
+  line2(xL,yT,xL,yB,dim);
+  line2(xR,yT,xR,yB,dim);
+  line2(xJ,yT,xJ,yM-25,dim);
+  line2(xJ,yM+25,xJ,yB,dim);
+  line2(xR2,yT,xR2,yM-25,dim);
+  line2(xR2,yM+25,xR2,yB,dim);
+  line2(xJ,yT,xR2,yT,dim);
+  line2(xR2,yT,xR,yT,dim);
+
+  // animated current arrows
+  const t=Date.now()/700, p=0.5+0.5*Math.sin(t);
+  arrow(xL+16,yT+5,28,0,'#00e5ff',p*0.7);
+  arrow(xJ+10,yT+5,24,0,'#00e5ff',p*0.55);
+  arrow(xJ+4,yM-44,0,-22,'#40c4ff',p*0.45);
+  arrow(xR2+4,yM-44,0,-22,'#40c4ff',p*0.45);
+  arrow(xR-6,yB-5,-26,0,'#00e5ff',p*0.5);
+
+  battery(xB,yM,Vs);
+  // white gap on wire for R1
+  ctx2.fillStyle='rgba(3,8,15,1)'; ctx2.fillRect(xR1c-22,yT-8,44,16);
+  bulb(xR1c,yT,P1,Pn,V1,'R₁','#ffd740');
+  bulb(xJ,yM,P23,Pn,V23,'R₂','#40c4ff');
+  bulb(xR2,yM,P23,Pn,V23,'R₃','#40c4ff');
+
+  // node dots
+  [[xJ,yT],[xJ,yB],[xR2,yT],[xR2,yB]].forEach(([nx,ny])=>{
+    ctx2.beginPath(); ctx2.arc(nx,ny,4,0,Math.PI*2);
+    ctx2.fillStyle='#00e5ff'; ctx2.fill();
+  });
+
+  // labels
+  ctx2.font='9px "Share Tech Mono",monospace';
+  ctx2.fillStyle='rgba(0,229,255,0.4)';
+  ctx2.fillText('R₂‖R₃',xJ+12,yT-8);
+}
+
+/* ─── SIMULATION UPDATE ─── */
+function simUpdate(){
+  const Vs=+document.getElementById('sVs').value;
+  const Pn=+document.getElementById('sPn').value;
+  const Vn=+document.getElementById('sVn').value;
+  document.getElementById('lVs').textContent=Vs;
+  document.getElementById('lPn').textContent=Pn;
+  document.getElementById('lVn').textContent=Vn;
+
+  const R=Vn*Vn/Pn;
+  const Req=R+R/2;
+  const It=Vs/Req;
+  const Pt=Vs*It;
+  const V1=It*R;
+  const V23=Vs-V1;
+  const P1=V1*V1/R;
+  const P23=V23*V23/R;
+
+  document.getElementById('mR').textContent=R.toFixed(1);
+  document.getElementById('mReq').textContent=Req.toFixed(1);
+  document.getElementById('mI').textContent=It.toFixed(3);
+  document.getElementById('mP').textContent=Pt.toFixed(1);
+  document.getElementById('mP1').textContent=P1.toFixed(1);
+  document.getElementById('mP23').textContent=P23.toFixed(1);
+
+  const mxV=Math.max(Vs,1);
+  const cHot='#ff5252', cWarm='#ffd740', cCool='#00e5ff';
+  const c1=V1>0.75*mxV?cHot:V1>0.4*mxV?cWarm:cCool;
+  const c23=V23>0.75*mxV?cHot:V23>0.4*mxV?cWarm:cCool;
+  drawGauge('g1',V1,mxV,c1);
+  drawGauge('g2',V23,mxV,c23);
+  drawGauge('g3',V23,mxV,c23);
+
+  document.getElementById('gv1').innerHTML=V1.toFixed(1)+' <span class="gauge-u">V</span>';
+  document.getElementById('gv2').innerHTML=V23.toFixed(1)+' <span class="gauge-u">V</span>';
+  document.getElementById('gv3').innerHTML=V23.toFixed(1)+' <span class="gauge-u">V</span>';
+
+  maybeAlert(Pt,Pn);
+  return {Vs,V1,V23,P1,P23,Pn};
+}
+
+function animate(){
+  const d=simUpdate();
+  resize();
+  drawCircuit(d.Vs,d.V1,d.V23,d.P1,d.P23,d.Pn);
+  requestAnimationFrame(animate);
+}
+
+['sVs','sPn','sVn'].forEach(id=>
+  document.getElementById(id).addEventListener('input',playSlider)
+);
+window.addEventListener('resize',resize);
+window.addEventListener('load',()=>{ resize(); animate(); });
+</script>
+</body>
+</html>

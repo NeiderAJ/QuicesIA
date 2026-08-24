@@ -78,7 +78,45 @@
         }
     },
     "FisQF": {},
-    "Campos": {},
+    "Campos": {
+        "QUIZ-2-IA_Entregas": {
+            "pdf": "Q2-IA.pdf",
+            "htmls": [
+                "tomas_machado_1017925233.html",
+                "Nicolle_Cadena_1081054160.html.html",
+                "Juan_David_Ballesteros_Amaya_1120354735.html",
+                "Michel Londo\u00f1o_1018236365.html",
+                "Johan_cardona_1027947487.html",
+                "Luis_Felipe_P\u00e9rez_Madrigal_1193231754.html",
+                "Brayan_Aguirre_1033489464.html",
+                "juan_david_arrieta_arrieta_1104405980.html",
+                "Luisa Mari\u0301a Vargas - 1001538963.html",
+                "Dumar_Londo\u00f1o_CC1035237007.html",
+                "Maria_Paulina_Botero_Rendon_1001250308.html",
+                "Jos\u00e9_G\u00f3mez_L\u00f3pez_1193118729.html",
+                "edwin_baez_1007395181.html",
+                "Miguel_Cacabelos_1000413923.html",
+                "alejandra_restrepo_aguirre_1025882838.html",
+                "Samuel_Cadavid_Isaza_Quiz_2.html",
+                "Iv\u00e1n_Dar\u00edo_Caro_Serna_1152446635.html",
+                "Juan_Felipe_Jimenez_Moncada_1001331047.html",
+                "JHONATAN_CAAMA\u00d1O_1193220048.html",
+                "laura_camila_gutierrez_vasquez_1025886905.html",
+                "Isabella_Valencia_Ramirez_cc_1000414584.html",
+                "Maria_Alejandra_Carvajal_Correa_ CC1002546619.html",
+                "Juan_David_Suarez_Morales_1043436656.html",
+                "Laura_Valentina_Benavides_Machado_1011085538.html",
+                "Juan_David_Flechas_1007420007.html",
+                "Edison_Bustamante_M_1035228349.html",
+                "Santiago_Rengifo_Shool_1102795027.html",
+                "Juan_Pablo_Camargo_Zangu\u00f1a_1011088094.html",
+                "Ana_Tarapues_1085916445.html",
+                "Luis_Fernando_Perez_Melendrez_1038095070.html",
+                "Felipe_Gualdron_1084054454.html",
+                "Juliana_Monsalve_Mesa_1033258024.html"
+            ]
+        }
+    },
     "Ondas": {
         "PitchElevator": {
             "pdf": "PitchElevator.pdf",

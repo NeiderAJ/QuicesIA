@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Galvanómetro — Laura Camila Gutiérrez Vásquez</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Caveat:wght@400;600;700&family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;600&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\\\[',right:'\\\\]',display:true},{left:'\\\\(',right:'\\\\)',display:false}],throwOnError:false});"></script>
+
+<script type="module">
+  // motion.dev for richer animations — graceful fallback if CDN fails
+  try {
+    const mod = await import('https://cdn.jsdelivr.net/npm/motion@11/+esm');
+    window.__motion = { animate: mod.animate, stagger: mod.stagger, inView: mod.inView, spring: mod.spring };
+  } catch (err) {
+    console.warn('motion.dev no disponible; usando transiciones CSS.', err);
+    window.__motion = null;
+  }
+</script>
+
+<style>
+:root{
+  --brass: #c9a14a;
+  --brass-light: #ecd48a;
+  --brass-dark: #8a6a2a;
+  --leather: #4a1e10;
+  --leather-dark: #2a110a;
+  --leather-edge: #6a3020;
+  --paper: #f5ead1;
+  --paper-dark: #e8d9b5;
+  --paper-shadow: #cbb888;
+  --ink: #2a1a08;
+  --ink-soft: #5a3f1a;
+  --ink-red: #8a2018;
+  --ink-blue: #2a3a7a;
+  --notebook-line: #a8b8d0;
+  --notebook-margin: #c64a38;
+}
+
+*,*::before,*::after{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;overflow-x:hidden;}
+body{
+  font-family:'EB Garamond', Georgia, serif;
+  color:var(--ink);
+  background:
+    radial-gradient(ellipse at 50% 40%, #3a2818 0%, #1a1008 70%, #0a0604 100%),
+    #0a0604;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px;
+  perspective:3200px;
+}
+
+/* ============ BOOK STAGE ============ */
+.book-stage{
+  position:relative;
+  width:min(98vw, 1720px);
+  height:min(94vh, 1040px);
+  transform-style:preserve-3d;
+}
+
+.book{
+  position:relative;
+  width:100%;
+  height:100%;
+  transform-style:preserve-3d;
+  transition: transform 1.2s cubic-bezier(.4,.1,.3,1);
+}
+.book.opened{
+  transform: translateX(-4%) rotateX(2deg);
+}
+
+/* book body shadow (under the book) */
+.book-shadow{
+  position:absolute;
+  left:6%; right:6%; bottom:-22px;
+  height:30px;
+  background:radial-gradient(ellipse at center, rgba(0,0,0,0.55), transparent 70%);
+  filter:blur(6px);
+  pointer-events:none;
+}
+
+/* ============ COVER ============ */
+.cover{
+  position:absolute;
+  inset:0;
+  border-radius:6px 12px 12px 6px;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255,220,160,0.08), transparent 60%),
+    linear-gradient(135deg, var(--leather) 0%, var(--leather-dark) 60%, #1a0a06 100%);
+  box-shadow:
+    inset 0 0 0 4px rgba(201,161,74,0.25),
+    inset 0 0 0 6px rgba(0,0,0,0.45),
+    inset 0 0 50px rgba(0,0,0,0.55),
+    0 20px 50px rgba(0,0,0,0.7);
+  transform-origin: left center;
+  transition: transform 1.4s cubic-bezier(.55,.05,.25,1);
+  backface-visibility:hidden;
+  cursor:pointer;
+  z-index:100;
+  overflow:hidden;
+}
+.cover::before{
+  /* leather grain */
+  content:'';
+  position:absolute; inset:0;
+  background:
+    repeating-radial-gradient(circle at 20% 30%, rgba(255,255,255,0.015) 0 2px, transparent 2px 4px),
+    repeating-radial-gradient(circle at 70% 80%, rgba(0,0,0,0.05) 0 2px, transparent 2px 5px);
+  pointer-events:none;
+}
+.cover::after{
+  content:'';
+  position:absolute;
+  top:22px; bottom:22px; left:22px; right:22px;
+  border:2px solid rgba(201,161,74,0.55);
+  border-radius:4px;
+  box-shadow:inset 0 0 0 8px rgba(0,0,0,0.0), inset 0 0 0 10px rgba(201,161,74,0.12);
+  pointer-events:none;
+}
+
+.cover.front{ z-index:100; }
+.book.opened .cover.front{
+  transform: rotateY(-172deg);
+  box-shadow:
+    inset 0 0 0 4px rgba(201,161,74,0.25),
+    inset 0 0 50px rgba(0,0,0,0.55),
+    -20px 8px 30px rgba(0,0,0,0.5);
+  pointer-events: none;  /* critical: stops rotated cover from eating clicks */
+}
+.book.opened .cover.back{ pointer-events: none; }
+
+.cover-content{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  text-align:center;
+  color:var(--brass-light);
+  padding:60px 40px;
+  user-select:none;
+}
+.cover-title{
+  font-family:'IM Fell English SC', 'Cormorant Garamond', serif;
+  font-size:86px;
+  letter-spacing:0.1em;
+  text-shadow: 0 2px 0 #3a2010, 0 0 18px rgba(201,161,74,0.25);
+  margin:0;
+}
+.cover-flourish{
+  color:var(--brass);
+  font-size:48px;
+  margin:18px 0 30px;
+  letter-spacing:0.4em;
+}
+.cover-sub{
+  font-family:'Cormorant Garamond', serif;
+  font-style:italic;
+  font-size:26px;
+  color:rgba(236,212,138,0.85);
+  letter-spacing:0.04em;
+}
+.cover-meta{
+  margin-top:60px;
+  font-family:'EB Garamond', serif;
+  font-size:18px;
+  color:rgba(236,212,138,0.72);
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+}
+.cover-author{
+  margin-top:auto;
+  font-family:'Cormorant Garamond', serif;
+  font-variant:small-caps;
+  letter-spacing:0.25em;
+  font-size:20px;
+  color:var(--brass);
+}
+.cover-hint{
+  position:absolute;
+  bottom:30px; left:0; right:0;
+  text-align:center;
+  font-family:'Caveat', cursive;
+  font-size:24px;
+  color:rgba(236,212,138,0.6);
+  animation: pulse 2.5s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes pulse{
+  0%,100%{opacity:0.4;}
+  50%{opacity:0.9;}
+}
+.book.opened .cover-hint{display:none;}
+
+/* inside of the front cover (visible after opening) */
+.cover-inside{
+  position:absolute; inset:0;
+  background:
+    linear-gradient(135deg, #2a180a, #1a0a06);
+  transform: rotateY(180deg);
+  backface-visibility:hidden;
+  border-radius:6px 12px 12px 6px;
+}
+
+/* back cover */
+.cover.back{ z-index:1; }
+
+/* ============ PAGES ============ */
+.pages-container{
+  position:absolute;
+  inset:0;
+  transform-style:preserve-3d;
+  z-index:10;
+}
+
+.page{
+  position:absolute;
+  inset:0;
+  border-radius:4px 10px 10px 4px;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,0.15) 0, transparent 2.5%),
+    repeating-linear-gradient(90deg, rgba(120,80,30,0.03) 0 1px, transparent 1px 9px),
+    linear-gradient(180deg, #f7ecd1 0%, #eddbb2 100%);
+  box-shadow:
+    inset 12px 0 14px -10px rgba(120,80,30,0.35),
+    inset -2px 0 6px -3px rgba(120,80,30,0.15);
+  overflow:hidden;
+  display:none;
+  transform-origin:left center;
+  backface-visibility:hidden;
+}
+.page.is-current{ display:block; z-index:20; }
+.page.is-flipping-next{
+  display:block;
+  z-index:30;
+  animation: flipNext 1.1s cubic-bezier(.55,.05,.25,1) forwards;
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.5),
+    inset 12px 0 14px -10px rgba(120,80,30,0.35);
+}
+.page.is-flipping-prev{
+  display:block;
+  z-index:30;
+  animation: flipPrev 1.1s cubic-bezier(.55,.05,.25,1) forwards;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+@keyframes flipNext{
+  0%{ transform: rotateY(0deg); }
+  100%{ transform: rotateY(-178deg); }
+}
+@keyframes flipPrev{
+  0%{ transform: rotateY(-178deg); }
+  100%{ transform: rotateY(0deg); }
+}
+
+.page-content{
+  position:absolute;
+  inset:0;
+  padding:56px 72px 80px 92px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  color:var(--ink);
+}
+.page-content::-webkit-scrollbar{width:8px;}
+.page-content::-webkit-scrollbar-track{background:transparent;}
+.page-content::-webkit-scrollbar-thumb{background:rgba(120,80,30,0.35); border-radius:4px;}
+
+.page-number{
+  position:absolute;
+  bottom:24px; left:0; right:0;
+  text-align:center;
+  font-family:'Cormorant Garamond', serif;
+  font-variant:small-caps;
+  letter-spacing:0.3em;
+  font-size:16px;
+  color:var(--ink-soft);
+  pointer-events:none;
+}
+
+/* page typography */
+.page-content h2{
+  font-family:'IM Fell English SC', 'Cormorant Garamond', serif;
+  font-size:42px;
+  font-weight:400;
+  letter-spacing:0.06em;
+  border-bottom:1px solid rgba(90,63,26,0.35);
+  padding-bottom:12px;
+  margin:0 0 26px;
+  color:var(--ink);
+}
+.page-content h2 .num{
+  color:var(--brass-dark);
+  font-family:'Cormorant Garamond', serif;
+  font-variant:small-caps;
+  font-size:30px;
+  margin-right:10px;
+}
+.page-content h3{
+  font-family:'Cormorant Garamond', serif;
+  font-size:27px;
+  margin:28px 0 12px;
+}
+.page-content p{ margin:14px 0; line-height:1.7; font-size:21px; }
+.page-content ul{ margin:12px 0 14px 28px; padding:0; }
+.page-content ul li{ margin:8px 0; line-height:1.65; font-size:20px; }
+
+blockquote.problem{
+  border-left:5px solid var(--brass);
+  background:rgba(201,161,74,0.13);
+  padding:18px 26px;
+  margin:18px 0;
+  font-style:italic;
+  font-size:20px;
+  line-height:1.6;
+}
+
+.math-block{
+  background: rgba(255,255,255,0.5);
+  border:1px solid rgba(120,80,30,0.25);
+  padding:16px 22px;
+  margin:14px 0;
+  border-radius:3px;
+  overflow-x:auto;
+  font-size:20px;
+}
+.math-block.boxed-result{
+  background:rgba(201,161,74,0.17);
+  border:2px solid var(--brass-dark);
+}
+
+.step{
+  margin:18px 0;
+  padding-left:20px;
+  border-left:2px solid rgba(120,80,30,0.3);
+}
+.step .tag{
+  display:inline-block;
+  font-family:'Cormorant Garamond', serif;
+  font-variant:small-caps;
+  letter-spacing:0.12em;
+  color:var(--brass-dark);
+  font-weight:700;
+  font-size:17px;
+}
+
+.page-lead{
+  font-style:italic;
+  font-size:21px;
+  color:var(--ink-soft);
+  line-height:1.6;
+}
+
+/* ornamental inner-page header for Portada */
+.interior-cover{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:100%; text-align:center;
+  padding:40px;
+}
+.interior-cover .title{
+  font-family:'IM Fell English SC','Cormorant Garamond', serif;
+  font-size:46px;
+  letter-spacing:0.06em;
+  margin:0;
+}
+.interior-cover .rule{
+  width:180px; height:1px; background:var(--ink-soft); margin:22px 0;
+}
+.interior-cover .ornament{
+  color:var(--brass-dark); font-size:26px; letter-spacing:0.5em; margin:14px 0;
+}
+.interior-cover .meta-block{
+  margin-top:30px; font-family:'Cormorant Garamond', serif;
+  font-variant:small-caps; letter-spacing:0.12em; font-size:15px; line-height:2;
+  color:var(--ink-soft);
+}
+
+/* back cover interior (final page) */
+.interior-back{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:100%; padding:40px; text-align:center;
+}
+.interior-back .end-mark{
+  font-family:'IM Fell English SC', serif;
+  font-size:40px; letter-spacing:0.35em;
+  color:var(--ink-soft);
+}
+
+/* ============ NAVIGATION ============ */
+.nav-arrow{
+  position:absolute;
+  top:50%; transform:translateY(-50%);
+  width:46px; height:46px; border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, #ffe6a8, var(--brass) 60%, var(--brass-dark));
+  border:1px solid #3a2a10;
+  color:#2a1c08;
+  font-family:'Cormorant Garamond', serif;
+  font-size:24px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  z-index:200;
+  opacity:0;
+  pointer-events:none;
+  transition: opacity 0.4s, transform 0.15s;
+  display:flex; align-items:center; justify-content:center;
+}
+.nav-arrow.visible{ opacity:1; pointer-events:auto; }
+.nav-arrow:hover{ filter:brightness(1.1); }
+.nav-arrow:active{ transform:translateY(-50%) scale(0.95); }
+.nav-arrow.prev{ left:-64px; }
+.nav-arrow.next{ right:-64px; }
+.nav-arrow.disabled{ opacity:0.25; pointer-events:none; }
+
+.page-indicator{
+  position:absolute;
+  top:-42px; left:0; right:0;
+  text-align:center;
+  font-family:'Cormorant Garamond', serif;
+  font-variant:small-caps;
+  letter-spacing:0.3em;
+  color:var(--brass-light);
+  font-size:17px;
+  opacity:0.85;
+  pointer-events:none;
+}
+
+/* ============ SIMULATION PAGE ============ */
+.sim-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:24px;
+  margin-top:10px;
+}
+@media (max-width: 1100px){.sim-grid{grid-template-columns:1fr;}}
+
+.sim-cell{
+  padding:14px;
+}
+.sim-cell h4{
+  margin:0 0 14px 0;
+  font-family:'Cormorant Garamond', serif;
+  font-variant:small-caps;
+  letter-spacing:0.15em;
+  font-size:19px;
+  color:var(--ink-soft);
+  font-weight:600;
+  border-bottom:1px dashed rgba(120,80,30,0.4);
+  padding-bottom:6px;
+}
+
+.galv-svg, .circuit-svg{ width:100%; height:auto; display:block; }
+
+.fig-caption{
+  text-align:center;
+  font-style:italic;
+  font-size:16px;
+  color:var(--ink-soft);
+  margin-top:8px;
+}
+
+.overload-pill{
+  display:none;
+  margin:12px auto 0;
+  max-width:340px;
+  padding:7px 16px;
+  background:rgba(184,50,42,0.18);
+  border:1px solid var(--ink-red);
+  color:var(--ink-red);
+  font-family:'IM Fell English SC', serif;
+  letter-spacing:0.15em;
+  font-size:16px;
+  border-radius:3px;
+  text-align:center;
+}
+.overload-pill.active{display:block;}
+
+/* ============ KNOBS ============ */
+.knobs-row{
+  display:flex;
+  gap:40px;
+  justify-content:space-around;
+  margin:18px 0 10px;
+  flex-wrap:wrap;
+}
+.knob-wrap{
+  display:flex; flex-direction:column; align-items:center;
+  gap:12px;
+  width:220px;
+}
+.knob{
+  position:relative;
+  width:180px; height:180px;
+  border-radius:50%;
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
+  background:
+    radial-gradient(circle at 30% 22%, #fff0c5 0%, #e9c979 22%, var(--brass) 50%, var(--brass-dark) 90%, #3a2a10 100%);
+  box-shadow:
+    inset 0 0 0 3px rgba(0,0,0,0.25),
+    inset 0 0 0 6px rgba(255,230,170,0.35),
+    inset 0 0 20px rgba(0,0,0,0.45),
+    0 6px 14px rgba(0,0,0,0.5);
+}
+.knob:active{ cursor:grabbing; }
+.knob-notches{
+  position:absolute; inset:8px;
+  border-radius:50%;
+  pointer-events:none;
+}
+.knob-pointer{
+  position:absolute;
+  left:50%; top:50%;
+  width:6px; height:74px;
+  margin-left:-3px;
+  margin-top:-78px;
+  background:linear-gradient(180deg, #2a1a08, #6a4a20);
+  border-radius:3px;
+  transform-origin: 3px 78px;
+  transition: transform 0.12s cubic-bezier(.2,.9,.3,1);
+  box-shadow: 0 0 6px rgba(0,0,0,0.6);
+}
+.knob::after{
+  /* center screw */
+  content:'';
+  position:absolute;
+  left:50%; top:50%;
+  width:30px; height:30px;
+  margin:-15px 0 0 -15px;
+  border-radius:50%;
+  background: radial-gradient(circle at 30% 30%, #e9c979, #8a6a2a 70%, #3a2a10);
+  box-shadow: inset 0 0 0 1px #2a1c08, 0 1px 2px rgba(0,0,0,0.5);
+}
+.knob-plate{
+  position:absolute;
+  inset:-18px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 56px, rgba(0,0,0,0.12) 57px, transparent 60px),
+    transparent;
+  pointer-events:none;
+}
+.knob-ticks{
+  position:absolute;
+  inset:-22px;
+  pointer-events:none;
+}
+.knob-label{
+  font-family:'Cormorant Garamond', serif;
+  font-variant:small-caps;
+  letter-spacing:0.15em;
+  font-size:18px;
+  color:var(--ink);
+  text-align:center;
+}
+.knob-value{
+  font-family:'JetBrains Mono', monospace;
+  font-size:19px;
+  color:var(--ink-red);
+  font-weight:600;
+}
+
+/* native fallback slider beneath knob */
+.knob-slider{
+  appearance:none;
+  -webkit-appearance:none;
+  width:210px;
+  height:12px;
+  border-radius:6px;
+  background: linear-gradient(90deg, #6a4418, #c9a14a);
+  outline:none;
+  margin-top:4px;
+  cursor:pointer;
+}
+.knob-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:30px; height:30px;
+  border-radius:50%;
+  background: radial-gradient(circle at 30% 30%, #ffe6a8, var(--brass) 60%, var(--brass-dark));
+  border:1px solid #3a2a10;
+  cursor:grab;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.knob-slider::-moz-range-thumb{
+  width:30px; height:30px;
+  border-radius:50%;
+  background: radial-gradient(circle at 30% 30%, #ffe6a8, var(--brass) 60%, var(--brass-dark));
+  border:1px solid #3a2a10;
+  cursor:grab;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.knob-slider:active::-webkit-slider-thumb{ cursor:grabbing; }
+
+.button-row{
+  display:flex;
+  gap:14px;
+  justify-content:center;
+  margin-top:14px;
+  flex-wrap:wrap;
+}
+button.brass{
+  font-family:'Cormorant Garamond', serif;
+  font-variant:small-caps;
+  letter-spacing:0.12em;
+  font-size:17px;
+  padding:11px 24px;
+  color:#2a1c08;
+  background: linear-gradient(180deg, #ffe6a8, var(--brass) 60%, var(--brass-dark));
+  border:1px solid #3a2a10;
+  border-radius:4px;
+  cursor:pointer;
+  box-shadow:0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+button.brass:hover{ filter:brightness(1.08); }
+button.brass:active{ transform:translateY(1px); }
+
+/* ============ LAB NOTEBOOK (readouts) ============ */
+.notebook{
+  position:relative;
+  padding:20px 24px 24px 62px;
+  background:
+    linear-gradient(#fff8e2, #fff8e2),
+    #fff8e2;
+  background-image:
+    linear-gradient(90deg, transparent 50px, var(--notebook-margin) 50px, var(--notebook-margin) 52px, transparent 52px),
+    repeating-linear-gradient(0deg, transparent 0 34px, var(--notebook-line) 34px 35px);
+  border-radius:2px;
+  box-shadow:
+    0 4px 10px rgba(0,0,0,0.12),
+    inset 0 0 0 1px rgba(120,80,30,0.1);
+  transform: rotate(-0.6deg);
+  font-family:'Caveat', 'Kalam', cursive;
+  color:var(--ink-blue);
+  font-size:27px;
+  line-height:35px;  /* must match notebook-line spacing */
+}
+.notebook::before{
+  content:'';
+  position:absolute;
+  left:12px; top:12px;
+  width:14px; height:14px;
+  border-radius:50%;
+  background:radial-gradient(circle, #dcdcdc, #888);
+  box-shadow: inset 0 -2px 3px rgba(0,0,0,0.4);
+}
+.nb-heading{
+  font-family:'Kalam', 'Caveat', cursive;
+  font-weight:700;
+  font-size:26px;
+  color:var(--ink);
+  letter-spacing:0.04em;
+  border-bottom:2px solid rgba(42,26,8,0.2);
+  padding-bottom:5px;
+  margin-bottom:10px;
+}
+.nb-entry{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:10px;
+}
+.nb-entry .lbl{
+  color:var(--ink-blue);
+  font-weight:400;
+}
+.nb-entry .val{
+  font-family:'Kalam', cursive;
+  font-weight:700;
+  color:var(--ink-red);
+  font-size:27px;
+  white-space:nowrap;
+}
+.nb-divider{
+  height:35px;
+}
+.nb-footnote{
+  margin-top:10px;
+  font-size:22px;
+  color:var(--ink-soft);
+  font-style:italic;
+}
+
+/* bibliography page */
+ol.bib{ font-size:19px; padding-left:26px; }
+ol.bib li{ margin:10px 0; line-height:1.55; }
+
+.note-small{
+  font-size:17px;
+  color:var(--ink-soft);
+  font-style:italic;
+}
+
+/* ============ UTILITY ============ */
+.center{text-align:center;}
+.mono{font-family:'JetBrains Mono', monospace;}
+
+/* hide on small screens the floating arrows (move to bottom) */
+@media (max-width: 960px){
+  .nav-arrow.prev{ left:6px; }
+  .nav-arrow.next{ right:6px; }
+}
+
+/* ============ WIND ON NOTEBOOK ============ */
+@keyframes notebookWind{
+  0%,100%{ transform: rotate(-0.70deg) translateY(0px); }
+  30%    { transform: rotate(-0.30deg) translateY(-1.2px); }
+  55%    { transform: rotate(-0.95deg) translateY(-0.3px); }
+  80%    { transform: rotate(-0.45deg) translateY(-0.8px); }
+}
+.notebook{
+  animation: notebookWind 7.5s ease-in-out infinite;
+  transform-origin: 12% 0%;
+  will-change: transform;
+}
+.notebook .corner-fold{
+  position:absolute;
+  top:0; right:0;
+  width:42px; height:42px;
+  pointer-events:none;
+  background:
+    linear-gradient(225deg, rgba(0,0,0,0.18) 0 1px, transparent 1px 100%),
+    linear-gradient(225deg, #f8edc8 0 50%, #d8c79a 50% 100%);
+  clip-path: polygon(100% 0, 100% 100%, 0 0);
+  box-shadow: -2px 2px 4px rgba(0,0,0,0.12);
+  animation: cornerFlap 7.5s ease-in-out infinite;
+  transform-origin: 100% 0%;
+}
+@keyframes cornerFlap{
+  0%,100%{ transform: rotate(0deg) scale(1); }
+  50%    { transform: rotate(-4deg) scale(1.04); }
+}
+
+/* ============ KNOB DRAG STATE ============ */
+.knob.is-dragging{
+  box-shadow:
+    inset 0 0 0 3px rgba(0,0,0,0.25),
+    inset 0 0 0 6px rgba(255,230,170,0.55),
+    inset 0 0 20px rgba(0,0,0,0.45),
+    0 6px 14px rgba(0,0,0,0.5),
+    0 0 24px rgba(255,200,90,0.7);
+}
+.knob{ transition: box-shadow .2s; }
+.knob-value{ transition: color .25s, text-shadow .25s; }
+.knob-value.optimal{
+  color:#2a6a20;
+  text-shadow: 0 0 8px rgba(80,200,80,0.45);
+}
+
+/* ============ GALVANOMETER OVERLOAD / EXPLOSION ============ */
+.galv-wrapper{ position:relative; display:block; }
+.galv-wrapper .explosion-overlay{
+  position:absolute; inset:0;
+  pointer-events:none;
+  opacity:0;
+}
+.galv-wrapper .explosion-overlay .flash{
+  position:absolute; inset:0;
+  background:radial-gradient(circle at 50% 55%, rgba(255,255,255,0.9) 0%, rgba(255,200,90,0.5) 30%, transparent 65%);
+  opacity:0;
+}
+.galv-wrapper .explosion-overlay .redpulse{
+  position:absolute; inset:0;
+  box-shadow: 0 0 40px 12px rgba(220,60,40,0.75) inset;
+  opacity:0;
+  border-radius:14px;
+}
+@keyframes galvShake{
+  0%,100%{ transform: translate(0,0) rotate(0); }
+  12% { transform: translate(-6px, 2px) rotate(-0.8deg); }
+  24% { transform: translate( 7px,-3px) rotate( 1.0deg); }
+  36% { transform: translate(-5px, 3px) rotate(-0.6deg); }
+  48% { transform: translate( 4px, 1px) rotate( 0.5deg); }
+  62% { transform: translate(-2px,-2px) rotate(-0.3deg); }
+  80% { transform: translate( 2px, 1px) rotate( 0.2deg); }
+}
+.galv-wrapper.shaking .galv-svg{
+  animation: galvShake 0.9s cubic-bezier(.36,.07,.19,.97);
+  filter: drop-shadow(0 0 18px rgba(220,60,40,0.7));
+}
+@keyframes flashFade{ 0%{opacity:0;} 10%{opacity:1;} 100%{opacity:0;} }
+.galv-wrapper.exploded .explosion-overlay{ opacity:1; }
+.galv-wrapper.exploded .flash{ animation: flashFade .25s ease-out; }
+@keyframes redPulse{
+  0%,100%{ opacity:0; }
+  20% { opacity:0.9; }
+  50% { opacity:0.4; }
+  70% { opacity:0.8; }
+}
+.galv-wrapper.exploded .redpulse{ animation: redPulse 1.4s ease-in-out; }
+
+.spark{
+  position:absolute;
+  width:6px; height:6px;
+  border-radius:50%;
+  background: radial-gradient(circle at 30% 30%, #fff6c9 0%, #ffb82a 50%, #d8461a 100%);
+  pointer-events:none;
+  box-shadow: 0 0 8px rgba(255,180,60,0.9);
+}
+.crack{
+  stroke:#3a1a08;
+  stroke-width:1.5;
+  fill:none;
+  stroke-linecap:round;
+  opacity:0;
+}
+.galv-wrapper.exploded .crack{
+  opacity:0.85;
+  animation: crackReveal 0.6s ease-out both;
+}
+@keyframes crackReveal{
+  0% { stroke-dashoffset: 300; opacity:0; }
+  15%{ opacity:1; }
+  100%{ stroke-dashoffset:0; opacity:0.85; }
+}
+
+/* ============ OPTIMAL CELEBRATION ============ */
+.optimal-halo{
+  position:absolute; inset:-8px;
+  border-radius:6px;
+  pointer-events:none;
+  box-shadow: 0 0 0 rgba(255,200,60,0);
+  transition: box-shadow .6s;
+}
+.sim-cell.celebrating .optimal-halo{
+  box-shadow:
+    0 0 22px 4px rgba(255,200,60,0.7),
+    inset 0 0 18px rgba(255,220,120,0.5);
+  animation: haloPulse 1.8s ease-in-out infinite;
+}
+@keyframes haloPulse{
+  0%,100%{ box-shadow: 0 0 18px 3px rgba(255,200,60,0.55), inset 0 0 12px rgba(255,220,120,0.35); }
+  50%    { box-shadow: 0 0 30px 6px rgba(255,220,110,0.85), inset 0 0 22px rgba(255,230,160,0.6); }
+}
+
+/* ============ SCALE TICK HOVER (clickable) ============ */
+.scale-hit{
+  cursor:pointer;
+  fill:transparent;
+}
+.scale-hit:hover + .scale-tickmark,
+.scale-tickmark.hot{ stroke:#b8322a !important; }
+
+/* ============ CIRCUIT COMPONENT HOVER ============ */
+.comp-hot{ cursor:help; }
+.comp-hot:hover{ filter: drop-shadow(0 0 4px rgba(201,161,74,0.9)); }
+
+.tooltip{
+  position:absolute;
+  background: rgba(42,20,8,0.94);
+  color: #fbe7b0;
+  font-family:'EB Garamond', serif;
+  font-size:16px;
+  padding:8px 14px;
+  border-radius:4px;
+  border:1px solid rgba(201,161,74,0.5);
+  pointer-events:none;
+  opacity:0;
+  transform: translate(-50%, -130%);
+  transition: opacity .18s;
+  white-space:nowrap;
+  z-index:500;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.tooltip.visible{ opacity:1; }
+.tooltip::after{
+  content:'';
+  position:absolute;
+  left:50%; bottom:-6px; transform:translateX(-50%);
+  width:0; height:0;
+  border:6px solid transparent;
+  border-top-color: rgba(42,20,8,0.94);
+}
+
+/* ============ BUTTON PRESS ============ */
+button.brass{ transition: transform .14s, box-shadow .2s, filter .15s; }
+button.brass.pressed{ transform: scale(0.94) translateY(1px); filter:brightness(0.94); }
+</style>
+</head>
+
+<body>
+
+<div class="book-stage" id="stage">
+  <div class="page-indicator" id="pageIndicator">Portada — toca el libro para abrirlo</div>
+
+  <button class="nav-arrow prev" id="btnPrev" aria-label="página anterior">‹</button>
+  <button class="nav-arrow next" id="btnNext" aria-label="página siguiente">›</button>
+
+  <div class="book-shadow"></div>
+
+  <div class="book" id="book">
+
+    <!-- back cover (sits at z=1, always there) -->
+    <div class="cover back" style="z-index:1;"></div>
+
+    <!-- pages (1..N) stacked with decreasing z-index -->
+    <div class="pages-container" id="pages">
+
+      <!-- PAGE 1 — Portada interior / dedicatoria -->
+      <article class="page" data-page="1">
+        <div class="page-content">
+          <div class="interior-cover">
+            <div class="ornament">❦</div>
+            <h1 class="title">Galvanómetro</h1>
+            <div class="rule"></div>
+            <p class="page-lead">Del galvanómetro al amperímetro:<br/>un estudio sobre la derivación de corriente.</p>
+            <div class="meta-block">
+              Universidad de Antioquia<br/>
+              Facultad de Ingeniería<br/>
+              Curso de Física de Campos · Quiz 2 · 2026
+            </div>
+            <div class="meta-block" style="margin-top:18px;">
+              Autora: Laura Camila Gutiérrez Vásquez<br/>
+              C.C. 1025886905
+            </div>
+            <div class="ornament" style="margin-top:20px;">❦</div>
+          </div>
+        </div>
+        <div class="page-number">i</div>
+      </article>
+
+      <!-- PAGE 2 — § 1 Enunciado -->
+      <article class="page" data-page="2">
+        <div class="page-content">
+          <h2><span class="num">§ 1.</span> Enunciado del problema</h2>
+          <p class="page-lead">Un galvanómetro es un instrumento muy sensible: basta con medio miliamperio para llevarlo al tope de su escala. Para medir corrientes mayores se le acompaña de una resistencia en derivación, un <em>shunt</em>, que desvía el grueso de la corriente y convierte al galvanómetro en un amperímetro de rango ampliado.</p>
+          <blockquote class="problem">
+            Suponga que un galvanómetro tiene una resistencia interna de <strong>60.0&nbsp;Ω</strong> y requiere una corriente de <strong>0.500&nbsp;mA</strong> para producir una deflexión de tamaño natural. ¿Qué resistencia debe conectarse en paralelo con el galvanómetro si la combinación ha de servir como amperímetro con una deflexión de tamaño natural para una corriente de <strong>0.100&nbsp;A</strong>?
+          </blockquote>
+          <p class="note-small">Fuente: Serway–Jewett, <em>Física para ciencias e ingeniería con Física moderna</em>, 9.ª ed., Cap. 28 (Circuitos de corriente continua), Sec. 28.5 — Medidores eléctricos, problema 33.</p>
+
+          <h3>Datos y variables</h3>
+          <ul>
+            <li>Resistencia interna del galvanómetro: $R_g = 60.0\ \Omega$.</li>
+            <li>Corriente de deflexión máxima: $I_g = 0.500\ \text{mA} = 5.00\times 10^{-4}\ \text{A}$.</li>
+            <li>Corriente total de diseño del amperímetro: $I = 0.100\ \text{A}$.</li>
+            <li>Incógnita: la resistencia <em>shunt</em> $R_s$ en paralelo con el galvanómetro.</li>
+          </ul>
+        </div>
+        <div class="page-number">— 1 —</div>
+      </article>
+
+      <!-- PAGE 3 — § 2 Solución -->
+      <article class="page" data-page="3">
+        <div class="page-content">
+          <h2><span class="num">§ 2.</span> Solución matemática</h2>
+
+          <div class="step">
+            <div class="tag">Paso 1 · Topología</div>
+            <p>El amperímetro es la conexión en paralelo del galvanómetro ($R_g$) y la resistencia shunt ($R_s$). La corriente $I$ que entra al conjunto se divide en $I_g$, que atraviesa el galvanómetro, e $I_s$, que pasa por el shunt.</p>
+          </div>
+
+          <div class="step">
+            <div class="tag">Paso 2 · Ley de nodos de Kirchhoff</div>
+            <div class="math-block">$$ I \;=\; I_g + I_s. \tag{1} $$</div>
+          </div>
+
+          <div class="step">
+            <div class="tag">Paso 3 · Ley de Ohm en cada rama</div>
+            <p>Por estar en paralelo, ambas ramas comparten el mismo voltaje $V$:</p>
+            <div class="math-block">$$ V \;=\; I_g\, R_g \;=\; I_s\, R_s. \tag{2} $$</div>
+          </div>
+
+          <div class="step">
+            <div class="tag">Paso 4 · Despeje de $R_s$</div>
+            <p>De (1), $I_s = I - I_g$. Sustituyendo en (2):</p>
+            <div class="math-block">$$ I_g\, R_g \;=\; (I - I_g)\, R_s \;\;\Longrightarrow\;\; \boxed{\,R_s \;=\; \dfrac{I_g\, R_g}{\,I - I_g\,}\,}. \tag{3} $$</div>
+          </div>
+
+          <div class="step">
+            <div class="tag">Paso 5 · Sustitución numérica</div>
+            <div class="math-block">
+              $$ R_s \;=\; \dfrac{(5.00\times 10^{-4}\ \text{A})(60.0\ \Omega)}{0.100\ \text{A} - 5.00\times 10^{-4}\ \text{A}}
+              \;=\; \dfrac{3.00\times 10^{-2}\ \text{V}}{9.95\times 10^{-2}\ \text{A}}. $$
+            </div>
+            <div class="math-block boxed-result">
+              $$ \mathbf{R_s \;\approx\; 0.3015\ \Omega \;\approx\; 0.302\ \Omega.} $$
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="tag">Paso 6 · Verificación</div>
+            <p>Voltaje común en escala completa: $V = I_g R_g = 30.0\ \text{mV}$. Corriente por el shunt: $I_s = 99.5\ \text{mA}$ (el 99.5 % del total). Resistencia equivalente del amperímetro:</p>
+            <div class="math-block">$$ R_\text{eq} \;=\; \dfrac{R_g R_s}{R_g + R_s} \;\approx\; 0.300\ \Omega, $$</div>
+            <p>que coincide con $V/I = 0.030/0.100 = 0.300\ \Omega$.</p>
+          </div>
+        </div>
+        <div class="page-number">— 2 —</div>
+      </article>
+
+      <!-- PAGE 4 — § 3 Análisis -->
+      <article class="page" data-page="4">
+        <div class="page-content">
+          <h2><span class="num">§ 3.</span> Análisis teórico</h2>
+
+          <h3>Por qué el shunt funciona</h3>
+          <p>Dos resistencias en paralelo dividen la corriente en razón inversa a sus resistencias. Si $R_s \ll R_g$, casi toda la corriente fluye por el shunt y sólo una pequeña fracción pasa por el galvanómetro. La fracción que llega al galvanómetro es</p>
+          <div class="math-block">$$ \dfrac{I_g}{I} \;=\; \dfrac{R_s}{R_g + R_s}. $$</div>
+          <p>Con los valores del problema, $R_s/(R_g + R_s) = 0.3015/60.3015 \approx 1/200$: el amperímetro <strong>multiplica el rango del galvanómetro por un factor de 200</strong>.</p>
+
+          <h3>Linealidad de la respuesta</h3>
+          <p>Como $I_g$ es una fracción constante de $I$ (el cociente $R_s/(R_g+R_s)$ depende sólo de las resistencias, no de la corriente), la deflexión de la aguja —proporcional a $I_g$— es también lineal en $I$. La escala puede graduarse directamente en amperios con marcas equiespaciadas.</p>
+
+          <h3>El amperímetro ideal perturba poco</h3>
+          <p>Un buen amperímetro debe tener resistencia interna muy baja para no alterar el circuito en que se inserta. Aquí $R_\text{eq} \approx 0.300\ \Omega$, doscientas veces menor que $R_g$ a secas. El shunt, además de ampliar el rango, hace al amperímetro eléctricamente discreto.</p>
+
+          <h3>El galvanómetro de D'Arsonval</h3>
+          <p>Internamente es una bobina de $N$ espiras suspendida con torsión elástica dentro de un imán permanente. Cuando pasa la corriente $I_g$, el torque magnético $\tau_{\mathrm{mag}} = N I_g A B$ equilibra el torque elástico $\tau_{\mathrm{el}} = \kappa\,\theta$ y la aguja se detiene en el ángulo</p>
+          <div class="math-block">$$ \theta \;=\; \dfrac{N A B}{\kappa}\, I_g, $$</div>
+          <p>proporcional a la corriente que atraviesa la bobina.</p>
+        </div>
+        <div class="page-number">— 3 —</div>
+      </article>
+
+      <!-- PAGE 5 — § 4 Planteamiento simplificado -->
+      <article class="page" data-page="5">
+        <div class="page-content">
+          <h2><span class="num">§ 4.</span> Planteamiento de la simulación</h2>
+
+          <p class="page-lead">En la página siguiente encontrarás un banco de laboratorio interactivo. La idea es sencilla: ver con los ojos lo que dicen las fórmulas.</p>
+
+          <h3>Qué hay en el banco</h3>
+          <ul>
+            <li><strong>Un galvanómetro</strong> con su aguja. La aguja se mueve según la corriente que pasa por su bobina interna.</li>
+            <li><strong>Un circuito</strong> donde el galvanómetro y el shunt se ven conectados en paralelo, con partículas que circulan por cada rama para representar la corriente.</li>
+            <li><strong>Dos perillas de latón</strong>, como las de los instrumentos de laboratorio antiguos:
+              <ul>
+                <li>la <em>perilla de corriente</em> ($I$) controla cuánta corriente total entra al amperímetro;</li>
+                <li>la <em>perilla de shunt</em> ($R_s$) permite cambiar el valor de la resistencia en paralelo.</li>
+              </ul>
+            </li>
+            <li><strong>Un cuaderno de bitácora</strong> donde se anotan, en tiempo real, las lecturas del instrumento.</li>
+          </ul>
+
+          <h3>Qué observar</h3>
+          <ul>
+            <li>Al girar la perilla de corriente, la aguja se mueve y las partículas se aceleran. La mayor parte del flujo se va por el shunt (la rama con muchas partículas), y sólo una fracción diminuta pasa por el galvanómetro.</li>
+            <li>Al pulsar <em>«valor óptimo»</em>, la perilla del shunt se ajusta a $R_s \approx 0.3015\ \Omega$. Si entonces llevas la corriente a 100 mA, la aguja alcanza exactamente el tope de la escala: el problema queda resuelto en vivo.</li>
+            <li>Si mueves la perilla del shunt a un valor distinto, notarás que la misma corriente total produce una deflexión diferente: esto permite <em>descubrir</em> por qué justo $0.3015\ \Omega$ es el valor correcto.</li>
+          </ul>
+
+          <p class="note-small">La simulación usa las mismas fórmulas deducidas en la sección anterior. No hay magia: cada lectura es el resultado directo de aplicar las leyes de Kirchhoff al circuito.</p>
+        </div>
+        <div class="page-number">— 4 —</div>
+      </article>
+
+      <!-- PAGE 6 — § 5 Simulación interactiva -->
+      <article class="page" data-page="6">
+        <div class="page-content">
+          <h2><span class="num">§ 5.</span> Banco de laboratorio</h2>
+
+          <div class="sim-grid">
+
+            <!-- LEFT: galvanometer + circuit -->
+            <div>
+              <div class="sim-cell" id="galvCell">
+                <h4>Galvanómetro de D'Arsonval</h4>
+                <div class="galv-wrapper" id="galvWrap">
+                <svg class="galv-svg" viewBox="0 0 400 300" aria-label="Galvanómetro analógico">
+                  <defs>
+                    <radialGradient id="gFace" cx="50%" cy="55%" r="65%">
+                      <stop offset="0%" stop-color="#faf0d6"/>
+                      <stop offset="65%" stop-color="#ead7a8"/>
+                      <stop offset="100%" stop-color="#b89a5c"/>
+                    </radialGradient>
+                    <radialGradient id="gBezel" cx="50%" cy="30%" r="70%">
+                      <stop offset="0%" stop-color="#ffe6a8"/>
+                      <stop offset="60%" stop-color="#c9a14a"/>
+                      <stop offset="100%" stop-color="#5a4218"/>
+                    </radialGradient>
+                    <radialGradient id="gGlass" cx="30%" cy="20%" r="85%">
+                      <stop offset="0%" stop-color="rgba(255,255,255,0.32)"/>
+                      <stop offset="45%" stop-color="rgba(255,255,255,0.0)"/>
+                    </radialGradient>
+                    <linearGradient id="gNeedle" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#1a1208"/>
+                      <stop offset="100%" stop-color="#3a2a10"/>
+                    </linearGradient>
+                  </defs>
+
+                  <!-- case -->
+                  <rect x="12" y="12" width="376" height="276" rx="14" ry="14"
+                        fill="#2a1c10" stroke="#3a2a10" stroke-width="2"/>
+                  <rect x="22" y="22" width="356" height="256" rx="10" ry="10"
+                        fill="none" stroke="rgba(201,161,74,0.28)" stroke-width="1"/>
+
+                  <!-- bezel + face -->
+                  <circle cx="200" cy="155" r="130" fill="url(#gBezel)"/>
+                  <circle cx="200" cy="155" r="118" fill="url(#gFace)" stroke="#6a4e1c" stroke-width="1.5"/>
+
+                  <!-- brand, high up so it never touches scale -->
+                  <text x="200" y="85" text-anchor="middle"
+                        style="font-family:'IM Fell English SC', serif; font-size:15px; fill:#6a4418; letter-spacing:0.22em;">
+                    D'Arsonval
+                  </text>
+                  <text x="200" y="103" text-anchor="middle"
+                        style="font-family:'EB Garamond', serif; font-style:italic; font-size:11px; fill:#8a6a3a;">
+                    mA · serie G-60
+                  </text>
+
+                  <!-- scale ticks + numbers will be drawn in here -->
+                  <g id="scaleGroup"></g>
+
+                  <!-- danger arc -->
+                  <path id="dangerArc" d="" fill="none" stroke="#b8322a" stroke-width="4" stroke-linecap="round"/>
+
+                  <!-- needle -->
+                  <g id="needleGroup" transform="rotate(0 200 240)">
+                    <line x1="200" y1="240" x2="200" y2="112" stroke="url(#gNeedle)" stroke-width="2.4" stroke-linecap="round"/>
+                    <polygon points="200,110 196,118 204,118" fill="#2a1c08"/>
+                    <circle cx="200" cy="240" r="9" fill="#2a1c08" stroke="#c9a14a" stroke-width="1.4"/>
+                    <circle cx="200" cy="240" r="3" fill="#e9c979"/>
+                  </g>
+
+                  <!-- glass reflection -->
+                  <circle cx="200" cy="155" r="118" fill="url(#gGlass)" pointer-events="none"/>
+
+                  <!-- decorative screws -->
+                  <g fill="#8a6a2a" stroke="#3a2a10">
+                    <circle cx="28" cy="28" r="4"/>
+                    <circle cx="372" cy="28" r="4"/>
+                    <circle cx="28" cy="272" r="4"/>
+                    <circle cx="372" cy="272" r="4"/>
+                  </g>
+                  <!-- zero-adjust -->
+                  <circle cx="200" cy="268" r="7" fill="#8a6a2a" stroke="#3a2a10"/>
+                  <line x1="193" y1="268" x2="207" y2="268" stroke="#1a1208" stroke-width="1.4"/>
+
+                  <!-- glass cracks (hidden until overload) -->
+                  <g id="crackGroup" pointer-events="none">
+                    <path class="crack" d="M200 155 L160 110 L140 88" stroke-dasharray="300" stroke-dashoffset="300"/>
+                    <path class="crack" d="M200 155 L250 118 L282 100" stroke-dasharray="300" stroke-dashoffset="300"/>
+                    <path class="crack" d="M200 155 L168 188 L142 212" stroke-dasharray="300" stroke-dashoffset="300"/>
+                    <path class="crack" d="M200 155 L238 185 L262 208" stroke-dasharray="300" stroke-dashoffset="300"/>
+                    <path class="crack" d="M200 155 L196 196 L192 232" stroke-dasharray="300" stroke-dashoffset="300"/>
+                    <path class="crack" d="M170 115 L158 128 M176 100 L168 118" stroke-dasharray="120" stroke-dashoffset="120"/>
+                    <path class="crack" d="M244 118 L258 130 M238 102 L250 114" stroke-dasharray="120" stroke-dashoffset="120"/>
+                  </g>
+
+                  <!-- invisible hit-pad for clickable ticks (appended by JS inside scaleGroup) -->
+                </svg>
+                <div class="explosion-overlay">
+                  <div class="flash"></div>
+                  <div class="redpulse"></div>
+                </div>
+                </div>
+                <div class="fig-caption">Fig. 1. Galvanómetro; haz clic en una marca para llevar la aguja allí.</div>
+                <div class="overload-pill" id="overloadPill">Sobrecarga · fuera de escala</div>
+              </div>
+
+              <div class="sim-cell" id="circuitCell" style="position:relative;">
+                <h4>Circuito: galvanómetro ∥ shunt</h4>
+                <svg class="circuit-svg" viewBox="0 0 480 290" aria-label="Circuito">
+                  <defs>
+                    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5"
+                            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M0,0 L10,5 L0,10 Z" fill="#6a4418"/>
+                    </marker>
+                  </defs>
+
+                  <!-- AMPERÍMETRO label OUTSIDE the box -->
+                  <text x="315" y="24" text-anchor="middle"
+                        style="font-family:'IM Fell English SC', serif; font-size:14px; fill:#6a4418; letter-spacing:0.2em;">
+                    AMPERÍMETRO
+                  </text>
+
+                  <!-- dashed enclosure -->
+                  <rect x="195" y="38" width="240" height="170" rx="10" ry="10"
+                        fill="rgba(201,161,74,0.05)" stroke="rgba(120,80,30,0.45)" stroke-width="1.2" stroke-dasharray="5 4"/>
+
+                  <!-- BATTERY — vertical cell at x=60. Top rod is (+) terminal, bottom rod is (−). -->
+                  <g id="batteryGroup" class="comp-hot" data-tip="Fuente FEM (ε): suministra la corriente total I al circuito.">
+                    <line x1="60" y1="42" x2="60" y2="130" stroke="#6a4418" stroke-width="2"/>
+                    <line x1="40" y1="130" x2="80" y2="130" stroke="#6a4418" stroke-width="2.6"/>
+                    <line x1="48" y1="142" x2="72" y2="142" stroke="#6a4418" stroke-width="2"/>
+                    <line x1="60" y1="142" x2="60" y2="248" stroke="#6a4418" stroke-width="2"/>
+                    <text x="30" y="124" style="font-family:'EB Garamond',serif; font-size:14px; fill:#6a4418;">+</text>
+                    <text x="30" y="150" style="font-family:'EB Garamond',serif; font-size:14px; fill:#6a4418;">−</text>
+                    <text x="24" y="190" style="font-family:'EB Garamond',serif; font-style:italic; font-size:16px; fill:#6a4418;">ε</text>
+                  </g>
+
+                  <!-- FORWARD wire: from positive terminal (top) → elbow → ammeter entry -->
+                  <polyline points="60,42 170,42 170,125 195,125"
+                            stroke="#6a4418" stroke-width="2" fill="none"/>
+
+                  <!-- current I arrow on forward wire -->
+                  <line x1="100" y1="42" x2="140" y2="42" stroke="#6a4418" stroke-width="1.5" marker-end="url(#arr)"/>
+                  <text x="120" y="34" text-anchor="middle"
+                        style="font-family:'EB Garamond',serif; font-style:italic; font-size:13px; fill:#6a4418;">I</text>
+
+                  <!-- interior entry trunk -->
+                  <line x1="195" y1="125" x2="215" y2="125" stroke="#6a4418" stroke-width="2"/>
+
+                  <!-- TOP BRANCH (galvanómetro) -->
+                  <line x1="215" y1="125" x2="215" y2="95" stroke="#6a4418" stroke-width="2"/>
+                  <line x1="215" y1="95" x2="266" y2="95" stroke="#6a4418" stroke-width="2"/>
+                  <g id="gSymbol" class="comp-hot" data-tip="Galvanómetro (Rg = 60.0 Ω): la aguja responde a la corriente Ig.">
+                    <circle cx="296" cy="95" r="18" fill="#fff8e4" stroke="#6a4418" stroke-width="1.8"/>
+                    <text x="296" y="101" text-anchor="middle"
+                          style="font-family:'Cormorant Garamond',serif; font-weight:700; font-size:17px; fill:#6a4418; pointer-events:none;">G</text>
+                  </g>
+                  <line x1="314" y1="95" x2="420" y2="95" stroke="#6a4418" stroke-width="2"/>
+                  <line x1="420" y1="95" x2="420" y2="125" stroke="#6a4418" stroke-width="2"/>
+                  <text x="296" y="68" text-anchor="middle"
+                        style="font-family:'EB Garamond',serif; font-size:12px; fill:#6a4418;">
+                    R<tspan dy="2" font-size="10">g</tspan><tspan dy="-2"> = 60.0 Ω</tspan>
+                  </text>
+
+                  <!-- BOTTOM BRANCH (shunt) -->
+                  <line x1="215" y1="125" x2="215" y2="170" stroke="#6a4418" stroke-width="2"/>
+                  <line x1="215" y1="170" x2="255" y2="170" stroke="#6a4418" stroke-width="2"/>
+                  <g id="rsSymbolGroup" class="comp-hot" data-tip="Shunt (Rs): desvía el 99.5% de la corriente — extiende el rango del galvanómetro.">
+                    <polyline points="255,170 263,160 271,180 279,160 287,180 295,160 303,180 311,160 319,180 327,160 335,180 343,170"
+                              fill="none" stroke="#6a4418" stroke-width="2.2"/>
+                  </g>
+                  <line x1="343" y1="170" x2="420" y2="170" stroke="#6a4418" stroke-width="2"/>
+                  <line x1="420" y1="170" x2="420" y2="125" stroke="#6a4418" stroke-width="2"/>
+                  <text x="299" y="198" text-anchor="middle"
+                        style="font-family:'EB Garamond',serif; font-size:12px; fill:#6a4418;" id="rsLabel">
+                    R_s = 0.3015 Ω
+                  </text>
+
+                  <!-- exit trunk -->
+                  <line x1="420" y1="125" x2="440" y2="125" stroke="#6a4418" stroke-width="2"/>
+
+                  <!-- RETURN wire: from ammeter exit → right edge → bottom → battery negative terminal -->
+                  <polyline points="440,125 455,125 455,265 60,265 60,248"
+                            stroke="#6a4418" stroke-width="2" fill="none"/>
+
+                  <!-- branch current labels -->
+                  <text x="223" y="88" style="font-family:'EB Garamond',serif; font-style:italic; font-size:11px; fill:#b8601a;">I_g</text>
+                  <text x="223" y="163" style="font-family:'EB Garamond',serif; font-style:italic; font-size:11px; fill:#1a4a88;">I_s</text>
+
+                  <!-- particle container -->
+                  <g id="particleLayer"></g>
+                </svg>
+                <div class="optimal-halo" aria-hidden="true"></div>
+                <div class="fig-caption">Fig. 2. Las partículas viajan del (+) de la pila, se dividen entre G y R<sub>s</sub>, y retornan al (−).</div>
+              </div>
+            </div>
+
+            <!-- RIGHT: knobs + notebook -->
+            <div>
+              <div class="sim-cell">
+                <h4>Panel de control</h4>
+                <div class="knobs-row">
+                  <div class="knob-wrap">
+                    <div class="knob" id="knobI" tabindex="0" role="slider" aria-label="Corriente total">
+                      <div class="knob-pointer"></div>
+                    </div>
+                    <div class="knob-label">Corriente $I$</div>
+                    <div class="knob-value" id="knobIValue">50.0 mA</div>
+                    <input type="range" class="knob-slider" id="sliderI" min="0" max="1000" value="333" aria-label="Corriente total (slider)">
+                  </div>
+                  <div class="knob-wrap">
+                    <div class="knob" id="knobRs" tabindex="0" role="slider" aria-label="Resistencia shunt">
+                      <div class="knob-pointer"></div>
+                    </div>
+                    <div class="knob-label">Shunt $R_s$</div>
+                    <div class="knob-value" id="knobRsValue">0.3015 Ω</div>
+                    <input type="range" class="knob-slider" id="sliderRs" min="0" max="1000" value="130" aria-label="Resistencia shunt (slider)">
+                  </div>
+                </div>
+                <div class="button-row">
+                  <button class="brass" id="btnOptimal">Valor óptimo</button>
+                  <button class="brass" id="btnFullScale">I = 100 mA</button>
+                  <button class="brass" id="btnZero">Cero</button>
+                </div>
+                <div class="note-small center" style="margin-top:6px;">
+                  Arrastra las perillas, mueve los sliders, o usa la rueda del ratón sobre la perilla.
+                </div>
+              </div>
+
+              <div class="sim-cell">
+                <h4>Bitácora de medición</h4>
+                <div class="notebook" id="notebook">
+                  <div class="corner-fold" aria-hidden="true"></div>
+                  <div class="nb-heading">19 abr. 2026 — banco n.º 2</div>
+                  <div class="nb-entry"><span class="lbl">Corriente total, I</span><span class="val" id="nbI">—</span></div>
+                  <div class="nb-entry"><span class="lbl">por galvanómetro, I<sub>g</sub></span><span class="val" id="nbIg">—</span></div>
+                  <div class="nb-entry"><span class="lbl">por shunt, I<sub>s</sub></span><span class="val" id="nbIs">—</span></div>
+                  <div class="nb-divider"></div>
+                  <div class="nb-entry"><span class="lbl">voltaje común, V</span><span class="val" id="nbV">—</span></div>
+                  <div class="nb-entry"><span class="lbl">deflexión de la aguja</span><span class="val" id="nbDef">—</span></div>
+                  <div class="nb-divider"></div>
+                  <div class="nb-entry"><span class="lbl">R equivalente</span><span class="val" id="nbReq">—</span></div>
+                  <div class="nb-entry"><span class="lbl">I máx. del instrumento</span><span class="val" id="nbImax">—</span></div>
+                  <div class="nb-footnote" id="nbNote">— observaciones —</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="page-number">— 5 —</div>
+      </article>
+
+      <!-- PAGE 7 — Conclusiones -->
+      <article class="page" data-page="7">
+        <div class="page-content">
+          <h2><span class="num">§ 6.</span> Conclusiones</h2>
+          <ul>
+            <li>La resistencia shunt requerida es $R_s \approx 0.3015\ \Omega$, obtenida de $R_s = I_g R_g/(I - I_g)$, expresión que proviene directamente de las leyes de Kirchhoff aplicadas al paralelo.</li>
+            <li>El shunt transporta el $99.5\,\%$ de la corriente total; el galvanómetro sólo percibe el $0.5\,\%$ restante. Esta asimetría es lo que permite <em>ampliar el rango</em> sin dañar la bobina.</li>
+            <li>La resistencia equivalente del amperímetro es $R_\text{eq}\approx 0.300\ \Omega$, unas doscientas veces menor que $R_g$ a secas: por eso el instrumento perturba poco el circuito en que se inserta.</li>
+            <li>La simulación confirma la linealidad de la respuesta: al ajustar $R_s$ al valor óptimo y llevar la corriente a 100 mA, la aguja alcanza exactamente la escala completa, y la bitácora registra $I_g = 0.500\ \text{mA}$ y $V = 30.0\ \text{mV}$, valores calculados analíticamente.</li>
+            <li>Al variar $R_s$ se observa el compromiso de diseño: shunts menores amplían el rango pero reducen la sensibilidad efectiva del amperímetro.</li>
+          </ul>
+        </div>
+        <div class="page-number">— 6 —</div>
+      </article>
+
+      <!-- PAGE 8 — Bibliografía -->
+      <article class="page" data-page="8">
+        <div class="page-content">
+          <h2><span class="num">§ 7.</span> Bibliografía</h2>
+          <ol class="bib">
+            <li>Serway, R. A., &amp; Jewett, J. W. (2014). <em>Física para ciencias e ingeniería con Física moderna</em> (9.ª ed., Vol. 2). Cengage Learning. Capítulo 28 — <em>Circuitos de corriente continua</em>, Sec. 28.5, problema 33.</li>
+            <li>Young, H. D., &amp; Freedman, R. A. (2016). <em>Sears y Zemansky: Física universitaria con Física moderna</em> (14.ª ed., Vol. 2). Pearson. Capítulo 26.</li>
+            <li>Halliday, D., Resnick, R., &amp; Walker, J. (2014). <em>Fundamentals of Physics</em> (10th ed.). Wiley. Chapter 27.</li>
+            <li>Purcell, E. M., &amp; Morin, D. J. (2013). <em>Electricity and Magnetism</em> (3rd ed.). Cambridge University Press. &sect; 4.7 — Voltmeters and ammeters.</li>
+            <li>Keithley Instruments. (2004). <em>Low Level Measurements Handbook</em> (6.ª ed.). Apéndice sobre galvanómetros y resistencias shunt.</li>
+            <li>IEEE Std 100 (2000). <em>The Authoritative Dictionary of IEEE Standards Terms</em>. Entrada «D'Arsonval galvanometer».</li>
+          </ol>
+        </div>
+        <div class="page-number">— 7 —</div>
+      </article>
+
+      <!-- PAGE 9 — Contraportada interna -->
+      <article class="page" data-page="9">
+        <div class="page-content">
+          <div class="interior-back">
+            <div class="end-mark">— FIN —</div>
+            <div class="rule" style="width:160px; height:1px; background:var(--ink-soft); margin:22px 0;"></div>
+            <p class="page-lead" style="font-size:16px;">Laura Camila Gutiérrez Vásquez · 1025886905<br/>Curso de Física de Campos · 2026</p>
+            <div class="ornament" style="color:var(--brass-dark); font-size:24px; letter-spacing:0.4em; margin-top:24px;">❦</div>
+          </div>
+        </div>
+        <div class="page-number">viii</div>
+      </article>
+
+    </div>
+
+    <!-- front cover on top -->
+    <div class="cover front" id="frontCover">
+      <div class="cover-content">
+        <div class="cover-flourish">⁂</div>
+        <h1 class="cover-title">Galvanómetro</h1>
+        <div class="cover-flourish">⁂</div>
+        <div class="cover-sub">Del instrumento a la ecuación:<br/>estudio de un amperímetro con derivación</div>
+        <div class="cover-meta">Quiz 2 · Física de Campos · U. de A. · MMXXVI</div>
+        <div class="cover-author">Laura Camila Gutiérrez Vásquez</div>
+      </div>
+      <div class="cover-hint">— haz click en el libro para abrirlo —</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================================================================
+     SCRIPT
+     ================================================================ -->
+<script>
+(function(){
+  'use strict';
+
+  /* ============ CONSTANTS ============ */
+  const Rg = 60.0;
+  const Ig_full = 5.0e-4;
+  const I_design = 0.100;
+  const Rs_optimal = (Ig_full * Rg) / (I_design - Ig_full);
+
+  const I_MIN = 0.0, I_MAX = 0.15;
+  const RS_MIN = 0.05, RS_MAX = 2.0;
+
+  /* ============ BOOK NAVIGATION ============ */
+  const book = document.getElementById('book');
+  const frontCover = document.getElementById('frontCover');
+  const btnPrev = document.getElementById('btnPrev');
+  const btnNext = document.getElementById('btnNext');
+  const pageIndicator = document.getElementById('pageIndicator');
+  const pages = Array.from(document.querySelectorAll('.page'));
+
+  // pages are data-page="1..9"; we use 1-indexed
+  const TOTAL_PAGES = pages.length;
+  let currentPage = 0;  // 0 = cover closed; 1..TOTAL_PAGES = a page; TOTAL_PAGES+1 = back
+  let isBookOpen = false;
+  let isAnimating = false;
+
+  function showPage(n){
+    pages.forEach((p, idx) => {
+      const isIdx = (idx === n - 1);
+      if(isIdx){
+        p.classList.add('is-current');
+        p.classList.remove('is-flipping-next','is-flipping-prev');
+        p.style.transform = 'rotateY(0deg)';
+      } else {
+        p.classList.remove('is-current','is-flipping-next','is-flipping-prev');
+        p.style.transform = '';
+      }
+    });
+  }
+  function hidePages(){ pages.forEach(p => p.classList.remove('is-current','is-flipping-next','is-flipping-prev')); }
+
+  function updateIndicator(){
+    const titles = [
+      'Portada', 'Dedicatoria', '§ 1 · Enunciado', '§ 2 · Solución', '§ 3 · Análisis',
+      '§ 4 · Simulación (planteamiento)', '§ 5 · Banco de laboratorio',
+      '§ 6 · Conclusiones', '§ 7 · Bibliografía', 'Contraportada'
+    ];
+    if(currentPage === 0) pageIndicator.textContent = titles[0] + ' — toca el libro para abrirlo';
+    else pageIndicator.textContent = titles[currentPage] || '';
+  }
+
+  function setArrows(){
+    if(!isBookOpen){
+      btnPrev.classList.remove('visible');
+      btnNext.classList.remove('visible');
+      return;
+    }
+    btnPrev.classList.add('visible');
+    btnNext.classList.add('visible');
+    btnPrev.classList.toggle('disabled', currentPage <= 1);
+    btnNext.classList.toggle('disabled', currentPage >= TOTAL_PAGES);
+  }
+
+  function openBook(){
+    if(isBookOpen || isAnimating) return;
+    isAnimating = true;
+    frontCover.style.transform = '';   // clear pointermove tilt
+    book.classList.add('opened');
+    // show page 1 after a short delay so it's revealed as cover lifts
+    currentPage = 1;
+    showPage(1);
+    setTimeout(() => {
+      isBookOpen = true;
+      isAnimating = false;
+      setArrows();
+      updateIndicator();
+    }, 900);
+  }
+
+  function closeBook(){
+    if(!isBookOpen || isAnimating) return;
+    isAnimating = true;
+    book.classList.remove('opened');
+    hidePages();
+    setTimeout(() => {
+      isBookOpen = false;
+      isAnimating = false;
+      currentPage = 0;
+      setArrows();
+      updateIndicator();
+    }, 1200);
+  }
+
+  function goNext(){
+    if(!isBookOpen || isAnimating) return;
+    if(currentPage >= TOTAL_PAGES) return;
+    isAnimating = true;
+    const fromIdx = currentPage - 1;
+    const toIdx = currentPage;
+    const fromPage = pages[fromIdx];
+    const toPage = pages[toIdx];
+    // ensure next page is beneath and visible
+    toPage.style.display = 'block';
+    toPage.style.zIndex = '15';
+    toPage.style.transform = 'rotateY(0deg)';
+    toPage.classList.add('is-current');
+    // flip current forward
+    fromPage.classList.remove('is-current');
+    fromPage.classList.add('is-flipping-next');
+    setTimeout(() => {
+      fromPage.classList.remove('is-flipping-next');
+      fromPage.style.display = 'none';
+      fromPage.style.transform = '';
+      toPage.style.zIndex = '';
+      currentPage += 1;
+      showPage(currentPage);
+      isAnimating = false;
+      setArrows();
+      updateIndicator();
+    }, 1100);
+  }
+
+  function goPrev(){
+    if(!isBookOpen || isAnimating) return;
+    if(currentPage <= 1) return;
+    isAnimating = true;
+    const fromIdx = currentPage - 1;
+    const toIdx = currentPage - 2;
+    const fromPage = pages[fromIdx];
+    const toPage = pages[toIdx];
+    // the page coming back into view starts at rotateY(-178) and animates to 0
+    fromPage.classList.remove('is-current');
+    fromPage.style.display = 'none';
+    toPage.style.display = 'block';
+    toPage.style.zIndex = '30';
+    toPage.classList.remove('is-current');
+    toPage.classList.add('is-flipping-prev');
+    setTimeout(() => {
+      toPage.classList.remove('is-flipping-prev');
+      toPage.style.zIndex = '';
+      currentPage -= 1;
+      showPage(currentPage);
+      isAnimating = false;
+      setArrows();
+      updateIndicator();
+    }, 1100);
+  }
+
+  // bind
+  frontCover.addEventListener('click', openBook);
+  btnNext.addEventListener('click', goNext);
+  btnPrev.addEventListener('click', goPrev);
+  // keyboard
+  window.addEventListener('keydown', (e) => {
+    if(e.key === 'ArrowRight') goNext();
+    else if(e.key === 'ArrowLeft') goPrev();
+    else if(e.key === 'Enter' && !isBookOpen) openBook();
+    else if(e.key === 'Escape' && isBookOpen) closeBook();
+  });
+
+  /* ============ GALVANOMETER SCALE ============ */
+  const svgNS = "http://www.w3.org/2000/svg";
+
+  const CX = 200, CY = 240;
+  const THETA_MAX = Math.PI * 55 / 180; // 55°
+  const R_TICK_OUTER = 106;
+  const R_TICK_INNER_MAJ = 90;
+  const R_TICK_INNER_MIN = 100;
+  const R_TXT = 78;
+
+  function polar(ang, r){
+    return [CX + r * Math.sin(ang), CY - r * Math.cos(ang)];
+  }
+
+  function buildScale(){
+    const scaleGroup = document.getElementById('scaleGroup');
+    while(scaleGroup.firstChild) scaleGroup.removeChild(scaleGroup.firstChild);
+
+    const Nmaj = 11;  // 0..10 (each = 10 mA step)
+    for(let i=0; i<Nmaj; i++){
+      const frac = i/(Nmaj-1);
+      const ang = -THETA_MAX + frac * 2*THETA_MAX;
+      const [x1,y1] = polar(ang, R_TICK_OUTER);
+      const [x2,y2] = polar(ang, R_TICK_INNER_MAJ);
+      const l = document.createElementNS(svgNS,'line');
+      l.setAttribute('x1',x1); l.setAttribute('y1',y1);
+      l.setAttribute('x2',x2); l.setAttribute('y2',y2);
+      l.setAttribute('stroke','#2a1408');
+      l.setAttribute('stroke-width','2.2');
+      scaleGroup.appendChild(l);
+
+      const [tx,ty] = polar(ang, R_TXT);
+      const t = document.createElementNS(svgNS,'text');
+      t.setAttribute('x', tx);
+      t.setAttribute('y', ty + 4);
+      t.setAttribute('text-anchor','middle');
+      t.setAttribute('style',"font-family:'EB Garamond',serif; font-size:13px; font-weight:600; fill:#2a1408;");
+      t.textContent = (i*10).toString();
+      scaleGroup.appendChild(t);
+    }
+    // minor ticks every 2 mA
+    const Nmin = 50;
+    for(let i=0; i<=Nmin; i++){
+      if(i%5===0) continue;
+      const frac = i/Nmin;
+      const ang = -THETA_MAX + frac * 2*THETA_MAX;
+      const [x1,y1] = polar(ang, R_TICK_OUTER);
+      const [x2,y2] = polar(ang, R_TICK_INNER_MIN);
+      const l = document.createElementNS(svgNS,'line');
+      l.setAttribute('x1',x1); l.setAttribute('y1',y1);
+      l.setAttribute('x2',x2); l.setAttribute('y2',y2);
+      l.setAttribute('stroke','#6a4418');
+      l.setAttribute('stroke-width','1');
+      scaleGroup.appendChild(l);
+    }
+
+    // "mA" unit label above the scale arc
+    const unitT = document.createElementNS(svgNS,'text');
+    unitT.setAttribute('x', 200);
+    unitT.setAttribute('y', 140);
+    unitT.setAttribute('text-anchor','middle');
+    unitT.setAttribute('style', "font-family:'EB Garamond', serif; font-style:italic; font-size:13px; fill:#6a4418;");
+    unitT.textContent = "mA";
+    scaleGroup.appendChild(unitT);
+
+    // danger arc near end of scale (last 5%)
+    const dangerArc = document.getElementById('dangerArc');
+    const a1 = -THETA_MAX + 0.95*2*THETA_MAX;
+    const a2 = -THETA_MAX + 1.00*2*THETA_MAX;
+    const r = R_TICK_OUTER + 4;
+    const [sx,sy] = polar(a1, r);
+    const [ex,ey] = polar(a2, r);
+    dangerArc.setAttribute('d', `M ${sx} ${sy} A ${r} ${r} 0 0 1 ${ex} ${ey}`);
+  }
+  buildScale();
+
+  /* ============ CIRCUIT PARTICLES ============ */
+  // Top branch (G): split (215,125) → (215,95) → (420,95) → (420,125)
+  // Bottom (Rs):    split (215,125) → (215,170) → (420,170) → (420,125)
+  function makeBranch(points){
+    let segs = []; let total = 0;
+    for(let i=0; i<points.length-1; i++){
+      const [x1,y1]=points[i], [x2,y2]=points[i+1];
+      const L = Math.hypot(x2-x1, y2-y1);
+      segs.push({x1,y1,x2,y2,L, cum:total});
+      total += L;
+    }
+    return {segs, totalLen: total};
+  }
+  const gBr = makeBranch([[215,125],[215,95],[420,95],[420,125]]);
+  const sBr = makeBranch([[215,125],[215,170],[420,170],[420,125]]);
+
+  function pointOnBranch(br, s){
+    for(const seg of br.segs){
+      if(s <= seg.cum + seg.L){
+        const t = (s - seg.cum)/seg.L;
+        return [seg.x1 + (seg.x2-seg.x1)*t, seg.y1 + (seg.y2-seg.y1)*t];
+      }
+    }
+    const last = br.segs[br.segs.length-1];
+    return [last.x2, last.y2];
+  }
+
+  const pLayer = document.getElementById('particleLayer');
+  const N_G = 14, N_S = 28;
+  const pG = []; const pS = [];
+  const dotsG = []; const dotsS = [];
+  for(let i=0; i<N_G; i++){
+    pG.push({s:(i/N_G)*gBr.totalLen});
+    const c = document.createElementNS(svgNS,'circle');
+    c.setAttribute('r','2.4'); c.setAttribute('fill','#e06818'); c.setAttribute('opacity','0.9');
+    pLayer.appendChild(c);
+    dotsG.push(c);
+  }
+  for(let i=0; i<N_S; i++){
+    pS.push({s:(i/N_S)*sBr.totalLen});
+    const c = document.createElementNS(svgNS,'circle');
+    c.setAttribute('r','2.4'); c.setAttribute('fill','#1a68b0'); c.setAttribute('opacity','0.9');
+    pLayer.appendChild(c);
+    dotsS.push(c);
+  }
+
+  /* ============ KNOB COMPONENT (Pointer Events) ============ */
+  class Knob {
+    constructor(el, {min, max, value, onChange}){
+      this.el = el;
+      this.min = min; this.max = max; this.value = value;
+      this.onChange = onChange;
+      this.pointer = el.querySelector('.knob-pointer');
+      this.dragging = false;
+      this.activePointerId = null;
+
+      // Bind
+      this.onDown = this.onDown.bind(this);
+      this.onMove = this.onMove.bind(this);
+      this.onUp = this.onUp.bind(this);
+      this.onWheel = this.onWheel.bind(this);
+      this.onKey = this.onKey.bind(this);
+
+      el.addEventListener('pointerdown', this.onDown);
+      el.addEventListener('wheel', this.onWheel, {passive:false});
+      el.addEventListener('keydown', this.onKey);
+      el.style.touchAction = 'none';
+      this.render();
+    }
+    angleFromValue(){
+      const f = (this.value - this.min) / (this.max - this.min);
+      return -135 + f * 270;
+    }
+    setValue(v){
+      this.value = Math.max(this.min, Math.min(this.max, v));
+      this.render();
+      this.onChange && this.onChange(this.value);
+    }
+    render(){
+      this.pointer.style.transform = `rotate(${this.angleFromValue()}deg)`;
+    }
+    _updateFromClientXY(cx, cy){
+      const rect = this.el.getBoundingClientRect();
+      const ox = rect.left + rect.width/2;
+      const oy = rect.top + rect.height/2;
+      const dx = cx - ox, dy = cy - oy;
+      // atan2 → [-π,π] from +x axis. up=0, clockwise positive.
+      let ang = Math.atan2(dy, dx) * 180/Math.PI + 90;
+      if(ang > 180) ang -= 360;
+      if(ang > 135) ang = 135;
+      if(ang < -135) ang = -135;
+      const f = (ang + 135)/270;
+      this.value = this.min + f*(this.max - this.min);
+      this.render();
+      this.onChange && this.onChange(this.value);
+    }
+    onDown(e){
+      e.preventDefault();
+      e.stopPropagation();
+      this.dragging = true;
+      this.activePointerId = e.pointerId;
+      try { this.el.setPointerCapture(e.pointerId); } catch(_){}
+      this.el.addEventListener('pointermove', this.onMove);
+      this.el.addEventListener('pointerup', this.onUp);
+      this.el.addEventListener('pointercancel', this.onUp);
+      this.el.classList.add('is-dragging');
+      this._updateFromClientXY(e.clientX, e.clientY);
+    }
+    onMove(e){
+      if(!this.dragging) return;
+      this._updateFromClientXY(e.clientX, e.clientY);
+    }
+    onUp(e){
+      this.dragging = false;
+      try { this.el.releasePointerCapture(this.activePointerId); } catch(_){}
+      this.activePointerId = null;
+      this.el.removeEventListener('pointermove', this.onMove);
+      this.el.removeEventListener('pointerup', this.onUp);
+      this.el.removeEventListener('pointercancel', this.onUp);
+      this.el.classList.remove('is-dragging');
+    }
+    onWheel(e){
+      e.preventDefault();
+      const step = (this.max - this.min) / 200;
+      this.setValue(this.value - Math.sign(e.deltaY) * step);
+    }
+    onKey(e){
+      const step = (this.max - this.min) / 100;
+      if(e.key==='ArrowUp' || e.key==='ArrowRight'){ e.preventDefault(); this.setValue(this.value + step); }
+      else if(e.key==='ArrowDown' || e.key==='ArrowLeft'){ e.preventDefault(); this.setValue(this.value - step); }
+    }
+  }
+
+  /* ============ STATE ============ */
+  const state = {
+    I: 0.050,
+    Rs: Rs_optimal,
+    theta: -THETA_MAX,
+    thetaDot: 0,
+    lastT: performance.now()
+  };
+  const omega0 = 7.5;
+  const zeta = 0.72;
+
+  /* ============ UI ELEMENTS ============ */
+  const nbI = document.getElementById('nbI');
+  const nbIg = document.getElementById('nbIg');
+  const nbIs = document.getElementById('nbIs');
+  const nbV = document.getElementById('nbV');
+  const nbDef = document.getElementById('nbDef');
+  const nbReq = document.getElementById('nbReq');
+  const nbImax = document.getElementById('nbImax');
+  const nbNote = document.getElementById('nbNote');
+  const knobIValue = document.getElementById('knobIValue');
+  const knobRsValue = document.getElementById('knobRsValue');
+  const needleGroup = document.getElementById('needleGroup');
+  const rsLabel = document.getElementById('rsLabel');
+  const overloadPill = document.getElementById('overloadPill');
+
+  /* ============ CALCULATIONS ============ */
+  function compute(){
+    const Rs = state.Rs;
+    const Ig = state.I * Rs / (Rs + Rg);
+    const Is = state.I - Ig;
+    const V = Ig * Rg;
+    const Req = (Rs * Rg) / (Rs + Rg);
+    const Imax = Ig_full * (Rs + Rg) / Rs;
+    const defl = Ig / Ig_full;
+    return {Ig, Is, V, Req, Imax, defl};
+  }
+
+  function fmtA(x){
+    if(!isFinite(x)) return '—';
+    const a = Math.abs(x);
+    if(a < 1e-3) return (x*1e6).toFixed(1)+' µA';
+    if(a < 1) return (x*1e3).toFixed(3)+' mA';
+    return x.toFixed(3)+' A';
+  }
+  function fmtV(x){
+    if(!isFinite(x)) return '—';
+    if(Math.abs(x) < 1) return (x*1000).toFixed(2)+' mV';
+    return x.toFixed(3)+' V';
+  }
+  function fmtR(x){
+    if(!isFinite(x)) return '—';
+    return x.toFixed(4)+' Ω';
+  }
+
+  function updateUI(){
+    const c = compute();
+    nbI.textContent  = fmtA(state.I);
+    nbIg.textContent = fmtA(c.Ig);
+    nbIs.textContent = fmtA(c.Is);
+    nbV.textContent  = fmtV(c.V);
+    nbDef.textContent = (c.defl*100).toFixed(1) + '%';
+    nbReq.textContent = fmtR(c.Req);
+    nbImax.textContent = fmtA(c.Imax);
+
+    knobIValue.textContent = fmtA(state.I);
+    knobRsValue.textContent = state.Rs.toFixed(4) + ' Ω';
+
+    rsLabel.textContent = 'R_s = ' + state.Rs.toFixed(4) + ' Ω';
+
+    // overload
+    if(c.defl > 1.02){
+      overloadPill.classList.add('active');
+      nbNote.textContent = '¡Sobrecarga! la aguja está en el tope rojo.';
+      nbNote.style.color = '#8a2018';
+    } else if(Math.abs(state.Rs - Rs_optimal) < 1e-4 && Math.abs(state.I - I_design) < 2e-4){
+      overloadPill.classList.remove('active');
+      nbNote.textContent = 'Punto de diseño alcanzado: R_s óptimo, I = 100 mA.';
+      nbNote.style.color = '#2a5a20';
+    } else if(state.I < 1e-5){
+      overloadPill.classList.remove('active');
+      nbNote.textContent = 'Instrumento en reposo.';
+      nbNote.style.color = 'var(--ink-soft)';
+    } else {
+      overloadPill.classList.remove('active');
+      nbNote.textContent = '— observaciones —';
+      nbNote.style.color = 'var(--ink-soft)';
+    }
+  }
+
+  /* ============ ANIMATION LOOP ============ */
+  function tick(now){
+    const dt = Math.min(0.05, (now - state.lastT)/1000);
+    state.lastT = now;
+
+    const c = compute();
+    const defl = Math.min(1.08, c.defl);
+    const tgt = -THETA_MAX + defl * 2 * THETA_MAX;
+
+    // damped second-order dynamics
+    const acc = -2*zeta*omega0*state.thetaDot - omega0*omega0*(state.theta - tgt);
+    state.thetaDot += acc * dt;
+    state.theta    += state.thetaDot * dt;
+
+    const deg = state.theta * 180 / Math.PI;
+    needleGroup.setAttribute('transform', `rotate(${deg} 200 240)`);
+
+    // particles
+    const SPEED_REF = 140;
+    const vG = SPEED_REF * (c.Ig / 0.1);
+    const vS = SPEED_REF * (c.Is / 0.1);
+    for(let i=0; i<pG.length; i++){
+      pG[i].s = (pG[i].s + vG * dt) % gBr.totalLen;
+      const [x,y] = pointOnBranch(gBr, pG[i].s);
+      dotsG[i].setAttribute('cx', x); dotsG[i].setAttribute('cy', y);
+      const op = Math.max(0.08, Math.min(0.95, c.Ig / Ig_full));
+      dotsG[i].setAttribute('opacity', op);
+    }
+    for(let i=0; i<pS.length; i++){
+      pS[i].s = (pS[i].s + vS * dt) % sBr.totalLen;
+      const [x,y] = pointOnBranch(sBr, pS[i].s);
+      dotsS[i].setAttribute('cx', x); dotsS[i].setAttribute('cy', y);
+      const op = Math.max(0.08, Math.min(0.95, c.Is / 0.1));
+      dotsS[i].setAttribute('opacity', op);
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  /* ============ WIRE KNOBS + NATIVE SLIDER FALLBACK ============ */
+  const sliderI_el  = document.getElementById('sliderI');
+  const sliderRs_el = document.getElementById('sliderRs');
+
+  // helpers to map between slider [0..1000] and real value
+  function sliderToValue(slider, min, max){ return min + (slider.value/1000)*(max-min); }
+  function valueToSlider(v, min, max){ return Math.round(((v-min)/(max-min))*1000); }
+
+  let syncing = false; // prevent feedback loops
+
+  const knobI = new Knob(document.getElementById('knobI'), {
+    min: I_MIN, max: I_MAX, value: state.I,
+    onChange: (v) => {
+      state.I = v;
+      if(!syncing){ syncing = true; sliderI_el.value = valueToSlider(v, I_MIN, I_MAX); syncing = false; }
+      updateUI();
+    }
+  });
+  const knobRs = new Knob(document.getElementById('knobRs'), {
+    min: RS_MIN, max: RS_MAX, value: state.Rs,
+    onChange: (v) => {
+      state.Rs = v;
+      if(!syncing){ syncing = true; sliderRs_el.value = valueToSlider(v, RS_MIN, RS_MAX); syncing = false; }
+      updateUI();
+    }
+  });
+
+  // initialize slider positions from current values
+  sliderI_el.value  = valueToSlider(state.I,  I_MIN,  I_MAX);
+  sliderRs_el.value = valueToSlider(state.Rs, RS_MIN, RS_MAX);
+
+  sliderI_el.addEventListener('input', () => {
+    if(syncing) return;
+    syncing = true;
+    const v = sliderToValue(sliderI_el, I_MIN, I_MAX);
+    knobI.setValue(v);
+    syncing = false;
+  });
+  sliderRs_el.addEventListener('input', () => {
+    if(syncing) return;
+    syncing = true;
+    const v = sliderToValue(sliderRs_el, RS_MIN, RS_MAX);
+    knobRs.setValue(v);
+    syncing = false;
+  });
+
+  /* ============ BUTTON PRESS ANIMATION ============ */
+  function pressAnim(btn){
+    btn.classList.add('pressed');
+    setTimeout(() => btn.classList.remove('pressed'), 160);
+    if(window.__motion){
+      try {
+        window.__motion.animate(btn, { scale: [1, 0.92, 1] }, { duration: 0.22, ease: 'easeOut' });
+      } catch(_){}
+    }
+  }
+  const btnOptimal = document.getElementById('btnOptimal');
+  const btnFullScale = document.getElementById('btnFullScale');
+  const btnZero = document.getElementById('btnZero');
+  btnOptimal.addEventListener('click', () => { pressAnim(btnOptimal); smoothKnobTo(knobRs, Rs_optimal); });
+  btnFullScale.addEventListener('click', () => { pressAnim(btnFullScale); smoothKnobTo(knobI, I_design); });
+  btnZero.addEventListener('click', () => { pressAnim(btnZero); smoothKnobTo(knobI, 0); });
+
+  /* smooth knob animation — manual rAF (guaranteed to work) */
+  function smoothKnobTo(knob, targetValue){
+    const from = knob.value;
+    const to   = Math.max(knob.min, Math.min(knob.max, targetValue));
+    if(Math.abs(to - from) < 1e-9){ knob.setValue(to); return; }
+    const duration = 650;
+    const t0 = performance.now();
+    function ease(p){
+      // cubic-bezier(0.34, 1.4, 0.5, 1) — back-ease-out-ish
+      return 1 - Math.pow(1 - p, 3);
+    }
+    function step(now){
+      const p = Math.min(1, (now - t0)/duration);
+      knob.setValue(from + (to - from) * ease(p));
+      if(p < 1) requestAnimationFrame(step);
+      else knob.setValue(to);  // snap to exact
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ============ CLICKABLE SCALE TICKS ============ */
+  // Add invisible circular hit-zones at each major tick; clicking snaps needle (and knob I) to that value.
+  function addScaleHitZones(){
+    const scaleGroup = document.getElementById('scaleGroup');
+    const Nmaj = 11;
+    const R_HIT = 96;
+    for(let i=0; i<Nmaj; i++){
+      const frac = i/(Nmaj-1);
+      const ang = -THETA_MAX + frac * 2*THETA_MAX;
+      const [hx, hy] = polar(ang, R_HIT);
+      const hit = document.createElementNS(svgNS, 'circle');
+      hit.setAttribute('cx', hx); hit.setAttribute('cy', hy);
+      hit.setAttribute('r', 11);
+      hit.setAttribute('fill', 'transparent');
+      hit.setAttribute('style', 'cursor:pointer;');
+      hit.setAttribute('data-deflection', frac.toString());
+      hit.addEventListener('mouseenter', () => hit.setAttribute('fill', 'rgba(201,161,74,0.15)'));
+      hit.addEventListener('mouseleave', () => hit.setAttribute('fill', 'transparent'));
+      hit.addEventListener('click', () => {
+        // target deflection = frac. To get that deflection with current Rs:
+        // Ig = frac * Ig_full; I = Ig * (Rs + Rg)/Rs
+        const targetI = frac * Ig_full * (state.Rs + Rg) / state.Rs;
+        const clamped = Math.max(I_MIN, Math.min(I_MAX, targetI));
+        smoothKnobTo(knobI, clamped);
+      });
+      scaleGroup.appendChild(hit);
+    }
+  }
+  addScaleHitZones();
+
+  /* ============ CIRCUIT COMPONENT TOOLTIPS ============ */
+  const circuitCell = document.getElementById('circuitCell');
+  const tooltipEl = document.createElement('div');
+  tooltipEl.className = 'tooltip';
+  circuitCell.appendChild(tooltipEl);
+  function showTip(target, text){
+    tooltipEl.textContent = text;
+    const cellRect = circuitCell.getBoundingClientRect();
+    const tRect = target.getBoundingClientRect();
+    const x = tRect.left - cellRect.left + tRect.width/2;
+    const y = tRect.top - cellRect.top;
+    tooltipEl.style.left = x + 'px';
+    tooltipEl.style.top  = y + 'px';
+    tooltipEl.classList.add('visible');
+  }
+  function hideTip(){ tooltipEl.classList.remove('visible'); }
+  circuitCell.querySelectorAll('.comp-hot').forEach(el => {
+    el.addEventListener('mouseenter', () => showTip(el, el.getAttribute('data-tip') || ''));
+    el.addEventListener('mouseleave', hideTip);
+  });
+
+  /* ============ OVERLOAD EXPLOSION ============ */
+  const galvWrap = document.getElementById('galvWrap');
+  let explosionActive = false;
+  let explosionCooldownUntil = 0;
+  function triggerExplosion(){
+    if(explosionActive) return;
+    if(performance.now() < explosionCooldownUntil) return;
+    explosionActive = true;
+    galvWrap.classList.add('exploded', 'shaking');
+
+    // Spark particles
+    const rect = galvWrap.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height * 0.52;
+    const sparks = [];
+    for(let i=0; i<14; i++){
+      const s = document.createElement('div');
+      s.className = 'spark';
+      s.style.left = (cx - 3) + 'px';
+      s.style.top  = (cy - 3) + 'px';
+      galvWrap.appendChild(s);
+      sparks.push(s);
+      const ang = (Math.random()*Math.PI*2);
+      const v = 110 + Math.random()*140;
+      const vx = Math.cos(ang) * v;
+      const vy = Math.sin(ang) * v - 60;
+      if(window.__motion){
+        try {
+          window.__motion.animate(s,
+            { x:[0, vx*0.9], y:[0, vy*0.4, vy*0.9 + 180], opacity:[1,1,0], scale:[1, 0.7, 0.3] },
+            { duration: 0.9 + Math.random()*0.4, ease:'easeOut' }
+          );
+        } catch(_){}
+      } else {
+        // fallback CSS animation
+        s.animate([
+          { transform:'translate(0,0) scale(1)', opacity:1 },
+          { transform:`translate(${vx*0.9}px, ${vy*0.4}px) scale(0.7)`, opacity:1, offset:0.5 },
+          { transform:`translate(${vx*0.9}px, ${vy*0.9 + 180}px) scale(0.3)`, opacity:0 }
+        ], { duration: 1000, easing:'ease-out' });
+      }
+    }
+
+    // cleanup shake after one cycle
+    setTimeout(() => { galvWrap.classList.remove('shaking'); }, 900);
+
+    // cleanup full explosion state and sparks
+    setTimeout(() => {
+      galvWrap.classList.remove('exploded');
+      sparks.forEach(s => s.remove());
+      explosionActive = false;
+      explosionCooldownUntil = performance.now() + 1500;
+    }, 2600);
+  }
+
+  /* ============ OPTIMAL CELEBRATION ============ */
+  const circuitCellEl = document.getElementById('circuitCell');
+  const knobRsValueEl = knobRsValue;
+  let wasOptimal = false;
+  function updateCelebration(){
+    const c = compute();
+    const atOptimalRs = Math.abs(state.Rs - Rs_optimal) < 0.002;
+    const atFullScale = Math.abs(state.I - I_design) < 1e-3;
+    const celebrating = atOptimalRs && atFullScale;
+    circuitCellEl.classList.toggle('celebrating', celebrating);
+    knobRsValueEl.classList.toggle('optimal', atOptimalRs);
+    if(celebrating && !wasOptimal && window.__motion){
+      try {
+        window.__motion.animate(circuitCellEl,
+          { scale:[1, 1.015, 1] },
+          { duration: 0.6, ease:'easeOut' });
+      } catch(_){}
+    }
+    wasOptimal = celebrating;
+  }
+
+  /* ============ HOOK INTO UPDATE UI ============ */
+  const baseUpdateUI = updateUI;
+  updateUI = function(){
+    baseUpdateUI();
+    updateCelebration();
+    const c = compute();
+    // trigger explosion on severe overload (>130% of full scale)
+    if(c.defl > 1.30){
+      triggerExplosion();
+    }
+  };
+
+  /* ============ COVER TILT ON MOUSE MOVE ============ */
+  frontCover.addEventListener('pointermove', (e) => {
+    if(isBookOpen) return;
+    const r = frontCover.getBoundingClientRect();
+    const px = (e.clientX - r.left)/r.width - 0.5;
+    const py = (e.clientY - r.top)/r.height - 0.5;
+    frontCover.style.transform = `rotateY(${-px*4}deg) rotateX(${py*4}deg)`;
+  });
+  frontCover.addEventListener('pointerleave', () => {
+    if(isBookOpen) return;
+    frontCover.style.transform = '';
+  });
+
+  /* ============ REVEAL ON SCROLL (for each page's content) ============ */
+  if(window.__motion && window.__motion.inView){
+    try {
+      document.querySelectorAll('.page-content > *').forEach((el, i) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(8px)';
+      });
+      window.__motion.inView('.page-content > *', (el) => {
+        window.__motion.animate(el, { opacity:[0,1], y:[8,0] }, { duration: 0.55, delay: Math.random()*0.15 });
+        return () => {};
+      }, { amount: 0.1 });
+    } catch(_){}
+  }
+
+  /* ============ INIT ============ */
+  updateIndicator();
+  updateUI();
+  requestAnimationFrame((t) => { state.lastT = t; tick(t); });
+
+})();
+</script>
+
+</body>
+</html>

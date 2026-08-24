@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz 2 · Michell Londoño Marin · P28.63</title>
+
+<script>
+MathJax = {
+  tex: { inlineMath:[['$','$'],['\\(','\\)']], displayMath:[['$$','$$'],['\\[','\\]']] },
+  options: { skipHtmlTags:['script','noscript','style','textarea','pre'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;0,900;1,300;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --teal:      #0bbfa8;
+  --teal-dark: #089e8a;
+  --teal-pale: #e6faf8;
+  --teal-mid:  #b2ede8;
+  --sky:       #38bdf8;
+  --coral:     #fb7185;
+  --amber:     #fbbf24;
+  --ink:       #0f2027;
+  --ink2:      #1e3a3f;
+  --slate:     #475569;
+  --muted:     #94a3b8;
+  --bg:        #f0fdfa;
+  --card:      #ffffff;
+  --border:    #ccf0ec;
+  --shadow-sm: 0 2px 8px rgba(11,191,168,0.10);
+  --shadow-md: 0 8px 32px rgba(11,191,168,0.15);
+  --shadow-lg: 0 20px 60px rgba(11,191,168,0.20);
+  --serif: 'Fraunces', Georgia, serif;
+  --sans:  'DM Sans', system-ui, sans-serif;
+  --mono:  'DM Mono', 'Courier New', monospace;
+  --r: 12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:1rem;line-height:1.75;}
+
+/* ── HERO ── */
+.hero{
+  background:var(--ink);min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:3rem 2rem;position:relative;overflow:hidden;
+}
+.hero::before{content:'';position:absolute;width:700px;height:700px;
+  background:radial-gradient(circle,rgba(11,191,168,0.22) 0%,transparent 65%);
+  top:-200px;left:-150px;border-radius:50%;animation:drift 12s ease-in-out infinite alternate;}
+.hero::after{content:'';position:absolute;width:500px;height:500px;
+  background:radial-gradient(circle,rgba(56,189,248,0.15) 0%,transparent 65%);
+  bottom:-150px;right:-100px;border-radius:50%;animation:drift 9s ease-in-out infinite alternate-reverse;}
+@keyframes drift{from{transform:translate(0,0) scale(1);}to{transform:translate(40px,30px) scale(1.08);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+
+.hero-chip{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(11,191,168,0.15);border:1px solid rgba(11,191,168,0.35);
+  border-radius:999px;padding:.3rem 1rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;color:var(--teal);
+  margin-bottom:2.5rem;position:relative;z-index:1;animation:fadeUp .6s ease both;
+}
+.hero-name{
+  font-family:var(--serif);font-size:clamp(3rem,8vw,6.5rem);
+  font-weight:900;font-style:italic;line-height:.95;
+  position:relative;z-index:1;animation:fadeUp .7s .1s ease both;letter-spacing:-.02em;
+}
+.hero-name .first{display:block;color:#fff;}
+.hero-name .last{display:block;color:var(--teal);}
+.hero-sub{
+  font-weight:300;font-size:clamp(.95rem,2vw,1.2rem);color:rgba(255,255,255,.6);
+  margin-top:1.5rem;position:relative;z-index:1;animation:fadeUp .7s .2s ease both;max-width:520px;
+}
+.hero-badges{
+  display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;
+  margin-top:2rem;position:relative;z-index:1;animation:fadeUp .7s .3s ease both;
+}
+.badge{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:999px;
+  padding:.28rem .9rem;font-family:var(--mono);font-size:.7rem;color:rgba(255,255,255,.7);}
+.hero-scroll{
+  position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);z-index:1;
+  display:flex;flex-direction:column;align-items:center;gap:.4rem;
+  color:rgba(255,255,255,.35);font-family:var(--mono);font-size:.65rem;letter-spacing:.1em;
+  animation:fadeUp 1s .6s ease both;
+}
+.scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,transparent,rgba(11,191,168,.6));
+  animation:grow 1.5s ease-in-out infinite;}
+@keyframes grow{0%,100%{transform:scaleY(.5);opacity:.4;}50%{transform:scaleY(1);opacity:1;}}
+
+/* ── MAIN ── */
+main{max-width:820px;margin:0 auto;padding:3rem 1.5rem 5rem;}
+
+/* ── TYPOGRAPHY ── */
+h2{font-family:var(--serif);font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;color:var(--ink);line-height:1.15;margin-bottom:1.2rem;}
+h3{font-family:var(--sans);font-size:1rem;font-weight:600;color:var(--teal-dark);
+  margin:2rem 0 .6rem;padding-left:.8rem;border-left:3px solid var(--teal);}
+p{color:var(--slate);margin-bottom:1rem;}
+p:last-child{margin-bottom:0;}
+
+/* ── EYEBROW ── */
+.eyebrow{display:inline-flex;align-items:center;gap:.5rem;font-family:var(--mono);
+  font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--teal-dark);
+  background:var(--teal-pale);border:1px solid var(--teal-mid);border-radius:999px;
+  padding:.22rem .85rem;margin-bottom:1rem;}
+
+/* ── DIVIDER ── */
+.divider{border:none;border-top:1px solid var(--border);margin:3rem 0;}
+
+/* ── CALLOUT ── */
+.callout{border-radius:var(--r);padding:1.2rem 1.5rem;margin:1.2rem 0;
+  border-left:4px solid var(--teal);background:var(--teal-pale);}
+.callout.sky{border-left-color:var(--sky);background:#f0f9ff;}
+.callout.coral{border-left-color:var(--coral);background:#fff1f2;}
+.callout-title{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--teal-dark);margin-bottom:.5rem;font-weight:500;}
+.callout.sky .callout-title{color:#0369a1;}
+.callout.coral .callout-title{color:#be123c;}
+
+/* ── DIAGRAM ── */
+.diagram-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:1.5rem;margin:1.2rem 0;text-align:center;box-shadow:var(--shadow-sm);}
+.diagram-wrap figcaption{font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-top:.8rem;}
+
+/* ── MATH ── */
+.math-box{background:linear-gradient(135deg,#f0fdfa,#e6faf8);border:1px solid var(--teal-mid);
+  border-radius:var(--r);padding:1.4rem 1.5rem;margin:1rem 0;text-align:center;overflow-x:auto;}
+.math-note{font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-top:.4rem;text-align:right;}
+
+/* ── STEPS ── */
+.steps{display:flex;flex-direction:column;gap:.6rem;margin:1.2rem 0;}
+.step{display:grid;grid-template-columns:44px 1fr;gap:1rem;background:var(--card);
+  border:1px solid var(--border);border-radius:var(--r);padding:1.2rem 1.5rem 1.2rem 1rem;
+  align-items:start;box-shadow:var(--shadow-sm);}
+.step-n{width:32px;height:32px;background:var(--teal);color:#fff;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);
+  font-size:.8rem;font-weight:500;flex-shrink:0;margin-top:3px;}
+.step-body p{margin-bottom:.4rem;}
+
+/* ── RESULT HERO ── */
+.result-hero{background:linear-gradient(135deg,var(--ink),var(--ink2));color:#fff;
+  border-radius:var(--r);padding:2rem;margin:1.5rem 0;text-align:center;
+  position:relative;overflow:hidden;box-shadow:var(--shadow-lg);}
+.result-hero::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 30% 50%,rgba(11,191,168,.2) 0%,transparent 60%);}
+.result-hero .r-label{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--teal);margin-bottom:.6rem;position:relative;}
+.result-hero .r-eq{position:relative;font-size:1.1rem;}
+.result-hero .r-note{position:relative;color:rgba(255,255,255,.5);font-size:.82rem;
+  margin-top:.5rem;font-family:var(--mono);}
+
+/* ── VERDICT ── */
+.verdict{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.4rem;
+  border-radius:999px;font-family:var(--mono);font-size:.82rem;font-weight:500;margin-top:.8rem;}
+.verdict.pass{background:rgba(167,243,208,.2);color:#059669;border:1px solid #6ee7b7;}
+.verdict.fail{background:rgba(251,113,133,.15);color:#e11d48;border:1px solid #fda4af;}
+
+/* ── SIMULATION ── */
+.sim-shell{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  overflow:hidden;box-shadow:var(--shadow-md);margin-top:1.5rem;}
+.sim-titlebar{background:var(--ink);padding:.85rem 1.5rem;display:flex;align-items:center;gap:.5rem;}
+.sim-titlebar span{font-family:var(--mono);font-size:.75rem;color:rgba(255,255,255,.5);margin-left:.5rem;}
+.dot{width:10px;height:10px;border-radius:50%;}
+.dot-r{background:#ff5f57;}.dot-y{background:#febc2e;}.dot-g{background:#28c840;}
+.sim-body{padding:1.5rem;}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem;}
+@media(max-width:560px){.controls{grid-template-columns:1fr;}}
+.ctrl label{display:block;font-family:var(--mono);font-size:.72rem;color:var(--slate);
+  margin-bottom:.4rem;letter-spacing:.05em;}
+.ctrl .cv{color:var(--teal-dark);font-weight:500;}
+input[type=range]{width:100%;accent-color:var(--teal);cursor:pointer;}
+#cvs{width:100%;border-radius:8px;border:1px solid var(--border);display:block;background:#f8fffe;}
+.out-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-top:1rem;}
+@media(max-width:480px){.out-grid{grid-template-columns:1fr 1fr;}}
+.out-card{background:var(--teal-pale);border:1px solid var(--teal-mid);border-radius:8px;
+  padding:.8rem 1rem;text-align:center;}
+.out-card .ol{font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:.25rem;}
+.out-card .ov{font-family:var(--mono);font-size:1.1rem;font-weight:500;color:var(--teal-dark);}
+.out-card.fail-card{background:#fff1f2;border-color:#fda4af;}
+.out-card.fail-card .ov{color:#e11d48;}
+.out-card.pass-card{background:#f0fdf4;border-color:#86efac;}
+.out-card.pass-card .ov{color:#059669;}
+#verdict-line{margin-top:.8rem;text-align:center;min-height:2rem;}
+
+/* ── FOOTER ── */
+footer{background:var(--ink);color:rgba(255,255,255,.4);text-align:center;
+  padding:2rem 1.5rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.05em;margin-top:4rem;}
+footer strong{color:var(--teal);font-weight:500;}
+
+@media(max-width:600px){main{padding:2rem 1rem 4rem;}}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-chip">
+    <span style="width:6px;height:6px;background:var(--teal);border-radius:50%;display:inline-block;"></span>
+    Universidad de Antioquia · Física de Campos · Quiz 2
+  </div>
+  <div class="hero-name">
+    <span class="first">Michell</span>
+    <span class="last">Londoño Marín</span>
+  </div>
+  <p class="hero-sub">Problema 28.63 — Resistencia de puesta a tierra<br>de una estación de radio universitaria</p>
+  <div class="hero-badges">
+    <span class="badge">Capítulo 28</span>
+    <span class="badge">Abril 2026</span>
+  </div>
+  <div class="hero-scroll">
+    <span>SCROLL</span>
+    <div class="scroll-line"></div>
+  </div>
+</header>
+
+<main>
+
+<!-- ═══════════════ ENUNCIADO ═══════════════ -->
+<div class="eyebrow">01 · Enunciado</div>
+<h2>El problema del pararrayos</h2>
+
+<p>Un estudiante, operador de una estación de radio universitaria, desea verificar la efectividad del pararrayos instalado en la antena. La resistencia desconocida $R_x$ está entre los puntos $C$ y $E$, donde $E$ es tierra verdadera a varios metros de profundidad — inaccesible directamente.</p>
+<p>Se insertan en el suelo <strong>dos varillas idénticas</strong> en $A$ y $B$, cada una con resistencia $R_y$. El procedimiento es:</p>
+
+<div class="callout sky">
+  <div class="callout-title">Protocolo de medición</div>
+  <p style="margin:0"><strong>Paso 1.</strong> Medir la resistencia $R_1$ entre los puntos $A$ y $B$.<br>
+  <strong>Paso 2.</strong> Conectar $A$ y $B$ con un alambre conductor y medir $R_2$ entre $A$ y $C$.</p>
+</div>
+
+<div class="diagram-wrap">
+  <svg viewBox="0 0 580 295" xmlns="http://www.w3.org/2000/svg" style="max-width:520px;width:100%;">
+    <!-- subsuelo -->
+    <rect x="30" y="138" width="520" height="130" rx="4" fill="rgba(11,191,168,0.05)" stroke="#ccf0ec" stroke-width="1"/>
+    <line x1="30" y1="138" x2="550" y2="138" stroke="#0bbfa8" stroke-width="1.5" stroke-dasharray="8,5"/>
+    <text x="536" y="134" text-anchor="end" fill="#0bbfa8" font-size="10" font-family="DM Mono,monospace">superficie</text>
+    <text x="290" y="248" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="DM Mono,monospace" font-style="italic">subsuelo</text>
+    <!-- Torre -->
+    <line x1="290" y1="16" x2="290" y2="88" stroke="#fbbf24" stroke-width="2.5"/>
+    <line x1="270" y1="34" x2="310" y2="34" stroke="#fbbf24" stroke-width="1.8"/>
+    <line x1="275" y1="53" x2="305" y2="53" stroke="#fbbf24" stroke-width="1.8"/>
+    <line x1="280" y1="71" x2="300" y2="71" stroke="#fbbf24" stroke-width="1.8"/>
+    <line x1="270" y1="34" x2="290" y2="88" stroke="#fbbf24" stroke-width="1.5"/>
+    <line x1="310" y1="34" x2="290" y2="88" stroke="#fbbf24" stroke-width="1.5"/>
+    <text x="316" y="26" fill="#fbbf24" font-size="11" font-family="DM Mono,monospace">antena</text>
+    <!-- C -->
+    <line x1="290" y1="88" x2="290" y2="138" stroke="#38bdf8" stroke-width="2"/>
+    <circle cx="290" cy="138" r="6" fill="#38bdf8"/>
+    <text x="302" y="134" fill="#38bdf8" font-size="13" font-family="DM Mono,monospace" font-weight="bold">C</text>
+    <!-- A B -->
+    <circle cx="110" cy="138" r="6" fill="#0bbfa8"/>
+    <text x="110" y="124" text-anchor="middle" fill="#0bbfa8" font-size="13" font-family="DM Mono,monospace" font-weight="bold">A</text>
+    <circle cx="470" cy="138" r="6" fill="#0bbfa8"/>
+    <text x="470" y="124" text-anchor="middle" fill="#0bbfa8" font-size="13" font-family="DM Mono,monospace" font-weight="bold">B</text>
+    <!-- Varilla A (Ry) -->
+    <line x1="110" y1="144" x2="110" y2="158" stroke="#0bbfa8" stroke-width="2"/>
+    <polyline points="110,158 103,168 117,178 103,188 117,198 103,208 110,216" fill="none" stroke="#0bbfa8" stroke-width="2.5"/>
+    <text x="74" y="190" fill="#0bbfa8" font-size="12" font-family="DM Mono,monospace">Rᵧ</text>
+    <!-- Varilla B (Ry) -->
+    <line x1="470" y1="144" x2="470" y2="158" stroke="#0bbfa8" stroke-width="2"/>
+    <polyline points="470,158 463,168 477,178 463,188 477,198 463,208 470,216" fill="none" stroke="#0bbfa8" stroke-width="2.5"/>
+    <text x="480" y="190" fill="#0bbfa8" font-size="12" font-family="DM Mono,monospace">Rᵧ</text>
+    <!-- Rx (C a E) -->
+    <line x1="290" y1="144" x2="290" y2="194" stroke="#fb7185" stroke-width="2" stroke-dasharray="5,3"/>
+    <polyline points="290,194 283,202 297,208 283,214 297,220 283,226 290,234" fill="none" stroke="#fb7185" stroke-width="2.5"/>
+    <text x="303" y="216" fill="#fb7185" font-size="12" font-family="DM Mono,monospace">Rₓ</text>
+    <!-- E -->
+    <line x1="110" y1="216" x2="290" y2="246" stroke="#94a3b8" stroke-width="1.5"/>
+    <line x1="470" y1="216" x2="290" y2="246" stroke="#94a3b8" stroke-width="1.5"/>
+    <line x1="290" y1="234" x2="290" y2="246" stroke="#fb7185" stroke-width="2"/>
+    <circle cx="290" cy="246" r="6" fill="#fb7185"/>
+    <text x="274" y="265" fill="#fb7185" font-size="12" font-family="DM Mono,monospace" font-weight="bold">E</text>
+    <line x1="270" y1="254" x2="310" y2="254" stroke="#fb7185" stroke-width="2"/>
+    <line x1="276" y1="260" x2="304" y2="260" stroke="#fb7185" stroke-width="1.5"/>
+    <line x1="282" y1="266" x2="298" y2="266" stroke="#fb7185" stroke-width="1"/>
+  </svg>
+  <figcaption>Figura P28.63 — $A$, $B$: varillas ($R_y$) · $C$: base antena · $E$: tierra verdadera</figcaption>
+</div>
+
+<div class="callout">
+  <div class="callout-title">Preguntas</div>
+  <p style="margin:0"><strong>(a)</strong> Deducir $R_x$ en función de $R_1$ y $R_2$.<br><br>
+  <strong>(b)</strong> ¿Es la puesta a tierra satisfactoria si $R_1 = 13{,}0\ \Omega$ y $R_2 = 6{,}00\ \Omega$? (Criterio: $R_x < 2{,}00\ \Omega$)</p>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════ SOLUCIÓN ═══════════════ -->
+<div class="eyebrow">02 · Solución matemática</div>
+<h2>Deducción de $R_x$</h2>
+
+<h3>Medición 1 — $R_1$ entre $A$ y $B$ (sin alambre)</h3>
+<p>Con $C$ flotante, la corriente recorre en serie las dos varillas $R_y$ más la resistencia de tierra $R_x$. Como las dos varillas son idénticas:</p>
+
+<div class="math-box">
+  $$R_1 = R_y + R_y = 2R_y \tag{1}$$
+  $$\therefore \quad R_y = \frac{R_1}{2} \tag{2}$$
+  <div class="math-note">Con $R_1 = 13{,}0\ \Omega \Rightarrow R_y = 6{,}5\ \Omega$</div>
+</div>
+
+<h3>Medición 2 — $R_2$ entre $A$ y $C$ (con alambre A–B)</h3>
+<p>Al conectar $A$ con $B$, las dos varillas quedan en <strong>paralelo</strong> entre el nodo superior y la tierra $E$. Esa combinación queda en serie con $R_x$:</p>
+
+<div class="math-box">
+  $$R_{\text{paralelo}} = \frac{R_y \cdot R_y}{R_y + R_y} = \frac{R_y}{2} \tag{3}$$
+</div>
+<div class="math-box">
+  $$R_2 = \frac{R_y}{2} + R_x \tag{4}$$
+  <div class="math-note">Ecuación de la segunda medición</div>
+</div>
+
+<h3>Parte (a) — Expresión de $R_x$</h3>
+<p>Sustituyendo (2) en (4):</p>
+
+<div class="steps">
+  <div class="step">
+    <div class="step-n">1</div>
+    <div class="step-body">
+      <p>Reemplazo $R_y = R_1/2$ en la ecuación (4):</p>
+      $$R_2 = \frac{R_1/2}{2} + R_x = \frac{R_1}{4} + R_x$$
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-n">2</div>
+    <div class="step-body">
+      <p>Despejo $R_x$:</p>
+      $$R_x = R_2 - \frac{R_1}{4}$$
+    </div>
+  </div>
+</div>
+
+<div class="result-hero">
+  <div class="r-label">Resultado — Parte (a)</div>
+  <div class="r-eq">
+    $$\boxed{R_x = R_2 - \frac{R_1}{4}}$$
+  </div>
+  <div class="r-note">Expresión de $R_x$ en función de las dos mediciones observables</div>
+</div>
+
+<h3>Parte (b) — Verificación numérica</h3>
+
+<div class="steps">
+  <div class="step">
+    <div class="step-n">1</div>
+    <div class="step-body">
+      $$R_x = 6{,}00 - \frac{13{,}0}{4} = 6{,}00 - 3{,}25$$
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-n">2</div>
+    <div class="step-body">
+      $$\boxed{R_x = 2{,}75\ \Omega}$$
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-n">3</div>
+    <div class="step-body">
+      <p>Comparación con el criterio de seguridad:</p>
+      $$R_x = 2{,}75\ \Omega \;\;>\;\; R_x^{\max} = 2{,}00\ \Omega$$
+      <span class="verdict fail">✗ La puesta a tierra NO es satisfactoria</span>
+    </div>
+  </div>
+</div>
+
+<div class="callout coral" style="margin-top:1.5rem;">
+  <div class="callout-title">⚠ Conclusión y análisis</div>
+  <p>Con $R_x = 2{,}75\ \Omega$, la resistencia de puesta a tierra supera el límite de seguridad de $2{,}00\ \Omega$, por lo que el pararrayos de la estación <strong>no proporciona una ruta suficientemente conductora</strong> hacia la tierra real.</p>
+  <p style="margin-top:.6rem;margin-bottom:0">El método de medición indirecta con dos varillas idénticas es clave: al conocer que $R_y = R_1/2$ desde la primera medición, basta una segunda medición con $A$ y $B$ cortocircuitados para aislar $R_x$ algebraicamente. Para mejorar la instalación se recomienda profundizar los electrodos o reducir la resistividad del suelo.</p>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════ SIMULACIÓN ═══════════════ -->
+<div class="eyebrow">03 · Simulación interactiva</div>
+<h2>Exploración del circuito</h2>
+<p>Ajusta los valores de las mediciones y observa cómo cambia $R_x$ en tiempo real.</p>
+
+<div class="sim-shell">
+  <div class="sim-titlebar">
+    <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+    <span>problema-28-63.js · Michell Londoño Marín</span>
+  </div>
+  <div class="sim-body">
+    <div class="controls">
+      <div class="ctrl">
+        <label>$R_1$ (entre A y B) = <span class="cv" id="lR1">13.0</span> Ω</label>
+        <input type="range" id="sR1" min="4" max="40" step="0.5" value="13">
+      </div>
+      <div class="ctrl">
+        <label>$R_2$ (entre A y C) = <span class="cv" id="lR2">6.0</span> Ω</label>
+        <input type="range" id="sR2" min="1" max="20" step="0.25" value="6">
+      </div>
+    </div>
+    <canvas id="cvs" height="300"></canvas>
+    <div class="out-grid">
+      <div class="out-card" id="cardRx">
+        <div class="ol">Rₓ (tierra)</div>
+        <div class="ov" id="dRx">—</div>
+      </div>
+      <div class="out-card">
+        <div class="ol">Rᵧ (varilla)</div>
+        <div class="ov" id="dRy">—</div>
+      </div>
+      <div class="out-card">
+        <div class="ol">Corriente (V=1V)</div>
+        <div class="ov" id="dI">—</div>
+      </div>
+    </div>
+    <div id="verdict-line"></div>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  <div style="margin-bottom:.4rem;"><strong>Michell Londoño Marin</strong></div>
+  <div>Física de Campos · Universidad de Antioquia · Medellín, 2026 · Problema 28.63</div>
+</footer>
+
+<script>
+const cvs=document.getElementById('cvs');
+const ctx=cvs.getContext('2d');
+let R1=13, R2=6;
+
+const C={teal:'#0bbfa8',tealD:'#089e8a',sky:'#38bdf8',coral:'#fb7185',amber:'#fbbf24',
+  ink:'#0f2027',slate:'#475569',muted:'#94a3b8',green:'#059669',bg:'#f8fffe',border:'#ccf0ec'};
+
+function calc(r1,r2){
+  const ry=r1/2;
+  const rx=r2-(r1/4);
+  const I=r1>0?1/r1:0;
+  return{rx,ry,I};
+}
+
+function resize(){
+  const w=Math.min(cvs.parentElement.clientWidth-48,760);
+  cvs.width=w;cvs.height=310;
+}
+
+function drawRes(x1,y1,x2,y2,label,val,color){
+  const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy);
+  const ux=dx/len,uy=dy/len,px=-uy,py=ux;
+  const n=8,seg=len/(n+2),amp=9;
+  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=2.2;ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1+ux*seg,y1+uy*seg);
+  for(let i=0;i<n;i++){const t=(i+1)*seg,s=(i%2===0)?amp:-amp;ctx.lineTo(x1+ux*t+px*s,y1+uy*t+py*s);}
+  ctx.lineTo(x2,y2);ctx.stroke();ctx.restore();
+  const mx=(x1+x2)/2,my=(y1+y2)/2,ox=px*28,oy=py*28;
+  ctx.save();ctx.font='600 13px DM Mono,monospace';ctx.fillStyle=color;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(label,mx+ox,my+oy);
+  if(val!==undefined&&isFinite(val)){
+    ctx.font='400 11px DM Mono,monospace';ctx.fillStyle=C.slate;
+    ctx.fillText(val.toFixed(2)+' Ω',mx+ox,my+oy+15);
+  }
+  ctx.restore();
+}
+
+function drawNode(x,y,label,color){
+  ctx.save();ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.fill();
+  ctx.font='bold 14px DM Mono,monospace';ctx.fillStyle=color;
+  ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(label,x,y-10);ctx.restore();
+}
+
+function drawGround(x,y,color){
+  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=2;
+  [[20,0],[14,7],[8,14]].forEach(([w,dy])=>{
+    ctx.beginPath();ctx.moveTo(x-w,y+dy);ctx.lineTo(x+w,y+dy);ctx.stroke();
+  });ctx.restore();
+}
+
+function draw(){
+  const{rx,ry,I}=calc(R1,R2);
+  const W=cvs.width,H=cvs.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);
+  // subsuelo
+  ctx.fillStyle='rgba(11,191,168,0.05)';ctx.fillRect(0,H*.45,W,H);
+  ctx.save();ctx.setLineDash([8,5]);ctx.strokeStyle=C.teal;ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,H*.45);ctx.lineTo(W,H*.45);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+  ctx.save();ctx.font='10px DM Mono,monospace';ctx.fillStyle=C.muted;ctx.textAlign='right';
+  ctx.fillText('superficie',W-10,H*.45-4);ctx.restore();
+
+  const AX=W*.18,BX=W*.82,CX=W*.5;
+  const topY=28,surfY=H*.45,EY=H-45,EX=CX;
+
+  // Torre
+  ctx.save();ctx.strokeStyle=C.amber;ctx.lineWidth=2;
+  [[14,0],[10,14],[6,28]].forEach(([hw,dy])=>{ctx.beginPath();ctx.moveTo(CX-hw,topY+dy);ctx.lineTo(CX+hw,topY+dy);ctx.stroke();});
+  ctx.beginPath();ctx.moveTo(CX,topY-16);ctx.lineTo(CX,topY+42);ctx.stroke();ctx.restore();
+  // C a superficie
+  ctx.save();ctx.strokeStyle=C.sky;ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(CX,topY+42);ctx.lineTo(CX,surfY);ctx.stroke();ctx.restore();
+  // A–B punteado
+  ctx.save();ctx.strokeStyle=C.muted;ctx.lineWidth=1.5;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(AX,surfY);ctx.lineTo(BX,surfY);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+
+  // varillas
+  drawRes(AX,surfY,EX-18,EY,'Rᵧ',ry,C.teal);
+  drawRes(BX,surfY,EX+18,EY,'Rᵧ',ry,C.teal);
+  // Rx
+  const rxCol=!isFinite(rx)||rx<0?C.muted:rx<2?C.green:C.coral;
+  drawRes(CX,surfY,EX,EY-4,'Rₓ',isFinite(rx)?rx:undefined,rxCol);
+
+  drawNode(AX,surfY,'A',C.teal);
+  drawNode(BX,surfY,'B',C.teal);
+  drawNode(CX,surfY,'C',C.sky);
+  drawNode(EX,EY,'E',C.coral);
+  drawGround(EX,EY+8,C.coral);
+
+  ctx.save();ctx.fillStyle=C.muted;ctx.font='10px DM Mono,monospace';ctx.textAlign='left';
+  ctx.fillText('V = 1 V  →  I ≈ '+(isFinite(I)?(I*1000).toFixed(1):'—')+' mA',10,H-10);ctx.restore();
+}
+
+function updateUI(){
+  const{rx,ry,I}=calc(R1,R2);
+  const ok=isFinite(rx)&&rx>=0;
+  const pass=ok&&rx<2;
+  document.getElementById('dRx').textContent=ok?rx.toFixed(2)+' Ω':'—';
+  document.getElementById('dRy').textContent=ry.toFixed(2)+' Ω';
+  document.getElementById('dI').textContent=isFinite(I)?(I*1000).toFixed(1)+' mA':'—';
+  const cRx=document.getElementById('cardRx');
+  cRx.className='out-card '+(ok?(pass?'pass-card':'fail-card'):'');
+  const vl=document.getElementById('verdict-line');
+  if(!ok)vl.innerHTML='<span style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">⚠ Valores inconsistentes</span>';
+  else if(pass)vl.innerHTML='<span class="verdict pass">✓ Puesta a tierra SATISFACTORIA — Rₓ < 2.00 Ω</span>';
+  else vl.innerHTML='<span class="verdict fail">✗ Puesta a tierra INSUFICIENTE — Rₓ ≥ 2.00 Ω</span>';
+  draw();
+}
+
+document.getElementById('sR1').addEventListener('input',function(){
+  R1=parseFloat(this.value);document.getElementById('lR1').textContent=R1.toFixed(1);updateUI();
+});
+document.getElementById('sR2').addEventListener('input',function(){
+  R2=parseFloat(this.value);document.getElementById('lR2').textContent=R2.toFixed(2);updateUI();
+});
+
+window.addEventListener('resize',()=>{resize();updateUI();});
+resize();updateUI();
+</script>
+</body>
+</html>

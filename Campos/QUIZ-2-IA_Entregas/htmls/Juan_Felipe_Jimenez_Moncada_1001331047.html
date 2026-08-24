@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz 2 — Circuito RC | Física de Campos</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'], ['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']], tags: 'ams' },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a18;
+    --ink2: #3d3d38;
+    --ink3: #7a7a70;
+    --cream: #faf8f3;
+    --paper: #f4f1e8;
+    --rule: #ddd9cc;
+    --accent: #b5460f;
+    --accent2: #1a5c8a;
+    --accent3: #2d7a3a;
+    --highlight: #f0e8d0;
+    --mono: 'JetBrains Mono', monospace;
+    --serif: 'EB Garamond', Georgia, serif;
+    --sans: 'Figtree', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.75;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 3rem 4rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 39px,
+      rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px
+    );
+  }
+  .header-inner { position: relative; max-width: 860px; margin: 0 auto; }
+  .course-tag {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(181,70,15,0.15);
+    border: 1px solid rgba(181,70,15,0.3);
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 3px;
+    margin-bottom: 1.2rem;
+  }
+  header h1 {
+    font-family: var(--serif);
+    font-size: 2.4rem;
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--cream);
+    margin-bottom: 0.6rem;
+  }
+  .header-meta {
+    font-family: var(--sans);
+    font-size: 13px;
+    color: rgba(250,248,243,0.55);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-top: 1.2rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 1rem;
+  }
+  .header-meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* ── MAIN LAYOUT ── */
+  main { max-width: 860px; margin: 0 auto; padding: 3rem 2rem 5rem; }
+
+  /* ── SECTIONS ── */
+  .section {
+    margin-bottom: 3.5rem;
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--ink);
+  }
+  .section-num {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-transform: uppercase;
+    min-width: 2.2rem;
+  }
+  .section-title {
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  p { margin-bottom: 1rem; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── ENUNCIADO BOX ── */
+  .enunciado {
+    background: var(--highlight);
+    border-left: 4px solid var(--accent);
+    padding: 1.5rem 1.75rem;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+  }
+  .enunciado strong { font-style: normal; font-weight: 600; }
+
+  /* ── FIGURE ── */
+  .fig-wrap {
+    text-align: center;
+    margin: 2rem 0;
+  }
+  .fig-caption {
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--ink3);
+    margin-top: 0.5rem;
+  }
+
+  /* ── MATH BLOCKS ── */
+  .math-block {
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem;
+    margin: 1.25rem 0;
+    overflow-x: auto;
+  }
+  .math-label {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--ink3);
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+  }
+
+  /* ── RESULTS TABLE ── */
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 1.5rem 0;
+  }
+  .result-card {
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+    text-align: center;
+  }
+  .result-card .rc-label {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--ink3);
+    margin-bottom: 4px;
+  }
+  .result-card .rc-value {
+    font-family: var(--mono);
+    font-size: 18px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .result-card .rc-unit {
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--ink3);
+  }
+
+  /* ── CIRCUIT SVG ── */
+  svg.circuit text { font-family: var(--mono); }
+
+  /* ── SIMULATION ── */
+  .sim-container {
+    background: var(--ink);
+    border-radius: 12px;
+    padding: 2rem;
+    color: var(--cream);
+  }
+  .sim-title {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+  }
+  .sim-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  @media(max-width:580px){ .sim-controls { grid-template-columns: 1fr; } }
+  .ctrl-group label {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: rgba(250,248,243,0.6);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .ctrl-group input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+  .ctrl-val {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--cream);
+    float: right;
+  }
+
+  .sim-state-btns {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+  }
+  .state-btn {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid rgba(250,248,243,0.2);
+    border-radius: 6px;
+    background: transparent;
+    color: rgba(250,248,243,0.6);
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .state-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .sim-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 1.5rem;
+  }
+  .metric {
+    background: rgba(250,248,243,0.06);
+    border-radius: 6px;
+    padding: 0.7rem;
+    text-align: center;
+  }
+  .metric-label {
+    font-family: var(--sans);
+    font-size: 10px;
+    color: rgba(250,248,243,0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .metric-val {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--cream);
+  }
+
+  canvas#simChart {
+    width: 100% !important;
+    border-radius: 6px;
+  }
+
+  /* ── CIRCUIT DIAGRAM IN SIM ── */
+  .circuit-display {
+    background: rgba(250,248,243,0.04);
+    border: 1px solid rgba(250,248,243,0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  /* ── CONCLUSIONS ── */
+  .conclusion-list {
+    list-style: none;
+    padding: 0;
+  }
+  .conclusion-list li {
+    padding: 0.7rem 0 0.7rem 1.5rem;
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+  }
+  .conclusion-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-family: var(--sans);
+  }
+  .conclusion-list li:last-child { border-bottom: none; }
+
+  /* ── BIBLIOGRAPHY ── */
+  .bib-item {
+    padding: 0.5rem 0;
+    font-size: 15px;
+    color: var(--ink2);
+    border-bottom: 1px dotted var(--rule);
+  }
+  .bib-item:last-child { border-bottom: none; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink);
+    color: rgba(250,248,243,0.4);
+    font-family: var(--sans);
+    font-size: 12px;
+    text-align: center;
+    padding: 1.5rem;
+  }
+
+  /* ── STEP-BY-STEP ── */
+  .step {
+    display: flex;
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+    align-items: flex-start;
+  }
+  .step-num {
+    min-width: 28px; height: 28px;
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-body { flex: 1; }
+  .step-body h4 {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink2);
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════ HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="course-tag">Quiz 2 — Física de Campos</div>
+    <h1>Circuito RC: Carga, Estado Estacionario<br>y Descarga Exponencial</h1>
+    <div class="header-meta">
+      <span>Ejercicio P28.61</span>
+      <span>Universidad de Antioquia · Facultad de Ingeniería</span>
+      <span>2026</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ══════════════════════════════════════════════ 1. ENUNCIADO -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">§1</span>
+    <span class="section-title">Enunciado del problema</span>
+  </div>
+
+  <div class="enunciado">
+    <strong>Problema P28.61.</strong> Suponga que en la figura P28.61 el interruptor S ha estado cerrado durante un tiempo suficientemente largo para que el capacitor se cargue por completo.
+    <br><br>
+    Determine:
+    <br>a) La corriente en estado estacionario de cada resistor.
+    <br>b) La carga $Q$ del capacitor.
+    <br>c) Ahora el interruptor se abre en $t = 0$. Escriba una ecuación para la corriente $I_{R_2}$ a través de $R_2$ como función del tiempo.
+    <br>d) Determine el intervalo de tiempo necesario para que la carga del capacitor se reduzca a un quinto de su valor inicial.
+  </div>
+
+  <!-- SVG del circuito -->
+  <div class="fig-wrap">
+    <svg width="500" height="300" viewBox="0 0 500 300" class="circuit" style="background:#faf8f3;border:1px solid #ddd9cc;border-radius:8px;">
+
+      <!-- ── CABLE EXTERIOR: marco rectangular ── -->
+      <!-- Izquierda vertical -->
+      <line x1="60" y1="50" x2="60" y2="250" stroke="#1a1a18" stroke-width="2"/>
+      <!-- Top horizontal completo -->
+      <line x1="60" y1="50" x2="440" y2="50" stroke="#1a1a18" stroke-width="2"/>
+      <!-- Bottom horizontal completo -->
+      <line x1="60" y1="250" x2="440" y2="250" stroke="#1a1a18" stroke-width="2"/>
+      <!-- Derecha vertical -->
+      <line x1="440" y1="50" x2="440" y2="250" stroke="#1a1a18" stroke-width="2"/>
+
+      <!-- ── BATERÍA 9V (rama izquierda, vertical) ── -->
+      <line x1="48" y1="158" x2="72" y2="158" stroke="#1a1a18" stroke-width="3.5"/>
+      <line x1="53" y1="170" x2="67" y2="170" stroke="#1a1a18" stroke-width="1.5"/>
+      <text x="18" y="166" font-size="11" fill="#b5460f" font-weight="600">9.00 V</text>
+      <text x="76" y="155" font-size="10" fill="#7a7a70">+</text>
+      <text x="76" y="175" font-size="10" fill="#7a7a70">−</text>
+
+      <!-- ── INTERRUPTOR S (top, segmento izquierdo) ── -->
+      <circle cx="130" cy="50" r="3" fill="none" stroke="#1a1a18" stroke-width="1.5"/>
+      <circle cx="175" cy="50" r="3" fill="none" stroke="#1a1a18" stroke-width="1.5"/>
+      <!-- palanca abierta (inclinada) -->
+      <line x1="133" y1="49" x2="172" y2="38" stroke="#b5460f" stroke-width="2.2"/>
+      <text x="144" y="34" font-size="11" fill="#1a1a18" font-weight="600">S</text>
+
+      <!-- ── R1 = 12kΩ (top, segmento central) ── -->
+      <line x1="175" y1="50" x2="210" y2="50" stroke="#1a1a18" stroke-width="2"/>
+      <rect x="210" y="41" width="60" height="18" fill="none" stroke="#b5460f" stroke-width="1.8" rx="2"/>
+      <text x="220" y="37" font-size="10" fill="#1a5c8a" font-weight="600">12.0 kΩ</text>
+      <line x1="270" y1="50" x2="310" y2="50" stroke="#1a1a18" stroke-width="2"/>
+
+      <!-- ── NODO A (top, donde se bifurcan R2 y la rama derecha) ── -->
+      <circle cx="310" cy="50" r="4" fill="#1a1a18"/>
+      <text x="314" y="44" font-size="10" fill="#7a7a70">A</text>
+
+      <!-- ── R2 = 15kΩ (rama central vertical) ── -->
+      <line x1="310" y1="50" x2="310" y2="95" stroke="#1a1a18" stroke-width="2"/>
+      <rect x="298" y="95" width="24" height="75" fill="none" stroke="#b5460f" stroke-width="1.8" rx="2"/>
+      <text x="328" y="136" font-size="10" fill="#1a5c8a" font-weight="600">R₂ = 15.0 kΩ</text>
+      <line x1="310" y1="170" x2="310" y2="250" stroke="#1a1a18" stroke-width="2"/>
+
+      <!-- ── NODO B (bottom, unión de R2 y rama derecha) ── -->
+      <circle cx="310" cy="250" r="4" fill="#1a1a18"/>
+      <text x="314" y="265" font-size="10" fill="#7a7a70">B</text>
+
+      <!-- ── RAMA DERECHA: C (10μF) en serie con R3 (3kΩ) ── -->
+      <!-- Cable de nodo A hacia la derecha (top) -->
+      <line x1="310" y1="50" x2="440" y2="50" stroke="#1a1a18" stroke-width="2"/>
+
+      <!-- Capacitor 10μF — parte superior de la rama derecha -->
+      <line x1="440" y1="50" x2="440" y2="108" stroke="#1a1a18" stroke-width="2"/>
+      <!-- placas del capacitor -->
+      <line x1="418" y1="108" x2="462" y2="108" stroke="#2d7a3a" stroke-width="3"/>
+      <line x1="418" y1="120" x2="462" y2="120" stroke="#2d7a3a" stroke-width="3"/>
+      <text x="468" y="118" font-size="10" fill="#2d7a3a" font-weight="600">10.0 μF</text>
+
+      <!-- Cable de unión entre C y R3 (nodo intermedio) -->
+      <line x1="440" y1="120" x2="440" y2="155" stroke="#1a1a18" stroke-width="2"/>
+
+      <!-- R3 = 3kΩ — parte inferior de la rama derecha, en serie con C -->
+      <rect x="428" y="155" width="24" height="60" fill="none" stroke="#b5460f" stroke-width="1.8" rx="2"/>
+      <text x="458" y="188" font-size="10" fill="#1a5c8a" font-weight="600">3.00 kΩ</text>
+
+      <!-- Cable de R3 hacia nodo B (bottom) -->
+      <line x1="440" y1="215" x2="440" y2="250" stroke="#1a1a18" stroke-width="2"/>
+
+      <!-- ── ETIQUETAS DE CORRIENTE ── -->
+      <text x="80"  y="42" font-size="10" fill="#b5460f" font-style="italic">I₁ →</text>
+      <text x="320" y="88" font-size="10" fill="#b5460f" font-style="italic">I₂↓</text>
+      <text x="448" y="88" font-size="10" fill="#b5460f" font-style="italic">I₃↓</text>
+
+      <!-- ── LEYENDA ── -->
+      <text x="10" y="292" font-size="10" fill="#7a7a70">Figura P28.61</text>
+      <text x="200" y="292" font-size="10" fill="#7a7a70">C y R₃ en serie (rama derecha)</text>
+    </svg>
+    <p class="fig-caption">Figura 1. Circuito RC con batería de 9.00 V, $R_1 = 12.0\,\text{k}\Omega$, $R_2 = 15.0\,\text{k}\Omega$, $R_3 = 3.00\,\text{k}\Omega$ y $C = 10.0\,\mu\text{F}$ <strong>en serie</strong> en la rama derecha.</p>
+  </div>
+
+  <p><strong>Datos del problema:</strong></p>
+  <p>$\mathcal{E} = 9.00\,\text{V}$, $\quad R_1 = 12.0\,\text{k}\Omega$, $\quad R_2 = 15.0\,\text{k}\Omega$, $\quad R_3 = 3.00\,\text{k}\Omega$, $\quad C = 10.0\,\mu\text{F}$</p>
+</div>
+
+<!-- ══════════════════════════════════════════════ 2. SOLUCIÓN MATEMÁTICA -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">§2</span>
+    <span class="section-title">Solución matemática completa</span>
+  </div>
+
+  <!-- ── PARTE a ── -->
+  <div class="step">
+    <div class="step-num">a</div>
+    <div class="step-body">
+      <h4>Estado estacionario — corrientes en cada resistor</h4>
+      <p>En estado estacionario el capacitor está completamente cargado. La corriente a través de él es nula ($I_C = 0$), por lo tanto <em>el capacitor actúa como circuito abierto</em>. Toda la corriente circula por la malla izquierda: batería $\to R_1 \to R_2 \to$ retorno.</p>
+
+      <div class="math-block">
+        <div class="math-label">Resistencia equivalente en estado estacionario</div>
+        $$R_{eq} = R_1 + R_2 = 12.0 + 15.0 = 27.0\,\text{k}\Omega$$
+      </div>
+
+      <div class="math-block">
+        <div class="math-label">Corriente principal (Ley de Ohm)</div>
+        $$I_1 = I_2 = \frac{\mathcal{E}}{R_{eq}} = \frac{9.00\,\text{V}}{27.0 \times 10^3\,\Omega} = 3.33 \times 10^{-4}\,\text{A} = 0.333\,\text{mA}$$
+      </div>
+
+      <div class="math-block">
+        <div class="math-label">Corriente por R₃</div>
+        $$I_3 = 0 \quad \text{(capacitor abierto } \Rightarrow \text{ no hay camino por } R_3\text{)}$$
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PARTE b ── -->
+  <div class="step">
+    <div class="step-num">b</div>
+    <div class="step-body">
+      <h4>Carga del capacitor en estado estacionario</h4>
+      <p>El capacitor se carga hasta la diferencia de potencial entre los nodos A y B. Dado que no circula corriente por $R_3$, la caída en $R_3$ es nula y el voltaje del capacitor es igual al voltaje en los terminales de $R_2$.</p>
+
+      <div class="math-block">
+        <div class="math-label">Voltaje en R₂ (divisor de tensión)</div>
+        $$V_C = V_{R_2} = I_2 \cdot R_2 = (3.33 \times 10^{-4}\,\text{A})(15.0 \times 10^3\,\Omega) = 5.00\,\text{V}$$
+      </div>
+
+      <div class="math-block">
+        <div class="math-label">Carga almacenada</div>
+        $$\boxed{Q_0 = C \cdot V_C = (10.0 \times 10^{-6}\,\text{F})(5.00\,\text{V}) = 5.00 \times 10^{-5}\,\text{C} = 50.0\,\mu\text{C}}$$
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PARTE c ── -->
+  <div class="step">
+    <div class="step-num">c</div>
+    <div class="step-body">
+      <h4>Corriente $I_{R_2}(t)$ tras abrir el interruptor ($t = 0$)</h4>
+      <p>Al abrir S, la batería y $R_1$ quedan desconectados. El capacitor (cargado a $V_C = 5.00\,\text{V}$) se descarga a través de $R_2$ y $R_3$ en serie.</p>
+
+      <div class="math-block">
+        <div class="math-label">Resistencia de descarga</div>
+        $$R_{desc} = R_2 + R_3 = 15.0 + 3.00 = 18.0\,\text{k}\Omega$$
+      </div>
+
+      <div class="math-block">
+        <div class="math-label">Constante de tiempo</div>
+        $$\tau = R_{desc} \cdot C = (18.0 \times 10^3\,\Omega)(10.0 \times 10^{-6}\,\text{F}) = 0.180\,\text{s}$$
+      </div>
+
+      <p>La ecuación de la malla durante la descarga es:</p>
+
+      <div class="math-block">
+        $$\frac{q}{C} - I_{R_2}(R_2 + R_3) = 0 \quad \Longrightarrow \quad \frac{q}{C} + (R_2+R_3)\frac{dq}{dt} = 0$$
+      </div>
+
+      <p>Esta es una EDO de primer orden separable. Con condición inicial $q(0) = Q_0 = 50.0\,\mu\text{C}$:</p>
+
+      <div class="math-block">
+        <div class="math-label">Solución — carga en el capacitor</div>
+        $$q(t) = Q_0\, e^{-t/\tau} = 50.0\,\mu\text{C}\cdot e^{-t/0.180\,\text{s}}$$
+      </div>
+
+      <div class="math-block">
+        <div class="math-label">Corriente en R₂ (y en R₃, están en serie durante la descarga)</div>
+        $$\boxed{I_{R_2}(t) = -\frac{dq}{dt} = \frac{Q_0}{\tau}\,e^{-t/\tau} = \frac{V_C}{R_{desc}}\,e^{-t/\tau}}$$
+        $$I_{R_2}(t) = \frac{5.00\,\text{V}}{18.0 \times 10^3\,\Omega}\, e^{-t/0.180} = 0.2\overline{7}\,\text{mA} \cdot e^{-t/0.180\,\text{s}}$$
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PARTE d ── -->
+  <div class="step">
+    <div class="step-num">d</div>
+    <div class="step-body">
+      <h4>Tiempo para reducir la carga a $Q_0/5$</h4>
+
+      <div class="math-block">
+        $$q(t^*) = \frac{Q_0}{5}$$
+        $$Q_0\,e^{-t^*/\tau} = \frac{Q_0}{5}$$
+        $$e^{-t^*/\tau} = \frac{1}{5}$$
+        $$-\frac{t^*}{\tau} = \ln\!\left(\frac{1}{5}\right) = -\ln 5$$
+        $$\boxed{t^* = \tau\ln 5 = (0.180\,\text{s})\ln 5 \approx 0.290\,\text{s}}$$
+      </div>
+    </div>
+  </div>
+
+  <!-- RESUMEN DE RESULTADOS -->
+  <div class="result-grid">
+    <div class="result-card">
+      <div class="rc-label">Corriente $I_1 = I_2$ (est. estac.)</div>
+      <div class="rc-value">0.333</div>
+      <div class="rc-unit">mA</div>
+    </div>
+    <div class="result-card">
+      <div class="rc-label">Carga $Q_0$</div>
+      <div class="rc-value">50.0</div>
+      <div class="rc-unit">μC</div>
+    </div>
+    <div class="result-card">
+      <div class="rc-label">Voltaje capacitor</div>
+      <div class="rc-value">5.00</div>
+      <div class="rc-unit">V</div>
+    </div>
+    <div class="result-card">
+      <div class="rc-label">Constante $\tau$</div>
+      <div class="rc-value">180</div>
+      <div class="rc-unit">ms</div>
+    </div>
+    <div class="result-card">
+      <div class="rc-label">$I_{R_2}(0)$ pico</div>
+      <div class="rc-value">0.278</div>
+      <div class="rc-unit">mA</div>
+    </div>
+    <div class="result-card">
+      <div class="rc-label">$t^*$ ($Q \to Q_0/5$)</div>
+      <div class="rc-value">0.290</div>
+      <div class="rc-unit">s</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ 3. ANÁLISIS TEÓRICO -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">§3</span>
+    <span class="section-title">Análisis funcional y teórico</span>
+  </div>
+
+  <p>El comportamiento del circuito RC durante la descarga está gobernado por una <em>ecuación diferencial ordinaria de primer orden</em>, cuya solución es una exponencial decreciente. A continuación se explica con profundidad el significado físico de cada fenómeno involucrado.</p>
+
+  <!-- ── ENERGÍA ── -->
+  <p><strong>¿Qué ocurre con la energía durante la descarga?</strong></p>
+  <p>En estado estacionario el capacitor acumula energía en forma de campo eléctrico entre sus placas:</p>
+  <div class="math-block">
+    $$U_C = \frac{1}{2}CV_C^2 = \frac{1}{2}(10.0\times10^{-6})(5.00)^2 = 125\,\mu\text{J}$$
+  </div>
+  <p>Al abrir el interruptor esta energía no desaparece instantáneamente: el campo eléctrico almacenado impulsa una corriente a través de $R_2$ y $R_3$, convirtiéndose gradualmente en calor (energía interna) por efecto Joule. La tasa de disipación en cada resistor en el instante inicial es:</p>
+  <div class="math-block">
+    $$P_{R_2}(0) = I_0^2 R_2 = (2.78\times10^{-4})^2 \times 15\,000 \approx 1.16\,\mu\text{W}$$
+    $$P_{R_3}(0) = I_0^2 R_3 = (2.78\times10^{-4})^2 \times 3\,000 \approx 0.23\,\mu\text{W}$$
+  </div>
+  <p>La potencia total disipada decae como $P(t) = P_0\,e^{-2t/\tau}$, es decir, al doble de la tasa con que decae la corriente. Esto refleja que la energía se transfiere de forma más intensa al principio y se agota progresivamente. La energía disipada en cada resistor es proporcional a su resistencia, no al orden en que están conectados: $R_2$ disipa cinco veces más que $R_3$ porque $R_2/R_3 = 5$. En total, toda la energía $U_C = 125\,\mu\text{J}$ queda disipada al cabo de aproximadamente $5\tau = 0.9\,\text{s}$.</p>
+
+  <!-- ── EFECTO DE R ── -->
+  <p><strong>¿Cómo afecta aumentar la resistencia $R = R_2 + R_3$ a la velocidad de descarga?</strong></p>
+  <p>Una resistencia mayor <em>frena</em> el flujo de carga: el capacitor tarda más en vaciarse porque la corriente instantánea $I = V_C/R$ es más pequeña. Matemáticamente, $\tau = RC$ crece linealmente con $R$, por lo que doblar la resistencia dobla el tiempo de descarga. Sin embargo, la energía total disipada no cambia — sigue siendo $U_C = \frac{1}{2}CV_C^2$ — lo único que varía es la rapidez con que se disipa: con mayor $R$ la potencia pico es más baja pero el proceso dura más tiempo.</p>
+  <div class="math-block">
+    $$\tau \propto R \quad \Rightarrow \quad \text{si } R \text{ se duplica, la descarga tarda el doble}$$
+    $$I_0 = \frac{V_C}{R} \propto \frac{1}{R} \quad \Rightarrow \quad \text{la corriente pico se reduce a la mitad}$$
+  </div>
+  <p>Esto tiene una consecuencia práctica importante: un circuito con resistencia muy alta descargará el capacitor de forma casi imperceptible al principio (corriente diminuta), pero la energía acumulada seguirá siendo la misma y tardará mucho más en disiparse por completo.</p>
+
+  <!-- ── EFECTO DE C ── -->
+  <p><strong>¿Cómo afecta aumentar la capacitancia $C$ a la velocidad de descarga?</strong></p>
+  <p>Un capacitor más grande almacena más carga a la misma tensión ($Q_0 = CV_C$), y también tarda más en descargarse porque $\tau = RC$ crece linealmente con $C$. A diferencia del caso anterior, aquí sí cambia la energía total almacenada: $U_C = \frac{1}{2}CV_C^2$ crece con $C$, por lo que los resistores deben disipar más energía total. La corriente pico $I_0 = V_C/R$ <em>no</em> depende de $C$ — es la misma al inicio — pero la curva decae más lentamente, lo que resulta en una mayor área bajo la curva $P(t)$ (más energía total disipada).</p>
+  <div class="math-block">
+    $$\tau \propto C \quad \Rightarrow \quad \text{si } C \text{ se duplica, la descarga tarda el doble}$$
+    $$U_C \propto C \quad \Rightarrow \quad \text{si } C \text{ se duplica, hay el doble de energía que disipar}$$
+  </div>
+
+  <!-- ── CONSTANTE DE TIEMPO ── -->
+  <p><strong>Papel cuantitativo de $\tau$ como escala de tiempo natural.</strong></p>
+  <p>La constante $\tau$ no es solo un número: es la <em>escala de tiempo intrínseca</em> del circuito. Toda la dinámica de descarga se puede expresar en múltiplos de $\tau$ independientemente de los valores concretos de $R$ y $C$. En particular:</p>
+  <div class="math-block">
+    $$\frac{q(\tau)}{Q_0} = e^{-1} \approx 36.8\% \qquad \frac{q(2\tau)}{Q_0} = e^{-2} \approx 13.5\% \qquad \frac{q(5\tau)}{Q_0} = e^{-5} \approx 0.67\%$$
+  </div>
+  <p>Esto significa que sin importar cuánto valgan $R$ o $C$ individualmente, al tiempo $t = \tau$ siempre habrá decaído el mismo porcentaje de la carga inicial. La simulación en §5 permite verificar experimentalmente esta propiedad: al cambiar $R$ o $C$ por separado, la forma adimensional de la curva $q/Q_0$ vs $t/\tau$ es siempre idéntica.</p>
+
+  <!-- ── DISCONTINUIDAD ── -->
+  <p><strong>Discontinuidad de la corriente al abrir S.</strong></p>
+  <p>Antes de abrir S, la corriente en $R_2$ es la de estado estacionario impuesta por la batería: $I_{R_2} = 0.333\,\text{mA}$. Al abrir el interruptor en $t = 0$, la batería y $R_1$ quedan aislados del resto del circuito. El capacitor asume el rol de fuente, pero ahora la corriente queda limitada por $R_2 + R_3 = 18\,\text{k}\Omega$ en lugar de $R_1 + R_2 = 27\,\text{k}\Omega$, de modo que:</p>
+  <div class="math-block">
+    $$I_{R_2}(0^-) = 0.333\,\text{mA} \xrightarrow{\text{abrir S}} I_{R_2}(0^+) = \frac{V_C}{R_2+R_3} = \frac{5.00}{18\,000} = 0.278\,\text{mA}$$
+  </div>
+  <p>La corriente salta instantáneamente porque el inductor (la inductancia es despreciable en este circuito) no impide ese cambio. Lo que <em>no</em> puede cambiar instantáneamente es el voltaje del capacitor: la carga en sus placas requiere tiempo finito para redistribuirse, y por eso $V_C(0^+) = V_C(0^-) = 5.00\,\text{V}$ es la condición inicial que garantiza la continuidad de la solución.</p>
+
+  <!-- ── ANALOGÍA ── -->
+  <p><strong>Universalidad del modelo exponencial.</strong></p>
+  <p>La ecuación $dq/dt = -q/\tau$ pertenece a una familia de modelos que describe fenómenos tan distintos como la desintegración radiactiva, el enfriamiento de Newton, la amortiguación viscosa o el vaciado de un tanque. En todos los casos la variable de estado decae proporcionalmente a su valor actual: cuanto más grande es el valor, más rápido cae; cuanto más pequeño es, más lentamente se acerca a cero. Esta retroalimentación negativa es la razón por la que el decaimiento nunca llega exactamente a cero en un tiempo finito, aunque en la práctica se considera despreciable a partir de $5\tau$.</p>
+</div>
+
+<!-- ══════════════════════════════════════════════ 4. PLANTEAMIENTO SIMULACIÓN -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">§4</span>
+    <span class="section-title">Planteamiento de la simulación</span>
+  </div>
+
+  <p>La simulación interactiva tiene como objetivo permitir al usuario explorar cómo varían las curvas $q(t)$ e $I(t)$ al modificar los parámetros del circuito ($R_2$, $R_3$ y $C$), verificando numéricamente los resultados obtenidos en §2.</p>
+
+  <p>El modelo computacional se basa directamente en las soluciones analíticas:</p>
+
+  <div class="math-block">
+    $$q(t) = Q_0\,e^{-t/\tau}, \qquad I(t) = \frac{Q_0}{\tau}\,e^{-t/\tau}$$
+    $$\tau = (R_2 + R_3)\cdot C, \qquad Q_0 = \frac{\mathcal{E}\,R_2}{R_1+R_2}\cdot C$$
+  </div>
+
+  <p>Los controles permiten modificar $R_2$, $R_3$ y $C$ en rangos físicamente razonables. Al cambiar cualquier parámetro, las métricas clave ($\tau$, $Q_0$, $t^*$) se recalculan en tiempo real y las gráficas se actualizan instantáneamente.</p>
+</div>
+
+<!-- ══════════════════════════════════════════════ 5. SIMULACIÓN -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">§5</span>
+    <span class="section-title">Simulación interactiva</span>
+  </div>
+
+  <div class="sim-container">
+    <div class="sim-title">▶ Exploración paramétrica — Descarga del circuito RC</div>
+
+    <!-- Controles -->
+    <div class="sim-controls">
+      <div class="ctrl-group">
+        <label>R₂ <span class="ctrl-val" id="vR2">15.0 kΩ</span></label>
+        <input type="range" id="sR2" min="1" max="50" step="0.5" value="15">
+      </div>
+      <div class="ctrl-group">
+        <label>R₃ <span class="ctrl-val" id="vR3">3.0 kΩ</span></label>
+        <input type="range" id="sR3" min="1" max="20" step="0.5" value="3">
+      </div>
+      <div class="ctrl-group">
+        <label>C <span class="ctrl-val" id="vC">10.0 μF</span></label>
+        <input type="range" id="sC" min="1" max="100" step="1" value="10">
+      </div>
+      <div class="ctrl-group">
+        <label>R₁ (fijo en prob.) <span class="ctrl-val" id="vR1">12.0 kΩ</span></label>
+        <input type="range" id="sR1" min="1" max="50" step="0.5" value="12">
+      </div>
+    </div>
+
+    <!-- Botones de vista -->
+    <div class="sim-state-btns">
+      <button class="state-btn active" id="btnQ" onclick="setView('Q')">Carga q(t)</button>
+      <button class="state-btn" id="btnI" onclick="setView('I')">Corriente I(t)</button>
+      <button class="state-btn" id="btnV" onclick="setView('V')">Voltaje V(t)</button>
+    </div>
+
+    <!-- Métricas en tiempo real -->
+    <div class="sim-metrics">
+      <div class="metric">
+        <div class="metric-label">τ (constante)</div>
+        <div class="metric-val" id="mTau">180 ms</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Q₀ inicial</div>
+        <div class="metric-val" id="mQ0">50.0 μC</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">t* (Q→Q₀/5)</div>
+        <div class="metric-val" id="mTstar">290 ms</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">I pico</div>
+        <div class="metric-val" id="mIpeak">278 μA</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">V_C inicial</div>
+        <div class="metric-val" id="mVC">5.00 V</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">E almacenada</div>
+        <div class="metric-val" id="mEnergy">125 μJ</div>
+      </div>
+    </div>
+
+    <!-- Canvas chart -->
+    <div style="position:relative; width:100%; height:300px; background:rgba(250,248,243,0.04); border-radius:8px; padding:8px;">
+      <canvas id="simChart" role="img" aria-label="Gráfica de descarga del circuito RC"></canvas>
+    </div>
+
+    <p style="font-family:var(--sans);font-size:12px;color:rgba(250,248,243,0.4);margin-top:1rem;text-align:center;">
+      Línea punteada naranja → $t^*$ (tiempo para $Q_0/5$) &nbsp;|&nbsp; Línea punteada azul → $\tau$
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ 6. CONCLUSIONES -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">§6</span>
+    <span class="section-title">Conclusiones</span>
+  </div>
+
+  <ul class="conclusion-list">
+    <li>En estado estacionario, el capacitor cargado actúa como circuito abierto: toda la corriente fluye únicamente por $R_1$ y $R_2$, dando $I_{est} = 0.333\,\text{mA}$. El resistor $R_3$ no conduce corriente en este estado.</li>
+    <li>La carga almacenada $Q_0 = 50.0\,\mu\text{C}$ corresponde a la diferencia de potencial establecida por el divisor de tensión $R_1$-$R_2$ sobre la batería de 9 V, resultando en $V_C = 5.00\,\text{V}$.</li>
+    <li>Al abrir el interruptor, el capacitor se descarga a través de $R_2 + R_3 = 18\,\text{k}\Omega$ con una constante de tiempo $\tau = 0.180\,\text{s}$, siguiendo la ley exponencial $I_{R_2}(t) = 0.278\,\text{mA}\cdot e^{-t/0.180}$.</li>
+    <li>El tiempo necesario para que la carga caiga a $Q_0/5$ es $t^* = \tau\ln 5 \approx 0.290\,\text{s}$, lo que equivale aproximadamente a $1.61\,\tau$, coherente con el decaimiento exponencial.</li>
+    <li>La simulación paramétrica confirma que aumentar $R$ o $C$ extiende el tiempo de descarga (mayor $\tau$), mientras que reducirlos acelera la disipación de energía. La energía total disipada siempre es igual a $U_C = \frac{1}{2}CV_C^2$, independientemente de los valores de los resistores.</li>
+  </ul>
+</div>
+
+<!-- ══════════════════════════════════════════════ 7. BIBLIOGRAFÍA -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">§7</span>
+    <span class="section-title">Bibliografía</span>
+  </div>
+
+  <div class="bib-item">Serway, R. A. &amp; Jewett, J. W. (2014). <em>Physics for Scientists and Engineers</em>, 9th ed. Brooks/Cole. Capítulo 28, pp. 862–895.</div>
+  <div class="bib-item">Griffiths, D. J. (2013). <em>Introduction to Electrodynamics</em>, 4th ed. Pearson. Capítulo 7.</div>
+  <div class="bib-item">Hayt, W. H. &amp; Kemmerly, J. E. (2012). <em>Engineering Circuit Analysis</em>, 8th ed. McGraw-Hill. Capítulo 8.</div>
+  <div class="bib-item">Sadiku, M. N. O. (2009). <em>Fundamentals of Electric Circuits</em>, 4th ed. McGraw-Hill. Capítulo 7.</div>
+</div>
+
+</main>
+
+<footer>
+  Física de Campos · Universidad de Antioquia · Facultad de Ingeniería · 2026
+</footer>
+
+<!-- ══════════════════════════════════════════════ SCRIPTS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const EMF = 9.0;
+let currentView = 'Q';
+let chart;
+
+function getParams() {
+  const R1 = parseFloat(document.getElementById('sR1').value) * 1e3;
+  const R2 = parseFloat(document.getElementById('sR2').value) * 1e3;
+  const R3 = parseFloat(document.getElementById('sR3').value) * 1e3;
+  const C  = parseFloat(document.getElementById('sC').value)  * 1e-6;
+  return { R1, R2, R3, C };
+}
+
+function calcMetrics({ R1, R2, R3, C }) {
+  const Rdesc = R2 + R3;
+  const tau   = Rdesc * C;
+  const VC    = EMF * R2 / (R1 + R2);
+  const Q0    = C * VC;
+  const Ipeak = Q0 / tau;
+  const tstar = tau * Math.log(5);
+  const energy = 0.5 * C * VC * VC;
+  return { tau, VC, Q0, Ipeak, tstar, energy };
+}
+
+function updateLabels() {
+  const R1 = parseFloat(document.getElementById('sR1').value);
+  const R2 = parseFloat(document.getElementById('sR2').value);
+  const R3 = parseFloat(document.getElementById('sR3').value);
+  const Cv = parseFloat(document.getElementById('sC').value);
+  document.getElementById('vR1').textContent = R1.toFixed(1) + ' kΩ';
+  document.getElementById('vR2').textContent = R2.toFixed(1) + ' kΩ';
+  document.getElementById('vR3').textContent = R3.toFixed(1) + ' kΩ';
+  document.getElementById('vC').textContent  = Cv.toFixed(0) + ' μF';
+}
+
+function updateMetrics() {
+  const p = getParams();
+  const m = calcMetrics(p);
+  document.getElementById('mTau').textContent    = (m.tau*1000).toFixed(1) + ' ms';
+  document.getElementById('mQ0').textContent     = (m.Q0*1e6).toFixed(1) + ' μC';
+  document.getElementById('mTstar').textContent  = (m.tstar*1000).toFixed(1) + ' ms';
+  document.getElementById('mIpeak').textContent  = (m.Ipeak*1e6).toFixed(1) + ' μA';
+  document.getElementById('mVC').textContent     = m.VC.toFixed(2) + ' V';
+  document.getElementById('mEnergy').textContent = (m.energy*1e6).toFixed(1) + ' μJ';
+}
+
+function buildData(view) {
+  const p = getParams();
+  const m = calcMetrics(p);
+  const nPts = 200;
+  const tMax = m.tau * 6;
+  const labels = [], dataQ = [], dataI = [], dataV = [];
+
+  for (let i = 0; i <= nPts; i++) {
+    const t = (i / nPts) * tMax;
+    const factor = Math.exp(-t / m.tau);
+    labels.push(+(t * 1000).toFixed(1));
+    dataQ.push(+(m.Q0 * factor * 1e6).toFixed(4));
+    dataI.push(+(m.Ipeak * factor * 1e6).toFixed(4));
+    dataV.push(+(m.VC * factor).toFixed(5));
+  }
+
+  let yData, yLabel, yColor, yUnit;
+  if (view === 'Q')      { yData = dataQ; yLabel = 'q(t) [μC]'; yColor = '#5DCAA5'; yUnit = 'μC'; }
+  else if (view === 'I') { yData = dataI; yLabel = 'I(t) [μA]'; yColor = '#b5460f'; yUnit = 'μA'; }
+  else                   { yData = dataV; yLabel = 'V(t) [V]';  yColor = '#378ADD'; yUnit = 'V'; }
+
+  return { labels, yData, yLabel, yColor, yUnit, m, tMax };
+}
+
+function buildAnnotations(m, tMax) {
+  const tauMs   = +(m.tau * 1000).toFixed(1);
+  const tstarMs = +(m.tstar * 1000).toFixed(1);
+  return {
+    tau_line: {
+      type: 'line', scaleID: 'x', value: tauMs,
+      borderColor: 'rgba(56,138,221,0.6)', borderWidth: 1.5,
+      borderDash: [5, 4],
+      label: { content: 'τ', display: true, color: '#85B7EB', font: { size: 10 }, position: 'start' }
+    },
+    tstar_line: {
+      type: 'line', scaleID: 'x', value: tstarMs,
+      borderColor: 'rgba(181,70,15,0.6)', borderWidth: 1.5,
+      borderDash: [5, 4],
+      label: { content: 't*', display: true, color: '#F0997B', font: { size: 10 }, position: 'start' }
+    }
+  };
+}
+
+function renderChart() {
+  const { labels, yData, yLabel, yColor, m, tMax } = buildData(currentView);
+
+  if (chart) chart.destroy();
+
+  const ctx = document.getElementById('simChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: yLabel,
+        data: yData,
+        borderColor: yColor,
+        borderWidth: 2.5,
+        pointRadius: 0,
+        tension: 0.4,
+        fill: {
+          target: 'origin',
+          above: yColor.replace(')', ', 0.08)').replace('rgb', 'rgba').replace('#', '')
+        }
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 300 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          backgroundColor: '#1a1a18',
+          titleColor: '#faf8f3',
+          bodyColor: 'rgba(250,248,243,0.7)',
+          callbacks: {
+            title: items => `t = ${items[0].label} ms`,
+            label: item => ` ${item.dataset.label.split('[')[0].trim()} = ${parseFloat(item.raw).toFixed(3)} ${item.dataset.label.match(/\[(.+)\]/)[1]}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          title: { display: true, text: 't (ms)', color: 'rgba(250,248,243,0.5)', font: { size: 11 } },
+          ticks: { color: 'rgba(250,248,243,0.5)', font: { size: 10 }, maxTicksLimit: 8 },
+          grid: { color: 'rgba(250,248,243,0.06)' }
+        },
+        y: {
+          title: { display: true, text: yLabel, color: 'rgba(250,248,243,0.5)', font: { size: 11 } },
+          ticks: { color: 'rgba(250,248,243,0.5)', font: { size: 10 }, maxTicksLimit: 6 },
+          grid: { color: 'rgba(250,248,243,0.06)' },
+          min: 0
+        }
+      }
+    }
+  });
+
+  // Draw vertical lines manually via plugin
+  const tauMs   = +(m.tau * 1000).toFixed(1);
+  const tstarMs = +(m.tstar * 1000).toFixed(1);
+  chart.options.plugins.customLines = { tauMs, tstarMs };
+}
+
+// Custom plugin para líneas verticales
+Chart.register({
+  id: 'vertLines',
+  afterDraw(chart) {
+    const opts = chart.options.plugins.customLines;
+    if (!opts) return;
+    const { ctx, scales: { x, y } } = chart;
+    const drawLine = (tMs, color, label) => {
+      const xPx = x.getPixelForValue(tMs);
+      if (xPx < x.left || xPx > x.right) return;
+      ctx.save();
+      ctx.setLineDash([5, 4]);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(xPx, y.top);
+      ctx.lineTo(xPx, y.bottom);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = color;
+      ctx.font = '11px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, xPx, y.top + 14);
+      ctx.restore();
+    };
+    drawLine(opts.tauMs,   'rgba(56,138,221,0.7)',  'τ');
+    drawLine(opts.tstarMs, 'rgba(181,70,15,0.8)',   't*');
+  }
+});
+
+function setView(v) {
+  currentView = v;
+  ['Q','I','V'].forEach(k => {
+    document.getElementById('btn'+k).classList.toggle('active', k === v);
+  });
+  renderChart();
+}
+
+function onParamChange() {
+  updateLabels();
+  updateMetrics();
+  renderChart();
+}
+
+['sR1','sR2','sR3','sC'].forEach(id => {
+  document.getElementById(id).addEventListener('input', onParamChange);
+});
+
+// Initial render
+onParamChange();
+</script>
+</body>
+</html>

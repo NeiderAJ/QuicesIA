@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz 2: Física de Campos - Luisa Vargas</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+          },
+          svg: { fontCache: 'global' }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <style>
+        /* =========================================
+           DISEÑO ESPACIAL VIBRANTE (NEBULOSA PASTEL)
+           ========================================= */
+        :root {
+            --text-main: #ffffff;
+            --accent-pink: #ff9a9e;
+            --accent-pink-light: #ffb6c1;
+            --accent-purple: #c471ed;
+            --accent-blue: #6dd5ed;
+            --glass-bg: rgba(20, 15, 35, 0.65);
+            --glass-border: rgba(255, 154, 158, 0.3);
+            
+            /* Tesla Colors para la simulación */
+            --tesla-bg: #0a0e17;
+            --tesla-cyan: #00e5ff;
+            --tesla-blue: #0055ff;
+            --tesla-glow: rgba(0, 229, 255, 0.5);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* Fondo de Nebulosa Animada */
+        .nebula-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(120deg, #2b1055, #7597de, #c471ed, #ff9a9e);
+            background-size: 300% 300%;
+            animation: aurora 15s ease infinite;
+            z-index: -4;
+        }
+
+        @keyframes aurora {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Canvas para estrellas dinámicas */
+        #spaceCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -3;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           CONTENEDORES GLASSMORPHISM
+           ========================================= */
+        .container {
+            max-width: 1050px;
+            margin: 40px auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-box {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-box h1 {
+            color: var(--accent-pink);
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(255, 154, 158, 0.6);
+        }
+
+        .header-box h2 {
+            font-size: 1.3em;
+            color: var(--accent-pink-light);
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 35px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(255, 154, 158, 0.3);
+            border-color: rgba(255, 154, 158, 0.6);
+        }
+
+        h2 {
+            color: var(--accent-pink);
+            border-bottom: 2px solid rgba(255, 154, 158, 0.3);
+            padding-bottom: 10px;
+            margin-top: 0;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(255, 154, 158, 0.4);
+        }
+
+        h3 { color: var(--accent-pink-light); margin-top: 0;}
+
+        .math-block {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            border-left: 4px solid var(--accent-pink);
+            font-family: 'Space Mono', monospace;
+            margin: 20px 0;
+        }
+
+        ul { line-height: 1.8; }
+        li strong { color: var(--accent-pink-light); }
+
+        /* =========================================
+           NUEVO: DISEÑO DE LA SIMULACIÓN
+           ========================================= */
+        .sim-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .sim-top {
+            display: flex;
+            gap: 20px;
+        }
+
+        .canvas-container {
+            flex: 2;
+            background: var(--tesla-bg);
+            border: 1px solid var(--tesla-cyan);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: inset 0 0 30px rgba(0, 229, 255, 0.1), 0 0 15px rgba(0, 229, 255, 0.2);
+            position: relative;
+        }
+        
+        #circuitCanvas {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            cursor: crosshair;
+        }
+
+        .controls {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .slider-group {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-left: 3px solid var(--tesla-cyan);
+        }
+        
+        .slider-group.volt-slider {
+            border-left-color: #ff0055;
+            background: rgba(255, 0, 85, 0.1);
+        }
+
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85em;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: var(--tesla-cyan);
+            cursor: pointer;
+        }
+        
+        .volt-slider input[type=range] {
+            accent-color: #ff0055;
+        }
+
+        .results-panel {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px dashed var(--accent-pink-light);
+            text-align: center;
+        }
+
+        .result-item h4 {
+            margin: 0 0 5px 0;
+            color: #aaa;
+            font-size: 0.85em;
+            text-transform: uppercase;
+        }
+
+        .result-value {
+            font-family: 'Space Mono', monospace;
+            color: var(--tesla-cyan);
+            font-size: 1.5em;
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--tesla-glow);
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .btn-reset {
+            background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink));
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 1em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
+        }
+
+        .btn-reset:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 154, 158, 0.6);
+        }
+
+        /* Tooltip Hover */
+        #tooltip {
+            position: absolute;
+            display: none;
+            background: rgba(10, 14, 23, 0.95);
+            border: 1px solid var(--tesla-cyan);
+            box-shadow: 0 0 15px var(--tesla-glow);
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            pointer-events: none;
+            z-index: 100;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85em;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 900px) {
+            .sim-top { flex-direction: column; }
+            .results-panel { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="nebula-bg"></div>
+<canvas id="spaceCanvas"></canvas>
+
+<div id="tooltip"></div>
+
+<div class="container">
+    
+    <div class="header-box">
+        <h1>Física de Campos - Quiz #2</h1>
+        <h2>Luisa Maria Vargas Zapata | CC: 1001538963</h2>
+    </div>
+
+    <div class="section" id="enunciado">
+        <h2>1. Enunciado del problema asignado</h2>
+        <p><strong>Problema P26.62:</strong> Calcule la capacitancia equivalente entre los puntos $a$ y $b$ de la figura. Observe que este sistema no se trata de una combinación simple en serie o en paralelo.</p>
+        <p><em>Sugerencia:</em> suponga una diferencia de potencial $\Delta V$ entre los puntos $a$ y $b$. Escriba expresiones para $\Delta V_{ab}$ en función de las cargas y capacitancias para las diferentes trayectorias posibles desde $a$ hasta $b$, y conserve la carga en aquellas placas de capacitor que están conectadas entre sí.</p>
+        <ul>
+            <li>$C_1$ (Superior Izquierda) = $4.00 \mu\text{F}$</li>
+            <li>$C_2$ (Inferior Izquierda) = $2.00 \mu\text{F}$</li>
+            <li>$C_3$ (Central) = $8.00 \mu\text{F}$</li>
+            <li>$C_4$ (Superior Derecha) = $4.00 \mu\text{F}$</li>
+            <li>$C_5$ (Inferior Derecha) = $2.00 \mu\text{F}$</li>
+        </ul>
+    </div>
+
+    <div class="section" id="solucion">
+        <h2>2. Solución matemática completa</h2>
+        <p>Asignamos un potencial de referencia. Sea $V_a = V$ en el nodo de entrada y $V_b = 0$ en el nodo de salida. Definimos los nodos intermedios aislados:</p>
+        <ul>
+            <li><strong>Nodo $c$ (superior):</strong> Intersección de $C_1$, $C_3$ y $C_4$.</li>
+            <li><strong>Nodo $d$ (inferior):</strong> Intersección de $C_2$, $C_3$ y $C_5$.</li>
+        </ul>
+        <p>Aplicando el principio de conservación de la carga en las placas conectadas al nodo $c$, la sumatoria de cargas debe ser cero:</p>
+        
+        <div class="math-block">
+            $$ -q_{1} + q_{3} + q_{4} = 0 $$
+            $$ C_1(V_c - V_a) + C_3(V_c - V_d) + C_4(V_c - V_b) = 0 $$
+            $$ 4.00(V_c - V) + 8.00(V_c - V_d) + 4.00(V_c - 0) = 0 $$
+            $$ 16.00 V_c - 8.00 V_d = 4.00 V \quad \Rightarrow \quad 4.00 V_c - 2.00 V_d = V \quad \text{(Ecuación 1)} $$
+        </div>
+        
+        <p>Realizando el mismo análisis de conservación nodal para el nodo $d$:</p>
+        
+        <div class="math-block">
+            $$ C_2(V_d - V_a) + C_3(V_d - V_c) + C_5(V_d - V_b) = 0 $$
+            $$ 2.00(V_d - V) + 8.00(V_d - V_c) + 2.00(V_d - 0) = 0 $$
+            $$ -8.00 V_c + 12.00 V_d = 2.00 V \quad \Rightarrow \quad -4.00 V_c + 6.00 V_d = V \quad \text{(Ecuación 2)} $$
+        </div>
+
+        <p>Sumamos la Ecuación 1 y la Ecuación 2 para resolver el sistema:</p>
+        
+        <div class="math-block">
+            $$ (4.00 V_c - 2.00 V_d) + (-4.00 V_c + 6.00 V_d) = V + V $$
+            $$ 4.00 V_d = 2.00 V \quad \Rightarrow \quad V_d = 0.50 V $$
+            $$ \text{Sustituyendo en Ec. 1:} \quad V_c = 0.50 V $$
+        </div>
+
+        <p>Como $V_c = V_d$, la diferencia de potencial a través del capacitor central es nula ($\Delta V_3 = 0$). No almacena carga, por lo que podemos calcular la carga total del sistema evaluando solo las ramas de entrada ($C_1$ y $C_2$):</p>
+
+        <div class="math-block">
+            $$ Q_{total} = C_1(V - V_c) + C_2(V - V_d) = 4.00(0.50V) + 2.00(0.50V) = 3.00V $$
+            $$ C_{eq} = \frac{Q_{total}}{\Delta V_{ab}} = \frac{3.00 V}{V} = 3.00 \mu\text{F} $$
+        </div>
+    </div>
+
+    <div class="section" id="analisis">
+        <h2>3. Análisis Teórico Profundo</h2>
+        <p>El circuito analizado corresponde a una topología electromagnética conocida como <strong>Puente de Wheatstone Capacitivo</strong>. Este tipo de arreglo es crucial en la física de campos porque demuestra cómo las relaciones geométricas y proporcionales afectan los campos eléctricos en un sistema complejo.</p>
+        <p><strong>El fenómeno del Puente Balanceado:</strong><br>
+        En física, para que exista un flujo o almacenamiento de carga en un componente, debe existir un gradiente de campo eléctrico (diferencia de potencial). En nuestro sistema, la relación de las capacitancias de entrada es exactamente igual a la relación de las de salida:</p>
+        <div class="math-block">
+            $$ \frac{C_1}{C_2} = \frac{4.00\mu\text{F}}{2.00\mu\text{F}} = 2 \quad \text{y} \quad \frac{C_4}{C_5} = \frac{4.00\mu\text{F}}{2.00\mu\text{F}} = 2 $$
+        </div>
+        <p>Esta simetría perfecta provoca que los campos eléctricos se dividan proporcionalmente en las ramas superior e inferior. Como resultado, los nodos <em>c</em> y <em>d</em> se vuelven <strong>equipotenciales</strong> ($V_c = V_d$). Al no haber diferencia de potencial entre las placas de $C_3$, el campo eléctrico interno en ese capacitor es nulo, comportándose térmicamente y eléctricamente como un circuito abierto o inerte. Por ende, la topología compleja se reduce temporalmente a dos ramas en paralelo formadas por capacitores en serie.</p>
+    </div>
+
+    <div class="section" id="planteamiento">
+        <h2>4. Planteamiento de la Simulación</h2>
+        <p>Para hacer este concepto más didáctico, se ha diseñado una simulación computacional que resuelve las ecuaciones de conservación en tiempo real. La lógica sigue estos pasos simples:</p>
+        <ul>
+            <li><strong>Paso 1:</strong> La interfaz lee los valores que tú configuras en los deslizadores para los 5 capacitores y la fuente de Voltaje.</li>
+            <li><strong>Paso 2:</strong> Un motor matemático en el código resuelve el sistema de ecuaciones algebraicas de los nodos $c$ y $d$ de forma instantánea.</li>
+            <li><strong>Paso 3 (Evaluación Visual):</strong> 
+                <ul>
+                    <li>Si el cálculo da como resultado $V_c = V_d$ (diferencia 0V), el puente está <strong>balanceado</strong>. La simulación gráfica "apaga" el capacitor central.</li>
+                    <li>Si $V_c \neq V_d$, el puente está <strong>desbalanceado</strong>. El circuito "cobra vida" y las partículas de carga fluyen a través de la rama central.</li>
+                </ul>
+            </li>
+            <li><strong>Paso 4:</strong> Se calculan e imprimen en tiempo real la Capacitancia Equivalente, la Carga Total y la Energía Almacenada del sistema.</li>
+        </ul>
+    </div>
+
+    <div class="section" id="simulacion">
+        <h2>5. Simulación Interactiva (Estilo Laboratorio)</h2>
+        <p>Ajusta el voltaje y la capacitancia. Observa el puente en configuración de diamante. Pasa el cursor sobre los capacitores para inspeccionar su estado interno. Si el puente se balancea, notarás que el flujo por el centro se detiene.</p>
+        
+        <div class="sim-layout">
+            <div class="sim-top">
+                <div class="canvas-container">
+                    <h3>Visualizador de Campos (Tesla UI)</h3>
+                    <canvas id="circuitCanvas" width="600" height="400"></canvas>
+                </div>
+                
+                <div class="controls">
+                    <div class="slider-group volt-slider">
+                        <label><span style="color:#ff0055">Voltaje (ΔV)</span> <span id="valV">10 V</span></label>
+                        <input type="range" id="v_in" min="1" max="50" step="1" value="10">
+                    </div>
+                    <div class="slider-group">
+                        <label><span>$C_1$ (Sup. Izq)</span> <span id="valC1">4.00 &mu;F</span></label>
+                        <input type="range" id="c1" min="1" max="15" step="0.1" value="4">
+                    </div>
+                    <div class="slider-group">
+                        <label><span>$C_2$ (Inf. Izq)</span> <span id="valC2">2.00 &mu;F</span></label>
+                        <input type="range" id="c2" min="1" max="15" step="0.1" value="2">
+                    </div>
+                    <div class="slider-group">
+                        <label><span>$C_3$ (Central)</span> <span id="valC3">8.00 &mu;F</span></label>
+                        <input type="range" id="c3" min="1" max="15" step="0.1" value="8">
+                    </div>
+                    <div class="slider-group">
+                        <label><span>$C_4$ (Sup. Der)</span> <span id="valC4">4.00 &mu;F</span></label>
+                        <input type="range" id="c4" min="1" max="15" step="0.1" value="4">
+                    </div>
+                    <div class="slider-group">
+                        <label><span>$C_5$ (Inf. Der)</span> <span id="valC5">2.00 &mu;F</span></label>
+                        <input type="range" id="c5" min="1" max="15" step="0.1" value="2">
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-panel">
+                <div class="result-item">
+                    <h4>Capacitancia ($C_{eq}$)</h4>
+                    <div class="result-value" id="res_ceq">3.00 &mu;F</div>
+                </div>
+                <div class="result-item">
+                    <h4>Carga Total ($Q$)</h4>
+                    <div class="result-value" id="res_q" style="color:#ff9a9e">30.00 &mu;C</div>
+                </div>
+                <div class="result-item">
+                    <h4>Energía Total ($U$)</h4>
+                    <div class="result-value" id="res_u" style="color:#c471ed">150.00 &mu;J</div>
+                </div>
+            </div>
+
+            <div class="action-row">
+                <button class="btn-reset" onclick="resetValues()">↻ Restablecer Valores Iniciales</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="conclusiones">
+        <h2>6. Conclusiones</h2>
+        <ul>
+            <li><strong>Poder de las Leyes de Conservación:</strong> El ejercicio demuestra que las topologías que no son "serie-paralelo simple" requieren un análisis físico estricto. La conservación de la carga nodal es una herramienta universal que nunca falla, independientemente de la complejidad de la red.</li>
+            <li><strong>Equilibrio Electromagnético:</strong> Matemáticamente y físicamente se comprobó que la simetría de las componentes perimetrales anula el gradiente de potencial en el elemento central. Sin diferencia de potencial, el campo eléctrico interno es nulo y el capacitor no actúa.</li>
+            <li><strong>Valor de la Simulación:</strong> Visualizar este circuito mediante una simulación paramétrica permite comprender que el "puente balanceado" es un estado muy frágil. Una mínima alteración en cualquier capacitor externo redistribuye inmediatamente los campos eléctricos, obligando al capacitor central a participar activamente en la red.</li>
+        </ul>
+    </div>
+
+    <div class="section" id="bibliografia">
+        <h2>7. Bibliografía</h2>
+        <ul>
+            <li>Serway, R. A., & Jewett, J. W. (2018). <em>Física para ciencias e ingeniería. Volumen 2</em> (10ma ed.). Cengage Learning. (Capítulo sobre capacitores, dieléctricos y leyes de Kirchhoff).</li>
+            <li>Universidad de Antioquia. Facultad de Ingeniería. (2026). <em>Documento Guía: Quiz 2 - Simulación computacional de un problema asignado</em>. Curso de Física de Campos. Medellín, Colombia.</li>
+        </ul>
+    </div>
+
+</div>
+
+<script>
+    /* =========================================
+       1. FONDO ESPACIAL (ESTRELLAS 800x)
+       ========================================= */
+    const canvasSpace = document.getElementById('spaceCanvas');
+    const ctxSpace = canvasSpace.getContext('2d');
+    let stars = [];
+
+    function initSpace() {
+        canvasSpace.width = window.innerWidth;
+        canvasSpace.height = window.innerHeight;
+        stars = [];
+        for (let i = 0; i < 800; i++) {
+            stars.push({
+                x: Math.random() * canvasSpace.width,
+                y: Math.random() * canvasSpace.height,
+                radius: Math.random() * 1.5 + 0.3,
+                alpha: Math.random(),
+                speedAlpha: (Math.random() * 0.03) + 0.005
+            });
+        }
+    }
+
+    function drawSpace() {
+        ctxSpace.clearRect(0, 0, canvasSpace.width, canvasSpace.height);
+        stars.forEach(star => {
+            ctxSpace.beginPath();
+            ctxSpace.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+            ctxSpace.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+            ctxSpace.fill();
+            star.alpha += star.speedAlpha;
+            if (star.alpha > 1 || star.alpha < 0.1) {
+                star.speedAlpha = -star.speedAlpha;
+            }
+        });
+        requestAnimationFrame(drawSpace);
+    }
+
+    window.addEventListener('resize', initSpace);
+    initSpace();
+    drawSpace();
+
+    /* =========================================
+       2. LÓGICA DE LA NUEVA SIMULACIÓN TESLA
+       ========================================= */
+    const canvas = document.getElementById('circuitCanvas');
+    const ctx = canvas.getContext('2d');
+    const tooltip = document.getElementById('tooltip');
+
+    // Nodos Geométricos (Diamante real)
+    const N = {
+        A: {x: 80, y: 200},
+        C: {x: 300, y: 80},
+        D: {x: 300, y: 320},
+        B: {x: 520, y: 200}
+    };
+
+    // Centros de Capacitores
+    const C_POS = {
+        c1: {x: 190, y: 140, angle: -Math.atan2(120, 220)},
+        c2: {x: 190, y: 260, angle: Math.atan2(120, 220)},
+        c3: {x: 300, y: 200, angle: Math.PI/2},
+        c4: {x: 410, y: 140, angle: Math.atan2(120, 220)},
+        c5: {x: 410, y: 260, angle: -Math.atan2(120, 220)}
+    };
+
+    const inputs = {
+        v: document.getElementById('v_in'),
+        c1: document.getElementById('c1'), c2: document.getElementById('c2'),
+        c3: document.getElementById('c3'), c4: document.getElementById('c4'),
+        c5: document.getElementById('c5')
+    };
+
+    let simData = {};
+    let particles = [];
+
+    // Sistema de Ecuaciones
+    function solveCircuit() {
+        const V = parseFloat(inputs.v.value);
+        const c1 = parseFloat(inputs.c1.value);
+        const c2 = parseFloat(inputs.c2.value);
+        const c3 = parseFloat(inputs.c3.value);
+        const c4 = parseFloat(inputs.c4.value);
+        const c5 = parseFloat(inputs.c5.value);
+
+        // Actualizar UI de inputs
+        document.getElementById('valV').innerText = V + " V";
+        document.getElementById('valC1').innerText = c1.toFixed(2) + " μF";
+        document.getElementById('valC2').innerText = c2.toFixed(2) + " μF";
+        document.getElementById('valC3').innerText = c3.toFixed(2) + " μF";
+        document.getElementById('valC4').innerText = c4.toFixed(2) + " μF";
+        document.getElementById('valC5').innerText = c5.toFixed(2) + " μF";
+
+        const A = c1 + c3 + c4; 
+        const B = -c3; 
+        const C_val = c1 * V;
+        const D = -c3; 
+        const E = c2 + c3 + c5; 
+        const F = c2 * V;
+        
+        const denom = (A * E) - (B * D);
+        const vc = ((C_val * E) - (B * F)) / denom;
+        const vd = ((A * F) - (C_val * D)) / denom;
+
+        const vData = {
+            c1: Math.abs(V - vc),
+            c2: Math.abs(V - vd),
+            c3: Math.abs(vc - vd),
+            c4: Math.abs(vc),
+            c5: Math.abs(vd)
+        };
+
+        const qData = {
+            c1: c1 * vData.c1, c2: c2 * vData.c2,
+            c3: c3 * vData.c3, c4: c4 * vData.c4, c5: c5 * vData.c5
+        };
+
+        const Q_tot = qData.c1 + qData.c2;
+        const C_eq = Q_tot / V;
+        const U_tot = 0.5 * C_eq * V * V;
+        
+        const maxQ = Math.max(...Object.values(qData)) || 1;
+
+        // Actualizar UI Resultados
+        document.getElementById('res_ceq').innerText = C_eq.toFixed(3) + " μF";
+        document.getElementById('res_q').innerText = Q_tot.toFixed(2) + " μC";
+        document.getElementById('res_u').innerText = U_tot.toFixed(2) + " μJ";
+
+        simData = { v: V, c1, c2, c3, c4, c5, vc, vd, vData, qData, maxQ };
+        
+        updateParticles();
+    }
+
+    // Lógica de Partículas de flujo
+    function updateParticles() {
+        const qData = simData.qData;
+        const vData = simData.vData;
+        const baseCount = 5;
+        
+        particles = [];
+        
+        function addPath(pStart, pEnd, q, key) {
+            if (q < 0.01) return; 
+            let count = Math.ceil((q / simData.maxQ) * 12);
+            let speed = 0.005 + (vData[key] / 50) * 0.01;
+            for(let i=0; i<count; i++) {
+                particles.push({ pStart, pEnd, progress: Math.random(), speed });
+            }
+        }
+
+        addPath(N.A, N.C, qData.c1, 'c1');
+        addPath(N.A, N.D, qData.c2, 'c2');
+        addPath(N.C, N.B, qData.c4, 'c4');
+        addPath(N.D, N.B, qData.c5, 'c5');
+        
+        if (simData.vc > simData.vd) addPath(N.C, N.D, qData.c3, 'c3');
+        else if (simData.vd > simData.vc) addPath(N.D, N.C, qData.c3, 'c3');
+    }
+
+    // Dibujo del Canvas
+    function drawCircuit() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const isBalanced = simData.vData.c3 < 0.001;
+        const nodeColor = isBalanced ? '#00ff88' : '#00e5ff'; 
+        const wireColor = '#1a3a5c';
+
+        // 1. Dibujar Cables Base
+        ctx.strokeStyle = wireColor;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(N.A.x, N.A.y); ctx.lineTo(N.C.x, N.C.y);
+        ctx.moveTo(N.A.x, N.A.y); ctx.lineTo(N.D.x, N.D.y);
+        ctx.moveTo(N.C.x, N.C.y); ctx.lineTo(N.B.x, N.B.y);
+        ctx.moveTo(N.D.x, N.D.y); ctx.lineTo(N.B.x, N.B.y);
+        ctx.moveTo(N.C.x, N.C.y); ctx.lineTo(N.D.x, N.D.y);
+        ctx.stroke();
+
+        // 2. Animar Partículas (Electrones/Flujo)
+        ctx.fillStyle = '#00e5ff';
+        ctx.shadowColor = '#00e5ff';
+        ctx.shadowBlur = 10;
+        particles.forEach(p => {
+            p.progress += p.speed;
+            if (p.progress > 1) p.progress = 0;
+            let x = p.pStart.x + (p.pEnd.x - p.pStart.x) * p.progress;
+            let y = p.pStart.y + (p.pEnd.y - p.pStart.y) * p.progress;
+            ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fill();
+        });
+        ctx.shadowBlur = 0;
+
+        // 3. Dibujar Capacitores (con rotación y llenado)
+        function drawCap(key, posData) {
+            ctx.save();
+            ctx.translate(posData.x, posData.y);
+            ctx.rotate(posData.angle);
+
+            const v = simData.vData[key];
+            const q = simData.qData[key];
+            const ratio = q / (simData.maxQ || 1);
+            const isOn = v > 0.001;
+            
+            // Borrar fondo del cable
+            ctx.clearRect(-15, -15, 30, 30);
+            
+            // Llenado visual
+            if (isOn) {
+                ctx.fillStyle = `rgba(0, 229, 255, ${0.2 + ratio*0.5})`;
+                ctx.fillRect(-10, -10, 20, 20 * ratio);
+                ctx.shadowColor = '#00e5ff';
+                ctx.shadowBlur = 15 * ratio;
+            } else {
+                ctx.shadowBlur = 0;
+            }
+
+            // Placas
+            ctx.strokeStyle = isOn ? '#00e5ff' : '#444';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(-10, -15); ctx.lineTo(-10, 15);
+            ctx.moveTo(10, -15); ctx.lineTo(10, 15);
+            ctx.stroke();
+            
+            // Etiquetas fijas
+            ctx.rotate(-posData.angle); 
+            ctx.fillStyle = isOn ? '#fff' : '#666';
+            ctx.font = '12px Space Mono';
+            ctx.fillText(key.toUpperCase(), -8, -20);
+            
+            ctx.restore();
+        }
+
+        drawCap('c1', C_POS.c1);
+        drawCap('c2', C_POS.c2);
+        drawCap('c4', C_POS.c4);
+        drawCap('c5', C_POS.c5);
+        drawCap('c3', C_POS.c3);
+
+        // 4. Dibujar Nodos (A, B, C, D)
+        function drawNode(n, label, color) {
+            ctx.fillStyle = color;
+            ctx.shadowColor = color; ctx.shadowBlur = 15;
+            ctx.beginPath(); ctx.arc(n.x, n.y, 6, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#fff'; ctx.font = '14px Poppins';
+            ctx.fillText(label, n.x - 5, n.y - 15);
+        }
+        drawNode(N.A, 'a (V_in)', '#ff0055');
+        drawNode(N.B, 'b (0V)', '#7bb5ff');
+        drawNode(N.C, 'c', isBalanced ? nodeColor : '#00e5ff');
+        drawNode(N.D, 'd', isBalanced ? nodeColor : '#c471ed');
+
+        // Texto de Capacitor Apagado
+        if (isBalanced) {
+            ctx.fillStyle = '#ffb6c1';
+            ctx.font = '12px Space Mono';
+            ctx.fillText("ΔV = 0 → Q = 0", N.C.x + 20, N.C.y + 120);
+        }
+
+        requestAnimationFrame(drawCircuit);
+    }
+
+    // Interacción Hover (Tooltip)
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const mouseX = (e.clientX - rect.left) * scaleX;
+        const mouseY = (e.clientY - rect.top) * scaleY;
+        
+        let hovered = null;
+
+        for (let key in C_POS) {
+            let dx = mouseX - C_POS[key].x;
+            let dy = mouseY - C_POS[key].y;
+            if (Math.sqrt(dx*dx + dy*dy) < 30) {
+                hovered = key;
+                break;
+            }
+        }
+
+        if (hovered) {
+            tooltip.style.display = 'block';
+            tooltip.style.left = (e.pageX + 15) + 'px';
+            tooltip.style.top = (e.pageY + 15) + 'px';
+            tooltip.innerHTML = `
+                <strong style="color:var(--tesla-cyan)">${hovered.toUpperCase()} Info</strong><br>
+                C = ${simData[hovered].toFixed(2)} &mu;F<br>
+                &Delta;V = ${simData.vData[hovered].toFixed(3)} V<br>
+                Q = ${simData.qData[hovered].toFixed(3)} &mu;C
+            `;
+            canvas.style.cursor = 'pointer';
+        } else {
+            tooltip.style.display = 'none';
+            canvas.style.cursor = 'crosshair';
+        }
+    });
+
+    canvas.addEventListener('mouseout', () => tooltip.style.display = 'none');
+
+    // Inicialización y Listeners
+    function resetValues() {
+        inputs.v.value = 10;
+        inputs.c1.value = 4; inputs.c2.value = 2; 
+        inputs.c3.value = 8; 
+        inputs.c4.value = 4; inputs.c5.value = 2;
+        solveCircuit();
+    }
+
+    Object.values(inputs).forEach(input => input.addEventListener('input', solveCircuit));
+    
+    // Iniciar
+    solveCircuit();
+    drawCircuit();
+
+</script>
+</body>
+</html>

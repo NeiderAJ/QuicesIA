@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Diseño de un Resistor con Coeficiente de Temperatura Cero</title>
+
+<!-- MathJax -->
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
+
+
+
+<style>
+body {
+    background: #fff8e1; /* crema elegante */
+    color: #2b2b2b;
+    font-family: "Times New Roman", serif;
+    margin: 40px;
+    line-height: 1.6;
+}
+
+/* CONTENEDOR PRINCIPAL */
+.main-box {
+    border: 2px solid #5d4037;
+    padding: 25px;
+    border-radius: 10px;
+    background: #fff3cd;
+}
+
+/* TÍTULO */
+h1 {
+    text-align: center;
+    color: #4e342e;
+}
+
+/* TÍTULOS */
+h2 {
+    color: #5d4037;
+    border-bottom: 2px solid #5d4037;
+}
+
+/* SUBTÍTULOS */
+h3 {
+    color: #6d4c41;
+    font-weight: bold;
+    text-decoration: underline;
+    margin-bottom: 10px;
+}
+
+/* LÍNEA COMPLETA */
+h3::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, #5d4037, #8d6e63);
+    margin-top: 6px;
+    border-radius: 5px;
+}
+
+/* ECUACIONES */
+.math {
+    color: #4e342e;
+    font-weight: bold;
+}
+
+/* SIN CUADROS INTERNOS */
+.box, ul, ol, .card, .box-small {
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 10px 0;
+}
+
+/* LISTAS */
+ul, ol {
+    padding-left: 20px;
+}
+
+/* SIMULADOR */
+.simulador {
+    border: 2px solid #5d4037;
+    padding: 20px;
+    border-radius: 10px;
+    background: #fff3cd;
+}
+
+/* SLIDER */
+input[type=range] {
+    width: 300px;
+    accent-color: #5d4037;
+}
+</style>
+
+
+
+
+
+
+
+
+</head>
+
+<body>
+
+<div class="titulo">
+    <h1>Diseño de un Resistor con Coeficiente de Temperatura Cero</h1>
+<p><strong>NICOLE JULIETH CADENA NAVARRO</strong></p>
+</div>
+
+
+<h2>1.Enunciado del problema</h2>
+
+<p>
+Una ingeniera necesita un resistor con coeficiente de resistencia de temperatura global cero a 
+\( 20 \, \mathrm{°C} \). Ella diseña un par de cilindros circulares, uno de carbono y el otro de nicromo, como se muestra en la figura. El dispositivo debe tener una resistencia global de \( R_{\mathrm{1}} + R_{\mathrm{2}} = 10 \, \Omega \), independiente de la temperatura y un radio uniforme de \( r = 1.50 \, \mathrm{mm} \).
+</p>
+
+<p>
+¿Puede satisfacer las metas de diseño con este método? Si es así, establezca lo que pueda determinar acerca de las longitudes \( l_{\mathrm{1}}\) y \(l_{\mathrm{2}} \) de cada segmento. Ignore la expansión térmica de los cilindros y suponga que ambos siempre están a la misma temperatura.
+</p>
+
+<p><strong>Se debe analizar:</strong></p>
+<ol>
+<li>Las resistencias \( R_{1} \) y \( R_{2} \) de cada material</li>
+<li>La relación entre las longitudes \( l_{1} \) y \( l_{2} \)</li>
+<li>Verificar si es posible cumplir ambas condiciones</li>
+</ol>
+
+
+
+
+
+
+<h2>2.Solución matemática</h2>
+
+<h3>Datos del problema</h3>
+
+<ol>
+<li>Para resistencias en serie: \( R_{\mathrm{1}} + R_{\mathrm{2}} = R_{\mathrm{Total}} \)
+<p><strong>Por lo tanto:</strong></p>
+
+<p>\[R_{\mathrm{Total}} = 10 \, \Omega \]</p>
+
+<ol start="2">
+<li>Coeficiente de temperatura de la resistencia</li>
+</ol>
+
+<p>\( \alpha_1 = -0.0005 \)</p>
+<p>\( \alpha_2 = 0.0004 \)</p>
+
+<p><strong>Tener en cuanta la condición de la Temperatura</strong></p>
+
+<p>Lo cual representa cómo cambia la resistencia cuando varia la temperatura</p>
+
+<p>\[\frac{dR}{dT} = \alpha R \]</p>
+
+<p>Sin embargo, la resistencia total no cambia con la temperatura,</p>
+
+<p><strong>Por lo tanto:</strong></p>
+
+<p>\[\frac{dR_{\mathrm{Total}}}{dT} = 0 \]</p>
+
+<p>\[\alpha_1 R_1 + \alpha_2 R_2 = 0\]</p>
+
+<h3>Planteamiento de ecuaciones, solución de resistencias</h3>
+
+<p>Ecuación 1: Resistencia total</p>
+
+<p>\[\ Ec_{\mathrm{1}} = R_{\mathrm{1}} + R_{\mathrm{2}} - R_{\mathrm{Total}} \]</p>
+
+<p>Ecuación 2: Coeficiente de temperatura total cero</p>
+
+<p>\[\ Ec_{\mathrm{2}} = \alpha_1 R_1 + \alpha_2 R_2 \]</p>
+
+<p><strong>Solución del sistema</strong></p>
+
+<p>\[\ ( -0.0005 ) R_1 + (0.0004)R_2 = 0\]</p>
+
+<p>Multiplicando todo por un factor de 10000 y despejando \( R_{2} \)</p>
+
+<p>\[R_2 = \frac{5}{4} R_1\]</p>
+
+<p>Las resistencias \( R_{1} \) y \( R_{2} \) de cada material son:</p>
+
+<p>\[\boxed{R_{\mathrm{1}} = \frac{40}{9} \, \Omega}\]</p>
+
+<p>\[\boxed{R_{\mathrm{2}} = \frac{50}{9}\, \Omega }\]</p>
+
+<h3>Relación entre las longitutedes</h3>
+
+<p>Se utiliza la expresión:</p>
+
+<p>\[R = \rho \frac{L}{A}\]</p>
+
+<p>Donde:</p>
+
+<ul>
+<li>\( \rho \): resistividad del material</li>
+<li>\( L \): longitud del conductor</li>
+<li>\( A \): área transversal</li>
+</ul>
+
+<h3>Geometría del problema</h3>
+
+<p>El radio del cilindro es:</p>
+
+<p>\[r = 1.5 \times 10^{-3} \, \text{m}\]</p>
+
+<p>El área transversal está dada por:</p>
+
+<p>\[A = \pi r^2\]</p>
+
+<p>Reemplazando:</p>
+
+<p>\[A = \pi (1.5 \times 10^{-3})^2\]</p>
+
+<h3>Propiedades de los materiales</h3>
+
+<ul>
+<li>\( \rho_{\text{carbono}} = 3.5 \times 10^{-5} \, \Omega \cdot \text{m} \)</li>
+<li>\( \rho_{\text{nicromo}} = 1.0 \times 10^{-6} \, \Omega \cdot \text{m} \)</li>
+</ul>
+
+<h3>Cálculo de longitudes</h3>
+
+<p>Despejando de la ecuación:</p>
+
+
+<p> \[R = \rho \frac{L}{A}\] </p>
+
+<p>Se obtiene:</p>
+
+</p>\[L = \frac{R A}{\rho}\] </p>
+
+<p>Por lo tanto:</p>
+
+<p>\[l_1 = \frac{(4.44)(7.07 \times 10^{-6})}{3.5 \times 10^{-5}} \]</p>
+
+<p>\[l_1 = 0.897 \mathrm{m} \]</p>
+
+<p>\[l_2 = \frac{(5.56)(7.07 \times 10^{-6})}{1.0 \times 10^{-6}}\]</p>
+
+</p>\[l_2 = 39.26 \mathrm{m} \]</p>
+
+<p>Relación entre longitudes:</p>
+
+<p>\[\boxed{\frac{l_1}{l_2} \approx 0.023}\]</p>
+
+
+
+
+
+
+<h2>3.Análisis funcional o teórico</h2>
+
+<p> La resistencia electrica de un material depende de la temperatura, lo cual se modelo mediante la expresión
+
+<p>\[\frac{dR}{dT} = \alpha R\]</p>
+
+<p>
+donde \( \alpha \) es el coeficiente de temperatura de la resistencia.
+</p>
+
+<p>
+Un valor positivo de \( \alpha \) indica que la resistencia aumenta con la temperatura, mientras que un valor negativo indica que disminuye.
+</p>
+
+<p>
+En este problema, el carbono presenta un coeficiente negativo, mientras que el nicromo posee un coeficiente positivo. Esto permite que, al combinar ambos materiales en serie, sus variaciones de resistencia con la temperatura se compensen entre sí.
+</p>
+
+<p>La condición:</p>
+
+<p>\[\alpha_1 R_1 + \alpha_2 R_2 = 0\]</p>
+
+<p>
+garantiza que la derivada de la resistencia total respecto a la temperatura sea cero, es decir, que el sistema sea térmicamente estable.
+</p>
+
+<p>
+Desde el punto de vista físico, esto implica que el aumento de resistencia en uno de los materiales se contrarresta con la disminución en el otro.
+</p>
+
+<p>Por otra parte, la relación:</p>
+
+<p>\[R = \rho \frac{L}{A}\]</p>
+
+<p>
+indica que la resistencia depende directamente de la resistividad y la longitud del material.
+</p>
+
+<p>
+Dado que el carbono tiene una resistividad mayor que el nicromo, requiere una menor longitud para aportar una misma resistencia. Esto se refleja en la relación obtenida:
+</p>
+
+<p>\[\boxed{\frac{l_1}{l_2} \approx 0.023}\]</p>
+
+<p>
+lo cual indica que el nicromo debe ser considerablemente más largo que el carbono.
+</p>
+
+<p>
+En conjunto, el sistema representa un diseño en el cual se logra estabilidad térmica mediante la combinación adecuada de materiales con propiedades opuestas.
+</p>
+
+
+
+
+<div class="section">
+<h2>4. Planteamiento de la simulación</h2>
+
+<p>
+Con el fin de verificar los resultados obtenidos en la solución matemática, se propone una simulación interactiva que permita analizar el comportamiento del sistema ante variaciones en las resistencias.
+</p>
+
+<p>
+La simulación consiste en variar el valor de la resistencia \( R_1 \) mediante un control deslizante, y calcular automáticamente el valor de \( R_2 \) de manera que se cumpla la condición:
+</p>
+
+\[
+\alpha_1 R_1 + \alpha_2 R_2 = 0
+\]
+
+<p>
+De esta forma, se garantiza que la resistencia total del sistema no dependa de la temperatura.
+</p>
+
+<p>
+Para cada valor de \( R_1 \), se determina:
+</p>
+
+\[
+R_2 = -\frac{\alpha_1}{\alpha_2} R_1
+\]
+
+<p>
+y posteriormente se calcula la resistencia total:
+</p>
+
+\[
+R_{total} = R_1 + R_2
+\]
+
+<p>
+El objetivo de la simulación es comprobar que, independientemente del valor de \( R_1 \), la condición de estabilidad térmica se mantiene, es decir:
+</p>
+
+\[
+\alpha_1 R_1 + \alpha_2 R_2 \approx 0
+\]
+
+</div>
+
+
+
+
+
+
+
+
+
+<div class="section">
+<h2>5. Simulación interactiva o visualización dinámica</h2>
+
+<p>Se varía el valor de \( R_1 \) y se calcula dinámicamente \( R_2\) para cumplir:</p>
+
+\[\alpha_1 R_1 + \alpha_2 R_2 = 0\]
+
+<p>Despejando \( R_2 \):</p>
+
+\[R_2 = -\frac{\alpha_1}{\alpha_2} R_1\]
+
+<p>La resistencia total del sistema está dada por:</p>
+
+\[R_{total} = R_1 + R_2\]
+
+<label>R₁ (Ω): <span id="valorR1">4.44</span></label><br>
+<input type="range" min="1" max="10" step="0.01" value="4.44" id="slider">
+
+<div class="box">
+<p id="r2"></p>
+<p id="rt"></p>
+<p id="condicion"></p>
+</div>
+
+<script>
+let alpha1 = -0.0005;
+let alpha2 = 0.0004;
+
+let slider = document.getElementById("slider");
+
+slider.oninput = function() {
+
+    let R1 = parseFloat(this.value);
+
+    document.getElementById("valorR1").innerText = R1.toFixed(2);
+
+    let R2 = (-alpha1/alpha2) * R1;
+    let Rtotal = R1 + R2;
+    let condicion = alpha1*R1 + alpha2*R2;
+
+    document.getElementById("r2").innerHTML =
+        "\\[ R_2 = " + R2.toFixed(4) + " \\, \\Omega \\]";
+
+    document.getElementById("rt").innerHTML =
+        "\\[ R_{total} = " + Rtotal.toFixed(4) + " \\, \\Omega \\]";
+
+    document.getElementById("condicion").innerHTML =
+        "\\[ \\alpha_1 R_1 + \\alpha_2 R_2 = " + condicion.toExponential(2) + " \\]";
+
+    MathJax.typeset();
+}
+
+// inicial
+slider.oninput();
+</script>
+
+</div>
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Conclusión</title>
+</head>
+<body>
+
+
+
+
+<h2>6. Conclusión</h2>
+
+<p>1. Se verifica que es posible cumplir ambas condiciones del problema. Por un lado, la resistencia total satisface:</p>
+
+<p>\[R_1 + R_2 = 10 \, \Omega\]</p>
+
+<p>y por otro lado, la condición de independencia con la temperatura:</p>
+
+<p>\[\alpha_1 R_1 + \alpha_2 R_2 = 0\]</p>
+
+<p>se cumple, lo cual garantiza que la resistencia total no varía con la temperatura.</p>
+
+<p>Además, las longitudes obtenidas \( l_1 \) y \( l_2 \) por lo que el diseño es viable.</p>
+
+<p>Finalmente, se observa que el material con menor resistividad (nicromo) requiere una mayor longitud, lo cual es consistente con la relación:</p>
+
+<p>\[\boxed{\frac{l_1}{l_2} \approx 0.023}\]</p>
+
+<p>2. La simulación permite verificar de forma visual el ajuste entre \(R_1\) y \(R_2\) para mantener la condición de independencia térmica. Al modificar \(R_1\), el sistema recalcula automáticamente \(R_2\), mostrando que la relación entre ambas resistencias se conserva de manera consistente.</p>
+
+<p>Por lo tanto, la interacción facilita la comprensión del comportamiento del sistema y confirma de manera dinámica la coherencia del modelo planteado.</p>
+
+</body>
+</html>
+
+
+
+<h2>7. Referencias</h2>
+
+<p>Overleaf. (s. f.). Overleaf LaTeX editor. https://www.overleaf.com</p>
+
+<p>OpenAI. (2026). ChatGPT (modelo de inteligencia artificial). https://chatgpt.com</p>
+
+
+
+</body>
+</html>

@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Capacitancia Equivalente – Problema P26.23</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Sans+3:wght@300;400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.min.js"></script>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #141720;
+    --surface2: #1c2030;
+    --border: #2a2f45;
+    --accent: #4f8ef7;
+    --accent2: #e05c5c;
+    --accent3: #4ecda4;
+    --accent4: #f0a500;
+    --text: #e8eaf0;
+    --text2: #8b90a8;
+    --text3: #5a5f75;
+    --radius: 12px;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Source Sans 3', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #0d0f14 0%, #111525 50%, #0a1020 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 60px 40px 50px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(79,142,247,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+    opacity: 0.8;
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #e8eaf0 30%, #4f8ef7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    color: var(--text2);
+    font-size: 15px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── SECTIONS ── */
+  section {
+    padding: 48px 0 0;
+  }
+  section:last-of-type { padding-bottom: 80px; }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .section-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(79,142,247,0.1);
+    border: 1px solid rgba(79,142,247,0.25);
+    border-radius: 6px;
+    padding: 3px 10px;
+    letter-spacing: 1px;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    margin-bottom: 16px;
+  }
+  .card p { color: var(--text2); margin-bottom: 10px; }
+  .card p:last-child { margin-bottom: 0; }
+
+  /* ── MATH BLOCK ── */
+  .math-block {
+    background: var(--surface2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 18px 24px;
+    margin: 14px 0;
+    overflow-x: auto;
+  }
+  .math-block.result {
+    border-left-color: var(--accent3);
+    background: rgba(78,205,164,0.05);
+  }
+
+  /* ── STEP CARDS ── */
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 28px;
+    margin-bottom: 14px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .step:hover { border-color: rgba(79,142,247,0.4); }
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+  .step-badge {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .step-badge.red   { background: rgba(224,92,92,0.15);  color: var(--accent2); border: 1px solid rgba(224,92,92,0.3); }
+  .step-badge.blue  { background: rgba(79,142,247,0.12); color: var(--accent);  border: 1px solid rgba(79,142,247,0.3); }
+  .step-badge.green { background: rgba(78,205,164,0.12); color: var(--accent3); border: 1px solid rgba(78,205,164,0.3); }
+  .step-badge.gold  { background: rgba(240,165,0,0.12);  color: var(--accent4); border: 1px solid rgba(240,165,0,0.3); }
+  .step-title { font-weight: 600; font-size: 15px; }
+
+  /* ── RESULT BOX ── */
+  .result-box {
+    background: linear-gradient(135deg, rgba(78,205,164,0.08), rgba(79,142,247,0.06));
+    border: 1px solid rgba(78,205,164,0.3);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    text-align: center;
+    margin-top: 8px;
+  }
+  .result-box .label { font-family: var(--font-mono); font-size: 12px; color: var(--accent3); letter-spacing: 2px; margin-bottom: 10px; }
+  .result-box .value { font-family: var(--font-display); font-size: 36px; color: #fff; }
+  .result-box .unit  { font-size: 18px; color: var(--text2); margin-left: 6px; }
+
+  /* ── DIAGRAM SVG ── */
+  .diagram-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .diagram-wrap svg { width: 100%; height: auto; }
+
+  /* ── SIMULATION ── */
+  .sim-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+  }
+  .sim-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .ctrl-group label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text2);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .ctrl-group input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+  .ctrl-val {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 4px;
+  }
+  .sim-results {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .sim-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .sim-card .sc-label { font-family: var(--font-mono); font-size: 10px; color: var(--text3); letter-spacing: 1px; margin-bottom: 6px; }
+  .sim-card .sc-val   { font-family: var(--font-mono); font-size: 16px; font-weight: 500; }
+  .sim-card.highlight { border-color: var(--accent3); background: rgba(78,205,164,0.05); }
+  .sim-card.highlight .sc-val { color: var(--accent3); }
+
+  #sim-svg { width: 100%; border-radius: 8px; background: var(--surface2); }
+
+  /* ── BIBLIOGRAPHY ── */
+  .bib-item {
+    border-left: 2px solid var(--border);
+    padding: 10px 0 10px 18px;
+    margin-bottom: 12px;
+    color: var(--text2);
+    font-size: 14px;
+  }
+  .bib-item strong { color: var(--text); }
+
+  /* ── CONCLUSIONS ── */
+  .conclusion-item {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 14px;
+    align-items: flex-start;
+  }
+  .c-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-top: 8px;
+    flex-shrink: 0;
+  }
+
+  /* ── DIVIDER ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Física de Campos · Problema P26.23</div>
+  <h1>Capacitancia Equivalente<br/>entre dos puntos</h1>
+  <p class="hero-sub">Análisis de un circuito de capacitores con conexiones en serie y paralelo mediante reducción progresiva.</p>
+  <p style="margin-top:18px; font-family:var(--font-mono); font-size:13px; color:var(--accent); letter-spacing:1px;">Juan David Flechas P</p>
+</div>
+
+<div class="container">
+
+<!-- 1. ENUNCIADO -->
+<section>
+  <div class="section-label">
+    <span class="section-num">01</span>
+    <span class="section-title">Enunciado del problema</span>
+  </div>
+  <div class="card">
+    <p>Determine la capacitancia equivalente entre los puntos <strong>a</strong> y <strong>b</strong> para el grupo de capacitores conectados como se muestra en la Figura P26.23.</p>
+    <p>Utilice los valores:</p>
+    <div class="math-block">
+      \[ C_1 = 5{,}00\ \mu\text{F} \qquad C_2 = 10{,}00\ \mu\text{F} \qquad C_3 = 2{,}00\ \mu\text{F} \]
+    </div>
+    <p><strong>Topología del circuito:</strong> Entre el punto <em>a</em> y un nodo intermedio <em>M</em> existen tres ramas en paralelo: la rama izquierda (C₁ en serie con C₂), la rama central (C₃ solo) y la rama derecha (C₁ en serie con C₂). Desde el nodo <em>M</em> hasta el punto <em>b</em> hay dos C₂ en paralelo.</p>
+  </div>
+
+  <!-- Diagrama del circuito -->
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 680 430" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#8b90a8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- Nodo a -->
+      <circle cx="340" cy="32" r="6" fill="#e8eaf0"/>
+      <text x="354" y="38" fill="#e8eaf0" font-family="JetBrains Mono,monospace" font-size="14" font-weight="500">a</text>
+
+      <!-- Línea horizontal superior -->
+      <line x1="160" y1="32" x2="520" y2="32" stroke="#5a5f75" stroke-width="1.5"/>
+      <circle cx="160" cy="32" r="4" fill="#8b90a8"/>
+      <circle cx="340" cy="32" r="4" fill="#8b90a8"/>
+      <circle cx="520" cy="32" r="4" fill="#8b90a8"/>
+
+      <!-- RAMA IZQUIERDA: C1 serie C2 -->
+      <line x1="160" y1="32" x2="160" y2="82" stroke="#5a5f75" stroke-width="1.5"/>
+      <line x1="128" y1="82" x2="192" y2="82" stroke="#e05c5c" stroke-width="3.5"/>
+      <line x1="128" y1="98" x2="192" y2="98" stroke="#e05c5c" stroke-width="3.5"/>
+      <text x="100" y="93" fill="#e05c5c" font-family="JetBrains Mono,monospace" font-size="12" text-anchor="end">C₁</text>
+      <line x1="160" y1="98" x2="160" y2="162" stroke="#5a5f75" stroke-width="1.5"/>
+      <line x1="128" y1="162" x2="192" y2="162" stroke="#4f8ef7" stroke-width="3.5"/>
+      <line x1="128" y1="178" x2="192" y2="178" stroke="#4f8ef7" stroke-width="3.5"/>
+      <text x="100" y="173" fill="#4f8ef7" font-family="JetBrains Mono,monospace" font-size="12" text-anchor="end">C₂</text>
+      <line x1="160" y1="178" x2="160" y2="240" stroke="#5a5f75" stroke-width="1.5"/>
+
+      <!-- RAMA CENTRAL: C3 -->
+      <line x1="340" y1="32" x2="340" y2="105" stroke="#5a5f75" stroke-width="1.5"/>
+      <line x1="308" y1="105" x2="372" y2="105" stroke="#4ecda4" stroke-width="3.5"/>
+      <line x1="308" y1="121" x2="372" y2="121" stroke="#4ecda4" stroke-width="3.5"/>
+      <text x="384" y="116" fill="#4ecda4" font-family="JetBrains Mono,monospace" font-size="12">C₃</text>
+      <line x1="340" y1="121" x2="340" y2="240" stroke="#5a5f75" stroke-width="1.5"/>
+
+      <!-- RAMA DERECHA: C1 serie C2 -->
+      <line x1="520" y1="32" x2="520" y2="82" stroke="#5a5f75" stroke-width="1.5"/>
+      <line x1="488" y1="82" x2="552" y2="82" stroke="#e05c5c" stroke-width="3.5"/>
+      <line x1="488" y1="98" x2="552" y2="98" stroke="#e05c5c" stroke-width="3.5"/>
+      <text x="562" y="93" fill="#e05c5c" font-family="JetBrains Mono,monospace" font-size="12">C₁</text>
+      <line x1="520" y1="98" x2="520" y2="162" stroke="#5a5f75" stroke-width="1.5"/>
+      <line x1="488" y1="162" x2="552" y2="162" stroke="#4f8ef7" stroke-width="3.5"/>
+      <line x1="488" y1="178" x2="552" y2="178" stroke="#4f8ef7" stroke-width="3.5"/>
+      <text x="562" y="173" fill="#4f8ef7" font-family="JetBrains Mono,monospace" font-size="12">C₁</text>
+      <line x1="520" y1="178" x2="520" y2="240" stroke="#5a5f75" stroke-width="1.5"/>
+      <!-- Corrección: etiqueta C₂ rama derecha -->
+      <text x="562" y="173" fill="#4f8ef7" font-family="JetBrains Mono,monospace" font-size="12">C₂</text>
+
+      <!-- NODO M -->
+      <line x1="160" y1="240" x2="520" y2="240" stroke="#5a5f75" stroke-width="1.5"/>
+      <circle cx="160" cy="240" r="4" fill="#8b90a8"/>
+      <circle cx="520" cy="240" r="4" fill="#8b90a8"/>
+      <circle cx="340" cy="240" r="7" fill="#4f8ef7" opacity="0.8"/>
+      <text x="354" y="237" fill="#4f8ef7" font-family="JetBrains Mono,monospace" font-size="12">M</text>
+
+      <!-- Línea central baja desde M -->
+      <line x1="340" y1="240" x2="340" y2="300" stroke="#5a5f75" stroke-width="1.5"/>
+      <circle cx="340" cy="300" r="4" fill="#8b90a8"/>
+      <!-- Bifurcación -->
+      <line x1="240" y1="300" x2="440" y2="300" stroke="#5a5f75" stroke-width="1.5"/>
+      <circle cx="240" cy="300" r="4" fill="#8b90a8"/>
+      <circle cx="440" cy="300" r="4" fill="#8b90a8"/>
+
+      <!-- C2 abajo izquierdo -->
+      <line x1="240" y1="300" x2="240" y2="345" stroke="#5a5f75" stroke-width="1.5"/>
+      <line x1="208" y1="345" x2="272" y2="345" stroke="#f0a500" stroke-width="3.5"/>
+      <line x1="208" y1="361" x2="272" y2="361" stroke="#f0a500" stroke-width="3.5"/>
+      <text x="192" y="357" fill="#f0a500" font-family="JetBrains Mono,monospace" font-size="12" text-anchor="end">C₂</text>
+      <line x1="240" y1="361" x2="240" y2="400" stroke="#5a5f75" stroke-width="1.5"/>
+
+      <!-- C2 abajo derecho -->
+      <line x1="440" y1="300" x2="440" y2="345" stroke="#5a5f75" stroke-width="1.5"/>
+      <line x1="408" y1="345" x2="472" y2="345" stroke="#f0a500" stroke-width="3.5"/>
+      <line x1="408" y1="361" x2="472" y2="361" stroke="#f0a500" stroke-width="3.5"/>
+      <text x="482" y="357" fill="#f0a500" font-family="JetBrains Mono,monospace" font-size="12">C₂</text>
+      <line x1="440" y1="361" x2="440" y2="400" stroke="#5a5f75" stroke-width="1.5"/>
+
+      <!-- Línea inferior → b -->
+      <line x1="240" y1="400" x2="440" y2="400" stroke="#5a5f75" stroke-width="1.5"/>
+      <circle cx="240" cy="400" r="4" fill="#8b90a8"/>
+      <circle cx="340" cy="400" r="4" fill="#8b90a8"/>
+      <circle cx="440" cy="400" r="4" fill="#8b90a8"/>
+      <line x1="340" y1="400" x2="340" y2="420" stroke="#5a5f75" stroke-width="1.5"/>
+      <circle cx="340" cy="420" r="6" fill="#e8eaf0"/>
+      <text x="354" y="426" fill="#e8eaf0" font-family="JetBrains Mono,monospace" font-size="14" font-weight="500">b</text>
+
+      <!-- Leyenda -->
+      <rect x="20" y="340" width="140" height="76" rx="8" fill="#1c2030" stroke="#2a2f45" stroke-width="1"/>
+      <text x="30" y="362" fill="#e05c5c" font-family="JetBrains Mono,monospace" font-size="11">■ C₁ = 5.00 μF</text>
+      <text x="30" y="382" fill="#4f8ef7" font-family="JetBrains Mono,monospace" font-size="11">■ C₂ = 10.00 μF</text>
+      <text x="30" y="402" fill="#4ecda4" font-family="JetBrains Mono,monospace" font-size="11">■ C₃ = 2.00 μF</text>
+    </svg>
+  </div>
+</section>
+
+<!-- 2. SOLUCIÓN MATEMÁTICA -->
+<section>
+  <div class="section-label">
+    <span class="section-num">02</span>
+    <span class="section-title">Solución matemática completa</span>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-badge red">1</div>
+      <div class="step-title">C₁ en serie con C₂ — ramas izquierda y derecha</div>
+    </div>
+    <p style="color:var(--text2);margin-bottom:10px;">Para capacitores en serie, la capacitancia equivalente se obtiene como la inversa de la suma de inversas:</p>
+    <div class="math-block">
+      \[ \frac{1}{C_a} = \frac{1}{C_1} + \frac{1}{C_2} = \frac{1}{5{,}00} + \frac{1}{10{,}00} = \frac{2}{10} + \frac{1}{10} = \frac{3}{10} \]
+    </div>
+    <div class="math-block">
+      \[ C_a = \frac{10}{3} \approx 3{,}33\ \mu\text{F} \]
+    </div>
+    <p style="color:var(--text2);">Este resultado aplica igual para la rama izquierda y la derecha por simetría.</p>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-badge blue">2</div>
+      <div class="step-title">Cₐ ∥ C₃ ∥ Cₐ — tres ramas en paralelo entre a y M</div>
+    </div>
+    <p style="color:var(--text2);margin-bottom:10px;">Para capacitores en paralelo, las capacitancias se suman directamente:</p>
+    <div class="math-block">
+      \[ C_{aM} = C_a + C_3 + C_a = 3{,}33 + 2{,}00 + 3{,}33 = 8{,}67\ \mu\text{F} \]
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-badge green">3</div>
+      <div class="step-title">C₂ ∥ C₂ — dos ramas en paralelo entre M y b</div>
+    </div>
+    <div class="math-block">
+      \[ C_{Mb} = C_2 + C_2 = 10{,}00 + 10{,}00 = 20{,}00\ \mu\text{F} \]
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-badge gold">4</div>
+      <div class="step-title">C_aM en serie con C_Mb — resultado final</div>
+    </div>
+    <p style="color:var(--text2);margin-bottom:10px;">Los dos bloques quedan en serie entre a y b:</p>
+    <div class="math-block">
+      \[ \frac{1}{C_{eq}} = \frac{1}{C_{aM}} + \frac{1}{C_{Mb}} = \frac{1}{8{,}67} + \frac{1}{20{,}00} \]
+    </div>
+    <div class="math-block">
+      \[ \frac{1}{C_{eq}} = 0{,}1154 + 0{,}0500 = 0{,}1654\ \mu\text{F}^{-1} \]
+    </div>
+    <div class="math-block result">
+      \[ \boxed{C_{eq} = \frac{1}{0{,}1654} \approx 6{,}05\ \mu\text{F}} \]
+    </div>
+  </div>
+
+  <div class="result-box">
+    <div class="label">RESULTADO FINAL</div>
+    <div class="value">C<sub style="font-size:20px">eq</sub> ≈ 6.05 <span class="unit">μF</span></div>
+  </div>
+</section>
+
+<!-- 3. ANÁLISIS FUNCIONAL -->
+<section>
+  <div class="section-label">
+    <span class="section-num">03</span>
+    <span class="section-title">Análisis funcional y teórico</span>
+  </div>
+  <div class="card">
+    <p><strong>Capacitores en serie:</strong> Cuando se conectan capacitores en serie, la capacitancia equivalente es <em>menor</em> que la del capacitor más pequeño del grupo. Esto ocurre porque la carga que se acumula en cada capacitor es la misma (Q), pero el voltaje total se distribuye entre todos. La fórmula es:</p>
+    <div class="math-block">\[ \frac{1}{C_{serie}} = \sum_i \frac{1}{C_i} \]</div>
+    <p><strong>Capacitores en paralelo:</strong> Cuando se conectan en paralelo, el voltaje en todos es el mismo, pero las cargas se suman. La capacitancia equivalente es <em>mayor</em> que la de cualquiera individualmente:</p>
+    <div class="math-block">\[ C_{paralelo} = \sum_i C_i \]</div>
+    <p><strong>Verificación de consistencia:</strong> El resultado final C<sub>eq</sub> ≈ 6.05 μF es menor que C<sub>aM</sub> = 8.67 μF (correcto, porque se puso en serie con algo) y mayor que el capacitor individual más pequeño del circuito inferior (C₃ = 2 μF). Todos los valores intermedios son físicamente coherentes.</p>
+  </div>
+</section>
+
+<!-- 4. PLANTEAMIENTO DE LA SIMULACIÓN -->
+<section>
+  <div class="section-label">
+    <span class="section-num">04</span>
+    <span class="section-title">Planteamiento de la simulación</span>
+  </div>
+  <div class="card">
+    <p>La simulación permite modificar los valores de C₁, C₂ y C₃ en tiempo real y observar cómo cambia la capacitancia equivalente en cada etapa del cálculo.</p>
+    <p>El modelo sigue exactamente los 4 pasos de la solución matemática: calcula Cₐ (serie), luego C<sub>aM</sub> (paralelo de tres), luego C<sub>Mb</sub> (paralelo de dos C₂), y finalmente C<sub>eq</sub> (serie de los dos bloques).</p>
+    <p>La visualización dinámica muestra el circuito con colores que representan la "carga relativa" de cada capacitor, proporcional a su capacitancia.</p>
+  </div>
+</section>
+
+<!-- 5. SIMULACIÓN INTERACTIVA -->
+<section>
+  <div class="section-label">
+    <span class="section-num">05</span>
+    <span class="section-title">Simulación interactiva</span>
+  </div>
+  <div class="sim-wrap">
+    <div class="sim-controls">
+      <div class="ctrl-group">
+        <label>C₁ (μF)</label>
+        <input type="range" id="slC1" min="1" max="20" step="0.5" value="5"/>
+        <div class="ctrl-val" id="valC1">5.00 μF</div>
+      </div>
+      <div class="ctrl-group">
+        <label>C₂ (μF)</label>
+        <input type="range" id="slC2" min="1" max="30" step="0.5" value="10"/>
+        <div class="ctrl-val" id="valC2">10.00 μF</div>
+      </div>
+      <div class="ctrl-group">
+        <label>C₃ (μF)</label>
+        <input type="range" id="slC3" min="0.5" max="15" step="0.5" value="2"/>
+        <div class="ctrl-val" id="valC3">2.00 μF</div>
+      </div>
+    </div>
+
+    <div class="sim-results">
+      <div class="sim-card">
+        <div class="sc-label">Cₐ (serie)</div>
+        <div class="sc-val" id="rCa" style="color:var(--accent2);">3.33 μF</div>
+      </div>
+      <div class="sim-card">
+        <div class="sc-label">C_aM (∥)</div>
+        <div class="sc-val" id="rCaM" style="color:var(--accent);">8.67 μF</div>
+      </div>
+      <div class="sim-card">
+        <div class="sc-label">C_Mb (∥)</div>
+        <div class="sc-val" id="rCMb" style="color:var(--accent4);">20.00 μF</div>
+      </div>
+      <div class="sim-card highlight">
+        <div class="sc-label">C_eq FINAL</div>
+        <div class="sc-val" id="rCeq">6.05 μF</div>
+      </div>
+    </div>
+
+    <!-- Diagrama SVG interactivo -->
+    <svg id="sim-svg" viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#5a5f75" stroke-width="1.5" stroke-linecap="round"/>
+        </marker>
+      </defs>
+
+      <!-- Nodo a -->
+      <circle cx="340" cy="28" r="6" fill="#e8eaf0"/>
+      <text x="352" y="33" fill="#e8eaf0" font-family="JetBrains Mono,monospace" font-size="13" font-weight="500">a</text>
+
+      <!-- Línea superior -->
+      <line x1="160" y1="28" x2="520" y2="28" stroke="#5a5f75" stroke-width="1.5"/>
+      <circle cx="160" cy="28" r="3" fill="#8b90a8"/>
+      <circle cx="340" cy="28" r="3" fill="#8b90a8"/>
+      <circle cx="520" cy="28" r="3" fill="#8b90a8"/>
+
+      <!-- RAMA IZQ -->
+      <line x1="160" y1="28" x2="160" y2="72" stroke="#5a5f75" stroke-width="1.5"/>
+      <line id="c1l-t" x1="128" y1="72" x2="192" y2="72" stroke="#e05c5c" stroke-width="4"/>
+      <line id="c1l-b" x1="128" y1="86" x2="192" y2="86" stroke="#e05c5c" stroke-width="4"/>
+      <text x="104" y="82" fill="#e05c5c" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="end">C₁</text>
+      <line x1="160" y1="86" x2="160" y2="148" stroke="#5a5f75" stroke-width="1.5"/>
+      <line id="c2l-t" x1="128" y1="148" x2="192" y2="148" stroke="#4f8ef7" stroke-width="4"/>
+      <line id="c2l-b" x1="128" y1="162" x2="192" y2="162" stroke="#4f8ef7" stroke-width="4"/>
+      <text x="104" y="158" fill="#4f8ef7" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="end">C₂</text>
+      <line x1="160" y1="162" x2="160" y2="220" stroke="#5a5f75" stroke-width="1.5"/>
+
+      <!-- RAMA CENTRAL C3 -->
+      <line x1="340" y1="28" x2="340" y2="96" stroke="#5a5f75" stroke-width="1.5"/>
+      <line id="c3-t" x1="308" y1="96" x2="372" y2="96" stroke="#4ecda4" stroke-width="4"/>
+      <line id="c3-b" x1="308" y1="110" x2="372" y2="110" stroke="#4ecda4" stroke-width="4"/>
+      <text x="382" y="106" fill="#4ecda4" font-family="JetBrains Mono,monospace" font-size="11">C₃</text>
+      <line x1="340" y1="110" x2="340" y2="220" stroke="#5a5f75" stroke-width="1.5"/>
+
+      <!-- RAMA DER -->
+      <line x1="520" y1="28" x2="520" y2="72" stroke="#5a5f75" stroke-width="1.5"/>
+      <line id="c1r-t" x1="488" y1="72" x2="552" y2="72" stroke="#e05c5c" stroke-width="4"/>
+      <line id="c1r-b" x1="488" y1="86" x2="552" y2="86" stroke="#e05c5c" stroke-width="4"/>
+      <text x="562" y="82" fill="#e05c5c" font-family="JetBrains Mono,monospace" font-size="11">C₁</text>
+      <line x1="520" y1="86" x2="520" y2="148" stroke="#5a5f75" stroke-width="1.5"/>
+      <line id="c2r-t" x1="488" y1="148" x2="552" y2="148" stroke="#4f8ef7" stroke-width="4"/>
+      <line id="c2r-b" x1="488" y1="162" x2="552" y2="162" stroke="#4f8ef7" stroke-width="4"/>
+      <text x="562" y="158" fill="#4f8ef7" font-family="JetBrains Mono,monospace" font-size="11">C₂</text>
+      <line x1="520" y1="162" x2="520" y2="220" stroke="#5a5f75" stroke-width="1.5"/>
+
+      <!-- NODO M -->
+      <line x1="160" y1="220" x2="520" y2="220" stroke="#5a5f75" stroke-width="1.5"/>
+      <circle cx="160" cy="220" r="3" fill="#8b90a8"/>
+      <circle cx="520" cy="220" r="3" fill="#8b90a8"/>
+      <circle cx="340" cy="220" r="7" fill="#4f8ef7" opacity="0.9"/>
+      <text x="352" y="218" fill="#4f8ef7" font-family="JetBrains Mono,monospace" font-size="11">M</text>
+
+      <!-- Línea central baja -->
+      <line x1="340" y1="220" x2="340" y2="272" stroke="#5a5f75" stroke-width="1.5"/>
+      <circle cx="340" cy="272" r="3" fill="#8b90a8"/>
+      <line x1="240" y1="272" x2="440" y2="272" stroke="#5a5f75" stroke-width="1.5"/>
+      <circle cx="240" cy="272" r="3" fill="#8b90a8"/>
+      <circle cx="440" cy="272" r="3" fill="#8b90a8"/>
+
+      <!-- C2 abajo izq -->
+      <line x1="240" y1="272" x2="240" y2="310" stroke="#5a5f75" stroke-width="1.5"/>
+      <line id="c2bi-t" x1="208" y1="310" x2="272" y2="310" stroke="#f0a500" stroke-width="4"/>
+      <line id="c2bi-b" x1="208" y1="324" x2="272" y2="324" stroke="#f0a500" stroke-width="4"/>
+      <text x="192" y="320" fill="#f0a500" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="end">C₂</text>
+      <line x1="240" y1="324" x2="240" y2="368" stroke="#5a5f75" stroke-width="1.5"/>
+
+      <!-- C2 abajo der -->
+      <line x1="440" y1="272" x2="440" y2="310" stroke="#5a5f75" stroke-width="1.5"/>
+      <line id="c2bd-t" x1="408" y1="310" x2="472" y2="310" stroke="#f0a500" stroke-width="4"/>
+      <line id="c2bd-b" x1="408" y1="324" x2="472" y2="324" stroke="#f0a500" stroke-width="4"/>
+      <text x="482" y="320" fill="#f0a500" font-family="JetBrains Mono,monospace" font-size="11">C₂</text>
+      <line x1="440" y1="324" x2="440" y2="368" stroke="#5a5f75" stroke-width="1.5"/>
+
+      <!-- Línea inferior -->
+      <line x1="240" y1="368" x2="440" y2="368" stroke="#5a5f75" stroke-width="1.5"/>
+      <circle cx="240" cy="368" r="3" fill="#8b90a8"/>
+      <circle cx="340" cy="368" r="3" fill="#8b90a8"/>
+      <circle cx="440" cy="368" r="3" fill="#8b90a8"/>
+      <line x1="340" y1="368" x2="340" y2="388" stroke="#5a5f75" stroke-width="1.5"/>
+      <circle cx="340" cy="388" r="6" fill="#e8eaf0"/>
+      <text x="352" y="393" fill="#e8eaf0" font-family="JetBrains Mono,monospace" font-size="13" font-weight="500">b</text>
+    </svg>
+  </div>
+</section>
+
+<!-- 6. CONCLUSIONES -->
+<section>
+  <div class="section-label">
+    <span class="section-num">06</span>
+    <span class="section-title">Conclusiones</span>
+  </div>
+  <div class="card">
+    <div class="conclusion-item">
+      <div class="c-dot"></div>
+      <p>La capacitancia equivalente entre los puntos <strong>a</strong> y <strong>b</strong> es aproximadamente <strong>6.05 μF</strong>, usando los valores C₁ = 5 μF, C₂ = 10 μF y C₃ = 2 μF.</p>
+    </div>
+    <div class="conclusion-item">
+      <div class="c-dot" style="background:var(--accent2)"></div>
+      <p>La conexión en serie siempre reduce la capacitancia equivalente por debajo del valor más pequeño de los capacitores involucrados, mientras que la conexión en paralelo la incrementa.</p>
+    </div>
+    <div class="conclusion-item">
+      <div class="c-dot" style="background:var(--accent3)"></div>
+      <p>El método de reducción progresiva (de los grupos más internos hacia los extremos) es la estrategia más sistemática para resolver circuitos con múltiples capacitores combinados.</p>
+    </div>
+    <div class="conclusion-item">
+      <div class="c-dot" style="background:var(--accent4)"></div>
+      <p>La simulación interactiva confirma que al aumentar C₃ o C₂ el valor de C<sub>eq</sub> crece, y al disminuirlos se reduce, mostrando la sensibilidad del circuito a cada elemento.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7. BIBLIOGRAFÍA -->
+<section>
+  <div class="section-label">
+    <span class="section-num">07</span>
+    <span class="section-title">Bibliografía</span>
+  </div>
+  <div class="card">
+    <div class="bib-item">
+      <strong>Serway, R. A. & Jewett, J. W.</strong> (2014). <em>Physics for Scientists and Engineers</em> (9th ed.). Brooks/Cole, Cengage Learning. Capítulo 26: Capacitance and Dielectrics.
+    </div>
+    <div class="bib-item">
+      <strong>Halliday, D., Resnick, R. & Krane, K. S.</strong> (2010). <em>Physics</em> (5th ed., Vol. 2). John Wiley & Sons. Capítulo 25: Capacitors and Dielectrics.
+    </div>
+    <div class="bib-item">
+      <strong>Griffiths, D. J.</strong> (2017). <em>Introduction to Electrodynamics</em> (4th ed.). Cambridge University Press.
+    </div>
+  </div>
+</section>
+
+</div><!-- /container -->
+
+<script>
+  const slC1 = document.getElementById('slC1');
+  const slC2 = document.getElementById('slC2');
+  const slC3 = document.getElementById('slC3');
+
+  function update() {
+    const C1 = parseFloat(slC1.value);
+    const C2 = parseFloat(slC2.value);
+    const C3 = parseFloat(slC3.value);
+
+    document.getElementById('valC1').textContent = C1.toFixed(2) + ' μF';
+    document.getElementById('valC2').textContent = C2.toFixed(2) + ' μF';
+    document.getElementById('valC3').textContent = C3.toFixed(2) + ' μF';
+
+    // Paso 1: C1 serie C2
+    const Ca = 1 / (1/C1 + 1/C2);
+    // Paso 2: Ca || C3 || Ca
+    const CaM = Ca + C3 + Ca;
+    // Paso 3: C2 || C2
+    const CMb = C2 + C2;
+    // Paso 4: CaM serie CMb
+    const Ceq = 1 / (1/CaM + 1/CMb);
+
+    document.getElementById('rCa').textContent  = Ca.toFixed(2)  + ' μF';
+    document.getElementById('rCaM').textContent = CaM.toFixed(2) + ' μF';
+    document.getElementById('rCMb').textContent = CMb.toFixed(2) + ' μF';
+    document.getElementById('rCeq').textContent = Ceq.toFixed(2) + ' μF';
+
+    // Ancho visual de placas proporcional a capacitancia (entre 40 y 90px)
+    const maxC = Math.max(C1, C2, C3, 10);
+    function w(c) { return 40 + (c / maxC) * 50; }
+
+    function setPlate(id, cx, y, half) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.setAttribute('x1', cx - half);
+        el.setAttribute('x2', cx + half);
+        el.setAttribute('y1', y);
+        el.setAttribute('y2', y);
+      }
+    }
+
+    const hC1 = w(C1), hC2 = w(C2), hC3 = w(C3);
+
+    // C1 izq (cx=160)
+    setPlate('c1l-t', 160, 72, hC1); setPlate('c1l-b', 160, 86, hC1);
+    // C2 izq (cx=160)
+    setPlate('c2l-t', 160, 148, hC2); setPlate('c2l-b', 160, 162, hC2);
+    // C3 centro (cx=340)
+    setPlate('c3-t', 340, 96, hC3); setPlate('c3-b', 340, 110, hC3);
+    // C1 der (cx=520)
+    setPlate('c1r-t', 520, 72, hC1); setPlate('c1r-b', 520, 86, hC1);
+    // C2 der (cx=520)
+    setPlate('c2r-t', 520, 148, hC2); setPlate('c2r-b', 520, 162, hC2);
+    // C2 abajo izq (cx=240)
+    setPlate('c2bi-t', 240, 310, hC2); setPlate('c2bi-b', 240, 324, hC2);
+    // C2 abajo der (cx=440)
+    setPlate('c2bd-t', 440, 310, hC2); setPlate('c2bd-b', 440, 324, hC2);
+  }
+
+  slC1.addEventListener('input', update);
+  slC2.addEventListener('input', update);
+  slC3.addEventListener('input', update);
+  update();
+</script>
+</body>
+</html>

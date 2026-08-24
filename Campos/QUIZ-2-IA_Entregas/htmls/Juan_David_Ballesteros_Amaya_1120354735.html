@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicio 24.59 - Placa Aislante y Movimiento Armónico Simple</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '\\(', right: '\\)', display: false}
+            ]
+        });"></script>
+
+    <style>
+        :root {
+            --accent: #4a9eff;
+            --accent-dim: rgba(74, 158, 255, 0.12);
+            --accent-border: rgba(74, 158, 255, 0.3);
+            --text-main: #eef2ff;
+            --text-emphasis: #93bbdf;
+            --text-muted: #8896b0;
+            --text-faint: #4a5568;
+            --card-bg: rgba(10, 14, 26, 0.7);
+            --card-border: rgba(74, 158, 255, 0.12);
+            --divider: rgba(255,255,255,0.06);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-main);
+            background: #06090f;
+            background-image:
+                radial-gradient(ellipse 120% 60% at 50% 0%, #0d1a35 0%, transparent 60%),
+                linear-gradient(to bottom, #0d1a35 0%, #080c18 35%, #04060e 70%, #020408 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        /* KaTeX overrides */
+        .katex { color: var(--text-main); font-size: 1.05em; }
+        .katex-display { margin: 1rem 0; overflow-x: auto; }
+        .katex-display > .katex { color: var(--accent); }
+
+        /* ── HEADER ── */
+        header {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 3rem 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            top: -10%; left: 50%;
+            transform: translateX(-50%);
+            width: 700px; height: 400px;
+            background: radial-gradient(ellipse, rgba(74,158,255,0.12) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .badge {
+            border: 1px solid var(--accent-border);
+            color: var(--accent);
+            background: var(--accent-dim);
+            padding: 0.45rem 1.4rem;
+            border-radius: 50px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.78rem;
+            letter-spacing: 2.5px;
+            margin-bottom: 2.5rem;
+            text-transform: uppercase;
+        }
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            letter-spacing: -0.3px;
+        }
+        h1 .highlight { color: var(--accent); }
+        .subtitle {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 4rem;
+            font-weight: 300;
+        }
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border: 1px solid var(--divider);
+            border-radius: 14px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.02);
+            margin-bottom: 5rem;
+            backdrop-filter: blur(8px);
+        }
+        .metadata-item {
+            padding: 1.4rem 2rem;
+            border-right: 1px solid var(--divider);
+        }
+        .metadata-item:last-child { border-right: none; }
+        .metadata-item h3 {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--accent);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        .metadata-item p {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        /* ── NAV ── */
+        nav {
+            width: 100%;
+            border-top: 1px solid var(--divider);
+            background: rgba(4,6,14,0.85);
+            backdrop-filter: blur(16px);
+            position: sticky;
+            bottom: 0;
+            z-index: 1000;
+        }
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            padding: 1.2rem 0;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.78rem;
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            transition: all 0.25s ease;
+        }
+        nav a:hover { color: var(--accent); background: var(--accent-dim); }
+
+        /* ── MAIN ── */
+        main { padding: 80px 20px 120px; }
+        .content-section { max-width: 860px; margin: 0 auto 80px; }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .section-number {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--accent);
+            background: var(--accent-dim);
+            border: 1px solid var(--accent-border);
+            border-radius: 6px;
+            padding: 0.3rem 0.6rem;
+            flex-shrink: 0;
+        }
+        .section-header h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* ── CARDS ── */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 1.8rem 2rem;
+            margin-bottom: 1.2rem;
+            backdrop-filter: blur(10px);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            border-color: rgba(74,158,255,0.28);
+            box-shadow: 0 0 30px rgba(74,158,255,0.06);
+        }
+        .card.accent-left {
+            border-left: 3px solid var(--accent);
+            padding-left: calc(2rem - 2px);
+        }
+        .card-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+        }
+        .card p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            line-height: 1.75;
+        }
+        .card h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.6rem;
+        }
+        .card.formula {
+            background: rgba(74,158,255,0.04);
+            border-color: rgba(74,158,255,0.18);
+        }
+
+        /* Color de énfasis integrado */
+        strong.em { color: var(--text-emphasis); font-weight: 600; }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+            margin-bottom: 1.2rem;
+        }
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--divider) 30%, var(--divider) 70%, transparent);
+            margin: 80px auto;
+            max-width: 860px;
+        }
+
+        @media (max-width: 768px) {
+            .metadata-grid { grid-template-columns: repeat(2, 1fr); }
+            .metadata-item { border-bottom: 1px solid var(--divider); }
+            .card-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 2.4rem; }
+        }
+        .sim-btn {
+            background: rgba(74,158,255,0.08);
+            border: 1px solid var(--accent-border);
+            color: var(--accent);
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .sim-btn:hover {
+            background: var(--accent-dim);
+        }
+        .controls-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            margin-top: 1rem;
+        }
+        
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .control-item label {
+            color: var(--text-emphasis);
+        }
+        
+        .control-item input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+        }
+        
+        .control-value {
+            align-self: flex-end;
+            font-size: 0.7rem;
+            color: var(--accent);
+        }
+        .data-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .data-item {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        
+        .data-item strong {
+            color: var(--accent);
+            font-size: 0.8rem;
+        }
+        
+        .bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--accent);
+            transition: width 0.1s linear;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="badge">Quiz 2 · Física de Campos · 2026</div>
+        <h1>Ejercicio <span class="highlight">24.59</span><br>Placa Aislante y MAS</h1>
+        <p class="subtitle">Figura P24.59 — Campo Eléctrico Interior · Movimiento Armónico Simple · Densidad de Carga Uniforme</p>
+
+        <div class="metadata-grid">
+            <div class="metadata-item"><h3>Estudiante</h3><p>Juan David Ballesteros Amaya</p></div>
+            <div class="metadata-item"><h3>Curso</h3><p>Física de Campos</p></div>
+            <div class="metadata-item"><h3>Facultad</h3><p>Ingeniería — UdeA</p></div>
+            <div class="metadata-item"><h3>Entrega</h3><p>22 de abril de 2026</p></div>
+        </div>
+
+        <nav>
+            <ul>
+                <li><a href="#enunciado">1. Enunciado del problema</a></li>
+                <li><a href="#solucion">2. Solución matemática</a></li>
+                <li><a href="#analisis">3. Análisis teórico</a></li>
+                <li><a href="#planteamiento">4. Planteamiento de la simulación</a></li>
+                <li><a href="#simulacion">5. Simulación</a></li>
+                <li><a href="#conclusiones">6. Conclusiones</a></li>
+                <li><a href="#bibliografia">7. Bibliografía</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- ── 1. ENUNCIADO ── -->
+        <section id="enunciado" class="content-section">
+            <div class="section-header">
+                <span class="section-number">01</span>
+                <h2>Enunciado del Problema</h2>
+            </div>
+
+            <div class="card accent-left">
+                <div class="card-label">Problema 24.59 — Enunciado Completo</div>
+                <p><strong class="em">Problema de repaso.</strong> Una placa de material aislante (con dos de sus tres dimensiones infinitas) tiene una densidad de carga uniforme positiva \(\rho\). Una vista lateral de la placa se muestra en la figura P24.59.</p>
+                <br>
+                <p><strong class="em">a)</strong> Demuestre que la magnitud del campo eléctrico a una distancia \(x\) de su centro y en el interior de la placa es \(E = \rho x/\varepsilon_0\).</p>
+                <br>
+                <p><strong class="em">b) ¿Qué pasaría si?</strong> Suponga que un electrón de carga \(-e\) y de masa \(m_e\) puede moverse con libertad en el interior de la placa. Si se libera del reposo a una distancia \(x\) del centro, demuestre que el electrón despliega un movimiento armónico simple con una frecuencia:</p>
+                $$ f = \frac{1}{2\pi}\sqrt{\frac{\rho\, e}{m_e\,\varepsilon_0}} $$
+            </div>
+
+            <!-- Figura P24.59 -->
+            <div class="card" style="display:flex; flex-direction:column; align-items:center; gap:0.75rem; padding:2rem 2rem 1.5rem;">
+                <div class="card-label" style="align-self:flex-start;">Figura P24.59 — Vista Lateral de la Placa Aislante</div>
+                <svg viewBox="0 0 320 390" width="240" xmlns="http://www.w3.org/2000/svg" style="overflow:visible; margin-top:0.5rem;">
+                    <defs>
+                        <pattern id="hatch" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
+                            <line x1="0" y1="0" x2="0" y2="10" stroke="rgba(74,158,255,0.2)" stroke-width="4"/>
+                        </pattern>
+                    </defs>
+                    <rect x="125" y="35" width="70" height="280" fill="rgba(74,158,255,0.06)"/>
+                    <rect x="125" y="35" width="70" height="280" fill="url(#hatch)"/>
+                    <line x1="125" y1="35" x2="125" y2="315" stroke="rgba(74,158,255,0.45)" stroke-width="1.5"/>
+                    <line x1="195" y1="35" x2="195" y2="315" stroke="rgba(74,158,255,0.45)" stroke-width="1.5"/>
+                    <polyline points="125,35 131,26 138,35 145,26 152,35 160,26 168,35 175,26 182,35 189,26 195,35"
+                              fill="none" stroke="rgba(74,158,255,0.55)" stroke-width="1.5" stroke-linejoin="round"/>
+                    <polyline points="125,315 131,324 138,315 145,324 152,315 160,324 168,315 175,324 182,315 189,324 195,315"
+                              fill="none" stroke="rgba(74,158,255,0.55)" stroke-width="1.5" stroke-linejoin="round"/>
+                    <line x1="160" y1="12" x2="160" y2="330" stroke="#8896b0" stroke-width="1.3"/>
+                    <polygon points="160,8 156,18 164,18" fill="#8896b0"/>
+                    <text x="166" y="16" fill="#8896b0" font-family="Georgia,serif" font-size="15" font-style="italic">y</text>
+                    <line x1="55" y1="175" x2="280" y2="175" stroke="#8896b0" stroke-width="1.3"/>
+                    <polygon points="284,175 274,171 274,179" fill="#8896b0"/>
+                    <text x="287" y="180" fill="#8896b0" font-family="Georgia,serif" font-size="15" font-style="italic">x</text>
+                    <circle cx="160" cy="175" r="2.5" fill="#8896b0"/>
+                    <text x="163" y="192" fill="#8896b0" font-family="Georgia,serif" font-size="13" font-style="italic">O</text>
+                    <line x1="125" y1="330" x2="125" y2="348" stroke="#8896b0" stroke-width="0.9" stroke-dasharray="4,3"/>
+                    <line x1="195" y1="330" x2="195" y2="348" stroke="#8896b0" stroke-width="0.9" stroke-dasharray="4,3"/>
+                    <line x1="125" y1="341" x2="195" y2="341" stroke="#8896b0" stroke-width="1.1"/>
+                    <polygon points="125,341 135,337 135,345" fill="#8896b0"/>
+                    <polygon points="195,341 185,337 185,345" fill="#8896b0"/>
+                    <text x="153" y="362" fill="#8896b0" font-family="Georgia,serif" font-size="14" font-style="italic">d</text>
+                </svg>
+                <p style="font-size:0.75rem; color:var(--text-faint); font-family:'DM Mono',monospace; letter-spacing:0.5px; margin-top:0.25rem;">Figura P24.59 — Problemas 59 y 60</p>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ── 2. SOLUCIÓN ── -->
+        <section id="solucion" class="content-section">
+            <div class="section-header">
+                <span class="section-number">02</span>
+                <h2>Solución matemática completa</h2>
+            </div>
+
+            <div class="card accent-left">
+                <div class="card-label">Estrategia de Solución — Parte a)</div>
+
+                 <p>Para determinar la intensidad del campo eléctrico en el interior de la placa, se empleará la <strong class="em">Ley de Gauss</strong>. Dado que la placa posee una extensión infinita en los ejes <strong class="em">y</strong> y <strong class="em">z</strong>, el sistema presenta una <strong class="em">simetría plana</strong>. Esto implica que las líneas de campo deben ser perpendiculares a las caras de la placa y su magnitud dependerá exclusivamente de la distancia <strong class="em">x</strong> medida desde el plano central.</p>
+
+                 <br>
+
+                 <p>Se define una superficie gaussiana en forma de paralelepípedo recto (tipo <em>pillbox</em>) de área transversal <strong class="em">A</strong>. Esta superficie se sitúa simétricamente respecto al origen, extendiéndose desde <strong class="em">−x</strong> hasta <strong class="em">+x</strong>, capturando una porción de la carga distribuida en el material.</p>
+            </div>
+
+            <div class="card formula">
+              <div class="card-label">Desarrollo — Ley de Gauss</div>
+
+              <p>Partiendo de la expresión fundamental de Gauss en forma integral:</p>
+
+               $$ \oint \vec{E} \cdot d\vec{A} = \frac{Q_{\text{enc}}}{\varepsilon_0} $$
+
+               <br>
+
+               <p><strong class="em">1. Evaluación del Flujo Eléctrico (\(\Phi_E\))</strong></p>
+               <p>Debido a la simetría, el campo eléctrico es paralelo al vector área en las tapas frontales y ortogonal en las paredes laterales. Por tanto, el flujo neto es la suma del flujo a través de ambas tapas:</p>
+
+               $$ \Phi_E = 2E \cdot A $$
+
+               <br>
+
+              <p><strong class="em">2. Determinación de la Carga Encerrada (\(Q_{\text{enc}}\))</strong></p>
+              <p>La carga total dentro de la superficie gaussiana se obtiene multiplicando la densidad volumétrica \(\rho\) por el volumen contenido \((V = A \cdot 2x)\):</p>
+
+              $$ Q_{\text{enc}} = \rho (2x \cdot A) $$
+
+                <br>
+
+              <p><strong class="em">3. Resolución del Campo Eléctrico</strong></p>
+             <p>Sustituyendo ambos términos en la Ley de Gauss y simplificando las constantes:</p>
+
+               $$ 2EA = \frac{\rho (2x \cdot A)}{\varepsilon_0} \Rightarrow E = \frac{\rho x}{\varepsilon_0} $$
+
+           <br>
+
+    <p><strong class="em">Resultado:</strong> El campo en el interior apunta en dirección \(\hat{x}\) y su magnitud crece linealmente con la distancia al centro.</p>
+</div>
+
+            <div class="card accent-left">
+                <div class="card-label">Estrategia de Análisis Dinámico — Parte b)</div>
+
+                <p>En esta sección, se analiza la cinemática de un electrón sujeto a la fuerza del campo eléctrico calculado anteriormente. El objetivo es verificar si la fuerza resultante cumple con la <strong class="em">Ley de Hooke</strong>, la cual es la condición necesaria para el <strong class="em">Movimiento Armónico Simple (MAS)</strong>.</p>
+            </div>
+
+            <div class="card formula">
+                 <div class="card-label">Ecuación de Movimiento y Frecuencia</div>
+
+                <p>Al introducir un electrón (carga <strong class="em">−e</strong>, masa <strong class="em">\(m_e\)</strong>) en el interior, la fuerza eléctrica neta actúa como una <strong class="em">fuerza restauradora</strong>:</p>
+
+                $$ F_e = -eE = -\left(\frac{e\rho}{\varepsilon_0}\right)x $$
+
+                <br>
+
+                <p>Aplicando la <strong class="em">Segunda Ley de Newton</strong> en términos de la aceleración instantánea (\(\ddot{x}\)):</p>
+
+                $$ m_e \ddot{x} = -\left(\frac{e\rho}{\varepsilon_0}\right)x \Rightarrow \ddot{x} + \left(\frac{e\rho}{m_e \varepsilon_0}\right)x = 0 $$
+
+                <br>
+
+                <p><strong class="em">Cálculo de Parámetros Oscilatorios</strong></p>
+
+                <p>La ecuación anterior es la forma estándar de un oscilador armónico \(\ddot{x} + \omega^2 x = 0\), donde la frecuencia angular es:</p>
+
+                $$ \omega = \sqrt{\frac{e\rho}{m_e \varepsilon_0}} $$
+
+                <br>
+
+                <p>Finalmente, la frecuencia de oscilación \(f\) se define como:</p>
+
+                $$ f = \frac{\omega}{2\pi} = \frac{1}{2\pi}\sqrt{\frac{\rho e}{m_e \varepsilon_0}} $$
+
+                <br>
+
+                <p><strong class="em">Conclusión:</strong> Se demuestra que el electrón oscilará indefinidamente alrededor del centro de la placa con la frecuencia especificada.</p>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ── 3. ANÁLISIS ── -->
+        <section id="analisis" class="content-section">
+            <div class="section-header">
+                <span class="section-number">03</span>
+                <h2>Análisis funcional o teórico</h2>
+            </div>
+
+            <!-- 1 y 2 en grid -->
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-label">Geometría del Sistema</div>
+                    <p>Se considera una placa de material aislante con extensión infinita en los ejes <strong class="em">\(y\)</strong> y <strong class="em">\(z\)</strong>, lo que permite despreciar los efectos de borde. El grosor finito <strong class="em">\(d\)</strong> se sitúa a lo largo del eje <strong class="em">\(x\)</strong>, con el plano de simetría ubicado en <strong class="em">\(x = 0\)</strong>.</p>
+                    <br>
+                    <p>La distribución de carga es volumétrica y homogénea, definida por una densidad constante <strong class="em">\(\rho\)</strong>. Esta configuración garantiza que el campo eléctrico resultante sea puramente unidimensional y dependiente solo de la posición <strong class="em">\(x\)</strong>.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">Simetría y Superficie Gaussiana</div>
+                    <p>Debido a la simetría plana, el campo eléctrico <strong class="em">\(\vec{E}\)</strong> debe ser paralelo al eje <strong class="em">\(x\)</strong> y simétrico respecto al origen <strong class="em">\(E(x) = -E(-x)\)</strong>.</p>
+                    <br>
+                    <p>Se selecciona una superficie gaussiana tipo <em>pillbox</em> de sección transversal <strong class="em">\(A\)</strong>, con sus caras ubicadas en <strong class="em">\(\pm x\)</strong> dentro de la placa (<strong class="em">\(|x| &lt; d/2\)</strong>).</p>
+                    <br>
+                    <p>El flujo eléctrico se reduce únicamente a las tapas, ya que el campo es perpendicular a ellas y paralelo a las paredes laterales.</p>
+                </div>
+            </div>
+
+            <!-- 3 -->
+            <div class="card accent-left">
+                <div class="card-label">Naturaleza del Movimiento — MAS</div>
+                <p>Al interactuar un electrón con el campo interno lineal <strong class="em">\(E \propto x\)</strong>, se genera una fuerza eléctrica proporcional al desplazamiento pero en sentido opuesto.</p>
+                <br>
+                <p>Esto conduce a una ecuación diferencial de segundo orden de la forma <strong class="em">\(\ddot{x} + \omega^2 x = 0\)</strong>, característica del <strong class="em">Movimiento Armónico Simple (MAS)</strong>.</p>
+                <br>
+                <p>El centro de la placa actúa como un punto de equilibrio estable. En ausencia de fuerzas disipativas, el electrón describe una oscilación periódica cuya frecuencia depende únicamente de <strong class="em">\(\rho\)</strong> y <strong class="em">\(m_e\)</strong>.</p>
+            </div>
+
+            <!-- NUEVO: Energía -->
+            <div class="card accent-left">
+                <div class="card-label">Consideraciones Energéticas</div>
+                <p>El potencial eléctrico en el interior de la placa sigue una forma parabólica <strong class="em">\(V(x) \propto x^2\)</strong>.</p>
+                <br>
+                <p>Esto implica que el electrón se encuentra atrapado en un pozo de potencial armónico, donde la energía cinética es máxima al cruzar el plano <strong class="em">\(x = 0\)</strong> y la energía potencial alcanza su valor máximo en los extremos de la oscilación.</p>
+            </div>
+
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ── 4. PLANTEAMIENTO ── -->
+        <section id="planteamiento" class="content-section">
+            <div class="section-header">
+                <span class="section-number">04</span>
+                <h2>Planteamiento de la simulación</h2>
+            </div>
+
+            <!-- Variables -->
+            <div class="card">
+                <div class="card-label">Variables y Parámetros</div>
+        
+                <p><strong class="em">\(\rho\)</strong> — Densidad de carga volumétrica uniforme \((\text{C/m}^3)\)</p>
+                <br>
+                <p><strong class="em">\(\varepsilon_0\)</strong> — Permitividad del vacío \((8.85\times10^{-12}\ \text{C}^2/\text{N·m}^2)\)</p>
+                <br>
+                <p><strong class="em">\(e\)</strong> — Carga elemental \((1.6\times10^{-19}\ \text{C})\)</p>
+                <br>
+                <p><strong class="em">\(m_e\)</strong> — Masa del electrón \((9.11\times10^{-31}\ \text{kg})\)</p>
+                <br>
+                <p><strong class="em">\(x\)</strong> — Posición respecto al centro de la placa</p>
+            </div>
+
+            <!-- Modelo matemático -->
+            <div class="card">
+                <div class="card-label">Modelo Matemático (Ecuación Diferencial)</div>
+        
+                <p>Ecuación diferencial de segundo orden que describe la dinámica del electrón:</p>
+        
+                $$ \ddot{x} + \frac{e\rho}{m_e \varepsilon_0} x = 0 $$
+        
+                <p>Esta ecuación corresponde a un <strong class="em">oscilador armónico simple</strong>.</p>
+            </div>
+
+            <!-- Condiciones iniciales -->
+            <div class="card">
+                <div class="card-label">Condiciones Iniciales</div>
+
+                <p>Estado del sistema en \(t = 0\):</p>
+
+                <p><strong class="em">\(x_0\)</strong> — Posición inicial (amplitud)</p>
+                <br>
+                <p><strong class="em">\(v_0 = 0\)</strong> — Velocidad inicial</p>
+                <br>
+                <p><strong class="em">\(\Delta t\)</strong> — Paso de integración numérica</p>
+            </div>
+        
+            <!-- Frecuencia -->
+            <div class="card formula">
+                <div class="card-label">Frecuencia del Oscilador</div>
+        
+                <p>La frecuencia natural de oscilación esperada es:</p>
+        
+                $$ f = \frac{1}{2\pi}\sqrt{\frac{e\rho}{m_e \varepsilon_0}} $$
+            </div>
+
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ── 5. SIMULACIÓN ── -->
+        <section id="simulacion" class="content-section">
+            <div class="section-header">
+                <span class="section-number">05</span>
+                <h2>Simulación interactiva o visualización dinámica</h2>
+            </div>
+        
+            <!-- Panel de control -->
+            <div class="card">
+                <div class="card-label">Panel de Control de Parámetros</div>
+        
+                <p>La simulación permite modificar en tiempo real las variables físicas del sistema para observar su impacto directo en la dinámica del electrón:</p>
+        
+                <br>
+        
+                <p><strong class="em">\(\rho\)</strong> — Densidad de carga: controla la intensidad del campo eléctrico y la frecuencia de oscilación.</p>
+                <p><strong class="em">\(x_0\)</strong> — Posición inicial: determina la amplitud del movimiento.</p>
+                <p><strong class="em">\(m_e\)</strong> — Masa de la partícula: permite analizar el efecto de la inercia sobre el periodo.</p>
+        
+                <br>
+        
+                <!-- ESPACIO PARA SLIDERS -->
+        <div id="controls-panel" class="controls-panel">
+
+            <!-- rho -->
+            <div class="control-item">
+                <label>\(\rho\) — Densidad de carga</label>
+                <input type="range" id="rhoSlider" min="0.1" max="2" step="0.1" value="1">
+                <span class="control-value" id="rhoValue">1.0</span>
+            </div>
+
+            <!-- x0 -->
+            <div class="control-item">
+                <label>\(x_0\) — Posición inicial</label>
+                <input type="range" id="x0Slider" min="0.1" max="1" step="0.05" value="0.5">
+                <span class="control-value" id="x0Value">0.5</span>
+            </div>
+
+            <!-- masa -->
+            <div class="control-item">
+                <label>\(m_e\) — Masa (escala)</label>
+                <input type="range" id="mSlider" min="0.5" max="2" step="0.1" value="1">
+                <span class="control-value" id="mValue">1.0</span>
+            </div>
+
+        </div>
+            </div>
+        
+            <!-- Indicadores -->
+            <div class="card">
+                <div class="card-label">Indicadores en Tiempo Real</div>
+        
+                <p>Durante la simulación se visualizarán variables dinámicas que describen el estado instantáneo del sistema:</p>
+        
+                <br>
+        
+                <p><strong class="em">Frecuencia medida</strong> — Comparación en tiempo real con el valor teórico.</p>
+                
+                <br>
+        
+                <!-- ESPACIO PARA DATA -->
+                <div id="data-panel" class="data-panel">
+
+            <div class="data-item">
+                <span>Frecuencia teórica</span>
+                <strong id="freqTheory">0.00 Hz</strong>
+            </div>
+        
+            
+
+        </div>
+            </div>
+        
+            
+        
+            <!-- Visualización -->
+            <div class="card">
+                <div class="card-label">Visualización del Sistema</div>
+        
+                <p>El electrón se representa en un espacio dinámico donde se visualizan magnitudes físicas relevantes:</p>
+        
+                <br>
+        
+                <p><strong class="em">Vector fuerza eléctrica</strong> — Proporcional a la distancia \(x\), indicando la naturaleza restauradora.</p>
+                <p><strong class="em">Movimiento oscilatorio</strong> — Representación del MAS en tiempo real.</p>
+        
+                <br>
+        
+                <!-- CANVAS -->
+                <canvas id="simulationCanvas" width="600" height="250"></canvas>
+            </div>
+        
+            <!-- Gráficas -->
+            <div class="card">
+                <div class="card-label">Gráficas Vinculadas</div>
+        
+                <p>Las gráficas permiten analizar el comportamiento del sistema y su relación con la animación:</p>
+        
+                <br>
+        
+                <p><strong class="em">\(x(t)\)</strong> — Posición en función del tiempo.</p>
+                <p><strong class="em">Interacción</strong> — Al hacer click la particula volvera a inicar desde el tiempo 0</p>
+        
+                <br>
+        
+                <!-- GRAFICA -->
+                <canvas id="graphCanvas" width="600" height="200"></canvas>
+            </div>
+        
+            
+
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ── 6. CONCLUSIONES ── -->
+       <section id="conclusiones" class="content-section">
+
+           <div class="section-header">
+               <span class="section-number">06</span>
+               <h2>Conclusiones</h2>
+           </div>
+
+    <!-- 1. CONCLUSIÓN PRINCIPAL (FULL WIDTH) -->
+           <div class="card accent-left">
+               <div class="card-label">Conclusión Principal</div>
+               <p>
+                   La aplicación de la <strong>Ley de Gauss</strong> bajo condiciones de simetría plana revela que el campo eléctrico en el interior de una distribución volumétrica uniforme posee una dependencia lineal respecto a la posición. Esta característica es clave desde el punto de vista dinámico, ya que el sistema equivale a un <strong>potencial armónico</strong>.
+               </p>
+               <p>
+                   Como consecuencia, una carga puntual confinada experimenta una fuerza de restitución tipo Hooke, dando lugar a un <strong>Movimiento Armónico Simple (MAS)</strong> estable y periódico.
+               </p>
+           </div>
+
+           <!-- 2 y 3 EN GRID -->
+           <div class="card-grid">
+       
+               <div class="card">
+                   <div class="card-label">Análisis del Campo (Parte A)</div>
+                   <p>
+                       El campo eléctrico interno presenta una relación lineal con la posición (\(E \propto x\)) y se anula en el plano de simetría (\(x = 0\)).
+                   </p>
+                   <br>
+                   <p>\( E = \frac{\rho x}{\varepsilon_0} \)</p>
+               </div>
+       
+               <div class="card">
+                   <div class="card-label">Dinámica del Electrón (Parte B)</div>
+                   <p>
+                       El sistema presenta <strong>isocronismo</strong>, es decir, la frecuencia de oscilación es independiente de la amplitud inicial.
+                   </p>
+                   <br>
+                   <p>\( k_{\text{eff}} = \frac{e \rho}{\varepsilon_0} \)</p>
+               </div>
+       
+           </div>
+       
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ── 7. BIBLIOGRAFÍA ── -->
+        <section id="bibliografia" class="content-section">
+            <div class="section-header">
+                <span class="section-number">07</span>
+                <h2>Bibliografía</h2>
+            </div>
+
+            <div class="card accent-left">
+                <div class="card-label">Libro de Texto</div>
+                <p>Serway, R. A. & Jewett, J. W. (2014). <em>Physics for Scientists and Engineers</em> (9th ed.). Cengage Learning. Capítulo 24, Problema 59.</p>
+            </div>
+            <div class="card accent-left">
+                <div class="card-label">Referencia Complementaria</div>
+                <p>Griffiths, D. J. (2013). <em>Introduction to Electrodynamics</em> (4th ed.). Pearson. Sección 2.2 — Ley de Gauss.</p>
+            </div>
+            
+        </section>
+
+    </main>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+        
+            // ===== 1. ELEMENTOS DEL DOM =====
+            const rhoSlider = document.getElementById("rhoSlider");
+            const x0Slider = document.getElementById("x0Slider");
+            const mSlider = document.getElementById("mSlider");
+        
+            const rhoValue = document.getElementById("rhoValue");
+            const x0Value = document.getElementById("x0Value");
+            const mValue = document.getElementById("mValue");
+        
+            const freqTheoryDisplay = document.getElementById("freqTheory");
+        
+            const simCanvas = document.getElementById("simulationCanvas");
+            const simCtx = simCanvas.getContext("2d");
+        
+            const graphCanvas = document.getElementById("graphCanvas");
+            const graphCtx = graphCanvas.getContext("2d");
+        
+            // ===== 2. VARIABLES =====
+            let rho = parseFloat(rhoSlider.value);
+            let x0 = parseFloat(x0Slider.value);
+            let m = parseFloat(mSlider.value);
+        
+            const epsilon0 = 1;
+        
+            let x = x0;
+            let v = 0;
+            let a = 0;
+            let t = 0;
+            let history = [];
+        
+            const dt = 0.016;
+            const scale = 200;
+        
+            let trail = [];
+        
+            // ===== 3. FUNCIONES UI =====
+            function updateValues() {
+                rhoValue.textContent = rho.toFixed(2);
+                x0Value.textContent = x0.toFixed(2);
+                mValue.textContent = m.toFixed(2);
+            }
+        
+            function updateFrequency() {
+                if (m <= 0) return;
+        
+                const omega = Math.sqrt(rho / (m * epsilon0));
+                const f = omega / (2 * Math.PI);
+        
+                freqTheoryDisplay.textContent = f.toFixed(2) + " Hz";
+            }
+        
+            // ===== 4. FÍSICA =====
+            function getOmega() {
+                return Math.sqrt(rho / (m * epsilon0));
+            }
+        
+            function updatePhysics() {
+                const omega = getOmega();
+        
+                a = -omega * omega * x;
+                v += a * dt;
+                x += v * dt;
+        
+                t += dt;
+
+                history.push({ t, x });
+        
+                trail.push(x);
+                if (trail.length > 120) trail.shift();
+            }
+                
+           // ===== 5. DIBUJO =====
+            function drawSimulation() {
+                simCtx.clearRect(0, 0, simCanvas.width, simCanvas.height);
+        
+                const cx = simCanvas.width / 2;
+                        const cy = simCanvas.height / 2;
+        
+                // eje
+                simCtx.beginPath();
+                simCtx.moveTo(0, cy);
+                simCtx.lineTo(simCanvas.width, cy);
+                simCtx.strokeStyle = "#555";
+                simCtx.stroke();
+        
+                // rastro
+                simCtx.beginPath();
+                trail.forEach((tx, i) => {
+                    const px = cx + tx * scale;
+                    if (i === 0) simCtx.moveTo(px, cy);
+                    else simCtx.lineTo(px, cy);
+                });
+                simCtx.strokeStyle = "rgba(74,158,255,0.4)";
+                simCtx.stroke();
+        
+                // electrón
+                const px = cx + x * scale;
+
+                simCtx.beginPath();
+                simCtx.arc(px, cy, 8, 0, Math.PI * 2);
+                simCtx.fillStyle = "#4a9eff";
+                simCtx.fill();
+        
+                // fuerza
+                simCtx.beginPath();
+                simCtx.moveTo(px, cy);
+                simCtx.lineTo(px - x * 80, cy);
+                simCtx.strokeStyle = "#ff6b6b";
+                simCtx.stroke();
+            }
+            function drawAxes(w, h, tMin, tMax) {
+
+                const midY = h / 2;
+
+                graphCtx.strokeStyle = "#888";
+                graphCtx.lineWidth = 1;
+
+                // ===== EJE X =====
+                graphCtx.beginPath();
+                graphCtx.moveTo(0, midY);
+                graphCtx.lineTo(w, midY);
+                graphCtx.stroke();
+
+                // ===== EJE Y (centrado) =====
+                const midX = w / 2;
+            
+                graphCtx.beginPath();
+                graphCtx.moveTo(midX, 0);
+                graphCtx.lineTo(midX, h);
+                graphCtx.stroke();
+            
+                // ===== ESTILO TEXTO =====
+                graphCtx.fillStyle = "#aaa";
+                graphCtx.font = "10px Arial";
+            
+                // ===== TICKS EN X (tiempo) =====
+                const numXTicks = 6;
+            
+                for (let i = 0; i <= numXTicks; i++) {
+            
+                    const px = (i / numXTicks) * w;
+                    const tVal = tMin + (i / numXTicks) * (tMax - tMin);
+            
+                    // tick
+                    graphCtx.beginPath();
+                    graphCtx.moveTo(px, midY - 5);
+                    graphCtx.lineTo(px, midY + 5);
+                    graphCtx.stroke();
+            
+                    // número
+                    graphCtx.fillText(tVal.toFixed(1), px - 10, midY + 15);
+                }
+
+                // ===== TICKS EN Y (posición) =====
+                const numYTicks = 4;
+            
+                for (let i = -numYTicks; i <= numYTicks; i++) {
+            
+                    const py = midY - i * (h / (2 * numYTicks));
+            
+                    // tick
+                    graphCtx.beginPath();
+                    graphCtx.moveTo(midX - 5, py);
+                    graphCtx.lineTo(midX + 5, py);
+                    graphCtx.stroke();
+            
+                    // valor (escala = la misma que usas para graficar)
+                    const yVal = (i * (h / (2 * numYTicks))) / 80;
+            
+                    graphCtx.fillText(yVal.toFixed(2), midX + 8, py + 3);
+                }
+            }
+
+            function drawGraph() {
+                graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+            
+                const w = graphCanvas.width;
+                const h = graphCanvas.height;
+            
+                if (history.length < 2) return;
+            
+                const windowSize = 5; // segundos visibles
+                const tMin = t - windowSize / 2;
+                const tMax = t + windowSize / 2;
+            
+                if (tMax === tMin) return;
+
+                drawAxes(w, h, tMin, tMax);
+            
+                graphCtx.beginPath();
+            
+                history.forEach((p, i) => {
+                    const px = ((p.t - tMin) / (tMax - tMin)) * w;
+                    const py = h / 2 - p.x * 80;
+            
+                    if (i === 0) graphCtx.moveTo(px, py);
+                    else graphCtx.lineTo(px, py);
+                });
+            
+                graphCtx.strokeStyle = "#4a9eff";
+                graphCtx.stroke();
+            
+                // punto actual
+                const last = history[history.length - 1];
+            
+                const px = w/2;
+                const py = h / 2 - last.x * 80;
+            
+                graphCtx.beginPath();
+                graphCtx.arc(px, py, 5, 0, Math.PI * 2);
+                graphCtx.fillStyle = "#ffcc00";
+                graphCtx.fill();
+            }
+            // ===== 6. EVENTOS =====
+            rhoSlider.addEventListener("input", () => {
+                rho = parseFloat(rhoSlider.value);
+                resetSimulation();
+                updateValues();
+                updateFrequency();
+            });
+        
+            x0Slider.addEventListener("input", () => {
+                x0 = parseFloat(x0Slider.value);
+                resetSimulation();
+                updateValues();
+            });
+        
+            mSlider.addEventListener("input", () => {
+                m = parseFloat(mSlider.value);
+                resetSimulation();
+                updateValues();
+                updateFrequency();
+            });
+        
+            graphCanvas.addEventListener("click", (e) => {
+                const rect = graphCanvas.getBoundingClientRect();
+                const xMouse = e.clientX - rect.left;
+        
+                const w = graphCanvas.width;
+                const omega = getOmega();
+        
+                const time = (xMouse / w) * 10;
+        
+                x = x0 * Math.cos(omega * time);
+                v = -x0 * omega * Math.sin(omega * time);
+                t = time;
+
+                history = [{ t, x }];
+            });
+        
+            // ===== 7. RESET =====
+            function resetSimulation() {
+                x = x0;
+                v = 0;
+                t = 0;
+                trail = [];
+                history = [];
+            }
+        
+            // ===== 8. LOOP =====
+            function animate() {
+                updatePhysics();
+                drawSimulation();
+                drawGraph();
+                requestAnimationFrame(animate);
+            }
+        
+            // ===== INICIO =====
+            updateValues();
+            updateFrequency();
+            resetSimulation();
+            animate();
+        
+        });
+    </script>
+</body>
+</html>

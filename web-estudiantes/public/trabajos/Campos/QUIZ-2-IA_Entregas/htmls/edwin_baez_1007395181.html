@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universidad de Antioquia - Física de Campos - Quiz 2</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --text-color: #c9d1d9;
+            --primary-color: #58a6ff; /* Azul eléctrico */
+            --secondary-color: #d29922; /* Dorado */
+            --card-bg: #161b22;
+            --border-color: #30363d;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: linear-gradient(135deg, #0d1117 0%, #1f2937 100%);
+            border-bottom: 2px solid var(--primary-color);
+            padding: 2rem;
+            text-align: center;
+        }
+        h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        h2 {
+            color: var(--secondary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: var(--primary-color);
+            margin-top: 1.5rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+            transition: transform 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: #484f58;
+        }
+        .math-block {
+            background-color: #0d1117;
+            padding: 1rem;
+            border-radius: 5px;
+            overflow-x: auto;
+            border-left: 4px solid var(--primary-color);
+            margin: 1.5rem 0;
+            font-size: 1.1rem;
+        }
+        .highlight {
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        .result-box {
+            background-color: rgba(88, 166, 255, 0.1);
+            border: 1px solid var(--primary-color);
+            padding: 1rem;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 0 10px rgba(88, 166, 255, 0.2);
+        }
+        /* Slider styles */
+        .slider-container {
+            background-color: #0d1117;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-top: 1rem;
+        }
+        input[type=range] {
+            width: 100%;
+            margin: 1.5rem 0;
+            accent-color: var(--primary-color);
+        }
+        .sim-result {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            text-align: center;
+            font-weight: bold;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        ul {
+            list-style-type: square;
+            padding-left: 1.5rem;
+        }
+        li {
+            margin-bottom: 0.8rem;
+        }
+        footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 3rem;
+            color: #8b949e;
+            background-color: #010409;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Universidad de Antioquia</h1>
+    <h2 style="border:none; margin-top:0.5rem; color: var(--text-color); font-weight: normal;">Física de Campos - Quiz 2</h2>
+</header>
+
+<div class="container">
+    
+    <div class="card">
+        <h2>1. Enunciado del problema asignado</h2>
+        <p>La batería de un automóvil tiene una fem de <strong>12.6 V</strong> y una resistencia interna de <strong>0.080 \(\Omega\)</strong>. Los dos faros juntos presentan una resistencia equivalente de <strong>5.00 \(\Omega\)</strong> (que se supone constante).</p>
+        <p>¿Cuál es la diferencia de potencial aplicada a las lámparas de los faros:</p>
+        <ul>
+            <li><strong>a)</strong> cuando representan la única carga de la batería?</li>
+            <li><strong>b)</strong> cuando funciona el motor de arranque, que consume <strong>35.0 A</strong> adicionales de la batería?</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>2. Solución matemática completa</h2>
+        <p>La batería no entrega todo el voltaje directamente, porque parte se pierde en su resistencia interna.</p>
+        <p>La fórmula importante es:</p>
+        <div class="math-block">
+            \[ V_{\text{terminal}} = \varepsilon - I \cdot r \]
+        </div>
+        <p>Donde:</p>
+        <ul>
+            <li>\( V_{\text{terminal}} \) = voltaje que realmente llega a los faros</li>
+            <li>\( I \) = corriente total que entrega la batería</li>
+            <li>\( \varepsilon \) = fem de la batería (12.6 V)</li>
+            <li>\( r \) = resistencia interna (0.080 \(\Omega\))</li>
+        </ul>
+
+        <h3>🟢 a) Solo los faros conectados</h3>
+        <p>Primero calculamos la corriente:</p>
+        <div class="math-block">
+            \[ I = \frac{\varepsilon}{R + r} \]
+        </div>
+        <p>Sustituyendo los valores:</p>
+        <div class="math-block">
+            \[ I = \frac{12.6}{5.00 + 0.080} = \frac{12.6}{5.08} \approx 2.48 \text{ A} \]
+        </div>
+        <p>Ahora calculamos el voltaje en los faros:</p>
+        <div class="math-block">
+            \[ V = I \cdot R = 2.48 \cdot 5.00 \approx 12.4 \text{ V} \]
+        </div>
+        <div class="result-box">
+            ✅ <strong>Resultado a):</strong> \( V \approx 12.4 \text{ V} \)
+        </div>
+
+        <h3>🔴 b) Con el motor de arranque funcionando</h3>
+        <p>Aquí cambia algo importante: la batería ahora entrega más corriente total.</p>
+        <div class="math-block">
+            \[ I_{\text{total}} = I_{\text{faros}} + I_{\text{motor}} \]
+        </div>
+        <p>Pero primero encontramos el voltaje en bornes usando:</p>
+        <div class="math-block">
+            \[ V = \varepsilon - I_{\text{total}} \cdot r \]
+        </div>
+        <p>Sabemos que la corriente de los faros depende del voltaje terminal:</p>
+        <div class="math-block">
+            \[ I_{\text{faros}} = \frac{V}{R} \]
+        </div>
+        <p>Entonces, la corriente total es:</p>
+        <div class="math-block">
+            \[ I_{\text{total}} = \frac{V}{5.00} + 35 \]
+        </div>
+        <p>Sustituimos en la ecuación de voltaje:</p>
+        <div class="math-block">
+            \[ V = 12.6 - \left( \frac{V}{5.00} + 35 \right)(0.080) \]
+        </div>
+        <p>Resolviendo (distribuimos):</p>
+        <div class="math-block">
+            \[ V = 12.6 - 0.080 \left( \frac{V}{5.00} \right) - 0.080(35) \]
+            \[ V = 12.6 - 0.016V - 2.8 \]
+            \[ V = 9.8 - 0.016V \]
+        </div>
+        <p>Pasamos términos con \( V \) al mismo lado:</p>
+        <div class="math-block">
+            \[ V + 0.016V = 9.8 \]
+            \[ 1.016V = 9.8 \]
+            \[ V = \frac{9.8}{1.016} \approx 9.65 \text{ V} \]
+        </div>
+        <div class="result-box">
+            ✅ <strong>Resultado b):</strong> \( V \approx 9.65 \text{ V} \)
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>3. Análisis funcional o teórico</h2>
+        <ul>
+            <li>La <span class="highlight">resistencia interna</span> limita el rendimiento de la batería, causando una caída de voltaje cuando fluye corriente.</li>
+            <li>El voltaje disponible en los bornes depende directamente de la corriente demandada por el circuito.</li>
+            <li>Sistemas con alta demanda de corriente (como el motor de arranque) provocan una caída de tensión significativa, lo que afecta a otros dispositivos conectados en paralelo (por eso las luces de los faros se atenúan al encender el auto).</li>
+            <li>El modelo matemático (\( V = \varepsilon - Ir \)) describe correctamente un fenómeno real y observable en la vida cotidiana.</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>5. Simulación interactiva</h2>
+        <p>Ajusta la corriente que consume el motor de arranque para ver cómo afecta el voltaje que llega a los faros. Observa cómo a mayor corriente demandada, menor es el voltaje disponible.</p>
+        
+        <div class="slider-container">
+            <label for="slider" style="font-size: 1.2rem;">Corriente del motor de arranque: <span id="valor-corriente" class="highlight">35</span> A</label>
+            <input type="range" min="0" max="100" value="35" id="slider" step="1">
+            
+            <div class="sim-result">
+                Voltaje en los faros: <span id="resultado-voltaje">9.65</span> V
+            </div>
+            <p style="text-align: center; font-size: 0.9rem; color: #8b949e; margin-top: 1rem;">(Con 0 A, equivale al caso <strong>a</strong>. Con 35 A, equivale al caso <strong>b</strong>)</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>6. Bibliografía</h2>
+        <p>Serway, R. A., & Jewett, J. W. (2009). <em>Física para ciencias e ingeniería con Física Moderna, Volumen 2</em> (7ma ed.). Cengage Learning.</p>
+    </div>
+
+</div>
+
+<footer>
+    <p>Desarrollado para el Quiz 2 de Física de Campos - Universidad de Antioquia</p>
+</footer>
+
+<script>
+    const slider = document.getElementById('slider');
+    const valorCorriente = document.getElementById('valor-corriente');
+    const resultadoVoltaje = document.getElementById('resultado-voltaje');
+
+    // Constantes del problema
+    const fem = 12.6;
+    const r = 0.080;
+    const R_faros = 5.00;
+
+    function calcularVoltaje(I_motor) {
+        // Fórmula derivada: V = (fem - I_motor*r) / (1 + r/R_faros)
+        const factor = 1 + (r / R_faros); // 1.016
+        const V = (fem - (I_motor * r)) / factor;
+        return V.toFixed(2);
+    }
+
+    slider.addEventListener('input', function() {
+        const I_motor = parseFloat(this.value);
+        valorCorriente.textContent = I_motor;
+        
+        const V_calculado = calcularVoltaje(I_motor);
+        resultadoVoltaje.textContent = V_calculado;
+        
+        // Cambiar color si el voltaje baja mucho para dar feedback visual
+        if (V_calculado < 10) {
+            resultadoVoltaje.style.color = '#f85149'; // Rojo (alerta de bajo voltaje)
+        } else {
+            resultadoVoltaje.style.color = 'var(--primary-color)'; // Azul eléctrico (normal)
+        }
+    });
+</script>
+
+</body>
+</html>
